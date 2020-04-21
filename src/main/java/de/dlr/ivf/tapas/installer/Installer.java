@@ -121,6 +121,7 @@ public class Installer {
         connectToDB("postgres");
         Statement stmt;
         try {
+            System.out.println("Try to drop newly created database " + DBNAME);
             stmt = DBCONNECTION.createStatement();
             stmt.execute("DROP DATABASE IF EXISTS " + DBNAME);
         } catch (SQLException e) {
@@ -170,7 +171,7 @@ public class Installer {
      * @param destination directory of sql-datasets
      */
     private static void executeCompleteQuery(String destination) {
-        executeFile(destination + "\\sql_dumps\\tapas_deployment.sql");
+        executeFile(destination + "/sql_dumps/tapas_deployment.sql");
 
         //create tapas groups if they do not exist
         System.out.println("Create TAPAS groups if they do not exists already");
@@ -185,26 +186,29 @@ public class Installer {
         }
 
         // core tables
-        executeDir(destination + "\\sql_dumps\\core_tables");
+        executeDir(destination + "/sql_dumps/core_tables/core_tables_1");
+        executeDir(destination + "/sql_dumps/core_tables/core_tables_2");
         // types
-        executeDir(destination + "\\sql_dumps\\types\\core");
-        executeDir(destination + "\\sql_dumps\\types\\public");
+        executeDir(destination + "/sql_dumps/types/core");
+        executeDir(destination + "/sql_dumps/types/public");
         // functions, they have to be handled separately
-        String functionFilesComposed = composeFilesInDir(destination + "\\sql_dumps\\functions");
+        String functionFilesComposed = composeFilesInDir(destination + "/sql_dumps/functions");
         List<String> functionStringList = parseFunctionFile(functionFilesComposed);
         executeCommands(functionStringList.toArray(new String[0]));
 
         // second core tables, because they need the functions first
-        executeDir(destination + "\\sql_dumps\\core_tables_2");
+        executeDir(destination + "/sql_dumps/core_tables/core_tables_3");
 
         // public tables
-        executeDir(destination + "\\sql_dumps\\public_tables");
+        executeDir(destination + "/sql_dumps/public_tables");
 
         executeCommands(
                 new String[]{"set search_path = \"public\";", "select core.create_region_based_tables('berlin', 'core');"});
 
         // berlin sample data
-        executeDir(destination + "\\sql_dumps\\berlin");
+        executeDir(destination + "/sql_dumps/berlin/berlin_1");
+        executeDir(destination + "/sql_dumps/berlin/berlin_2");
+        executeDir(destination + "/sql_dumps/berlin/berlin_3");
     }
 
     /**
@@ -374,7 +378,7 @@ public class Installer {
      * @param destination directory to which is archive is extracted
      */
     public static void unzip(String source, String destination) {
-        System.out.println("Unzip necessary sql-data archive '" + source + "' to '" + destination + "\\'");
+        System.out.println("Unzip necessary sql-data archive '" + source + "' to '" + destination + "/'");
         try {
             ZipFile zipFile = new ZipFile(source);
             zipFile.extractAll(destination);
