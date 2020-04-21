@@ -16,15 +16,15 @@ This only applies if you don't have an already running Postgres/Postgis system.
 
 Initialize local DB Server:
 
-  `initdb[.exe] init -D path/to/data/dir -E UTF8 -U DEFAULTSUPERUSER --pwprompt`
-  'DEFAULTSUPERUSER' should probably be 'postgres' but you can set whatever you want. 
+  `initdb[.exe] -D path/to/data/dir -E UTF8 -U DEFAULTSUPERUSER --pwprompt`
+  'DEFAULTSUPERUSER' should probably be 'postgres', but you can set whatever you want. 
   
 Start DB server: 
 
     pg_ctl[.exe] -D path/to/data/dir -l /path/to/log/file start
     
 
-
+ 
 ##Execution  
 
 There are two ways to execute the Installer, SimulationControl and the SimulationDaemon: Through Gradle (if you
