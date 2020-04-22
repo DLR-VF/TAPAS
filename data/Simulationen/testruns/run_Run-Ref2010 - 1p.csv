@@ -1,0 +1,5 @@
+name,value,comment
+DB_HH_SAMPLE_SIZE,0.01,
+FLAG_PREFETCH_ALL_HOUSEHOLDS,false,
+FILE_PARENT_PROPERTIES,run_Run-Ref2010.csv,
+
