@@ -1,8 +1,5 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
@@ -17,8 +14,11 @@ import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.Randomizer;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectModel {
 	abstract class WeightedResult implements Comparable<WeightedResult>{

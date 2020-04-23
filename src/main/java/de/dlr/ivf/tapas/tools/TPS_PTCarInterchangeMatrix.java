@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.tools;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Vector;
-
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.Matrix;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Vector;
 
 
 public class TPS_PTCarInterchangeMatrix extends TPS_BasicConnectionClass {

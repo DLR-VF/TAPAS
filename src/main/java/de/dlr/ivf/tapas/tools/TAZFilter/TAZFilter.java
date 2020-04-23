@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.tools.TAZFilter;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -7,9 +10,6 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * This class provides an interface to the table <code>core.berlin_taz_multiline</code>.

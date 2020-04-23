@@ -1,10 +1,9 @@
 package de.dlr.ivf.tapas.runtime.client.util.table;
 
-import java.awt.Component;
-import java.util.Arrays;
-
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import java.awt.*;
+import java.util.Arrays;
 
 /**
  * This renderer only shows the first line (<code>\n</code>) of a String. It

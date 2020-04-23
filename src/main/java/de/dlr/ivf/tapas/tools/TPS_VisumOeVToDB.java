@@ -1,23 +1,17 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.scripts.SrVCalculator;
+import de.dlr.ivf.scripts.SrVCalculator.TAZ;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-
-import de.dlr.ivf.scripts.SrVCalculator;
-import de.dlr.ivf.scripts.SrVCalculator.TAZ;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
 
 /**
  * Class to store a result from the VISUM PT Module in the TAPAS DB. 

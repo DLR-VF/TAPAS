@@ -1,5 +1,19 @@
 package de.dlr.ivf.tapas.runtime.server;
 
+import de.dlr.ivf.tapas.TPS_Main;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.runtime.util.CPUUsage;
+import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
+import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties.DaemonControlPropKey;
+import de.dlr.ivf.tapas.runtime.util.IPInfo;
+import de.dlr.ivf.tapas.util.Checksum;
+import de.dlr.ivf.tapas.util.Checksum.HashType;
+import de.dlr.ivf.tapas.util.TPS_Argument;
+import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import org.apache.commons.lang3.SystemUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -13,21 +27,6 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import org.apache.commons.lang3.SystemUtils;
-
-import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.runtime.util.CPUUsage;
-import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
-import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties.DaemonControlPropKey;
-import de.dlr.ivf.tapas.runtime.util.IPInfo;
-import de.dlr.ivf.tapas.util.Checksum;
-import de.dlr.ivf.tapas.util.Checksum.HashType;
-import de.dlr.ivf.tapas.util.TPS_Argument;
-import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * The main method of this class is used to setup a TAPAS remote server. Each machine which is registered in the

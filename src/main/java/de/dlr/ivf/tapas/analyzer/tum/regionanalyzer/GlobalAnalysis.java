@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
-import java.util.EnumMap;
-import java.util.HashSet;
-
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroup;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
+
+import java.util.EnumMap;
+import java.util.HashSet;
 
 public class GlobalAnalysis {
 	private final RegionCode region;

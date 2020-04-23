@@ -1,5 +1,8 @@
 package de.dlr.ivf.scripts;
 
+import de.dlr.ivf.scripts.SrVCalculator.TAZ;
+import de.dlr.ivf.tapas.tools.TPS_VisumOeVToDB;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -7,9 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
-
-import de.dlr.ivf.scripts.SrVCalculator.TAZ;
-import de.dlr.ivf.tapas.tools.TPS_VisumOeVToDB;
 
 public class PTAnalyzer extends TPS_VisumOeVToDB {
 

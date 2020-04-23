@@ -1,15 +1,14 @@
 package de.dlr.ivf.tapas.tools.fileModifier;
 
-import java.awt.Frame;
+import com.csvreader.CsvReader;
+import com.csvreader.CsvWriter;
+
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
-import javax.swing.JFileChooser;
-
-import com.csvreader.CsvReader;
-import com.csvreader.CsvWriter;
 
 /**
  * 

@@ -1,9 +1,9 @@
 package de.dlr.ivf.tapas.runtime.client.ParameterComparator;
 
-import java.util.function.Predicate;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+
+import java.util.function.Predicate;
 
 public class ParamFilterPredicate {
 	

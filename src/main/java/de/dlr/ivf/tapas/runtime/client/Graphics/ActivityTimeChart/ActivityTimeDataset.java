@@ -1,13 +1,9 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.ActivityTimeChart;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-
 import org.jfree.data.category.DefaultCategoryDataset;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 @SuppressWarnings("rawtypes")
 public class ActivityTimeDataset extends DefaultCategoryDataset {

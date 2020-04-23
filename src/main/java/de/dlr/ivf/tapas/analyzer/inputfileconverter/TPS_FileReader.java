@@ -1,9 +1,9 @@
 package de.dlr.ivf.tapas.analyzer.inputfileconverter;
 
+import com.csvreader.CsvReader;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import com.csvreader.CsvReader;
 
 /**
  * This class provides basic methods to open and read from a comma separated value file via a {@link CsvReader}. You can receive the headers and each record, i.e. a line in the file. A method to check

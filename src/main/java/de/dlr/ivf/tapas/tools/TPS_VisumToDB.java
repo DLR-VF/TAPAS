@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -8,9 +11,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
-
-import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * Class to convert a visum file containing speeds, traveltimes, distances and beelines to TAPAS-Input.

@@ -1,13 +1,5 @@
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
@@ -16,6 +8,14 @@ import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.Matrix;
 import de.dlr.ivf.tapas.util.TPS_Geometrics;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**

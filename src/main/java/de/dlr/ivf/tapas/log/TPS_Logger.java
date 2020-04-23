@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.log;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Basic class for the TAPAS loging functionality.

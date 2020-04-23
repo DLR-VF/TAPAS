@@ -1,19 +1,16 @@
 package de.dlr.ivf.tapas.analyzer.core;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Collection;
-import java.util.HashSet;
-
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextPane;
-import javax.swing.text.StyledDocument;
-
 import de.dlr.ivf.tapas.analyzer.core.CoreInputInterface.Module;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.*;
+import javax.swing.text.StyledDocument;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * The main thread responsible for the processing of selected methods

@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -9,9 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 
 public class GroupToDistribute {
 	

@@ -1,28 +1,20 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general;
 
+import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
+import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DefaultDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategoryDefault;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.ModeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntention;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 public class GeneralDatabaseSummaryExport {
 

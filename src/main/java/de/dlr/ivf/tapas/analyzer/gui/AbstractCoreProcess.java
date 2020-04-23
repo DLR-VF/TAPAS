@@ -1,10 +1,9 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
-import java.io.File;
+import de.dlr.ivf.tapas.analyzer.core.CoreProcessInterface;
 
 import javax.swing.text.BadLocationException;
-
-import de.dlr.ivf.tapas.analyzer.core.CoreProcessInterface;
+import java.io.File;
 
 
 public abstract class AbstractCoreProcess implements CoreProcessInterface {

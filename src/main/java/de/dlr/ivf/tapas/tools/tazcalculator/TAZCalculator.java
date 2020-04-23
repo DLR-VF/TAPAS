@@ -1,17 +1,13 @@
 package de.dlr.ivf.tapas.tools.tazcalculator;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class TAZCalculator {
 

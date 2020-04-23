@@ -1,9 +1,9 @@
 package de.dlr.ivf.tapas.tools.TUM;
 
-import javax.swing.tree.DefaultMutableTreeNode;
-
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.AnalyzerCollection;
+
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class StandardTUM extends IntegratedTUM{
 

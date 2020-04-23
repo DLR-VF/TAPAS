@@ -1,15 +1,9 @@
 package de.dlr.ivf.tapas.runtime.util;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+
+import java.io.*;
 
 /**
  * This class reads all output from a foreign process and prints it to the System default output and error stream.

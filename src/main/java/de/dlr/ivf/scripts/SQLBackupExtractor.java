@@ -1,14 +1,10 @@
 package de.dlr.ivf.scripts;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 public class SQLBackupExtractor extends TPS_BasicConnectionClass {
 

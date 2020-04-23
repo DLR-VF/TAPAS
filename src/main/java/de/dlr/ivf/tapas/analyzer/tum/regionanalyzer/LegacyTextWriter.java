@@ -6,18 +6,12 @@
  */
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 import java.util.ArrayList;
-
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Job;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntention;
 
 public class LegacyTextWriter {
 

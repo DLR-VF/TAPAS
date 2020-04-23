@@ -1,9 +1,5 @@
 package de.dlr.ivf.tapas.person;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.Callable;
-
 import de.dlr.ivf.tapas.TPS_Main;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
@@ -21,6 +17,10 @@ import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Callable;
 
 /**
  * A TPS_Worker proceeds all available households and searches plans for all household members. after a plan is

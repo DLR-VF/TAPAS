@@ -1,10 +1,10 @@
 package de.dlr.ivf.tapas.modechoice;
 
-import java.util.Collection;
-
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
+
+import java.util.Collection;
 
 public class TPS_ExpertKnowledgeNode extends TPS_Node {
 

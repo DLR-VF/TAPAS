@@ -1,23 +1,18 @@
 package de.dlr.ivf.tapas.analyzer.tum.results;
 
+import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.RegionAnalyzer;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.RegionAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntention;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * Writes the results of a {@link RegionAnalyzer} into the database table calibration_results.<br>

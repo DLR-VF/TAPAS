@@ -1,17 +1,5 @@
 package de.dlr.ivf.tapas.iteration;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
-
 import de.dlr.ivf.tapas.TPS_Main;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
@@ -22,12 +10,15 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.Matrix;
 import de.dlr.ivf.tapas.util.MatrixMap;
-import de.dlr.ivf.tapas.util.parameters.CURRENCY;
-import de.dlr.ivf.tapas.util.parameters.ParamMatrixMap;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.util.parameters.*;
+
+import java.io.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.StringTokenizer;
 
 /**
  * This class provides all the necessary tools to communicate with Visum.

@@ -1,5 +1,11 @@
 package de.dlr.ivf.scripts;
 
+import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
+import de.dlr.ivf.tapas.mode.TPS_Mode;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.util.TPS_Geometrics;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -7,12 +13,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
-
-import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
-import de.dlr.ivf.tapas.mode.TPS_Mode;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
 
 public class OTP2SQLMatrix extends TPS_BasicConnectionClass {
     double[][] matrixTT = null;

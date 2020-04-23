@@ -1,10 +1,10 @@
 package de.dlr.ivf.tapas.util;
 
-import java.util.Arrays;
-
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.util.Matrix.MatrixPrint;
+
+import java.util.Arrays;
 
 /**
  * Class for a set of matrices, which correspond to a given distribution

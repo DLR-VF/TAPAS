@@ -1,13 +1,9 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-
 import de.dlr.ivf.tapas.analyzer.core.Constants;
+
+import java.io.*;
+import java.util.Properties;
 
 /**
  * Ein Manager der sich um das Speihern der zuletzt selektierten Dateipfade kümmert. Wird der {@link FileChooser} oder {@link FilesChooser} verwendet, speichern diese den selektierten Pfad mithilfe

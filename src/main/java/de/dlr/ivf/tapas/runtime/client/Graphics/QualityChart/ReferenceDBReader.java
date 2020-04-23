@@ -1,16 +1,16 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategoryDefault;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
 
 /**
  * This class provides an interface to the public table <code>reference</code>.

@@ -1,13 +1,10 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.ModalSplitChart;
 
-import java.awt.Color;
-import java.awt.Paint;
-import java.awt.Shape;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashSet;
-
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategoryDefault;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
+import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.Quality;
+import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.LegendItem;
 import org.jfree.chart.LegendItemCollection;
@@ -18,14 +15,14 @@ import org.jfree.chart.plot.DefaultDrawingSupplier;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.DefaultXYItemRenderer;
 import org.jfree.chart.title.LegendTitle;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.chart.ui.RectangleEdge;
+import org.jfree.data.xy.XYDataset;
 
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategoryDefault;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
-import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.Quality;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
 
 /**
  * This is a {@link JFreeChart} to compare the generated modal split with a

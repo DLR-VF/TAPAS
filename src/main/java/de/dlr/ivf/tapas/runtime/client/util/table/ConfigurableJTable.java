@@ -1,12 +1,11 @@
 package de.dlr.ivf.tapas.runtime.client.util.table;
 
-import java.awt.Dimension;
-
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import java.awt.*;
 
 /**
  * Basic table for this GUI which provides method to initialise complete columns

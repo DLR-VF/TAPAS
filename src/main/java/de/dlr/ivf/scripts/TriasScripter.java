@@ -1,21 +1,14 @@
 package de.dlr.ivf.scripts;
 
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
-
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 public class TriasScripter extends TPS_BasicConnectionClass {
 	
 	private final static String HOST = "http://v1.api.efa.de";

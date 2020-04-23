@@ -1,16 +1,12 @@
 package de.dlr.ivf.tapas.person;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import de.dlr.ivf.tapas.constants.TPS_Sex;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
+
+import java.util.*;
 
 /**
  * This class represents a household.

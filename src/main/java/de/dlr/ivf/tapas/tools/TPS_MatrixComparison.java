@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -8,9 +11,6 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
 

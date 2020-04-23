@@ -1,9 +1,8 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general;
 
 
-
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
 
 /**
  * This class groups {@link AnalyzerBase} objects and works as a wrapper for

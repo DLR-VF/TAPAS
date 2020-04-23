@@ -1,5 +1,7 @@
 package de.dlr.ivf.scripts;
 
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -7,8 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 public class VP2030Comparator extends TPS_BasicConnectionClass {
 	enum Wegzweck {BERUF,BILDUNG,EINKAUF,DIENST,URLAUB,PRIVAT,ALL}

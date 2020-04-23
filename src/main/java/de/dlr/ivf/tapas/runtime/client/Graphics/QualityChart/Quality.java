@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart;
 
-import java.awt.Color;
+import java.awt.*;
 
 public enum Quality {
 	NOT_SET(Color.GRAY), //

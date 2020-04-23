@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.log;
 
+import de.dlr.ivf.tapas.TPS_Main;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 
 /**
  * With this annotation you can select a HierarchyLogLevel for a complete class. For usage see TPS_Main.

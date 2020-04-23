@@ -1,29 +1,24 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
-import javax.swing.tree.DefaultMutableTreeNode;
-
 import de.dlr.ivf.tapas.analyzer.gui.AbstractCoreProcess;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DefaultDistanceCategoryAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.ModeAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import jxl.write.WriteException;
+
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
+import javax.swing.tree.DefaultMutableTreeNode;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * <p>

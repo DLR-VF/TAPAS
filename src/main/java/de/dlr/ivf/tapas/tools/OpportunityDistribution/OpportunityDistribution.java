@@ -1,10 +1,10 @@
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import java.io.File;
-import java.io.IOException;
-
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.io.File;
+import java.io.IOException;
 
 public class OpportunityDistribution {
 

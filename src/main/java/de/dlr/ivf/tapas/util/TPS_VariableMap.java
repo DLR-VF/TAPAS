@@ -1,12 +1,8 @@
 package de.dlr.ivf.tapas.util;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
+
+import java.util.*;
 
 /**
  * This map is a dynamic nested map for attributed values, i.t. you can define a file with a tree structure. At each leaf

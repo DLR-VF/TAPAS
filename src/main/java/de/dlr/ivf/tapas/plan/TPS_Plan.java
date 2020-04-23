@@ -1,26 +1,13 @@
 package de.dlr.ivf.tapas.plan;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.Vector;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
+import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.constants.TPS_AgeClass.TPS_AgeCodeType;
-import de.dlr.ivf.tapas.constants.TPS_PersonGroup.TPS_PersonGroupType;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.constants.TPS_DrivingLicenseInformation;
 import de.dlr.ivf.tapas.constants.TPS_Income;
+import de.dlr.ivf.tapas.constants.TPS_PersonGroup.TPS_PersonGroupType;
+import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
@@ -31,21 +18,16 @@ import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.scheme.TPS_Episode;
-import de.dlr.ivf.tapas.scheme.TPS_Scheme;
-import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
-import de.dlr.ivf.tapas.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.scheme.*;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.util.Timeline;
-import de.dlr.ivf.tapas.util.parameters.CURRENCY;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.util.parameters.*;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Class for a TAPAS plan.

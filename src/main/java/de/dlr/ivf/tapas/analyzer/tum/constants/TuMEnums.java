@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.analyzer.tum.constants;
 
-import java.util.*;
-import java.util.Map.Entry;
-
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.Activity;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 public class TuMEnums {
 

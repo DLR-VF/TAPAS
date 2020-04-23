@@ -1,5 +1,7 @@
 package de.dlr.ivf.tapas.runtime.server;
 
+import de.dlr.ivf.tapas.runtime.util.ServerControlState;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.Connection;
@@ -9,7 +11,6 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
-import de.dlr.ivf.tapas.runtime.util.ServerControlState;
 
 /**
  * Storage class for all server data. These are the same as in the database.

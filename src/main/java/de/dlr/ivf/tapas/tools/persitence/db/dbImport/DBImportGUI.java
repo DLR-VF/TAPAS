@@ -1,43 +1,21 @@
 package de.dlr.ivf.tapas.tools.persitence.db.dbImport;
 
-import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportController.DB_2_FILE_MAP;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
-import java.awt.BorderLayout;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.text.BadLocationException;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.List;
 
-import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.text.BadLocationException;
-
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-
+import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportController.DB_2_FILE_MAP;
 import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportTableModel.*;
 
 public class DBImportGUI {

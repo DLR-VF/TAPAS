@@ -1,5 +1,14 @@
 package de.dlr.ivf.tapas.analyzer.tum.results;
 
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
+import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.RegionAnalyzer;
+import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
 import java.io.File;
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -10,16 +19,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-
-import javax.swing.SwingWorker;
-import javax.swing.text.BadLocationException;
-
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.RegionAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
-import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * This RegionAnalyzer starts a standard analysis of the given simkey as a background task.<br>

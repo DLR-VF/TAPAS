@@ -1,10 +1,10 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A traffic analysis zone is territorially subdivided in blocks. Each traffic analysis zone contains of at least one block

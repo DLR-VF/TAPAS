@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.runtime.client.util.list;
 
-import javax.swing.DefaultListSelectionModel;
+import javax.swing.*;
 
 /**
  * This DefaultSelectionModel subclass enables SINGLE_SELECTION mode and

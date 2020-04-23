@@ -1,51 +1,28 @@
 package de.dlr.ivf.tapas.runtime.client;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EnumMap;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.swing.AbstractCellEditor;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-import javax.swing.border.Border;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
-
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable;
+import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable.ClassifiedTableModel;
+import de.dlr.ivf.tapas.runtime.client.util.table.TextPopupEditor;
 import de.dlr.ivf.tapas.runtime.server.SimulationData;
 import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
 import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable;
-import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable.ClassifiedTableModel;
-import de.dlr.ivf.tapas.runtime.client.util.table.TextPopupEditor;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.table.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Timer;
+import java.util.*;
 
 public class SimulationMonitorPanel extends JPanel {
 

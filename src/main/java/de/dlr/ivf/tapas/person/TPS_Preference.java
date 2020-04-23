@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.person;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
 import de.dlr.ivf.tapas.constants.TPS_Sex;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ChoiceParams;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class holdts the specific preference parameters for this person.

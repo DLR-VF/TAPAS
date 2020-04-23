@@ -1,23 +1,13 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
-import java.io.File;
-import java.io.IOException;
-
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
 import jxl.JXLException;
 import jxl.Workbook;
-import jxl.write.Label;
 import jxl.write.Number;
-import jxl.write.NumberFormats;
-import jxl.write.WritableCellFormat;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import jxl.write.WriteException;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntention;
+import jxl.write.*;
+
+import java.io.File;
+import java.io.IOException;
 
 @SuppressWarnings("rawtypes")
 public class LegacyExcelWriter {

@@ -1,12 +1,11 @@
 package de.dlr.ivf.tapas.analyzer.inputfileconverter;
 
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
 
 public class PersonFileConverter {
 	

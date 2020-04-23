@@ -1,13 +1,13 @@
 package de.dlr.ivf.tapas.runtime.util;
 
+import de.dlr.ivf.tapas.log.TPS_Logger;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
-
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 
 /**
  * This class can be used to determine the CPU usage of a Linux or a Windows System. For Linux the /proc/stat file and

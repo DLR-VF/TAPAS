@@ -1,18 +1,17 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart;
 
-import java.awt.Font;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map.Entry;
-
+import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
+import de.dlr.ivf.tapas.analyzer.tum.results.CalibrationResultsReader;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.title.TextTitle;
 
-import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.results.CalibrationResultsReader;
+import java.awt.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 /**
  * This class handles the input from the database (the tables

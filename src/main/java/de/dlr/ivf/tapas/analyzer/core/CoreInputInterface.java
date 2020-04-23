@@ -1,12 +1,11 @@
 package de.dlr.ivf.tapas.analyzer.core;
 
-import java.io.File;
-import java.util.List;
-
-import javax.swing.text.StyledDocument;
-
 import de.dlr.ivf.tapas.analyzer.gui.ControlInputInterface;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
+
+import javax.swing.text.StyledDocument;
+import java.io.File;
+import java.util.List;
 
 /**
  * Interface for access of selected modules and other configuration parameters

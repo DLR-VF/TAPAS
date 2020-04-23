@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
-import javax.swing.JComponent;
-
 import de.dlr.ivf.tapas.analyzer.core.CoreProcessInterface;
+
+import javax.swing.*;
 
 /**
  * Interface for an analysis-module. Grants access to the ui-component and the logic-component ({@link CoreProcessInterface}

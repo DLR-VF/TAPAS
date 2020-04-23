@@ -1,17 +1,8 @@
 package de.dlr.ivf.tapas.tools.locationallocation;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.StringTokenizer;
 
 public class PTTripProcessorBraunschweig {
 
