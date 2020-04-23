@@ -1,8 +1,7 @@
 name,value,comment
-DB_DBNAME,tapas_baz,database name
+DB_DBNAME,tapas,database name
 DB_DRIVER,org.postgresql.Driver,driver class for connection
 DB_TYPE,postgresql,type of the database
-PATH_ABS_DB,D:\workspace\tdatadir\,path of database input files
 DB_HOST,localhost,
 DB_PORT,5432,port to connect to
 DB_USER,postgres,database user

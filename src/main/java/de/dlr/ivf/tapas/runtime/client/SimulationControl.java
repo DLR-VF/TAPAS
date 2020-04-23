@@ -126,7 +126,7 @@ public class SimulationControl {
      */
     private Timer timer;
     /**
-     * The Client control propertiey
+     * The Client control properties
      */
     private ClientControlProperties props;
     private String version;
@@ -186,11 +186,17 @@ public class SimulationControl {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-
         // Part 2: loading runtime file
-
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        final File runtimeFile = TPS_BasicConnectionClass.getRuntimeFile("client.properties");
+        File runtimeFile;
+        if (this.props.get(ClientControlPropKey.LOGIN_CONFIG) == null || this.props.get(
+                ClientControlPropKey.LOGIN_CONFIG).isEmpty()) {
+            runtimeFile = TPS_BasicConnectionClass.getRuntimeFile("client.properties");
+            this.props = new ClientControlProperties(propFile);
+        } else {
+            runtimeFile = new File(this.props.get(ClientControlPropKey.LOGIN_CONFIG));
+        }
+
         try {
             parameterClass.loadRuntimeParameters(runtimeFile);
         } catch (Exception e) {
@@ -225,14 +231,12 @@ public class SimulationControl {
      * graphical user interface for TAPAS simulations
      *
      * @param args args[0]: tapas network directory path
-     * @throws Exception
      */
     public static void main(String[] args) {
         try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            System.err.println(
-                    "Unable to set specific look and feel: com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            System.err.println("Unable to set specific look and feel: " + UIManager.getSystemLookAndFeelClassName());
             e.printStackTrace();
         }
 
@@ -242,7 +246,7 @@ public class SimulationControl {
         } catch (Exception e) {
         }
 
-        File file;
+        File file = null;
         File propFile = new File("client.properties");
         ClientControlProperties prop = new ClientControlProperties(propFile);
 
@@ -254,28 +258,9 @@ public class SimulationControl {
                 prop.set(ClientControlPropKey.TAPAS_DIR_LINUX, file.getPath());
             }
             prop.updateFile();
-        } else {
-            String networkDir;
-            if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-                networkDir = prop.get(ClientControlPropKey.TAPAS_DIR_WIN);
-            } else {
-                networkDir = prop.get(ClientControlPropKey.TAPAS_DIR_LINUX);
-            }
-            if (networkDir == null) {
-                JFileChooser jFileChooser = new JFileChooser();
-                jFileChooser.setDialogTitle("Wählen Sie den TAPAS Netzpfad aus (Tapas-raid)");
-                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                jFileChooser.setAcceptAllFileFilterUsed(false);
-                jFileChooser.showOpenDialog(jFileChooser);
-                networkDir = jFileChooser.getSelectedFile().getPath();
-            }
-            file = new File(networkDir);
         }
-
-
         // Constructs the client
         control = new SimulationControl(file);
-
     }
 
     /**
@@ -392,7 +377,7 @@ public class SimulationControl {
 
         String fullFileName;
 
-        fullFileName = tapasNetworkDirectory.getAbsolutePath() + filename;
+//        fullFileName = tapasNetworkDirectory.getAbsolutePath() + filename;
         fullFileName = filename;
         // now read the parameters and store them into the db
         HashMap<String, String> parameters = new HashMap<>();
@@ -456,8 +441,6 @@ public class SimulationControl {
     public void addSimulation(String sim_key, String filename) throws IOException, SQLException {
         addSimulation(sim_key, filename, true);
     }
-
-    // private SimulationDataUpdateTask simulationDataUpdateTask;
 
     /**
      * This method opens a file dialog in which you can choose a run properties
@@ -574,9 +557,8 @@ public class SimulationControl {
             // temporary tables are removed via a database trigger
             // first delete this simulation from the process table to stop
             // servers!
-            this.dbConnection.execute(
-                    "DELETE FROM " + this.getParameters().getString(ParamString.DB_TABLE_PROCESSES) +
-                            " WHERE sim_key='" + sim_key + "'", this);
+            this.dbConnection.execute("DELETE FROM " + this.getParameters().getString(ParamString.DB_TABLE_PROCESSES) +
+                    " WHERE sim_key='" + sim_key + "'", this);
             this.dbConnection.execute(
                     "DELETE FROM " + this.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
                             " WHERE sim_key='" + sim_key + "'", this);
@@ -605,8 +587,10 @@ public class SimulationControl {
         final SimulationServerData ssd = this.simulationServerDataMap.get(hostname);
         ssd.setServerState(ServerControlState.STOP);
         this.gui.updateServerControl(this.simulationServerDataMap);
-        CompletableFuture.runAsync(() -> dbConnection.executeUpdate("UPDATE " + this.getParameters().getString(ParamString.DB_TABLE_PROCESSES) +
-                " SET shutdown = true WHERE host = '" + hostname + "' AND end_time IS NULL", this), executorpool).exceptionally(e -> {
+        CompletableFuture.runAsync(() -> dbConnection.executeUpdate(
+                "UPDATE " + this.getParameters().getString(ParamString.DB_TABLE_PROCESSES) +
+                        " SET shutdown = true WHERE host = '" + hostname + "' AND end_time IS NULL", this),
+                executorpool).exceptionally(e -> {
             Stream.of(e.getStackTrace()).forEach(System.out::println);
             return null;
         });
@@ -622,11 +606,13 @@ public class SimulationControl {
      */
     protected void startServer(String hostname) {
 
-        CompletableFuture.runAsync(() -> dbConnection.executeUpdate("UPDATE " + this.getParameters().getString(ParamString.DB_TABLE_SERVERS) +
-                " SET server_boot_flag = true WHERE server_name = '" + hostname + "'", this), executorpool).exceptionally(e -> {
-            Stream.of(e.getStackTrace()).forEach(System.out::println);
-            return null;
-        });
+        CompletableFuture.runAsync(() -> dbConnection.executeUpdate(
+                "UPDATE " + this.getParameters().getString(ParamString.DB_TABLE_SERVERS) +
+                        " SET server_boot_flag = true WHERE server_name = '" + hostname + "'", this), executorpool)
+                         .exceptionally(e -> {
+                             Stream.of(e.getStackTrace()).forEach(System.out::println);
+                             return null;
+                         });
     }
 
     /**

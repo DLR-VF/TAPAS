@@ -65,16 +65,17 @@ public class TPS_Argument {
 	}
 
 	/**
-	 * Method to check a set of arguments pated by a String array for values and an array of expected TPS_ArgumentType 
+	 * Method to check a set of arguments pasted by a String array for values and an array of expected TPS_ArgumentType
 	 * @param args the command line parameters provided
 	 * @param types the types needed
-	 * @return An array of correctly initialised arguments with values 
+	 * @return An array of correctly initialised arguments with values
+	 * @throws IllegalArgumentException if given and necessary arguments does not match
 	 */
 	@SuppressWarnings("unchecked")
-	public static Object[] checkArguments(String[] args, TPS_ArgumentType<?>... types) {
+	public static Object[] checkArguments(String[] args, TPS_ArgumentType<?>... types) throws IllegalArgumentException{
 		if (types.length > args.length) {
-			throw new IllegalArgumentException("arguments and classes have different sizes -> |args|=" + args.length
-					+ ", |classes|=" + types.length);
+			throw new IllegalArgumentException("given arguments and necessary arguments have different sizes " +
+					"-> |args|=" + args.length + ", |classes|=" + types.length);
 		}
 		Object[] array = new Object[types.length];
 

@@ -107,8 +107,7 @@ task("SimulationDaemon", JavaExec::class) {
     // Define the main class for the application
     main = "de.dlr.ivf.tapas.runtime.server.SimulationDaemon"
     classpath = sourceSets["main"].runtimeClasspath
-//    args = listOf("T:\\DebugProg")
-    args = listOf("D:\\workspace\\tdatadir\\Simulationen")
+    args = listOf("data/Simulations")
 //    jvmArgs = listOf("-Xmx8g")
     jvmArgs = listOf("-Ddebug=true", "-Xmx8g")
 }

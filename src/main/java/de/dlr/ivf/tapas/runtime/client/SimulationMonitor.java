@@ -1059,21 +1059,18 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 		this.runFilenameField = new JTextField();
 
 
-		this.insertButton = new JButton(
-				MultilanguageSupport.getString("ADD_SIMULATION_BUTTON"));
+		this.insertButton = new JButton(MultilanguageSupport.getString("ADD_SIMULATION_BUTTON"));
 		this.insertButton.setEnabled(false);
-		this.insertButton.addActionListener(new ActionListener() {
-			/*
-			 * (non-Javadoc)
-			 * 
-			 * @see
-			 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
-			 * ActionEvent)
-			 */
-			public void actionPerformed(ActionEvent e) {
-				SimulationMonitor.this.control.updateProperties();
-				SimulationMonitor.this.insertAction();
-			}
+		/*
+		 * (non-Javadoc)
+		 *
+		 * @see
+		 * java.awt.event.ActionListener#actionPerformed(java.awt.event.
+		 * ActionEvent)
+		 */
+		this.insertButton.addActionListener(e -> {
+			SimulationMonitor.this.control.updateProperties();
+			SimulationMonitor.this.insertAction();
 		});
 
 		JPanel controlPanel = new JPanel();
@@ -1164,9 +1161,8 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 								.showModal(frame, simKeyOld);
 
 						if (!simKeyOld.equals(optionalNewSimKey)) {
-							// neue Simulation anhand dieses Simulationskey
-							// starten (Konfigurationsdaten sind bereits in
-							// DB)
+							// start new simulation on the basis of the simulation key
+							// configuration data is already in the DB
 							try {
 								control.addSimulation(optionalNewSimKey,
 										TPS_BasicConnectionClass.getRuntimeFile()
@@ -1260,9 +1256,8 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 								.showModal(frame, simKeyOld);
 
 						if (!simKeyOld.equals(optionalNewSimKey)) {
-							// neue Simulation anhand dieses Simulationskey
-							// starten (Konfigurationsdaten sind bereits in
-							// DB)
+							// start new simulation on the basis of the simulation key
+							// configuration data is already in the DB
 							try {
 								control.addSimulation(optionalNewSimKey,
 										TPS_BasicConnectionClass.getRuntimeFile()
