@@ -5,7 +5,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import java.util.EnumMap;
 
 public class ParamValueClass {
-    private EnumMap<ParamValue, MutablePair<ParamType, Number>> paramValues;
+    private final EnumMap<ParamValue, MutablePair<ParamType, Number>> paramValues;
 
     ParamValueClass() {
         this.paramValues = new EnumMap<>(ParamValue.class);
@@ -145,11 +145,20 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.LOGSUM_CALIB_WORK, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.LOGSUM_CALIB_SHOP, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.LOGSUM_CALIB_ERRANT, new MutablePair<>(ParamType.OPTIONAL, 1.));
-        this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME_HOME, new MutablePair<>(ParamType.OPTIONAL, 1.));      
-        this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME, new MutablePair<>(ParamType.OPTIONAL, 1.));      
+        this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME_HOME, new MutablePair<>(ParamType.OPTIONAL, 1.));
+        this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.LOGSUM_CALIB_MISC, new MutablePair<>(ParamType.OPTIONAL, 1.));
-        
-        
+
+
+    }
+
+    /**
+     * clears the attached value to the default value
+     *
+     * @param param value parameter enum
+     */
+    public void clear(ParamValue param) {
+        this.setValue(param, new ParamValueClass().getValue(param));
     }
 
     /**
@@ -193,6 +202,28 @@ public class ParamValueClass {
     }
 
     /**
+     * TODO ugly hack maybe improve
+     *
+     * @param param number parameter enum
+     * @return the default number value of the enum
+     */
+    public Number getPreset(ParamValue param) {
+        try {
+            return new ParamValueClass().getValue(param);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * @param param parameter enum
+     * @return parameter type
+     */
+    public ParamType getType(ParamValue param) {
+        return this.paramValues.get(param).getLeft();
+    }
+
+    /**
      * @param param parameter enum
      * @return value as the general Number type
      * @throws RuntimeException if the constant was not defined
@@ -203,11 +234,11 @@ public class ParamValueClass {
     }
 
     /**
-     * @param param parameter enum
-     * @return parameter type
+     * @param param value/Number parameter enum
+     * @return true if defined, false otherwise
      */
-    public ParamType getType(ParamValue param) {
-        return this.paramValues.get(param).getLeft();
+    public boolean isDefined(ParamValue param) {
+        return this.paramValues.get(param).getRight() != null;
     }
 
     /**
@@ -258,37 +289,5 @@ public class ParamValueClass {
      */
     public void setValue(ParamValue param, long value) {
         this.paramValues.get(param).setRight(value);
-    }
-
-    /**
-     * @param param value/Number parameter enum
-     * @return true if defined, false otherwise
-     */
-    public boolean isDefined(ParamValue param) {
-        return this.paramValues.get(param).getRight() != null;
-    }
-
-    /**
-     * clears the attached value to the default value
-     *
-     * @param param value parameter enum
-     */
-    public void clear(ParamValue param) {
-        this.setValue(param, new ParamValueClass().getValue(param));
-    }
-
-
-    /**
-     * TODO ugly hack maybe improve
-     *
-     * @param param number parameter enum
-     * @return the default number value of the enum
-     */
-    public Number getPreset(ParamValue param) {
-        try {
-            return new ParamValueClass().getValue(param);
-        } catch (RuntimeException e) {
-            return null;
-        }
     }
 }

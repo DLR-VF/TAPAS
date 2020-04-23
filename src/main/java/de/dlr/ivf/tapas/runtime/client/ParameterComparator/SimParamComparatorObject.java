@@ -8,8 +8,15 @@ import org.apache.commons.lang3.math.NumberUtils;
 import java.util.Arrays;
 
 public class SimParamComparatorObject {
-    private boolean isequal, isnull, sim1_default, sim2_default, isdefault;
-    private String paramkey, sim1_value, sim2_value, default_value;
+    private final boolean isequal;
+    private final boolean isnull;
+    private final boolean sim1_default;
+    private final boolean sim2_default;
+    private final boolean isdefault;
+    private String paramkey;
+    private final String sim1_value;
+    private final String sim2_value;
+    private final String default_value;
 
     public SimParamComparatorObject(String key, String defaultvalue, String simvalue1, String simvalue2) {
         this.paramkey = key;
@@ -39,12 +46,36 @@ public class SimParamComparatorObject {
                 e -> System.out.println(e.name() + " | " + (new TPS_ParameterClass()).paramValueClass.getPreset(e)));
     }
 
+    public String getDefaultValue() {
+        return this.default_value;
+    }
+
+    public boolean getIsDefaultFirstSim() {
+        return this.sim1_default;
+    }
+
+    public boolean getIsDefaultSecondSim() {
+        return this.sim2_default;
+    }
+
     public String getParamKey() {
         return paramkey;
     }
 
     public void setParamKey(String paramkey) {
         this.paramkey = paramkey;
+    }
+
+    public String getValueOfFirstSim() {
+        return this.sim1_value;
+    }
+
+    public String getValueOfSecondSim() {
+        return this.sim2_value;
+    }
+
+    public boolean isDefault() {
+        return isdefault;
     }
 
     public boolean isEqual() {
@@ -57,29 +88,5 @@ public class SimParamComparatorObject {
 
     public boolean isNull() {
         return isnull;
-    }
-
-    public boolean isDefault() {
-        return isdefault;
-    }
-
-    public String getValueOfFirstSim() {
-        return this.sim1_value;
-    }
-
-    public boolean getIsDefaultFirstSim() {
-        return this.sim1_default;
-    }
-
-    public boolean getIsDefaultSecondSim() {
-        return this.sim2_default;
-    }
-
-    public String getValueOfSecondSim() {
-        return this.sim2_value;
-    }
-
-    public String getDefaultValue() {
-        return this.default_value;
     }
 }

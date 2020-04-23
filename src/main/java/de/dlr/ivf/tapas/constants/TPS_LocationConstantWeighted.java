@@ -8,7 +8,7 @@ package de.dlr.ivf.tapas.constants;
  * @author hein_mh
  */
 public class TPS_LocationConstantWeighted extends TPS_LocationConstant {
-    private double weight;
+    private final double weight;
 
     protected TPS_LocationConstantWeighted(int id, String[] attributes) {
         super(id, attributes);

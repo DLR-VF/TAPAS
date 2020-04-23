@@ -478,10 +478,14 @@ public enum ParamValue {
      */
     PASS_COST_PER_KM_BASE,
 
-    /** probability of using a car from the household*/
+    /**
+     * probability of using a car from the household
+     */
     PASS_PROBABILITY_HOUSEHOLD_CAR,
 
-    /** probability that a random car is restricted*/
+    /**
+     * probability that a random car is restricted
+     */
     PASS_PROBABILITY_RESTRICTED,
 
     /**
@@ -707,12 +711,12 @@ public enum ParamValue {
      * The mode constant for using public transport in conjunction with a passenger car
      */
     PTCAR_MODE_PROB_FACTOR,
-    
+
     /**
      * The µm parameter for logsum to scale the logsum
      */
     LOGSUM_WEIGHT_MU,
-    
+
     /**
      * The µ parameter for logsum to adjust the influence of the mode choice to the location choice
      */
@@ -749,7 +753,7 @@ public enum ParamValue {
      * The calibration factor free time at/near home for logsum
      */
     LOGSUM_CALIB_FREETIME_HOME,
-    
+
     /**
      * The calibration factor misc for logsum
      */

@@ -8,15 +8,16 @@ import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 
 public class TPS_TAZDetourFactor extends TPS_LocationChoiceSet {
-	
-	/**
-	 * Method to return the locations, which are possible to use for the given activity.
-	 * @param plan
-	 * @param pc
-	 * @param locatedStay
-	 * @return
-	 */
-	public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass){
+
+    /**
+     * Method to return the locations, which are possible to use for the given activity.
+     *
+     * @param plan
+     * @param pc
+     * @param locatedStay
+     * @return
+     */
+    public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass) {
 
 
 		/*
@@ -29,6 +30,6 @@ public class TPS_TAZDetourFactor extends TPS_LocationChoiceSet {
 		*/
 
         return new TPS_RegionResultSet();
-	}
-	
+    }
+
 }

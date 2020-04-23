@@ -7,151 +7,145 @@ import java.util.Map.Entry;
 
 @SuppressWarnings("rawtypes")
 public class ActivityTimeDataset extends DefaultCategoryDataset {
-	/**
-	 * This enumeration covers a whole day with hour wide intervals. The first
-	 * is <code>[23:30, 0:30)</code> and the last is <code>[22:30, 23:30)</code>
-	 * .
-	 * 
-	 * @author boec_pa
-	 * 
-	 */
-	public enum HourInterval {
-		I_00(0), I_01(1), I_02(2), I_03(3), I_04(4), I_05(5), I_06(6), I_07(7), I_08(
-				8), I_09(9), I_10(10), I_11(11), I_12(12), I_13(13), I_14(14), I_15(
-				15), I_16(16), I_17(17), I_18(18), I_19(19), I_20(20), I_21(21), I_22(
-				22), I_23(23);
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+    private final EnumMap<HourInterval, Number> reference = new EnumMap<>(HourInterval.class);
+    private final EnumMap<HourInterval, Number> model = new EnumMap<>(HourInterval.class);
 
-		private static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
+    public ActivityTimeDataset(HashMap<Date, Number> reference, HashMap<Date, Number> model) {
+        for (Entry<Date, Number> e : reference.entrySet()) {
+            this.reference.put(HourInterval.getInterval(e.getKey()), e.getValue());
+        }
 
-		/**
-		 * redundant at the moment. May be used when {@link HourInterval} does
-		 * not cover the whole day.
-		 */
-		private final int interval;
-		private final long milliInterval;
+        for (Entry<Date, Number> e : model.entrySet()) {
+            this.model.put(HourInterval.getInterval(e.getKey()), e.getValue());
+        }
 
-		HourInterval(int time) {
-			this.interval = time;
+    }
 
-			// time and 30 minutes more
-			milliInterval = this.interval * 60 * 60 * 1000 + 30 * 60 * 1000;
-		}
+    @Override
+    public int getColumnCount() {
+        return HourInterval.values().length;
+    }
 
-		@Override
-		public String toString() {
-			return Integer.toString(interval);
-		}
+    @Override
+    public int getColumnIndex(Comparable key) {
 
-		public static HourInterval getInterval(Date time) {
+        if (key instanceof HourInterval) {
+            return ((HourInterval) key).ordinal();
+        }
+        throw new IllegalArgumentException();
+    }
 
-			// TODO check for time zone/summer time problems
-			long t = time.getTime() % MILLIS_PER_DAY;
+    @Override
+    public Comparable getColumnKey(int column) {
+        return HourInterval.getById(column);
+    }
 
-			for (HourInterval h : values()) {
-				if (t < h.milliInterval)
-					return h;
-			}
+    @Override
+    public List getColumnKeys() {
+        return Arrays.asList(HourInterval.values());
+    }
 
-			// if 23:31 ...
-			return I_00;
-		}
+    @Override
+    public int getRowCount() {
+        return RowKey.values().length;
+    }
 
-		public static HourInterval getById(int i) {
-			return values()[i];
-		}
+    @Override
+    public int getRowIndex(Comparable key) {
 
-	}
+        if (key instanceof RowKey) {
+            return ((RowKey) key).ordinal();
+        }
+        throw new IllegalArgumentException();
+    }
 
-	private EnumMap<HourInterval, Number> reference = new EnumMap<>(HourInterval.class);
-	private EnumMap<HourInterval, Number> model = new EnumMap<>(HourInterval.class);
+    @Override
+    public Comparable getRowKey(int row) {
+        return RowKey.values()[row];
+    }
 
-	public enum RowKey {
-		REFERENCE, MODEL
-	}
+    @Override
+    public List getRowKeys() {
+        return Arrays.asList(RowKey.values());
+    }
 
-	public ActivityTimeDataset(HashMap<Date, Number> reference,
-			HashMap<Date, Number> model) {
-		for (Entry<Date, Number> e : reference.entrySet()) {
-			this.reference.put(HourInterval.getInterval(e.getKey()),
-					e.getValue());
-		}
+    @Override
+    public Number getValue(Comparable rowKey, Comparable columnKey) {
+        if (rowKey instanceof RowKey && columnKey instanceof HourInterval) {
+            switch ((RowKey) rowKey) {
+                case MODEL:
+                    return model.get(columnKey);
+                case REFERENCE:
+                    return reference.get(columnKey);
+                default:
+                    return null;
+            }
+        }
+        throw new IllegalArgumentException();
+    }
 
-		for (Entry<Date, Number> e : model.entrySet()) {
-			this.model.put(HourInterval.getInterval(e.getKey()), e.getValue());
-		}
+    @Override
+    public Number getValue(int row, int column) {
+        return getValue(RowKey.values()[row], HourInterval.values()[column]);
+    }
 
-	}
+    /**
+     * This enumeration covers a whole day with hour wide intervals. The first
+     * is <code>[23:30, 0:30)</code> and the last is <code>[22:30, 23:30)</code>
+     * .
+     *
+     * @author boec_pa
+     */
+    public enum HourInterval {
+        I_00(0), I_01(1), I_02(2), I_03(3), I_04(4), I_05(5), I_06(6), I_07(7), I_08(8), I_09(9), I_10(10), I_11(
+                11), I_12(12), I_13(13), I_14(14), I_15(15), I_16(16), I_17(17), I_18(18), I_19(19), I_20(20), I_21(
+                21), I_22(22), I_23(23);
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+        private static final long MILLIS_PER_DAY = 24 * 60 * 60 * 1000;
 
-	@Override
-	public int getColumnIndex(Comparable key) {
+        /**
+         * redundant at the moment. May be used when {@link HourInterval} does
+         * not cover the whole day.
+         */
+        private final int interval;
+        private final long milliInterval;
 
-		if (key instanceof HourInterval) {
-			return ((HourInterval) key).ordinal();
-		}
-		throw new IllegalArgumentException();
-	}
+        HourInterval(int time) {
+            this.interval = time;
 
-	@Override
-	public Comparable getColumnKey(int column) {
-		return HourInterval.getById(column);
-	}
+            // time and 30 minutes more
+            milliInterval = this.interval * 60 * 60 * 1000 + 30 * 60 * 1000;
+        }
 
-	@Override
-	public List getColumnKeys() {
-		return Arrays.asList(HourInterval.values());
-	}
+        public static HourInterval getById(int i) {
+            return values()[i];
+        }
 
-	@Override
-	public int getRowIndex(Comparable key) {
+        public static HourInterval getInterval(Date time) {
 
-		if (key instanceof RowKey) {
-			return ((RowKey) key).ordinal();
-		}
-		throw new IllegalArgumentException();
-	}
+            // TODO check for time zone/summer time problems
+            long t = time.getTime() % MILLIS_PER_DAY;
 
-	@Override
-	public Comparable getRowKey(int row) {
-		return RowKey.values()[row];
-	}
+            for (HourInterval h : values()) {
+                if (t < h.milliInterval) return h;
+            }
 
-	@Override
-	public List getRowKeys() {
-		return Arrays.asList(RowKey.values());
-	}
+            // if 23:31 ...
+            return I_00;
+        }
 
-	@Override
-	public Number getValue(Comparable rowKey, Comparable columnKey) {
-		if (rowKey instanceof RowKey && columnKey instanceof HourInterval) {
-			switch ((RowKey) rowKey) {
-			case MODEL:
-				return model.get(columnKey);
-			case REFERENCE:
-				return reference.get(columnKey);
-			default:
-				return null;
-			}
-		}
-		throw new IllegalArgumentException();
-	}
+        @Override
+        public String toString() {
+            return Integer.toString(interval);
+        }
 
-	@Override
-	public int getColumnCount() {
-		return HourInterval.values().length;
-	}
+    }
 
-	@Override
-	public int getRowCount() {
-		return RowKey.values().length;
-	}
-
-	@Override
-	public Number getValue(int row, int column) {
-		return getValue(RowKey.values()[row], HourInterval.values()[column]);
-	}
+    public enum RowKey {
+        REFERENCE, MODEL
+    }
 }

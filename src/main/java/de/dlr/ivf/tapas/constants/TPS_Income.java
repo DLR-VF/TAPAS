@@ -12,28 +12,27 @@ public class TPS_Income {
     /**
      * INCOME_MAP maps id to income objects
      */
-    private static HashMap<Integer, TPS_Income> INCOME_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_Income> INCOME_MAP = new HashMap<>();
     /**
      * MAX_VALUES maps max values of income to ids (=keys in INCOME_MAP)
      */
-    private static TreeMap<Integer, Integer> MAX_VALUES = new TreeMap<>();
-
-    /**
-     * maximum value of a distance category
-     */
-    private int max;
-    /**
-     * id corresponding to the db entry
-     */
-    private int id;
-    /**
-     * code of the income category
-     */
-    private int code;
+    private static final TreeMap<Integer, Integer> MAX_VALUES = new TreeMap<>();
     /**
      * name/description of the income category
      */
     public String name;
+    /**
+     * maximum value of a distance category
+     */
+    private final int max;
+    /**
+     * id corresponding to the db entry
+     */
+    private final int id;
+    /**
+     * code of the income category
+     */
+    private final int code;
 
 
     /**

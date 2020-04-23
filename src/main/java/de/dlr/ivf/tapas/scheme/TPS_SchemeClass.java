@@ -16,10 +16,10 @@ import java.util.TreeMap;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_SchemeClass implements Iterable<TPS_Scheme>, ExtendedWritable {
     // The id of the scheme class
-    private int id;
+    private final int id;
 
     // Map of schemes indexed by their id
-    private SortedMap<Integer, TPS_Scheme> schemes;
+    private final SortedMap<Integer, TPS_Scheme> schemes;
 
     //probability distribution over the TPS_Scheme
     private TPS_DiscreteDistribution<TPS_Scheme> schemeDis;

@@ -14,269 +14,260 @@ import java.util.List;
 /**
  * This is a panel to match csvHeaders to dbHeaders. It needs two lists of
  * headers and returns a mapping between the do usable with {@link DbCsvMap}.
- * 
- * @see JPanel
+ *
  * @author boec_pa
- * 
+ * @see JPanel
  */
 public class HeaderMatcher extends JPanel {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8144993710660146669L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 8144993710660146669L;
+    private static final int CONTROL_WIDTH = 100;
+    private KeyPairListModel lstPairsModel;
+    private JList<String> lstDB;
+    private JList<String> lstCSV;
+    private JList<String> lstPairs;
+    private JLabel lblStatus;
+    private JButton btnAdd;
+    public HeaderMatcher(List<String> dbHeaders, List<String> csvHeaders) {
+        super();
+        initGUI(dbHeaders, csvHeaders);
+    }
 
-	/**
-	 * This class handles the key pairs shown in the bottom JList. The pairs are
-	 * hold as two independent Lists and only put together on request. All
-	 * access methods are synchronized to ensure thread safety.
-	 * 
-	 * @author boec_pa
-	 * 
-	 */
-	private class KeyPairListModel extends AbstractListModel<String> {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4039203363152111876L;
+    /**
+     * Testing purposes only
+     */
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Header Matcher");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		private static final String SEPERATOR = " -- ";
+        List<String> dbHeaders = new ArrayList<>();
+        List<String> csvHeaders = new ArrayList<>();
 
-		private ArrayList<String> dbKeys = new ArrayList<>();
-		private ArrayList<String> csvKeys = new ArrayList<>();
+        dbHeaders.add("Ein dbKey");
+        dbHeaders.add("Ein weiterer dbKey");
+        dbHeaders.add("Und noch ein dbKey");
 
-		public KeyPairListModel() {
-			super();
-		}
+        csvHeaders.add("Ein csvKey");
+        csvHeaders.add("Ein weiterer csvKey");
+        csvHeaders.add("Und noch ein csvKey");
 
-		// /**
-		// * Constructs a ListModel with the given pairs as values.
-		// *
-		// * @throws IllegalArgumentException
-		// * if the sizes of the lists do not coincide.
-		// */
-		// public KeyPairListModel(List<String> dbKeys, List<String> csvKeys) {
-		// super();
-		// if (dbKeys.size() != csvKeys.size()) {
-		// throw new IllegalArgumentException(
-		// "The size of the lists must coincide.");
-		// }
-		// this.dbKeys.addAll(dbKeys);
-		// this.csvKeys.addAll(csvKeys);
-		// }
+        HeaderMatcher hm = new HeaderMatcher(dbHeaders, csvHeaders);
+        hm.setOpaque(true);
+        frame.setContentPane(hm);
+        frame.pack();
+        frame.setVisible(true);
+    }
 
-		/**
-		 * @return <code>true</code> if at least one of the given keys is
-		 *         already in the pairing.
-		 */
-		public synchronized boolean contains(String dbKey, String csvKey) {
-			return dbKeys.contains(dbKey) || csvKeys.contains(csvKey);
-		}
+    public HashMap<String, String> getMapping() {
+        return lstPairsModel.getMapping();
+    }
 
-		@Override
-		public synchronized String getElementAt(int index) {
-			return dbKeys.get(index) + SEPERATOR + csvKeys.get(index);
-		}
+    private void initGUI(List<String> dbHeaders, List<String> csvHeaders) {
 
-		@Override
-		public synchronized int getSize() {
-			return dbKeys.size();
-		}
+        DefaultListModel<String> lstDBModel = new DefaultListModel<>();
+        DefaultListModel<String> lstCSVModel = new DefaultListModel<>();
+        lstPairsModel = new KeyPairListModel();
 
-		public synchronized void addElement(String dbKey, String csvKey) {
-			dbKeys.add(dbKey);
-			csvKeys.add(csvKey);
-			fireIntervalAdded(this, dbKeys.size() - 1, dbKeys.size() - 1);
-		}
+        for (String s : dbHeaders) {
+            lstDBModel.addElement(s);
+        }
 
-		public synchronized String remove(int index) {
-			String result = getElementAt(index);
-			dbKeys.remove(index);
-			csvKeys.remove(index);
-			fireIntervalRemoved(this, index, index);
-			return result;
-		}
+        for (String s : csvHeaders) {
+            lstCSVModel.addElement(s);
+        }
 
-		public synchronized void remove(int[] indices) {
-			int n = indices.length;
-			for (int i = n - 1; i >= 0; --i) {
-				remove(indices[i]);
-			}
-		}
+        lstDB = new JList<>(lstDBModel);
+        lstCSV = new JList<>(lstCSVModel);
+        lstPairs = new JList<>(lstPairsModel);
 
-		public synchronized HashMap<String, String> getMapping() {
-			HashMap<String, String> result = new HashMap<>();
-			for (int i = 0; i < dbKeys.size(); ++i) {
-				result.put(dbKeys.get(i), csvKeys.get(i));
-			}
-			return result;
-		}
-	}
+        lstDB.setSelectionModel(new ToggleSelectionModel());
+        lstCSV.setSelectionModel(new ToggleSelectionModel());
+        lstPairs.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
-	private static final int CONTROL_WIDTH = 100;
+        lstPairs.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    lstPairsModel.remove(lstPairs.getSelectedIndices());
+                }
+            }
 
-	private KeyPairListModel lstPairsModel;
+            @Override
+            public void keyReleased(KeyEvent arg0) {
+            }
 
-	private JList<String> lstDB;
-	private JList<String> lstCSV;
-	private JList<String> lstPairs;
-	private JLabel lblStatus;
-	private JButton btnAdd;
+            @Override
+            public void keyTyped(KeyEvent arg0) {
+            }
+        });
 
-	public HeaderMatcher(List<String> dbHeaders, List<String> csvHeaders) {
-		super();
-		initGUI(dbHeaders, csvHeaders);
-	}
+        ListSelectionListener selectionListener = new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                btnAdd.setEnabled(lstDB.getSelectedIndex() >= 0 && lstCSV.getSelectedIndex() >= 0);
+            }
+        };
 
-	private void initGUI(List<String> dbHeaders, List<String> csvHeaders) {
+        lstDB.getSelectionModel().addListSelectionListener(selectionListener);
+        lstCSV.getSelectionModel().addListSelectionListener(selectionListener);
 
-		DefaultListModel<String> lstDBModel = new DefaultListModel<>();
-		DefaultListModel<String> lstCSVModel = new DefaultListModel<>();
-		lstPairsModel = new KeyPairListModel();
+        JPanel controlPanel = new JPanel();
+        controlPanel.setMinimumSize(new Dimension(CONTROL_WIDTH, 0));
+        controlPanel.setMaximumSize(new Dimension(CONTROL_WIDTH, 0));
+        controlPanel.setPreferredSize(new Dimension(CONTROL_WIDTH, 0));
 
-		for (String s : dbHeaders) {
-			lstDBModel.addElement(s);
-		}
+        btnAdd = new JButton("Add");
+        btnAdd.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String dbKey = lstDB.getSelectedValue();
+                String csvKey = lstCSV.getSelectedValue();
+                if (!lstPairsModel.contains(dbKey, csvKey)) {
+                    lstPairsModel.addElement(dbKey, csvKey);
+                } else {
+                    lblStatus.setText("<html><p>Parts of this pair are already used.</p>");
+                }
+            }
+        });
+        lblStatus = new JLabel();
 
-		for (String s : csvHeaders) {
-			lstCSVModel.addElement(s);
-		}
+        // TODO @PB fix jumping gui
 
-		lstDB = new JList<>(lstDBModel);
-		lstCSV = new JList<>(lstCSVModel);
-		lstPairs = new JList<>(lstPairsModel);
+        controlPanel.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
+        btnAdd.setAlignmentX(CENTER_ALIGNMENT);
+        btnAdd.setEnabled(false);
 
-		lstDB.setSelectionModel(new ToggleSelectionModel());
-		lstCSV.setSelectionModel(new ToggleSelectionModel());
-		lstPairs.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        lblStatus.setAlignmentX(CENTER_ALIGNMENT);
+        controlPanel.add(btnAdd);
+        controlPanel.add(Box.createVerticalGlue());
+        controlPanel.add(lblStatus);
 
-		lstPairs.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent arg0) {
-			}
+        // delete status again
+        addMouseListener(new MouseAdapter() {
+            // TODO @PB listen to global mouse click
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                lblStatus.setText("");
+            }
+        });
 
-			@Override
-			public void keyReleased(KeyEvent arg0) {
-			}
+        // put components to panel
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
 
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-					lstPairsModel.remove(lstPairs.getSelectedIndices());
-				}
-			}
-		});
+        gbc.ipadx = 10;
+        gbc.ipady = 10;
+        gbc.fill = GridBagConstraints.BOTH;
 
-		ListSelectionListener selectionListener = new ListSelectionListener() {
-			@Override
-			public void valueChanged(ListSelectionEvent e) {
-				btnAdd.setEnabled(lstDB.getSelectedIndex() >= 0
-						&& lstCSV.getSelectedIndex() >= 0);
-			}
-		};
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.4;
+        gbc.weighty = 0.7;
+        add(new JScrollPane(lstDB), gbc);
 
-		lstDB.getSelectionModel().addListSelectionListener(selectionListener);
-		lstCSV.getSelectionModel().addListSelectionListener(selectionListener);
+        gbc.gridx = 2;
+        add(new JScrollPane(lstCSV), gbc);
 
-		JPanel controlPanel = new JPanel();
-		controlPanel.setMinimumSize(new Dimension(CONTROL_WIDTH, 0));
-		controlPanel.setMaximumSize(new Dimension(CONTROL_WIDTH, 0));
-		controlPanel.setPreferredSize(new Dimension(CONTROL_WIDTH, 0));
+        gbc.gridx = 1;
+        gbc.weightx = 0.2;
+        add(controlPanel, gbc);
 
-		btnAdd = new JButton("Add");
-		btnAdd.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String dbKey = lstDB.getSelectedValue();
-				String csvKey = lstCSV.getSelectedValue();
-				if (!lstPairsModel.contains(dbKey, csvKey)) {
-					lstPairsModel.addElement(dbKey, csvKey);
-				} else {
-					lblStatus
-							.setText("<html><p>Parts of this pair are already used.</p>");
-				}
-			}
-		});
-		lblStatus = new JLabel();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1;
+        gbc.weighty = 0.3;
+        gbc.gridwidth = 3;
+        add(new JScrollPane(lstPairs), gbc);
+    }
 
-		// TODO @PB fix jumping gui
+    /**
+     * This class handles the key pairs shown in the bottom JList. The pairs are
+     * hold as two independent Lists and only put together on request. All
+     * access methods are synchronized to ensure thread safety.
+     *
+     * @author boec_pa
+     */
+    private class KeyPairListModel extends AbstractListModel<String> {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 4039203363152111876L;
 
-		controlPanel
-				.setLayout(new BoxLayout(controlPanel, BoxLayout.PAGE_AXIS));
-		btnAdd.setAlignmentX(CENTER_ALIGNMENT);
-		btnAdd.setEnabled(false);
+        private static final String SEPERATOR = " -- ";
 
-		lblStatus.setAlignmentX(CENTER_ALIGNMENT);
-		controlPanel.add(btnAdd);
-		controlPanel.add(Box.createVerticalGlue());
-		controlPanel.add(lblStatus);
+        private final ArrayList<String> dbKeys = new ArrayList<>();
+        private final ArrayList<String> csvKeys = new ArrayList<>();
 
-		// delete status again
-		addMouseListener(new MouseAdapter() {
-			// TODO @PB listen to global mouse click
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				lblStatus.setText("");
-			}
-		});
+        public KeyPairListModel() {
+            super();
+        }
 
-		// put components to panel
-		setLayout(new GridBagLayout());
-		GridBagConstraints gbc = new GridBagConstraints();
+        // /**
+        // * Constructs a ListModel with the given pairs as values.
+        // *
+        // * @throws IllegalArgumentException
+        // * if the sizes of the lists do not coincide.
+        // */
+        // public KeyPairListModel(List<String> dbKeys, List<String> csvKeys) {
+        // super();
+        // if (dbKeys.size() != csvKeys.size()) {
+        // throw new IllegalArgumentException(
+        // "The size of the lists must coincide.");
+        // }
+        // this.dbKeys.addAll(dbKeys);
+        // this.csvKeys.addAll(csvKeys);
+        // }
 
-		gbc.ipadx = 10;
-		gbc.ipady = 10;
-		gbc.fill = GridBagConstraints.BOTH;
+        public synchronized void addElement(String dbKey, String csvKey) {
+            dbKeys.add(dbKey);
+            csvKeys.add(csvKey);
+            fireIntervalAdded(this, dbKeys.size() - 1, dbKeys.size() - 1);
+        }
 
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.gridwidth = 1;
-		gbc.weightx = 0.4;
-		gbc.weighty = 0.7;
-		add(new JScrollPane(lstDB), gbc);
+        /**
+         * @return <code>true</code> if at least one of the given keys is
+         * already in the pairing.
+         */
+        public synchronized boolean contains(String dbKey, String csvKey) {
+            return dbKeys.contains(dbKey) || csvKeys.contains(csvKey);
+        }
 
-		gbc.gridx = 2;
-		add(new JScrollPane(lstCSV), gbc);
+        @Override
+        public synchronized String getElementAt(int index) {
+            return dbKeys.get(index) + SEPERATOR + csvKeys.get(index);
+        }
 
-		gbc.gridx = 1;
-		gbc.weightx = 0.2;
-		add(controlPanel, gbc);
+        public synchronized HashMap<String, String> getMapping() {
+            HashMap<String, String> result = new HashMap<>();
+            for (int i = 0; i < dbKeys.size(); ++i) {
+                result.put(dbKeys.get(i), csvKeys.get(i));
+            }
+            return result;
+        }
 
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		gbc.weightx = 1;
-		gbc.weighty = 0.3;
-		gbc.gridwidth = 3;
-		add(new JScrollPane(lstPairs), gbc);
-	}
+        @Override
+        public synchronized int getSize() {
+            return dbKeys.size();
+        }
 
-	public HashMap<String, String> getMapping() {
-		return lstPairsModel.getMapping();
-	}
+        public synchronized void remove(int[] indices) {
+            int n = indices.length;
+            for (int i = n - 1; i >= 0; --i) {
+                remove(indices[i]);
+            }
+        }
 
-	/**
-	 * Testing purposes only
-	 */
-	public static void main(String[] args) {
-		JFrame frame = new JFrame("Header Matcher");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		List<String> dbHeaders = new ArrayList<>();
-		List<String> csvHeaders = new ArrayList<>();
-
-		dbHeaders.add("Ein dbKey");
-		dbHeaders.add("Ein weiterer dbKey");
-		dbHeaders.add("Und noch ein dbKey");
-
-		csvHeaders.add("Ein csvKey");
-		csvHeaders.add("Ein weiterer csvKey");
-		csvHeaders.add("Und noch ein csvKey");
-
-		HeaderMatcher hm = new HeaderMatcher(dbHeaders, csvHeaders);
-		hm.setOpaque(true);
-		frame.setContentPane(hm);
-		frame.pack();
-		frame.setVisible(true);
-	}
+        public synchronized String remove(int index) {
+            String result = getElementAt(index);
+            dbKeys.remove(index);
+            csvKeys.remove(index);
+            fireIntervalRemoved(this, index, index);
+            return result;
+        }
+    }
 
 }

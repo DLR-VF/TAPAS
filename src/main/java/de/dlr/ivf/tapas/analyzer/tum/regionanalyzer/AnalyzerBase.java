@@ -11,97 +11,92 @@ import java.util.EnumMap;
  * This class groups an enumeration <code>C</code> with its according split
  * method that assigns a category (member of <code>C</code>) to a
  * {@link TapasTrip}.
- * 
+ * <p>
  * After adding trips, you can access distance and numberOfTrips by category.
- * 
+ * <p>
  * Example: enum DistanceCategory = {1-5km, 5-10km, 10-15km,...} assignTrip
  * (trip) if (trip.getDistance < 5km) return DistanceCategory.1-5km; if
  * (trip.getDistance < 10km) return DistanceCategory.5-10km; ...
- * 
- * @author boec_pa
- * 
+ *
  * @param <C>
+ * @author boec_pa
  */
 public abstract class AnalyzerBase<C extends Enum<C>> {
 
-	private final Class<C> categories;
-	private final int numberOfCategories;
+    private final Class<C> categories;
+    private final int numberOfCategories;
 
-	private EnumMap<C, Double> distMap;
-	private EnumMap<C, Long> tripCntMap;
+    private final EnumMap<C, Double> distMap;
+    private final EnumMap<C, Long> tripCntMap;
 
-	@SuppressWarnings("unchecked")
-	public AnalyzerBase() {
-		// reflection to get class of C
-		ParameterizedType parameterizedType = (ParameterizedType) getClass()
-				.getGenericSuperclass();
-		this.categories = (Class<C>) parameterizedType.getActualTypeArguments()[0];
-		numberOfCategories = this.categories.getEnumConstants().length;
+    @SuppressWarnings("unchecked")
+    public AnalyzerBase() {
+        // reflection to get class of C
+        ParameterizedType parameterizedType = (ParameterizedType) getClass().getGenericSuperclass();
+        this.categories = (Class<C>) parameterizedType.getActualTypeArguments()[0];
+        numberOfCategories = this.categories.getEnumConstants().length;
 
-		distMap = new EnumMap<>(categories);
-		tripCntMap = new EnumMap<>(categories);
-		for (C category : this.categories.getEnumConstants()) {
-			tripCntMap.put(category, 0L);
-		}
-	}
+        distMap = new EnumMap<>(categories);
+        tripCntMap = new EnumMap<>(categories);
+        for (C category : this.categories.getEnumConstants()) {
+            tripCntMap.put(category, 0L);
+        }
+    }
 
-	@Override
-	public String toString() {
-		return categories.getSimpleName();
-	}
+    public void addTrip(TapasTrip trip) {
+        C category = assignTrip(trip);
 
-	public int getNumberOfCategories() {
-		return numberOfCategories;
-	}
+        distMap.put(category, trip.getDistNet());
+        tripCntMap.put(category, tripCntMap.get(category) + 1);
+    }
 
-	public long getNumberOfTrips(C category) {
-		return tripCntMap.get(category);
-	}
+    public void addTrip(Collection<TapasTrip> trips) {
+        for (TapasTrip trip : trips) {
+            addTrip(trip);
+        }
+    }
 
-	public double getDist(C category) {
-		return distMap.get(category);
-	}
+    /**
+     * Returns the category the {@link TapasTrip} trip belongs to.
+     *
+     * @param trip
+     * @return
+     */
+    public abstract C assignTrip(TapasTrip trip);
 
-	public void addTrip(TapasTrip trip) {
-		C category = assignTrip(trip);
+    protected C assignTrip(TapasTrip trip, boolean[] filter) throws AnalyzerException {
+        C cat = assignTrip(trip);
 
-		distMap.put(category, trip.getDistNet());
-		tripCntMap.put(category, tripCntMap.get(category) + 1);
-	}
+        if (cat == null) {
+            throw new AnalyzerException(trip, categories.getSimpleName());
+        }
+        if (filter[cat.ordinal()]) return cat;
+        else return null;
+    }
 
-	public void addTrip(Collection<TapasTrip> trips) {
-		for (TapasTrip trip : trips) {
-			addTrip(trip);
-		}
-	}
+    public Class<C> getAnalyzerClass() {
+        return categories;
+    }
 
-	public Categories getCategories() {
-		return Categories.getByClass(categories);
-	}
-	
-	public Class<C> getAnalyzerClass(){
-		return categories;
-	}
+    public Categories getCategories() {
+        return Categories.getByClass(categories);
+    }
 
-	/**
-	 * Returns the category the {@link TapasTrip} trip belongs to.
-	 * 
-	 * @param trip
-	 * @return
-	 */
-	public abstract C assignTrip(TapasTrip trip);
+    public double getDist(C category) {
+        return distMap.get(category);
+    }
 
-	protected C assignTrip(TapasTrip trip, boolean[] filter)
-			throws AnalyzerException {
-		C cat = assignTrip(trip);
+    public int getNumberOfCategories() {
+        return numberOfCategories;
+    }
 
-		if (cat == null) {
-			throw new AnalyzerException(trip, categories.getSimpleName());
-		}
-		if (filter[cat.ordinal()])
-			return cat;
-		else
-			return null;
-	}
+    public long getNumberOfTrips(C category) {
+        return tripCntMap.get(category);
+    }
+
+    @Override
+    public String toString() {
+        return categories.getSimpleName();
+    }
 
 }

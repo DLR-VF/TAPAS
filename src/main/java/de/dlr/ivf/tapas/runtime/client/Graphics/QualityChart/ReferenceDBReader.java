@@ -14,150 +14,136 @@ import java.util.HashMap;
 
 /**
  * This class provides an interface to the public table <code>reference</code>.
- * 
+ *
  * @author boec_pa
- * 
  */
 public class ReferenceDBReader {
 
-	private static final String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
-	/** number of persons in B times avg mobility rate */
-	private static final double BERLIN_TRIPS = 3416255 * 3.4;
+    private static final String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
+    /**
+     * number of persons in B times avg mobility rate
+     */
+    private static final double BERLIN_TRIPS = 3416255 * 3.4;
 
-	private final TPS_DB_Connector dbCon;
-	private final String referenceKey;
+    private final TPS_DB_Connector dbCon;
+    private final String referenceKey;
 
-	/**
-	 * Connects to the database.
-	 * 
-	 * @param referenceKey
-	 *            the key to the reference (like <code>mid2008</code>).
-	 * @throws IOException
-	 * @throws ClassNotFoundException
-	 */
-	public ReferenceDBReader(String referenceKey) throws IOException,
-			ClassNotFoundException {
-		try {
-			TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-			parameterClass.loadRuntimeParameters(new File(loginInfo));
-			dbCon = new TPS_DB_Connector(parameterClass);
-		} catch (IOException | ClassNotFoundException e) {
-			throw e; // handle that outside of the class
-		}
+    /**
+     * Connects to the database.
+     *
+     * @param referenceKey the key to the reference (like <code>mid2008</code>).
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public ReferenceDBReader(String referenceKey) throws IOException, ClassNotFoundException {
+        try {
+            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+            parameterClass.loadRuntimeParameters(new File(loginInfo));
+            dbCon = new TPS_DB_Connector(parameterClass);
+        } catch (IOException | ClassNotFoundException e) {
+            throw e; // handle that outside of the class
+        }
 
-		this.referenceKey = referenceKey;
+        this.referenceKey = referenceKey;
 
-	}
+    }
 
-	/**
-	 * Assembles absolute numbers in the categories of Mode/DistanceCategory of
-	 * the given reference.
-	 * 
-	 * @return <code>null</code> if a problem with the database occurs.
-	 */
-	public HashMap<CategoryCombination, QualityChartData> getMoDcValues() {
+    /**
+     * For testing purposes only.
+     */
+    public static void main(String[] args) throws ClassNotFoundException, IOException {
+        ReferenceDBReader rr = new ReferenceDBReader("mid2008");
+        System.out.println(rr.getMoDcValues());
 
-		// get dc split
-		String oKey = referenceKey + "_dc";
-		String q = "SELECT inner_key,cnt_trips,quality FROM reference WHERE outer_key='"
-				+ oKey + "'";
-		/* number of trips by DC in percent */
-		HashMap<DistanceCategoryDefault, QualityChartData> dcData = new HashMap<>();
+    }
 
-		try {
-			ResultSet rs = dbCon.getConnection(this).createStatement()
-					.executeQuery(q);
+    public double getCntTrips() {
+        return BERLIN_TRIPS;
+    }
 
-			while (rs.next()) {
-				DistanceCategoryDefault dc = DistanceCategoryDefault.getById(rs
-						.getInt("inner_key"));
-				double cnt = rs.getDouble("cnt_trips");
-				Quality quality = Quality.getById(rs.getInt("quality"));
+    /**
+     * Assembles absolute numbers in the categories of Mode/DistanceCategory of
+     * the given reference.
+     *
+     * @return <code>null</code> if a problem with the database occurs.
+     */
+    public HashMap<CategoryCombination, QualityChartData> getMoDcValues() {
 
-				dcData.put(dc,
-						new QualityChartData(-1, cnt, dc.getDescription(),
-								quality));
+        // get dc split
+        String oKey = referenceKey + "_dc";
+        String q = "SELECT inner_key,cnt_trips,quality FROM reference WHERE outer_key='" + oKey + "'";
+        /* number of trips by DC in percent */
+        HashMap<DistanceCategoryDefault, QualityChartData> dcData = new HashMap<>();
 
-			}
+        try {
+            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
 
-			rs.close();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
+            while (rs.next()) {
+                DistanceCategoryDefault dc = DistanceCategoryDefault.getById(rs.getInt("inner_key"));
+                double cnt = rs.getDouble("cnt_trips");
+                Quality quality = Quality.getById(rs.getInt("quality"));
 
-		// get modal split by dc
+                dcData.put(dc, new QualityChartData(-1, cnt, dc.getDescription(), quality));
 
-		HashMap<CategoryCombination, QualityChartData> modcData = new HashMap<>();
-		oKey = referenceKey + "_mo_dc";
-		q = "SELECT inner_key,cnt_trips,quality FROM reference WHERE outer_key='"
-				+ oKey + "'";
+            }
 
-		try {
-			ResultSet rs = dbCon.getConnection(this).createStatement()
-					.executeQuery(q);
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-			while (rs.next()) {
-				String[] keys = rs.getString("inner_key").split(";");
-				Mode mo = Mode.getById(Integer.parseInt(keys[0]));
-				DistanceCategoryDefault dc = DistanceCategoryDefault
-						.getById(Integer.parseInt(keys[1]));
+        // get modal split by dc
 
-				double cnt = rs.getDouble("cnt_trips");
-				Quality quality = Quality.getById(rs.getInt("quality"));
+        HashMap<CategoryCombination, QualityChartData> modcData = new HashMap<>();
+        oKey = referenceKey + "_mo_dc";
+        q = "SELECT inner_key,cnt_trips,quality FROM reference WHERE outer_key='" + oKey + "'";
 
-				CategoryCombination cc = new CategoryCombination(mo, dc);
-				modcData.put(cc, new QualityChartData(-1, cnt, cc.toString(),
-						quality));
+        try {
+            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
 
-			}
+            while (rs.next()) {
+                String[] keys = rs.getString("inner_key").split(";");
+                Mode mo = Mode.getById(Integer.parseInt(keys[0]));
+                DistanceCategoryDefault dc = DistanceCategoryDefault.getById(Integer.parseInt(keys[1]));
 
-			rs.close();
+                double cnt = rs.getDouble("cnt_trips");
+                Quality quality = Quality.getById(rs.getInt("quality"));
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
+                CategoryCombination cc = new CategoryCombination(mo, dc);
+                modcData.put(cc, new QualityChartData(-1, cnt, cc.toString(), quality));
 
-		// merge lists
+            }
 
-		HashMap<CategoryCombination, QualityChartData> result = new HashMap<>();
+            rs.close();
 
-		for (DistanceCategoryDefault dc : DistanceCategoryDefault.values()) {
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-			for (Mode mo : Mode.values()) {
-				CategoryCombination cc = new CategoryCombination(mo, dc);
-				QualityChartData dcElem = dcData.get(dc);
-				QualityChartData modcElem = modcData.get(cc);
+        // merge lists
 
-				double value = dcElem.getReference() / 100
-						* modcElem.getReference() / 100 * BERLIN_TRIPS;
+        HashMap<CategoryCombination, QualityChartData> result = new HashMap<>();
 
-				// take minimum of qualities
-				Quality quality = (dcElem.getQuality().compareTo(
-						modcElem.getQuality()) < 0) ? dcElem.getQuality()
-						: modcElem.getQuality();
+        for (DistanceCategoryDefault dc : DistanceCategoryDefault.values()) {
 
-				result.put(cc, new QualityChartData(-1, value, cc.toString(),
-						quality));
-			}
-		}
+            for (Mode mo : Mode.values()) {
+                CategoryCombination cc = new CategoryCombination(mo, dc);
+                QualityChartData dcElem = dcData.get(dc);
+                QualityChartData modcElem = modcData.get(cc);
 
-		return result;
-	}
+                double value = dcElem.getReference() / 100 * modcElem.getReference() / 100 * BERLIN_TRIPS;
 
-	public double getCntTrips() {
-		return BERLIN_TRIPS;
-	}
+                // take minimum of qualities
+                Quality quality = (dcElem.getQuality().compareTo(modcElem.getQuality()) < 0) ? dcElem
+                        .getQuality() : modcElem.getQuality();
 
-	/**
-	 * For testing purposes only.
-	 */
-	public static void main(String[] args) throws ClassNotFoundException,
-			IOException {
-		ReferenceDBReader rr = new ReferenceDBReader("mid2008");
-		System.out.println(rr.getMoDcValues());
+                result.put(cc, new QualityChartData(-1, value, cc.toString(), quality));
+            }
+        }
 
-	}
+        return result;
+    }
 
 }

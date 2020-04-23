@@ -56,7 +56,7 @@ public class DBTripReader implements TapasTripReader {
     private long totalEstimate;
     private long totaltripcount;
     private boolean isCancelled = false;
-    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private TPS_SettlementSystemType settlementType;
     private TripIterator tripIterator;
 
@@ -126,6 +126,62 @@ public class DBTripReader implements TapasTripReader {
         System.out.println("Es hat " + (System.currentTimeMillis() - before) + "ms gedauert.");
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+
+        this.pcs.addPropertyChangeListener(listener);
+    }
+
+    public void cancel() {
+
+        this.isCancelled = true;
+        close();
+    }
+
+    public void close() {
+        tripIterator.close();
+    }
+
+    @Override
+    public Iterator<TapasTrip> getIterator() {
+        return tripIterator;
+    }
+
+    /**
+     * Returns an estimated progress between <code>0</code> and <code>100</code> . <code>0</code> means, the trip table
+     * is still build. <code>100</code> does not guaranty that the process is finished.
+     */
+    public int getProgress() {
+        if (totalEstimate > 0) {
+            if (cntTrips == 0) {
+                return 0;
+            }
+            int prg = (int) (100 * cntTrips / (double) totalEstimate);
+            return Math.max(1, Math.min(prg, 100));
+        }
+
+        return -1;
+    }
+
+//    protected void finalize() throws Throwable {
+//        try {
+//            close();
+//        } catch (Throwable t) {
+//            throw t;
+//        } finally {
+//            super.finalize();
+//        }
+//    }
+
+    @Override
+    public String getSource() {
+        return tripIterator.getSource();
+    }
+
+    public long getTotal() {
+
+        return totaltripcount;
+    }
+
     private void init(String simulation, String hhkey, String schema, String region, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, TPS_DB_Connector connection, StyledDocument console) throws SQLException, ClassNotFoundException, IOException {
 
         this.console = console;
@@ -156,71 +212,15 @@ public class DBTripReader implements TapasTripReader {
         rs.close();
     }
 
-    public void close() {
-        tripIterator.close();
-    }
+    public boolean isCancelled() {
 
-    @Override
-    public Iterator<TapasTrip> getIterator() {
-        return tripIterator;
-    }
 
-    @Override
-    public String getSource() {
-        return tripIterator.getSource();
-    }
-
-    public long getTotal() {
-
-        return totaltripcount;
-    }
-
-//    protected void finalize() throws Throwable {
-//        try {
-//            close();
-//        } catch (Throwable t) {
-//            throw t;
-//        } finally {
-//            super.finalize();
-//        }
-//    }
-
-    /**
-     * Returns an estimated progress between <code>0</code> and <code>100</code> . <code>0</code> means, the trip table
-     * is still build. <code>100</code> does not guaranty that the process is finished.
-     */
-    public int getProgress() {
-        if (totalEstimate > 0) {
-            if (cntTrips == 0) {
-                return 0;
-            }
-            int prg = (int) (100 * cntTrips / (double) totalEstimate);
-            return Math.max(1, Math.min(prg, 100));
-        }
-
-        return -1;
-    }
-
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
-
-        this.pcs.addPropertyChangeListener(listener);
+        return this.isCancelled;
     }
 
     public void removePropertyChangeListener(PropertyChangeListener listener) {
 
         this.pcs.removePropertyChangeListener(listener);
-    }
-
-    public void cancel() {
-
-        this.isCancelled = true;
-        close();
-    }
-
-    public boolean isCancelled() {
-
-
-        return this.isCancelled;
     }
 
     /**
@@ -232,20 +232,20 @@ public class DBTripReader implements TapasTripReader {
 
     private class DBTripFetcher implements Runnable {
 
-        private String simulation;
-        private String hhkey;
-        private String schema;
-        private String region;
-        private boolean verbose;
+        private final String simulation;
+        private final String hhkey;
+        private final String schema;
+        private final String region;
+        private final boolean verbose;
 
-        private TPS_DB_Connector dbCon;
+        private final TPS_DB_Connector dbCon;
 
-        private PreparedStatement fetchNext;
+        private final PreparedStatement fetchNext;
         private Statement fillTableStatement;
 
         private int fetchStart = 0;
 
-        private BlockingQueue<TapasTrip> queue;
+        private final BlockingQueue<TapasTrip> queue;
 
         private boolean isFinished = false;
 
@@ -281,6 +281,51 @@ public class DBTripReader implements TapasTripReader {
                 System.err.println("Could no prepare fetch statement.");
                 throw e;
             }
+        }
+
+        private boolean cleanDB() {
+
+            if (verbose) {
+                // Check if tables exist
+                try {
+                    ArrayList<String> tables = new ArrayList<>();
+                    DatabaseMetaData metaData = dbCon.getConnection(this).getMetaData();
+                    ResultSet res = metaData.getTables(null, null, null, new String[]{"TABLE"});
+
+                    while (res.next()) {
+                        tables.add(res.getString("TABLE_NAME"));
+                    }
+
+                    if (tables.contains("tt_" + simulation)) {
+                        System.err.println("Trip table already existed and will be dropped.");
+                        if (dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE tt_" + simulation) <
+                                0) {
+                            System.err.println("Could not drop table!");
+                            return false;
+                        }
+                    }
+                } catch (SQLException e) {
+                    System.err.println("Could not fetch meta data. Check connection to database.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private void close() {
+            try {
+                if (dbCon != null) {
+                    if (fillTableStatement != null) {
+                        fillTableStatement.cancel();
+                    }
+                    dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE tt_" + simulation);
+                    dbCon.getConnection(this).close();
+                }
+
+            } catch (SQLException e) {
+                // do nothing
+            }
+
         }
 
         private boolean createTripTable() throws BadLocationException, SQLException {
@@ -434,35 +479,9 @@ public class DBTripReader implements TapasTripReader {
             return true;
         }
 
-        private boolean cleanDB() {
-
-            if (verbose) {
-                // Check if tables exist
-                try {
-                    ArrayList<String> tables = new ArrayList<>();
-                    DatabaseMetaData metaData = dbCon.getConnection(this).getMetaData();
-                    ResultSet res = metaData.getTables(null, null, null, new String[]{"TABLE"});
-
-                    while (res.next()) {
-                        tables.add(res.getString("TABLE_NAME"));
-                    }
-
-                    if (tables.contains("tt_" + simulation)) {
-                        System.err.println("Trip table already existed and will be dropped.");
-                        if (dbCon.getConnection(this).createStatement()
-                                 .executeUpdate("DROP TABLE tt_" + simulation) < 0) {
-                            System.err.println("Could not drop table!");
-                            return false;
-                        }
-                    }
-                } catch (SQLException e) {
-                    System.err.println("Could not fetch meta data. Check connection to database.");
-                    return false;
-                }
-            }
-            return true;
+        public String getSource() {
+            return simulation.replaceFirst("[^\\s]*_trips_", "");
         }
-
 
         private TapasTrip getTripFromResult(ResultSet rs) {
             int tripId = -1;
@@ -506,6 +525,17 @@ public class DBTripReader implements TapasTripReader {
                 return null;
             }
         }
+
+//        @Override
+//        protected void finalize() throws Throwable {
+//            try {
+//                close();
+//            } catch (Throwable t) {
+//                throw t;
+//            } finally {
+//                super.finalize();
+//            }
+//        }
 
         public void run() {
 
@@ -561,37 +591,6 @@ public class DBTripReader implements TapasTripReader {
             }
             close();
         }
-
-        private void close() {
-            try {
-                if (dbCon != null) {
-                    if (fillTableStatement != null) {
-                        fillTableStatement.cancel();
-                    }
-                    dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE tt_" + simulation);
-                    dbCon.getConnection(this).close();
-                }
-
-            } catch (SQLException e) {
-                // do nothing
-            }
-
-        }
-
-//        @Override
-//        protected void finalize() throws Throwable {
-//            try {
-//                close();
-//            } catch (Throwable t) {
-//                throw t;
-//            } finally {
-//                super.finalize();
-//            }
-//        }
-
-        public String getSource() {
-            return simulation.replaceFirst("[^\\s]*_trips_", "");
-        }
     }
 
     private class TripIterator implements Iterator<TapasTrip>, Runnable {
@@ -599,9 +598,9 @@ public class DBTripReader implements TapasTripReader {
         private final BlockingQueue<TapasTrip> q = new ArrayBlockingQueue<>(QUEUE_SIZE);
 
         private final Thread fetcherThread;
-        private DBTripFetcher tripFetcher;
+        private final DBTripFetcher tripFetcher;
 
-        private Set<Integer> acceptedTAZs;
+        private final Set<Integer> acceptedTAZs;
 
         private TapasTrip nextItem = null;
 
@@ -618,9 +617,12 @@ public class DBTripReader implements TapasTripReader {
             new Thread(this).start();
         }
 
-        @Override
-        public void run() {
-            fetcherThread.start();
+        private void close() {
+            tripFetcher.close();
+        }
+
+        public String getSource() {
+            return tripFetcher.getSource();
         }
 
         public boolean hasNext() {
@@ -665,10 +667,6 @@ public class DBTripReader implements TapasTripReader {
             throw new UnsupportedOperationException("Not supported.");
         }
 
-        private void close() {
-            tripFetcher.close();
-        }
-
 //        @Override
 //        protected void finalize() throws Throwable {
 //            try {
@@ -680,8 +678,9 @@ public class DBTripReader implements TapasTripReader {
 //            }
 //        }
 
-        public String getSource() {
-            return tripFetcher.getSource();
+        @Override
+        public void run() {
+            fetcherThread.start();
         }
     }
 }

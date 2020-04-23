@@ -29,7 +29,7 @@ import java.util.Map;
  */
 
 // These warnings are disabled, because MultiKey and results need too much casting...
-@SuppressWarnings({ "rawtypes", "unchecked" }) 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class TapasChartFactory {
 
     /**
@@ -49,7 +49,7 @@ public class TapasChartFactory {
      *
      * @param caption the chart title ({@code null} permitted)
      * @param dataset the dataset for the chart ({@code null} permitted).
-     * @param theme chart theme
+     * @param theme   chart theme
      * @return the created bar chart object
      */
     private static JFreeChart createChartBar(String caption, DefaultCategoryDataset dataset, String horizontalCaption, String verticalCaption, ChartTheme theme) {
@@ -135,8 +135,8 @@ public class TapasChartFactory {
      * @param theme                          chart theme
      * @return
      */
-    
-	public static MultiKeyMap createModalSplitDistanceCategorySeparated(StatisticPOJO statistics, boolean[] modalSplitForDistanceCatFilter, boolean asPie, ChartTheme theme) {
+
+    public static MultiKeyMap createModalSplitDistanceCategorySeparated(StatisticPOJO statistics, boolean[] modalSplitForDistanceCatFilter, boolean asPie, ChartTheme theme) {
         MultiKeyMap result = new MultiKeyMap();
         int maxDistanceCategoryGroup = modalSplitForDistanceCatFilter.length - countFalses(
                 modalSplitForDistanceCatFilter);

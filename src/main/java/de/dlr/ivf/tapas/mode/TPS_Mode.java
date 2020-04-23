@@ -39,7 +39,7 @@ public abstract class TPS_Mode {
     /**
      * Map stores all modes indexed by their mode type
      */
-    private static EnumMap<ModeType, TPS_Mode> MODE_MAP = new EnumMap<>(ModeType.class);
+    private static final EnumMap<ModeType, TPS_Mode> MODE_MAP = new EnumMap<>(ModeType.class);
     /**
      * Instance to the utility function
      */
@@ -54,8 +54,8 @@ public abstract class TPS_Mode {
     /**
      * In this map all internal representation of this constant are stored
      */
-    private EnumMap<TPS_ModeCodeType, TPS_InternalConstant<TPS_ModeCodeType>> map;
-    private String name;
+    private final EnumMap<TPS_ModeCodeType, TPS_InternalConstant<TPS_ModeCodeType>> map;
+    private final String name;
     /**
      * This flag determines whether the choice for this mode has to be fix or not, i.e. when I decide to drive to work by car
      * then I have to take it back home too (fix = true). If I go to work by taxi then I can take the bus to go home (fix =
@@ -101,52 +101,11 @@ public abstract class TPS_Mode {
         this.setFix(isFix);
     }
 
-
-    /**
-     * Adds this TPS_Mode instance to the global static MODE_MAP
-     */
-    public void addModeToMap(){
-        MODE_MAP.put(this.getAttribute(), this);
-    }
-
     /**
      * Empties the global static TPS_Mode map
      */
-    public static void clearModeMap(){
+    public static void clearModeMap() {
         MODE_MAP.clear();
-    }
-
-    /**
-     * Method initializes and returns utility function
-     *
-     * @param parameterClass reference
-     * @return utility function
-     */
-    public static TPS_UtilityFunction getUtilityFunction(TPS_ParameterClass parameterClass) {
-        if (TPS_Mode.UTILITY_FUNCTION == null) {
-            TPS_Mode.initUtilityFunction(parameterClass);
-        }
-        return UTILITY_FUNCTION;
-    }
-
-    /**
-     * Method to check if the returned value is a "no connection". Inverse function is hasConnection.
-     *
-     * @param val the value to check
-     * @return true if no connection is detected
-     */
-    public static boolean noConnection(double val) {
-        return val < 0 || val <= TPS_Mode.NO_CONNECTION;
-    }
-
-    /**
-     * Method to check if the returned value is a connection. Inverse function is noConnection.
-     *
-     * @param val the value to check
-     * @return true if connection is detected
-     */
-    public static boolean hasConnection(double val) {
-        return val >= 0 || val > TPS_Mode.NO_CONNECTION;
     }
 
     /**
@@ -170,6 +129,29 @@ public abstract class TPS_Mode {
     }
 
     /**
+     * Method initializes and returns utility function
+     *
+     * @param parameterClass reference
+     * @return utility function
+     */
+    public static TPS_UtilityFunction getUtilityFunction(TPS_ParameterClass parameterClass) {
+        if (TPS_Mode.UTILITY_FUNCTION == null) {
+            TPS_Mode.initUtilityFunction(parameterClass);
+        }
+        return UTILITY_FUNCTION;
+    }
+
+    /**
+     * Method to check if the returned value is a connection. Inverse function is noConnection.
+     *
+     * @param val the value to check
+     * @return true if connection is detected
+     */
+    public static boolean hasConnection(double val) {
+        return val >= 0 || val > TPS_Mode.NO_CONNECTION;
+    }
+
+    /**
      * This method initializes the utility function.
      *
      * @param parameterClass reference the parameter class object
@@ -189,21 +171,27 @@ public abstract class TPS_Mode {
     }
 
     /**
-     * Method to check if the travel time is in a valid range
+     * Method to check if the returned value is a "no connection". Inverse function is hasConnection.
      *
-     * @param tt travel time to be checked
-     * @return true if tt is a valid travel time
+     * @param val the value to check
+     * @return true if no connection is detected
      */
-    boolean travelTimeIsInvalid(double tt) {
-        boolean returnValue = Double.isNaN(tt) || Double.isInfinite(tt);
-        if (!returnValue && (tt < 0.0 || tt >= 100000.0)) { // positive and less than a day + x
-            returnValue = true;
-        }
-        return returnValue;
+    public static boolean noConnection(double val) {
+        return val < 0 || val <= TPS_Mode.NO_CONNECTION;
     }
 
-    public String getName() {
-        return name;
+    /**
+     * Adds this TPS_Mode instance to the global static MODE_MAP
+     */
+    public void addModeToMap() {
+        MODE_MAP.put(this.getAttribute(), this);
+    }
+
+    /**
+     * Gets the Delta of costs for this mode
+     */
+    double calculateDelta(TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
+        return TPS_Mode.getUtilityFunction(this.parameterClass).calculateDelta(this, plan, distanceNet, mcc);
     }
 
     /**
@@ -272,6 +260,28 @@ public abstract class TPS_Mode {
     }
 
     /**
+     * @param type TPS_ModeCodeTyp like MCT or VOT
+     * @return code of the constant corresponding to the given enum type
+     */
+    public int getCode(TPS_ModeCodeType type) {
+        return this.map.get(type).getCode();
+    }
+
+    /**
+     * * This method returns the cost factor for this mode for the specified Scenario case. It must be multiplied with a cost per km value.
+     *
+     * @param simType Secario or base
+     * @return cost factor per km.
+     */
+    public double getCost_per_km(SimulationType simType) {
+        if (simType == SimulationType.BASE) {
+            return cost_per_km_base;
+        } else {
+            return cost_per_km;
+        }
+    }
+
+    /**
      * This method approximates the real distance between two locations by multiplying a specific factor to the beeline
      * distance. If this value is smaller than the minimum distance the minimum distance is returned
      *
@@ -295,6 +305,37 @@ public abstract class TPS_Mode {
     public abstract double getDistance(Locatable start, Locatable end, SimulationType simType, TPS_Car car);
 
     /**
+     * Gets the ModeType for this mode
+     *
+     * @return The ModeType
+     */
+    public ModeType getModeType() {
+        return modeType;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * This method returns the parameter class reference
+     *
+     * @return parameter class reference
+     */
+    public TPS_ParameterClass getParameters() {
+        return this.parameterClass;
+    }
+
+    /**
+     * This method sets the parameter class reference
+     *
+     * @param param parameter class reference
+     */
+    public void setParameters(TPS_ParameterClass param) {
+        this.parameterClass = param;
+    }
+
+    /**
      * This method calculates the travel time between two locations.
      *
      * @param start       location, where this trip starts
@@ -307,6 +348,21 @@ public abstract class TPS_Mode {
      * @return travel time in seconds
      */
     public abstract double getTravelTime(Locatable start, Locatable end, int time, SimulationType simType, TPS_ActivityConstant actCodeFrom, TPS_ActivityConstant actCodeTo, TPS_Person person, TPS_Car car);
+
+    /**
+     * This method returns the cost factor for the variable costs for the specified Scenario case.
+     * It must be multiplied with a variable cost per km value.
+     *
+     * @param simType Scenario or base
+     * @return cost factor per km.
+     */
+    public double getVariableCost_per_km(SimulationType simType) {
+        if (simType == SimulationType.BASE) {
+            return variable_cost_per_km_base;
+        } else {
+            return variable_cost_per_km;
+        }
+    }
 
     /**
      * If there is a specific velocity for this mode known, it can be got with this method.
@@ -338,14 +394,6 @@ public abstract class TPS_Mode {
     }
 
     /**
-     * @param type TPS_ModeCodeTyp like MCT or VOT
-     * @return code of the constant corresponding to the given enum type
-     */
-    public int getCode(TPS_ModeCodeType type) {
-        return this.map.get(type).getCode();
-    }
-
-    /**
      * This method check if the mode contains one of the given attributes
      *
      * @param type mode type attributes
@@ -369,53 +417,6 @@ public abstract class TPS_Mode {
     }
 
     /**
-     * * This method returns the cost factor for this mode for the specified Scenario case. It must be multiplied with a cost per km value.
-     *
-     * @param simType Secario or base
-     * @return cost factor per km.
-     */
-    public double getCost_per_km(SimulationType simType) {
-        if (simType == SimulationType.BASE) {
-            return cost_per_km_base;
-        } else {
-            return cost_per_km;
-        }
-    }
-
-    /**
-     * This method returns the cost factor for the variable costs for the specified Scenario case.
-     * It must be multiplied with a variable cost per km value.
-     *
-     * @param simType Scenario or base
-     * @return cost factor per km.
-     */
-    public double getVariableCost_per_km(SimulationType simType) {
-        if (simType == SimulationType.BASE) {
-            return variable_cost_per_km_base;
-        } else {
-            return variable_cost_per_km;
-        }
-    }
-
-    /**
-     * This method returns the parameter class reference
-     *
-     * @return parameter class reference
-     */
-    public TPS_ParameterClass getParameters() {
-        return this.parameterClass;
-    }
-
-    /**
-     * This method sets the parameter class reference
-     *
-     * @param param parameter class reference
-     */
-    public void setParameters(TPS_ParameterClass param) {
-        this.parameterClass = param;
-    }
-
-    /**
      * Flag to indicate if time differences to the base scenario are present.
      *
      * @return True if tie travel times of scenario and base differs.
@@ -424,25 +425,22 @@ public abstract class TPS_Mode {
         return useBase;
     }
 
-    /**
-     * Gets the Delta of costs for this mode
-     */
-    double calculateDelta(TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
-        return TPS_Mode.getUtilityFunction(this.parameterClass).calculateDelta(this, plan, distanceNet, mcc);
-    }
-
-
-    /**
-     * Gets the ModeType for this mode
-     *
-     * @return The ModeType
-     */
-    public ModeType getModeType() {
-        return modeType;
-    }
-
     public String toString(String prefix) {
         return prefix + this.getClass().getSimpleName() + " [type=" + this.getAttribute().name() + "]";
+    }
+
+    /**
+     * Method to check if the travel time is in a valid range
+     *
+     * @param tt travel time to be checked
+     * @return true if tt is a valid travel time
+     */
+    boolean travelTimeIsInvalid(double tt) {
+        boolean returnValue = Double.isNaN(tt) || Double.isInfinite(tt);
+        if (!returnValue && (tt < 0.0 || tt >= 100000.0)) { // positive and less than a day + x
+            returnValue = true;
+        }
+        return returnValue;
     }
 
     /**
@@ -464,16 +462,12 @@ public abstract class TPS_Mode {
      * This enum represents all known mode types of TAPAS
      */
     public enum ModeType {
-    	//FIXME order is critical and must match the order in the modechoice parameter and expert knowledge arrays!
-    	WALK		(ParamValue.BEELINE_FACTOR_FOOT),
-        BIKE		(ParamValue.BEELINE_FACTOR_BIKE),
-        MIT			(ParamValue.BEELINE_FACTOR_MIT),
-        MIT_PASS	(ParamValue.BEELINE_FACTOR_MIT),
-        TAXI		(ParamValue.BEELINE_FACTOR_MIT),
-        PT			(ParamValue.BEELINE_FACTOR_PT),
-        TRAIN		(ParamValue.BEELINE_FACTOR_PT) ;
+        //FIXME order is critical and must match the order in the modechoice parameter and expert knowledge arrays!
+        WALK(ParamValue.BEELINE_FACTOR_FOOT), BIKE(ParamValue.BEELINE_FACTOR_BIKE), MIT(
+                ParamValue.BEELINE_FACTOR_MIT), MIT_PASS(ParamValue.BEELINE_FACTOR_MIT), TAXI(
+                ParamValue.BEELINE_FACTOR_MIT), PT(ParamValue.BEELINE_FACTOR_PT), TRAIN(ParamValue.BEELINE_FACTOR_PT);
 
-        private ParamValue beelineFactor;
+        private final ParamValue beelineFactor;
 
         ModeType(ParamValue beelineFactor) {
             this.beelineFactor = beelineFactor;

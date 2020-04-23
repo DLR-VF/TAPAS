@@ -4,14 +4,13 @@ import java.util.Vector;
 
 public class Permuter {
 
-	
-	
+
     public static <T> void permute(T[] a, int k, Vector<T[]> into) {
         if (k == a.length) {
-        	into.add(a.clone());
+            into.add(a.clone());
         } else {
             for (int i = k; i < a.length; i++) {
-            	T temp = a[k];
+                T temp = a[k];
                 a[k] = a[i];
                 a[i] = temp;
                 permute(a, k + 1, into);

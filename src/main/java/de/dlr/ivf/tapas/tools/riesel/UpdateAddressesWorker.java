@@ -22,78 +22,73 @@ import java.util.concurrent.BlockingQueue;
  */
 public class UpdateAddressesWorker implements Runnable {
 
-	private final BlockingQueue<AddressPojo> queue;
-	private PreparedStatement updateBatch;
-	private Connection connection;
+    private final BlockingQueue<AddressPojo> queue;
+    private final int BATCH_MAX_SIZE = 10000;
+    private final PreparedStatement updateBatch;
+    private final Connection connection;
+    private int BATCH_SIZE = 0;
 
-	private final int BATCH_MAX_SIZE = 10000;
-	private int BATCH_SIZE = 0;
+    public UpdateAddressesWorker(BlockingQueue<AddressPojo> queue, TPS_DB_Connector dbCon) throws SQLException {
+        super();
+        this.queue = queue;
 
-	public UpdateAddressesWorker(BlockingQueue<AddressPojo> queue,
-			TPS_DB_Connector dbCon) throws SQLException {
-		super();
-		this.queue = queue;
+        connection = dbCon.getConnection(this);
+        connection.setAutoCommit(false);
+        updateBatch = connection.prepareStatement("UPDATE address_bkg SET inhabitants = ? WHERE id = ?");
+    }
 
-		connection = dbCon.getConnection(this);
-		connection.setAutoCommit(false);
-		updateBatch = connection
-				.prepareStatement("UPDATE address_bkg SET inhabitants = ? WHERE id = ?");
-	}
+    private void addToBatch(AddressPojo address) {
 
-	@Override
-	public void run() {
-		while (!Thread.currentThread().isInterrupted()) {
-			try {
-				AddressPojo address = queue.take();
-				if (address != AddressPojo.POISON_ELEMENT)
-					addToBatch(address);
-				else {
-					commitBatch();
-					System.out.println("All updates have been performed.");
-					Thread.currentThread().interrupt();
-				}
+        try {
+            updateBatch.setInt(1, address.getInhabitants());
+            updateBatch.setLong(2, address.getKey());
+            updateBatch.addBatch();
+            BATCH_SIZE++;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("An error occured while trying to add address " + address.getKey() + ".");
+        }
 
-			} catch (InterruptedException ex) {
-				ex.printStackTrace();
-				Thread.currentThread().interrupt();
-				break;
-			}
-		}
-	}
+        if (BATCH_SIZE >= BATCH_MAX_SIZE) {
+            commitBatch();
+            BATCH_SIZE = 0;
+        }
+    }
 
-	public void commitBatch() {
+    public void commitBatch() {
 
-		try {
-			System.out.println("commiting batch\t queue size=" + queue.size());
-			updateBatch.executeBatch();
-			connection.commit();
-			updateBatch.clearBatch();
+        try {
+            System.out.println("commiting batch\t queue size=" + queue.size());
+            updateBatch.executeBatch();
+            connection.commit();
+            updateBatch.clearBatch();
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err
-					.println("An error occured while trying to execute a batch update. This thread will be terminated.");
-			Thread.currentThread().interrupt();
-		}
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println(
+                    "An error occured while trying to execute a batch update. This thread will be terminated.");
+            Thread.currentThread().interrupt();
+        }
 
-	}
+    }
 
-	private void addToBatch(AddressPojo address) {
+    @Override
+    public void run() {
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                AddressPojo address = queue.take();
+                if (address != AddressPojo.POISON_ELEMENT) addToBatch(address);
+                else {
+                    commitBatch();
+                    System.out.println("All updates have been performed.");
+                    Thread.currentThread().interrupt();
+                }
 
-		try {
-			updateBatch.setInt(1, address.getInhabitants());
-			updateBatch.setLong(2, address.getKey());
-			updateBatch.addBatch();
-			BATCH_SIZE++;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("An error occured while trying to add address "
-					+ address.getKey() + ".");
-		}
-
-		if (BATCH_SIZE >= BATCH_MAX_SIZE) {
-			commitBatch();
-			BATCH_SIZE = 0;
-		}
-	}
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+    }
 }

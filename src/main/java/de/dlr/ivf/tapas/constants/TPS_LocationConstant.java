@@ -16,17 +16,17 @@ public class TPS_LocationConstant {
     /**
      * maps ids from the db to TPS_LocationConstant objects constructed from corresponding db data
      */
-    private static HashMap<Integer, TPS_LocationConstant> LOCATION_CONSTANT_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_LocationConstant> LOCATION_CONSTANT_MAP = new HashMap<>();
     /**
      * maps a location code type (like TAPAS o GENERAL) to an internal constant and its fields (name, code and
      * the same location code)
      */
-    private EnumMap<TPS_LocationCodeType, TPS_InternalConstant<TPS_LocationCodeType>> map;
+    private final EnumMap<TPS_LocationCodeType, TPS_InternalConstant<TPS_LocationCodeType>> map;
 
     /**
      * id from the db
      */
-    private int id;
+    private final int id;
 
     /**
      * Basic constructor for a TPS_LocationConstant

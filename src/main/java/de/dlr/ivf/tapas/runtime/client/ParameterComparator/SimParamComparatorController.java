@@ -43,8 +43,10 @@ public class SimParamComparatorController implements Initializable {
     private ComboBox<ParamFilterPredicate> cbFilter;
     @FXML
     private AnchorPane topBox;
-    private StringProperty para_header, sim1_header, sim2_header;
-    private boolean is_correct_input;
+    private final StringProperty para_header;
+    private final StringProperty sim1_header;
+    private final StringProperty sim2_header;
+    private final boolean is_correct_input;
     private ListProperty<SimParamComparatorObject> tablecontent;
     private FilteredList<SimParamComparatorObject> lst;
 
@@ -57,131 +59,6 @@ public class SimParamComparatorController implements Initializable {
         this.sim2_header = new SimpleStringProperty(simkey2);
         this.conn = conn;
         is_correct_input = simkey1 != null && simkey2 != null && !simkey1.equals("") && !simkey2.equals("");
-    }
-
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        generateComparisonList();
-
-        ResourceBundle rb = ResourceBundle.getBundle("SimParamComparatorControllerLabels",
-                MultilanguageSupport.getLocale());
-        this.para_header.setValue(rb.getString("PARAMETERS"));
-        //init filter predicates
-        cbFilter.getItems().add(new ParamFilterPredicate(rb.getString("SHOW_ALL"), param -> true));
-        cbFilter.getItems().add(new ParamFilterPredicate(rb.getString("SHOW_NULLS"),
-                SimParamComparatorObject::isNull));
-        cbFilter.getItems().add(new ParamFilterPredicate(rb.getString("SHOW_DEFAULTS"),
-                SimParamComparatorObject::isDefault));
-        cbFilter.getItems().add(new ParamFilterPredicate(rb.getString("SHOW_EQUALS"),
-                SimParamComparatorObject::isEqual));
-        cbFilter.getItems().add(new ParamFilterPredicate(rb.getString("SHOW_UNEQUALS"),
-                SimParamComparatorObject::isNotEqual));
-
-        //bindings
-        tcParameter.textProperty().bind(this.para_header);
-        tcParameter.minWidthProperty().bind(tcParameter.textProperty().length().multiply(30));
-
-        tcSim1.textProperty().bind(sim1_header);
-        tcSim1.minWidthProperty().bind(tcSim1.textProperty().length().multiply(10));
-
-        tcSim2.textProperty().bind(sim2_header);
-        tcSim2.minWidthProperty().bind(tcSim2.textProperty().length().multiply(10));
-
-        root.prefWidthProperty().bind(
-                tcSim1.widthProperty().add(tcSim2.widthProperty().add(tcParameter.widthProperty().add(20))));
-
-        tvSimComparator.prefWidthProperty().bind(root.widthProperty());
-        tvSimComparator.prefHeightProperty().bind(root.heightProperty().subtract(topBox.heightProperty()));
-
-        //cell and cell value factories
-        tcParameter.setCellValueFactory(modal -> new SimpleStringProperty(modal.getValue().getParamKey()));
-        tcSim1.setCellValueFactory(modal -> new SimpleStringProperty(modal.getValue().getValueOfFirstSim()));
-        tcSim2.setCellValueFactory(modal -> new SimpleStringProperty(modal.getValue().getValueOfSecondSim()));
-
-        tcSim1.setCellFactory(col -> new TableCell<SimParamComparatorObject, String>() {
-
-            private final Label l = new Label();
-            private final Circle c = new Circle(5);
-            private final HBox container = new HBox(5, c, l);
-
-            {
-                container.setAlignment(Pos.CENTER_LEFT);
-                c.getStyleClass().add("default-circle");
-            }
-
-            @Override
-            public void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item != null) {
-                    l.setText(item);
-                    if (item.length() > 0) {
-                        setTooltip(new Tooltip(item));
-                    }
-                    SimParamComparatorObject o = (SimParamComparatorObject) getTableRow().getItem();
-                    if (o != null) {
-                        if (!o.getIsDefaultFirstSim()) c.setVisible(false);
-                        else c.setVisible(true);
-                    }
-                }
-                setGraphic(empty ? null : container);
-            }
-        });
-
-        tcSim2.setCellFactory(col -> new TableCell<SimParamComparatorObject, String>() {
-
-            private final Label l = new Label();
-            private final Circle c = new Circle(5);
-            private final HBox container = new HBox(5, c, l);
-
-            {
-                container.setAlignment(Pos.CENTER_LEFT);
-                c.getStyleClass().add("default-circle");
-            }
-
-            @Override
-            public void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item != null) {
-                    l.setText(item);
-                    if (item.length() > 0) {
-                        if (getTooltip() == null) setTooltip(new Tooltip(item));
-                        else getTooltip().setText(item);
-                    }
-                    SimParamComparatorObject o = (SimParamComparatorObject) getTableRow().getItem();
-                    if (o != null) {
-                        if (!o.getIsDefaultSecondSim()) c.setVisible(false);
-                        else c.setVisible(true);
-                    }
-                }
-                setGraphic(empty ? null : container);
-            }
-        });
-
-        //row factory
-        tvSimComparator.setRowFactory(tv -> new TableRow<SimParamComparatorObject>() {
-            @Override
-            protected void updateItem(SimParamComparatorObject item, boolean empty) {
-                super.updateItem(item, empty);
-
-                getPseudoClassStates().stream().map(PseudoClass::getPseudoClassName).filter(
-                        pseudoclass -> pseudoclass.equalsIgnoreCase("isnull") ||
-                                pseudoclass.equalsIgnoreCase("inequal") || pseudoclass.equalsIgnoreCase("isequal"))
-                                      .forEach(pseudoclazz -> pseudoClassStateChanged(
-                                              PseudoClass.getPseudoClass(pseudoclazz), false));
-
-                if (!empty && item != null) {
-                    if (item.isNull()) {
-                        pseudoClassStateChanged(PseudoClass.getPseudoClass("isnull"), true);
-                    } else {
-                        if (item.isEqual()) {
-                            pseudoClassStateChanged(PseudoClass.getPseudoClass("isequal"), true);
-                        } else {
-                            pseudoClassStateChanged(PseudoClass.getPseudoClass("inequal"), true);
-                        }
-                    }
-                }
-            }
-        });
     }
 
     private void generateComparisonList() {
@@ -238,6 +115,128 @@ public class SimParamComparatorController implements Initializable {
                 }
             });
         } else throw new IllegalArgumentException("At least one of the input arguments is either null or empty String");
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        generateComparisonList();
+
+        ResourceBundle rb = ResourceBundle.getBundle("SimParamComparatorControllerLabels",
+                MultilanguageSupport.getLocale());
+        this.para_header.setValue(rb.getString("PARAMETERS"));
+        //init filter predicates
+        cbFilter.getItems().add(new ParamFilterPredicate(rb.getString("SHOW_ALL"), param -> true));
+        cbFilter.getItems().add(new ParamFilterPredicate(rb.getString("SHOW_NULLS"), SimParamComparatorObject::isNull));
+        cbFilter.getItems().add(
+                new ParamFilterPredicate(rb.getString("SHOW_DEFAULTS"), SimParamComparatorObject::isDefault));
+        cbFilter.getItems().add(
+                new ParamFilterPredicate(rb.getString("SHOW_EQUALS"), SimParamComparatorObject::isEqual));
+        cbFilter.getItems().add(
+                new ParamFilterPredicate(rb.getString("SHOW_UNEQUALS"), SimParamComparatorObject::isNotEqual));
+
+        //bindings
+        tcParameter.textProperty().bind(this.para_header);
+        tcParameter.minWidthProperty().bind(tcParameter.textProperty().length().multiply(30));
+
+        tcSim1.textProperty().bind(sim1_header);
+        tcSim1.minWidthProperty().bind(tcSim1.textProperty().length().multiply(10));
+
+        tcSim2.textProperty().bind(sim2_header);
+        tcSim2.minWidthProperty().bind(tcSim2.textProperty().length().multiply(10));
+
+        root.prefWidthProperty().bind(
+                tcSim1.widthProperty().add(tcSim2.widthProperty().add(tcParameter.widthProperty().add(20))));
+
+        tvSimComparator.prefWidthProperty().bind(root.widthProperty());
+        tvSimComparator.prefHeightProperty().bind(root.heightProperty().subtract(topBox.heightProperty()));
+
+        //cell and cell value factories
+        tcParameter.setCellValueFactory(modal -> new SimpleStringProperty(modal.getValue().getParamKey()));
+        tcSim1.setCellValueFactory(modal -> new SimpleStringProperty(modal.getValue().getValueOfFirstSim()));
+        tcSim2.setCellValueFactory(modal -> new SimpleStringProperty(modal.getValue().getValueOfSecondSim()));
+
+        tcSim1.setCellFactory(col -> new TableCell<SimParamComparatorObject, String>() {
+
+            private final Label l = new Label();
+            private final Circle c = new Circle(5);
+            private final HBox container = new HBox(5, c, l);
+
+            {
+                container.setAlignment(Pos.CENTER_LEFT);
+                c.getStyleClass().add("default-circle");
+            }
+
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item != null) {
+                    l.setText(item);
+                    if (item.length() > 0) {
+                        setTooltip(new Tooltip(item));
+                    }
+                    SimParamComparatorObject o = getTableRow().getItem();
+                    if (o != null) {
+                        c.setVisible(o.getIsDefaultFirstSim());
+                    }
+                }
+                setGraphic(empty ? null : container);
+            }
+        });
+
+        tcSim2.setCellFactory(col -> new TableCell<SimParamComparatorObject, String>() {
+
+            private final Label l = new Label();
+            private final Circle c = new Circle(5);
+            private final HBox container = new HBox(5, c, l);
+
+            {
+                container.setAlignment(Pos.CENTER_LEFT);
+                c.getStyleClass().add("default-circle");
+            }
+
+            @Override
+            public void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item != null) {
+                    l.setText(item);
+                    if (item.length() > 0) {
+                        if (getTooltip() == null) setTooltip(new Tooltip(item));
+                        else getTooltip().setText(item);
+                    }
+                    SimParamComparatorObject o = getTableRow().getItem();
+                    if (o != null) {
+                        c.setVisible(o.getIsDefaultSecondSim());
+                    }
+                }
+                setGraphic(empty ? null : container);
+            }
+        });
+
+        //row factory
+        tvSimComparator.setRowFactory(tv -> new TableRow<SimParamComparatorObject>() {
+            @Override
+            protected void updateItem(SimParamComparatorObject item, boolean empty) {
+                super.updateItem(item, empty);
+
+                getPseudoClassStates().stream().map(PseudoClass::getPseudoClassName).filter(
+                        pseudoclass -> pseudoclass.equalsIgnoreCase("isnull") ||
+                                pseudoclass.equalsIgnoreCase("inequal") || pseudoclass.equalsIgnoreCase("isequal"))
+                                      .forEach(pseudoclazz -> pseudoClassStateChanged(
+                                              PseudoClass.getPseudoClass(pseudoclazz), false));
+
+                if (!empty && item != null) {
+                    if (item.isNull()) {
+                        pseudoClassStateChanged(PseudoClass.getPseudoClass("isnull"), true);
+                    } else {
+                        if (item.isEqual()) {
+                            pseudoClassStateChanged(PseudoClass.getPseudoClass("isequal"), true);
+                        } else {
+                            pseudoClassStateChanged(PseudoClass.getPseudoClass("inequal"), true);
+                        }
+                    }
+                }
+            }
+        });
     }
 
 }

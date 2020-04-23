@@ -45,7 +45,7 @@ public enum ParamType {
      */
     TMP(-2);
 
-    private int index;
+    private final int index;
 
     ParamType(int index) {
         this.index = index;

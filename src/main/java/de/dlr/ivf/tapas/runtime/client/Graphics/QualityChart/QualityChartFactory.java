@@ -21,190 +21,176 @@ import java.util.EnumSet;
 /**
  * Factory to create a {@link JFreeChart} for quality assessment of traffic
  * simulations.
- * 
+ * <p>
  * This class handles the specifics of the {@link JFreeChart} library.
- * 
+ *
  * @author boec_pa
- * 
  */
 public class QualityChartFactory {
 
-	private static final String TOOL_TIP_TEMPLATE = "<html><div align=\"center\">%s<br />(%.3f;%.3f)</div></html>";
+    private static final String TOOL_TIP_TEMPLATE = "<html><div align=\"center\">%s<br />(%.3f;%.3f)</div></html>";
 
-	private static class QualityChartLegendGerator implements
-			XYSeriesLabelGenerator {
+    /**
+     * @param data
+     * @return
+     */
+    public static JFreeChart createChart(ArrayList<QualityChartData> data) {
 
-		@Override
-		public String generateLabel(XYDataset dataset, int series) {
-			if (!(dataset instanceof QualityChartDataset)) {
-				throw new IllegalArgumentException(
-						"This dataset is not supported.");
-			}
+        // TODO delete EnumSet
+        EnumSet<Key> es = EnumSet.allOf(QualityChartDataset.Key.class);
+        // es.remove(Key.UPPER_GEH5);
+        // es.remove(Key.LOWER_GEH5);
 
-			QualityChartDataset qcd = (QualityChartDataset) dataset;
+        QualityChartDataset dataset = new QualityChartDataset(data, es);
 
-			Key key = (Key) qcd.getSeriesKey(series);
+        JFreeChart chart = ChartFactory.createXYLineChart(null, null, null, dataset, PlotOrientation.HORIZONTAL, true,
+                false, false);
 
-			if (QualityChartDataset.DATASERIES.contains(key)) {
-				return Key.getQuality(key).toString();
-			} else if (key == Key.LOWER_CONFIDENCE) {
-				return "Confidence Interval";
-			} else if (key == Key.LOWER_GEH5) {
-				return "GEH5";
-			}
-			return "";
-		}
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        ((XYPlot) chart.getPlot()).setRenderer(renderer);
+        chart.getPlot().setBackgroundPaint(Color.WHITE);
 
-	}
+        renderer.setLegendItemLabelGenerator(new QualityChartLegendGerator());
+        // High quality data
+        int i = dataset.indexOf(Key.DATA_HIGH);
+        renderer.setSeriesLinesVisible(i, false);
+        renderer.setSeriesShapesVisible(i, true);
+        renderer.setSeriesVisibleInLegend(i, true);
+        renderer.setSeriesPaint(i, Quality.GOOD.getColor());
+        renderer.setSeriesToolTipGenerator(i, new XYToolTipGenerator() {
+            @Override
+            public String generateToolTip(XYDataset dataset, int series, int item) {
+                return String.format(TOOL_TIP_TEMPLATE, ((QualityChartDataset) dataset).getLabel(series, item),
+                        dataset.getXValue(series, item), dataset.getYValue(series, item));
+            }
+        });
 
-	/**
-	 * 
-	 * @param data
-	 * @return
-	 */
-	public static JFreeChart createChart(ArrayList<QualityChartData> data) {
+        // Medium quality data
+        i = dataset.indexOf(Key.DATA_MED);
+        renderer.setSeriesLinesVisible(i, false);
+        renderer.setSeriesShapesVisible(i, true);
+        renderer.setSeriesVisibleInLegend(i, true);
+        renderer.setSeriesPaint(i, Quality.MEDIUM.getColor());
+        renderer.setSeriesToolTipGenerator(i, new XYToolTipGenerator() {
+            @Override
+            public String generateToolTip(XYDataset dataset, int series, int item) {
+                return String.format(TOOL_TIP_TEMPLATE, ((QualityChartDataset) dataset).getLabel(series, item),
+                        dataset.getXValue(series, item), dataset.getYValue(series, item));
+            }
+        });
 
-		// TODO delete EnumSet
-		EnumSet<Key> es = EnumSet.allOf(QualityChartDataset.Key.class);
-		// es.remove(Key.UPPER_GEH5);
-		// es.remove(Key.LOWER_GEH5);
+        // low quality data
+        i = dataset.indexOf(Key.DATA_LOW);
+        renderer.setSeriesLinesVisible(i, false);
+        renderer.setSeriesShapesVisible(i, true);
+        renderer.setSeriesVisibleInLegend(i, true);
+        renderer.setSeriesPaint(i, Quality.BAD.getColor());
+        renderer.setSeriesToolTipGenerator(i, new XYToolTipGenerator() {
+            @Override
+            public String generateToolTip(XYDataset dataset, int series, int item) {
+                return String.format(TOOL_TIP_TEMPLATE, ((QualityChartDataset) dataset).getLabel(series, item),
+                        dataset.getXValue(series, item), dataset.getYValue(series, item));
+            }
+        });
 
-		QualityChartDataset dataset = new QualityChartDataset(data, es);
+        // confidence interval
+        Stroke dashed = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10.0f, new float[]{10.0f},
+                0.0f);
 
-		JFreeChart chart = ChartFactory.createXYLineChart(null, null, null,
-				dataset, PlotOrientation.HORIZONTAL, true, false, false);
+        i = dataset.indexOf(Key.LOWER_CONFIDENCE);
+        renderer.setSeriesLinesVisible(i, true);
+        renderer.setSeriesShapesVisible(i, false);
+        renderer.setSeriesVisibleInLegend(i, true);
+        renderer.setSeriesPaint(i, Color.BLACK);
+        renderer.setSeriesStroke(i, dashed);
 
-		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-		((XYPlot) chart.getPlot()).setRenderer(renderer);
-		chart.getPlot().setBackgroundPaint(Color.WHITE);
+        i = dataset.indexOf(Key.UPPER_CONFIDENCE);
+        renderer.setSeriesLinesVisible(i, true);
+        renderer.setSeriesShapesVisible(i, false);
+        renderer.setSeriesVisibleInLegend(i, false);
+        renderer.setSeriesPaint(i, Color.BLACK);
+        renderer.setSeriesStroke(i, dashed);
 
-		renderer.setLegendItemLabelGenerator(new QualityChartLegendGerator());
-		// High quality data
-		int i = dataset.indexOf(Key.DATA_HIGH);
-		renderer.setSeriesLinesVisible(i, false);
-		renderer.setSeriesShapesVisible(i, true);
-		renderer.setSeriesVisibleInLegend(i, true);
-		renderer.setSeriesPaint(i, Quality.GOOD.getColor());
-		renderer.setSeriesToolTipGenerator(i, new XYToolTipGenerator() {
-			@Override
-			public String generateToolTip(XYDataset dataset, int series,
-					int item) {
-				return String.format(TOOL_TIP_TEMPLATE,
-						((QualityChartDataset) dataset).getLabel(series, item),
-						dataset.getXValue(series, item),
-						dataset.getYValue(series, item));
-			}
-		});
+        // optimal line
+        i = dataset.indexOf(Key.OPTIMAL);
+        renderer.setSeriesLinesVisible(i, true);
+        renderer.setSeriesShapesVisible(i, false);
+        renderer.setSeriesVisibleInLegend(i, false);
+        renderer.setSeriesPaint(i, Color.BLACK);
 
-		// Medium quality data
-		i = dataset.indexOf(Key.DATA_MED);
-		renderer.setSeriesLinesVisible(i, false);
-		renderer.setSeriesShapesVisible(i, true);
-		renderer.setSeriesVisibleInLegend(i, true);
-		renderer.setSeriesPaint(i, Quality.MEDIUM.getColor());
-		renderer.setSeriesToolTipGenerator(i, new XYToolTipGenerator() {
-			@Override
-			public String generateToolTip(XYDataset dataset, int series,
-					int item) {
-				return String.format(TOOL_TIP_TEMPLATE,
-						((QualityChartDataset) dataset).getLabel(series, item),
-						dataset.getXValue(series, item),
-						dataset.getYValue(series, item));
-			}
-		});
+        // GEH5
+        i = dataset.indexOf(Key.LOWER_GEH5);
+        renderer.setSeriesLinesVisible(i, true);
+        renderer.setSeriesShapesVisible(i, false);
+        renderer.setSeriesVisibleInLegend(i, true);
+        renderer.setSeriesPaint(i, Color.BLACK);
 
-		// low quality data
-		i = dataset.indexOf(Key.DATA_LOW);
-		renderer.setSeriesLinesVisible(i, false);
-		renderer.setSeriesShapesVisible(i, true);
-		renderer.setSeriesVisibleInLegend(i, true);
-		renderer.setSeriesPaint(i, Quality.BAD.getColor());
-		renderer.setSeriesToolTipGenerator(i, new XYToolTipGenerator() {
-			@Override
-			public String generateToolTip(XYDataset dataset, int series,
-					int item) {
-				return String.format(TOOL_TIP_TEMPLATE,
-						((QualityChartDataset) dataset).getLabel(series, item),
-						dataset.getXValue(series, item),
-						dataset.getYValue(series, item));
-			}
-		});
+        i = dataset.indexOf(Key.UPPER_GEH5);
+        renderer.setSeriesLinesVisible(i, true);
+        renderer.setSeriesShapesVisible(i, false);
+        renderer.setSeriesVisibleInLegend(i, false);
+        renderer.setSeriesPaint(i, Color.BLACK);
 
-		// confidence interval
-		Stroke dashed = new BasicStroke(1.0f, BasicStroke.CAP_BUTT,
-				BasicStroke.JOIN_MITER, 10.0f, new float[] { 10.0f }, 0.0f);
+        return chart;
+    }
 
-		i = dataset.indexOf(Key.LOWER_CONFIDENCE);
-		renderer.setSeriesLinesVisible(i, true);
-		renderer.setSeriesShapesVisible(i, false);
-		renderer.setSeriesVisibleInLegend(i, true);
-		renderer.setSeriesPaint(i, Color.BLACK);
-		renderer.setSeriesStroke(i, dashed);
+    /**
+     * For testing purposes only
+     *
+     * @param args
+     */
+    public static void main(String[] args) {
 
-		i = dataset.indexOf(Key.UPPER_CONFIDENCE);
-		renderer.setSeriesLinesVisible(i, true);
-		renderer.setSeriesShapesVisible(i, false);
-		renderer.setSeriesVisibleInLegend(i, false);
-		renderer.setSeriesPaint(i, Color.BLACK);
-		renderer.setSeriesStroke(i, dashed);
+        ArrayList<QualityChartData> data = new ArrayList<>();
 
-		// optimal line
-		i = dataset.indexOf(Key.OPTIMAL);
-		renderer.setSeriesLinesVisible(i, true);
-		renderer.setSeriesShapesVisible(i, false);
-		renderer.setSeriesVisibleInLegend(i, false);
-		renderer.setSeriesPaint(i, Color.BLACK);
+        data.add(new QualityChartData(0.01, 0.01, "MO1 x PG1"));
+        // data.add(new QualityChartData(0.02, 0.04, "MO2 x PG1",
+        // Quality.GOOD));
+        // data.add(new QualityChartData(0.02, 0.03, "MO3 x PG1",
+        // Quality.GOOD));
+        data.add(new QualityChartData(0.02, 0.04, "MO2 x PG1"));
+        data.add(new QualityChartData(0.02, 0.03, "MO3 x PG1"));
+        data.add(new QualityChartData(0.025, 0.02, "MO1 x PG2"));
+        data.add(new QualityChartData(0.054, 0.06, "MO2 x PG2"));
+        data.add(new QualityChartData(0.065, 0.058, "MO3 x PG2"));
 
-		// GEH5
-		i = dataset.indexOf(Key.LOWER_GEH5);
-		renderer.setSeriesLinesVisible(i, true);
-		renderer.setSeriesShapesVisible(i, false);
-		renderer.setSeriesVisibleInLegend(i, true);
-		renderer.setSeriesPaint(i, Color.BLACK);
+        JFreeChart chart = QualityChartFactory.createChart(data);
 
-		i = dataset.indexOf(Key.UPPER_GEH5);
-		renderer.setSeriesLinesVisible(i, true);
-		renderer.setSeriesShapesVisible(i, false);
-		renderer.setSeriesVisibleInLegend(i, false);
-		renderer.setSeriesPaint(i, Color.BLACK);
+        // save chart to png
+        try {
+            ChartUtils.saveChartAsPNG(new File("chartExport.png"), chart, 1000, 1000);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-		return chart;
-	}
+        // Show Chart
+        ChartFrame frame = new ChartFrame("TestChart", chart);
+        frame.pack();
+        frame.setVisible(true);
 
-	/**
-	 * For testing purposes only
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) {
+    }
 
-		ArrayList<QualityChartData> data = new ArrayList<>();
+    private static class QualityChartLegendGerator implements XYSeriesLabelGenerator {
 
-		data.add(new QualityChartData(0.01, 0.01, "MO1 x PG1"));
-		// data.add(new QualityChartData(0.02, 0.04, "MO2 x PG1",
-		// Quality.GOOD));
-		// data.add(new QualityChartData(0.02, 0.03, "MO3 x PG1",
-		// Quality.GOOD));
-		data.add(new QualityChartData(0.02, 0.04, "MO2 x PG1"));
-		data.add(new QualityChartData(0.02, 0.03, "MO3 x PG1"));
-		data.add(new QualityChartData(0.025, 0.02, "MO1 x PG2"));
-		data.add(new QualityChartData(0.054, 0.06, "MO2 x PG2"));
-		data.add(new QualityChartData(0.065, 0.058, "MO3 x PG2"));
+        @Override
+        public String generateLabel(XYDataset dataset, int series) {
+            if (!(dataset instanceof QualityChartDataset)) {
+                throw new IllegalArgumentException("This dataset is not supported.");
+            }
 
-		JFreeChart chart = QualityChartFactory.createChart(data);
+            QualityChartDataset qcd = (QualityChartDataset) dataset;
 
-		// save chart to png
-		try {
-			ChartUtils.saveChartAsPNG(new File("chartExport.png"), chart,
-					1000, 1000);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+            Key key = (Key) qcd.getSeriesKey(series);
 
-		// Show Chart
-		ChartFrame frame = new ChartFrame("TestChart", chart);
-		frame.pack();
-		frame.setVisible(true);
+            if (QualityChartDataset.DATASERIES.contains(key)) {
+                return Key.getQuality(key).toString();
+            } else if (key == Key.LOWER_CONFIDENCE) {
+                return "Confidence Interval";
+            } else if (key == Key.LOWER_GEH5) {
+                return "GEH5";
+            }
+            return "";
+        }
 
-	}
+    }
 }

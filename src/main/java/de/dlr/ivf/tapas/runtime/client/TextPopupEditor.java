@@ -5,176 +5,163 @@ import javax.swing.table.TableCellEditor;
 import java.awt.*;
 import java.awt.event.*;
 
-public class TextPopupEditor extends AbstractCellEditor implements
-		TableCellEditor, ActionListener {
+public class TextPopupEditor extends AbstractCellEditor implements TableCellEditor, ActionListener {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4903008989805984459L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 4903008989805984459L;
+    private static final String EDIT = "edit";
+    int curRow, curCol;
+    String curText;
+    private final JButton button;
+    private final TextAreaDialog window;
+    private JTable table;
+    public TextPopupEditor() {
+        super();
+        button = new JButton();
+        button.setActionCommand(EDIT);
+        button.addActionListener(this);
+        button.setBorderPainted(false);
 
-	private class TextAreaDialog extends JDialog {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -704484231321328670L;
-		private static final String LEAVE_SAVE = "leave_save";
-		private static final String LEAVE_DISCARD = "leave_discard";
-		private static final String ENTER = "enter";
+        window = new TextAreaDialog();
 
-		private JTextArea textArea;
-		private String oldText;
+    }
 
-		public TextAreaDialog() {
-			super((Frame) null, false);
-			setUndecorated(true);
-			setAlwaysOnTop(true);
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (EDIT.equals(e.getActionCommand())) {
+            window.show(curText, table.getCellRect(curRow, curCol, true).getLocation());
+            // fireEditingStopped();
+        }
 
-			textArea = new JTextArea();
+    }
 
-			ScrollPane scroll = new ScrollPane();
-			scroll.add(textArea);
+    @Override
+    public Object getCellEditorValue() {
+        return window.getText();
+    }
 
-			add(scroll);
-			Action saveText = new AbstractAction() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -4721603207144458907L;
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+        curCol = column;
+        curRow = row;
+        curText = (String) value;
+        this.table = table;
+        return button;
+    }
 
-				public void actionPerformed(ActionEvent actionEvent) {
-					hide(true);
-				}
-			};
+    private class TextAreaDialog extends JDialog {
+        /**
+         *
+         */
+        private static final long serialVersionUID = -704484231321328670L;
+        private static final String LEAVE_SAVE = "leave_save";
+        private static final String LEAVE_DISCARD = "leave_discard";
+        private static final String ENTER = "enter";
 
-			Action discardText = new AbstractAction() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = 619375387090102213L;
+        private final JTextArea textArea;
+        private String oldText;
 
-				public void actionPerformed(ActionEvent actionEvent) {
-					hide(false);
-				}
-			};
+        public TextAreaDialog() {
+            super((Frame) null, false);
+            setUndecorated(true);
+            setAlwaysOnTop(true);
 
-			Action addNewLine = new AbstractAction() {
-				/**
-				 * 
-				 */
-				private static final long serialVersionUID = -2545068874742465836L;
+            textArea = new JTextArea();
 
-				public void actionPerformed(ActionEvent actionEvent) {
-					textArea.insert("\n", textArea.getCaretPosition());
-				}
-			};
+            ScrollPane scroll = new ScrollPane();
+            scroll.add(textArea);
 
-			addWindowFocusListener(new WindowFocusListener() {
+            add(scroll);
+            Action saveText = new AbstractAction() {
+                /**
+                 *
+                 */
+                private static final long serialVersionUID = -4721603207144458907L;
 
-				@Override
-				public void windowLostFocus(WindowEvent arg0) {
-					hide(false);
-				}
+                public void actionPerformed(ActionEvent actionEvent) {
+                    hide(true);
+                }
+            };
 
-				@Override
-				public void windowGainedFocus(WindowEvent arg0) {
-					//
-				}
-			});
+            Action discardText = new AbstractAction() {
+                /**
+                 *
+                 */
+                private static final long serialVersionUID = 619375387090102213L;
 
-			textArea.getInputMap().put(
-					KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), LEAVE_SAVE);
+                public void actionPerformed(ActionEvent actionEvent) {
+                    hide(false);
+                }
+            };
 
-			textArea.getInputMap().put(
-					KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-					LEAVE_DISCARD);
+            Action addNewLine = new AbstractAction() {
+                /**
+                 *
+                 */
+                private static final long serialVersionUID = -2545068874742465836L;
 
-			textArea.getInputMap().put(
-					KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,
-							InputEvent.CTRL_DOWN_MASK), ENTER);
+                public void actionPerformed(ActionEvent actionEvent) {
+                    textArea.insert("\n", textArea.getCaretPosition());
+                }
+            };
 
-			textArea.getActionMap().put(LEAVE_SAVE, saveText);
-			textArea.getActionMap().put(LEAVE_DISCARD, discardText);
-			textArea.getActionMap().put(ENTER, addNewLine);
+            addWindowFocusListener(new WindowFocusListener() {
 
-		}
+                @Override
+                public void windowGainedFocus(WindowEvent arg0) {
+                    //
+                }
 
-		public void show(String oldText, Point position) {
+                @Override
+                public void windowLostFocus(WindowEvent arg0) {
+                    hide(false);
+                }
+            });
 
-			SwingUtilities.convertPointToScreen(position, table);
+            textArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), LEAVE_SAVE);
 
-			setLocation(position);
-			if (!oldText.equals(this.oldText)) {
-				this.oldText = oldText;
-				textArea.setText(oldText);
-			}
+            textArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), LEAVE_DISCARD);
 
-			setSize(new Dimension(table.getColumnModel().getColumn(1)
-					.getWidth(), 100));
+            textArea.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), ENTER);
 
-			setVisible(true);
-		}
+            textArea.getActionMap().put(LEAVE_SAVE, saveText);
+            textArea.getActionMap().put(LEAVE_DISCARD, discardText);
+            textArea.getActionMap().put(ENTER, addNewLine);
 
-		public void hide(boolean save) {
-			if (save) {
-				oldText = textArea.getText();
+        }
 
-			} else {
-				textArea.setText(oldText);
-			}
+        public String getText() {
+            return textArea.getText();
+        }
 
-			setVisible(false);
-			fireEditingStopped();
-		}
+        public void hide(boolean save) {
+            if (save) {
+                oldText = textArea.getText();
 
-		public String getText() {
-			return textArea.getText();
-		}
-	}
+            } else {
+                textArea.setText(oldText);
+            }
 
-	private static final String EDIT = "edit";
+            setVisible(false);
+            fireEditingStopped();
+        }
 
-	private JButton button;
-	private TextAreaDialog window;
-	private JTable table;
+        public void show(String oldText, Point position) {
 
-	int curRow, curCol;
-	String curText;
+            SwingUtilities.convertPointToScreen(position, table);
 
-	public TextPopupEditor() {
-		super();
-		button = new JButton();
-		button.setActionCommand(EDIT);
-		button.addActionListener(this);
-		button.setBorderPainted(false);
+            setLocation(position);
+            if (!oldText.equals(this.oldText)) {
+                this.oldText = oldText;
+                textArea.setText(oldText);
+            }
 
-		window = new TextAreaDialog();
+            setSize(new Dimension(table.getColumnModel().getColumn(1).getWidth(), 100));
 
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (EDIT.equals(e.getActionCommand())) {
-			window.show(curText, table.getCellRect(curRow, curCol, true)
-					.getLocation());
-			// fireEditingStopped();
-		}
-
-	}
-
-	@Override
-	public Object getCellEditorValue() {
-		return window.getText();
-	}
-
-	@Override
-	public Component getTableCellEditorComponent(JTable table, Object value,
-			boolean isSelected, int row, int column) {
-		curCol = column;
-		curRow = row;
-		curText = (String) value;
-		this.table = table;
-		return button;
-	}
+            setVisible(true);
+        }
+    }
 
 }

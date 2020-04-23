@@ -6,9 +6,9 @@ package de.dlr.ivf.tapas.constants;
  */
 public class TPS_InternalConstant<EnumType extends Enum<EnumType>> {
 
-    private int code;
-    private String name;
-    private EnumType type;
+    private final int code;
+    private final String name;
+    private final EnumType type;
 
     /**
      * @param name of the internal constant

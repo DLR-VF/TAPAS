@@ -5,7 +5,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import java.util.EnumMap;
 
 public class ParamFlagClass {
-    private EnumMap<ParamFlag, MutablePair<ParamType, Boolean>> paramFlags;
+    private final EnumMap<ParamFlag, MutablePair<ParamType, Boolean>> paramFlags;
 
     ParamFlagClass() {
         this.paramFlags = new EnumMap<>(ParamFlag.class);
@@ -46,10 +46,52 @@ public class ParamFlagClass {
     }
 
     /**
+     * clears the flag value to the default flag
+     */
+    public void clear(ParamFlag param) {
+        this.setFlag(param, new ParamFlagClass().getFlag(param));
+    }
+
+    /**
+     * Gets the flag of the param parameter
+     *
+     * @param param enum parameter of ParamFlag
+     * @return bool value of param
+     */
+    public boolean getFlag(ParamFlag param) throws RuntimeException {
+        if (!this.isDefined(param)) throw new RuntimeException("Enum-Flag is not defined: " + param);
+        return this.paramFlags.get(param).getRight();
+    }
+
+    /**
+     * TODO ugly hack maybe improve
+     *
+     * @param param flag parameter enum
+     * @return the default boolean value of the enum
+     */
+    public Boolean getPreset(ParamFlag param) {
+        try {
+            return new ParamFlagClass().getFlag(param);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /**
      * @return parameter type
      */
     public ParamType getType(ParamFlag param) {
         return this.paramFlags.get(param).getLeft();
+    }
+
+    /**
+     * checks if the parameter is not null
+     *
+     * @param param parameter to be checked
+     * @return true if defined, false otherwise
+     */
+    public boolean isDefined(ParamFlag param) {
+        return this.paramFlags.get(param).getRight() != null;
     }
 
     /**
@@ -81,17 +123,6 @@ public class ParamFlagClass {
     }
 
     /**
-     * Gets the flag of the param parameter
-     *
-     * @param param enum parameter of ParamFlag
-     * @return bool value of param
-     */
-    public boolean getFlag(ParamFlag param) throws RuntimeException {
-        if (!this.isDefined(param)) throw new RuntimeException("Enum-Flag is not defined: " + param);
-        return this.paramFlags.get(param).getRight();
-    }
-
-    /**
      * Sets the flag of this parameter
      *
      * @param param enum parameter to be set
@@ -99,37 +130,5 @@ public class ParamFlagClass {
      */
     public void setFlag(ParamFlag param, boolean flag) {
         this.paramFlags.get(param).setRight(flag);
-    }
-
-    /**
-     * checks if the parameter is not null
-     *
-     * @param param parameter to be checked
-     * @return true if defined, false otherwise
-     */
-    public boolean isDefined(ParamFlag param) {
-        return this.paramFlags.get(param).getRight() != null;
-    }
-
-    /**
-     * clears the flag value to the default flag
-     */
-    public void clear(ParamFlag param) {
-        this.setFlag(param, new ParamFlagClass().getFlag(param));
-    }
-
-
-    /**
-     * TODO ugly hack maybe improve
-     *
-     * @param param flag parameter enum
-     * @return the default boolean value of the enum
-     */
-    public Boolean getPreset(ParamFlag param) {
-        try {
-            return new ParamFlagClass().getFlag(param);
-        } catch (RuntimeException e) {
-            return null;
-        }
     }
 }

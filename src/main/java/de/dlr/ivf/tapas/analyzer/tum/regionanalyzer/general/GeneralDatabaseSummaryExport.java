@@ -18,201 +18,186 @@ import java.util.ArrayList;
 
 public class GeneralDatabaseSummaryExport {
 
-	private final TPS_DB_Connector dbCon;
-	private final Analyzer analyzer;
-	private final String source;
+    private final TPS_DB_Connector dbCon;
+    private final Analyzer analyzer;
+    private final String source;
 
-	private boolean update = false;
+    private boolean update = false;
 
-	/**
-	 * 
-	 * @param analyzer
-	 *            This {@link Analyzer} must have the following analyzers:
-	 *            <code>[{@link ModeAnalyzer}, {@link PersonGroupAnalyzer}, {@link TripIntentionAnalyzer}, {@link DefaultDistanceCategoryAnalyzer}]</code>
-	 *            . The order is important. The {@link PersonGroupAnalyzer} must
-	 *            have person statistics.
-	 * @param source
-	 * @throws SQLException
-	 *             when the connection to the database fails.
-	 * @throws IOException if the loginInfo is not found
-	 * @throws ClassNotFoundException if the {@link TPS_DB_Connector} could not login.
-	 * @throws IllegalArgumentException
-	 *             if any of the mentioned
-	 */
-	public GeneralDatabaseSummaryExport(Analyzer analyzer, String source) throws IOException, ClassNotFoundException {
-		TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-		parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-		dbCon = new TPS_DB_Connector(parameterClass);
-		this.analyzer = analyzer;
-		this.source = source;
+    /**
+     * @param analyzer This {@link Analyzer} must have the following analyzers:
+     *                 <code>[{@link ModeAnalyzer}, {@link PersonGroupAnalyzer}, {@link TripIntentionAnalyzer}, {@link DefaultDistanceCategoryAnalyzer}]</code>
+     *                 . The order is important. The {@link PersonGroupAnalyzer} must
+     *                 have person statistics.
+     * @param source
+     * @throws SQLException             when the connection to the database fails.
+     * @throws IOException              if the loginInfo is not found
+     * @throws ClassNotFoundException   if the {@link TPS_DB_Connector} could not login.
+     * @throws IllegalArgumentException if any of the mentioned
+     */
+    public GeneralDatabaseSummaryExport(Analyzer analyzer, String source) throws IOException, ClassNotFoundException {
+        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+        parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
+        dbCon = new TPS_DB_Connector(parameterClass);
+        this.analyzer = analyzer;
+        this.source = source;
 
-		Categories[] cats = analyzer.getCategories();
+        Categories[] cats = analyzer.getCategories();
 
-		// check if analyzer is valid for this
-		if (cats.length != 4) {
-			throw new IllegalArgumentException(
-					"Not the right number of Analyzers");
-		}
-		if (cats[0] != Categories.Mode) {
-			throw new IllegalArgumentException("Analyzer[0] is not Mode");
-		}
-		if (cats[1] != Categories.PersonGroup) {
-			throw new IllegalArgumentException("Analyzer[1] is not PersonGroup");
-		}
-		if (cats[2] != Categories.TripIntention) {
-			throw new IllegalArgumentException(
-					"Analyzer[2] is not TripIntention");
-		}
-		if (cats[3] != Categories.DistanceCategoryDefault) {
-			throw new IllegalArgumentException(
-					"Analyzer[3] is not DistanceCategoryDefault");
-		}
+        // check if analyzer is valid for this
+        if (cats.length != 4) {
+            throw new IllegalArgumentException("Not the right number of Analyzers");
+        }
+        if (cats[0] != Categories.Mode) {
+            throw new IllegalArgumentException("Analyzer[0] is not Mode");
+        }
+        if (cats[1] != Categories.PersonGroup) {
+            throw new IllegalArgumentException("Analyzer[1] is not PersonGroup");
+        }
+        if (cats[2] != Categories.TripIntention) {
+            throw new IllegalArgumentException("Analyzer[2] is not TripIntention");
+        }
+        if (cats[3] != Categories.DistanceCategoryDefault) {
+            throw new IllegalArgumentException("Analyzer[3] is not DistanceCategoryDefault");
+        }
 
-		if (!analyzer.hasPersonGroupStatistics()) {
-			throw new IllegalArgumentException("Analyzer has no PersonGroup statistics");
-		}
+        if (!analyzer.hasPersonGroupStatistics()) {
+            throw new IllegalArgumentException("Analyzer has no PersonGroup statistics");
+        }
 
-		try {
-			PreparedStatement ps = dbCon.getConnection(this).prepareStatement(
-					"SELECT * FROM calibration_results WHERE sim_key = ?");
-			ps.setString(1, source);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				System.err.println("Simkey for export exists and will be overwritten.");
-				update = true;
-			}
-			rs.close();
-		} catch (SQLException e) {
-			// should never happen
-			e.printStackTrace();
-		}
-	}
+        try {
+            PreparedStatement ps = dbCon.getConnection(this).prepareStatement(
+                    "SELECT * FROM calibration_results WHERE sim_key = ?");
+            ps.setString(1, source);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                System.err.println("Simkey for export exists and will be overwritten.");
+                update = true;
+            }
+            rs.close();
+        } catch (SQLException e) {
+            // should never happen
+            e.printStackTrace();
+        }
+    }
 
-	/**
-	 * Inserts or updates the summary in the database.
-	 * 
-	 * @return <code>false</code> if the database access failed or the region
-	 *         was differentiated.
-	 */
-	public boolean writeSummary() {
+    /**
+     * @param args
+     * @throws IOException
+     * @throws ClassNotFoundException
+     * @throws SQLException
+     */
+    public static void main(String[] args) throws ClassNotFoundException, IOException, SQLException {
+        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+        parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
+        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
 
-		try {
-			Connection con = dbCon.getConnection(this);
-			con.setAutoCommit(false);
-			PreparedStatement updateStatement;
-			if (update) {
-				updateStatement = con
-						.prepareStatement("UPDATE calibration_results "
-								+ "SET cnt_persons = ?," + "cnt_trips = ?, "
-								+ "avg_dist = ?, " + "avg_time = ? "
-								+ "WHERE sim_key = ? AND "
-								+ "person_group = ? AND "
-								+ "distance_category = ? AND "
-								+ "trip_mode = ? AND trip_intention = ?");
+        ModeAnalyzer mo = new ModeAnalyzer();
+        TripIntentionAnalyzer ti = new TripIntentionAnalyzer();
+        DefaultDistanceCategoryAnalyzer dc = new DefaultDistanceCategoryAnalyzer();
+        PersonGroupAnalyzer pg = new PersonGroupAnalyzer(mo, ti, dc);
 
-			} else {
-				updateStatement = con
-						.prepareStatement("INSERT INTO calibration_results "
-								+ "(cnt_persons, cnt_trips, avg_dist, avg_time, sim_key, "
-								+ "person_group, distance_category, trip_mode, trip_intention) "
-								+ "VALUES (?,?,?,?,?,?,?,?,?)");
-			}
+        Analyzer analyzer = new Analyzer(mo, pg, ti, dc);
 
-			fillBatch(updateStatement);
+        String simkey = "2013y_09m_10d_11h_43m_03s_321ms";
 
-			/* int[] result = */updateStatement.executeBatch();
-			con.commit();
-			updateStatement.close();
-			con.setAutoCommit(true);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.err.println("Error when executing query.");
-			e = e.getNextException();
-			e.printStackTrace();
-			return false;
-		}
+        DBTripReader tripReader = new DBTripReader(simkey, null, null, null, dbCon);
 
-		return true;
+        System.out.println("Starting the statistics");
+        while (tripReader.getIterator().hasNext()) {
+            TapasTrip tt = tripReader.getIterator().next();
+            analyzer.addTrip(tt);
+        }
+        System.out.println("Adding finished.");
+        tripReader.close();
+        GeneralDatabaseSummaryExport exporter = new GeneralDatabaseSummaryExport(analyzer, simkey);
 
-	}
+        if (exporter.writeSummary()) {
+            System.out.println("Database export successful");
+        }
 
-	@SuppressWarnings("rawtypes")
-	private void fillBatch(PreparedStatement ps) {
+    }
 
-		Categories[] cats = { Categories.Mode, Categories.PersonGroup,
-				Categories.TripIntention, Categories.DistanceCategoryDefault };
-		Enum[] instances = { Mode.BIKE, PersonGroup.PG_1,
-				TripIntention.TRIP_31, DistanceCategoryDefault.CAT_1 };
+    @SuppressWarnings("rawtypes")
+    private void fillBatch(PreparedStatement ps) {
 
-		ArrayList<CategoryCombination> combinations = CategoryCombination
-				.listAllCombinations(cats);
+        Categories[] cats = {Categories.Mode, Categories.PersonGroup, Categories.TripIntention, Categories.DistanceCategoryDefault};
+        Enum[] instances = {Mode.BIKE, PersonGroup.PG_1, TripIntention.TRIP_31, DistanceCategoryDefault.CAT_1};
 
-		for (CategoryCombination cc : combinations) {
+        ArrayList<CategoryCombination> combinations = CategoryCombination.listAllCombinations(cats);
 
-			instances[0] = cc.getCategories()[0];// mode
-			instances[1] = cc.getCategories()[1];// person group
-			instances[2] = cc.getCategories()[2];// trip intention
-			instances[3] = cc.getCategories()[3];// distance category
+        for (CategoryCombination cc : combinations) {
 
-			long cntTrips = analyzer.getTripCnt(instances);
-			double dist = analyzer.getDistance(instances);
-			double time = analyzer.getDuration(instances);
-			int cntPersons = analyzer.getCntPersons(instances);
+            instances[0] = cc.getCategories()[0];// mode
+            instances[1] = cc.getCategories()[1];// person group
+            instances[2] = cc.getCategories()[2];// trip intention
+            instances[3] = cc.getCategories()[3];// distance category
 
-			try {
-				ps.setInt(1, cntPersons);
-				ps.setLong(2, cntTrips);
-				ps.setDouble(3, dist);
-				ps.setDouble(4, time);
-				ps.setString(5, source);
-				ps.setInt(6, instances[1].ordinal());
-				ps.setInt(7, instances[3].ordinal());
-				ps.setInt(8, instances[0].ordinal());
-				ps.setInt(9, instances[2].ordinal());
-				ps.addBatch();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
+            long cntTrips = analyzer.getTripCnt(instances);
+            double dist = analyzer.getDistance(instances);
+            double time = analyzer.getDuration(instances);
+            int cntPersons = analyzer.getCntPersons(instances);
 
-	}
+            try {
+                ps.setInt(1, cntPersons);
+                ps.setLong(2, cntTrips);
+                ps.setDouble(3, dist);
+                ps.setDouble(4, time);
+                ps.setString(5, source);
+                ps.setInt(6, instances[1].ordinal());
+                ps.setInt(7, instances[3].ordinal());
+                ps.setInt(8, instances[0].ordinal());
+                ps.setInt(9, instances[2].ordinal());
+                ps.addBatch();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
-	/**
-	 * @param args
-	 * @throws IOException
-	 * @throws ClassNotFoundException
-	 * @throws SQLException
-	 */
-	public static void main(String[] args) throws ClassNotFoundException,
-			IOException, SQLException {
-		TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-		parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-		TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+    }
 
-		ModeAnalyzer mo = new ModeAnalyzer();
-		TripIntentionAnalyzer ti = new TripIntentionAnalyzer();
-		DefaultDistanceCategoryAnalyzer dc = new DefaultDistanceCategoryAnalyzer();
-		PersonGroupAnalyzer pg = new PersonGroupAnalyzer(mo, ti, dc);
+    /**
+     * Inserts or updates the summary in the database.
+     *
+     * @return <code>false</code> if the database access failed or the region
+     * was differentiated.
+     */
+    public boolean writeSummary() {
 
-		Analyzer analyzer = new Analyzer(mo, pg, ti, dc);
+        try {
+            Connection con = dbCon.getConnection(this);
+            con.setAutoCommit(false);
+            PreparedStatement updateStatement;
+            if (update) {
+                updateStatement = con.prepareStatement(
+                        "UPDATE calibration_results " + "SET cnt_persons = ?," + "cnt_trips = ?, " + "avg_dist = ?, " +
+                                "avg_time = ? " + "WHERE sim_key = ? AND " + "person_group = ? AND " +
+                                "distance_category = ? AND " + "trip_mode = ? AND trip_intention = ?");
 
-		String simkey = "2013y_09m_10d_11h_43m_03s_321ms";
+            } else {
+                updateStatement = con.prepareStatement(
+                        "INSERT INTO calibration_results " + "(cnt_persons, cnt_trips, avg_dist, avg_time, sim_key, " +
+                                "person_group, distance_category, trip_mode, trip_intention) " +
+                                "VALUES (?,?,?,?,?,?,?,?,?)");
+            }
 
-		DBTripReader tripReader = new DBTripReader(simkey, null, null,null, dbCon);
+            fillBatch(updateStatement);
 
-		System.out.println("Starting the statistics");
-		while (tripReader.getIterator().hasNext()) {
-			TapasTrip tt = tripReader.getIterator().next();
-			analyzer.addTrip(tt);
-		}
-		System.out.println("Adding finished.");
-		tripReader.close();
-		GeneralDatabaseSummaryExport exporter = new GeneralDatabaseSummaryExport(analyzer, simkey);
+            /* int[] result = */
+            updateStatement.executeBatch();
+            con.commit();
+            updateStatement.close();
+            con.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Error when executing query.");
+            e = e.getNextException();
+            e.printStackTrace();
+            return false;
+        }
 
-		if (exporter.writeSummary()) {
-			System.out.println("Database export successful");
-		}
+        return true;
 
-	}
+    }
 
 }

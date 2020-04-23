@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
 
-    private static HashMap<Integer, TPS_PersonGroup> PERSON_GROUP_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_PersonGroup> PERSON_GROUP_MAP = new HashMap<>();
 
     /**
      * List of all age classes the person group constant contains
@@ -33,11 +33,11 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
     /**
      * id obtained from the db
      */
-    private int id;
+    private final int id;
     /**
      * mapping of the {@link TPS_PersonGroupType} to the internal representation
      */
-    private EnumMap<TPS_PersonGroupType, TPS_InternalConstant<TPS_PersonGroupType>> map;
+    private final EnumMap<TPS_PersonGroupType, TPS_InternalConstant<TPS_PersonGroupType>> map;
 
     public TPS_PersonGroup(int id, String[] attributes) {
         if ((attributes.length - 4) % 3 != 0) {

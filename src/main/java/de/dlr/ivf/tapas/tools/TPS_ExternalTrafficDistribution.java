@@ -196,6 +196,420 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
 
     }
 
+    public void clearTrafficDistribution() {
+        this.carTypeDistribution.clear();
+        this.dayDistributionStart.clear();
+        this.dayDistributionReturn.clear();
+        this.dayDistributionIntern.clear();
+        this.ODPairsGravityDistributed.clear();
+        this.ODPairsDayDistributed.clear();
+        this.ODPairs.clear();
+    }
+
+    public void distributeOverDay() {
+        //go through the OD-List
+        for (ODPair p : this.ODPairs.values()) {
+
+            //check if the origin is outside berlin -> distribute according to start list
+            if (p.inBound) {
+                for (Entry<Integer, Double> e : this.dayDistributionStart.entrySet()) {
+                    ODPair pair = new ODPair();
+                    pair.idOrigin = p.idOrigin;
+                    pair.idDestination = p.idDestination;
+                    pair.inBound = p.inBound;
+                    pair.internalTraffic = p.internalTraffic;
+                    pair.hourOfDay = e.getKey();
+                    pair.volume = p.volume * e.getValue();
+                    this.ODPairsDayDistributed.add(pair);
+                }
+            } else if (p.internalTraffic) {
+                for (Entry<Integer, Double> e : this.dayDistributionIntern.entrySet()) {
+                    ODPair pair = new ODPair();
+                    pair.idOrigin = p.idOrigin;
+                    pair.idDestination = p.idDestination;
+                    pair.inBound = p.inBound;
+                    pair.internalTraffic = p.internalTraffic;
+                    pair.hourOfDay = e.getKey();
+                    pair.volume = p.volume * e.getValue();
+                    this.ODPairsDayDistributed.add(pair);
+                }
+            } else {
+                //check if the origin is inside berlin -> distribute according to return list
+                for (Entry<Integer, Double> e : this.dayDistributionReturn.entrySet()) {
+                    ODPair pair = new ODPair();
+                    pair.idOrigin = p.idOrigin;
+                    pair.idDestination = p.idDestination;
+                    pair.inBound = p.inBound;
+                    pair.internalTraffic = p.internalTraffic;
+                    pair.hourOfDay = e.getKey();
+                    pair.volume = p.volume * e.getValue();
+                    this.ODPairsDayDistributed.add(pair);
+                }
+            }
+        }
+    }
+
+    public void distributeOverLocations(double calib) {
+        double way = 0;
+        Map<Integer, Integer> timeDistCheck = new HashMap<>();
+        for (int i = 0; i < 24; ++i)
+            timeDistCheck.put(i, 0);
+        TAZ o;
+        Map<Integer, TAZ> dSet, dSet2;
+        for (ODPair p : this.ODPairsDayDistributed) {
+            if (!p.internalTraffic) {
+                //first calculate the weight of the locations
+                //it doesnt matter if o and d are exchanged: "gravity" is symmetric
+                if (p.inBound) {
+                    o = this.externalOrigins.get(p.idOrigin);
+                    dSet = this.berlinDModel.get(p.idDestination);
+                } else {
+                    o = this.externalOrigins.get(p.idDestination);
+                    dSet = this.berlinDModel.get(p.idOrigin);
+                }
+                double sum = 0;
+                for (TAZ d : dSet.values()) {
+                    if (o.useGravity) d.tempWeight = d.cappa * Math.pow(TPS_Geometrics
+                            .getDistance(d.coordDestination.getValue(0), d.coordDestination.getValue(1),
+                                    o.coordSource.getValue(0), o.coordSource.getValue(1)), -calib);
+                    else d.tempWeight = d.cappa;
+                    sum += d.tempWeight;
+                }
+                //normalize
+                sum = 1.0 / sum;
+                for (TAZ d : dSet.values()) {
+                    d.tempWeight *= sum;
+                }
+
+                //now distribute the volume
+                int totalVolume = 0;
+                for (TAZ d : dSet.values()) {
+
+                    way += d.tempWeight * p.volume;
+                    if (way >= 1.0) {
+                        //we have some trips!
+                        ODPair distributedPair = new ODPair();
+                        distributedPair.inBound = p.inBound;
+                        distributedPair.hourOfDay = p.hourOfDay;
+                        if (p.inBound) {
+                            distributedPair.idOrigin = p.idOrigin;
+                            distributedPair.idDestination = d.id;
+                        } else {
+                            distributedPair.idOrigin = d.id;
+                            distributedPair.idDestination = p.idDestination;
+
+                        }
+
+                        distributedPair.volume = (int) way; // this is the integer-part
+                        totalVolume += distributedPair.volume;
+                        way -= distributedPair.volume; // this is the remainer
+                        this.ODPairsGravityDistributed.add(distributedPair);
+                    }
+                }
+                timeDistCheck.put(p.hourOfDay, timeDistCheck.get(p.hourOfDay) + totalVolume);
+                //System.out.println("Pair o:"+p.idOrigin+" d:"+p.idDestination+" h:"+p.hourOfDay+" v:"+p.volume+" distributed:"+totalVolume);
+            } else {
+                //first calculate the weight of the locations
+                //just the capacity for internal traffics!
+                dSet = this.berlinDModel.get(p.idOrigin);
+                dSet2 = this.berlinDModel.get(p.idDestination);
+                double sum = 0;
+                for (TAZ d : dSet.values()) {
+                    d.tempWeight = d.cappa;
+                    sum += d.tempWeight;
+                }
+                //normalize
+                sum = 1.0 / sum;
+                for (TAZ d : dSet.values()) {
+                    d.tempWeight *= sum;
+                }
+
+                //now distribute the volume
+                int totalVolume = 0;
+                for (TAZ oSet : dSet.values()) {
+                    if (way + oSet.tempWeight * p.volume > 1.0) {
+                        for (TAZ d : dSet2.values()) {
+
+                            way += d.tempWeight * oSet.tempWeight * p.volume;
+                            if (way >= 1.0 && oSet.id != d.id) {
+                                //we have some trips!
+                                ODPair distributedPair = new ODPair();
+                                distributedPair.inBound = p.inBound;
+                                distributedPair.internalTraffic = p.internalTraffic;
+                                distributedPair.hourOfDay = p.hourOfDay;
+                                distributedPair.idOrigin = oSet.id;
+                                distributedPair.idDestination = d.id;
+                                distributedPair.volume = (int) way; // this is the integer-part
+                                totalVolume += distributedPair.volume;
+                                way -= distributedPair.volume; // this is the remainer
+                                this.ODPairsGravityDistributed.add(distributedPair);
+                            }
+                        }
+                    } else {
+                        way += oSet.tempWeight * p.volume;
+                    }
+                    timeDistCheck.put(p.hourOfDay, timeDistCheck.get(p.hourOfDay) + totalVolume);
+                    //System.out.println("Pair o:"+p.idOrigin+" d:"+p.idDestination+" h:"+p.hourOfDay+" v:"+p.volume+" distributed:"+totalVolume);
+                }
+            }
+        }
+//		for(int i=0; i<24;++i){
+//			System.out.println("Hour "+i+" volume: "+timeDistCheck.get(i));
+//		}
+    }
+
+    public void fillBusDistribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(38, 1.0);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void fillCarDistribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(2, 0.3);
+        this.carTypeDistribution.add(tmp);
+        tmp = new Vehicle(17, 0.5);
+        this.carTypeDistribution.add(tmp);
+        tmp = new Vehicle(20, 0.19);
+        this.carTypeDistribution.add(tmp);
+        tmp = new Vehicle(23, 0.01);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void fillHDVDistribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(36, 1.0);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void fillPTDistribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(0, 1);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void fillTrailerDistribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(37, 1.0);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void fillTruck12Distribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(35, 1.0);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void fillTruck35Distribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(33, 1.0);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void fillTruck75Distribution2010() {
+        Vehicle tmp;
+        tmp = new Vehicle(34, 1.0);
+        this.carTypeDistribution.add(tmp);
+    }
+
+    public void loadCordonDistricts(String tableName, String dmod, int berlinId) {
+        String query = "";
+        try {
+            int id, taz;
+            double sLon, sLat, dLon, dLat;
+
+            //load the external mapping
+            query = "SELECT z.tapas_taz_id,z.vbz_no, vbz_6561, z.nuts_id ISNULL as isberlin, " +
+                    "st_X(st_transform(st_centroid(z.the_geom),4326)) as lon, " +
+                    "st_Y(st_transform(st_centroid(z.the_geom),4326)) as lat " + "  from " + tableName + " as z join " +
+                    dmod + " as d on z.vbz_no=d.ver_nr";
+            ResultSet rs = this.dbCon.executeQuery(query, this);
+            while (rs.next()) {
+                if (!rs.getBoolean("isberlin")) {
+                    id = (int) (rs.getDouble("vbz_6561") + 0.1);
+                    sLat = rs.getDouble("lat");
+                    sLon = rs.getDouble("lon");
+                    dLat = rs.getDouble("lat");
+                    dLon = rs.getDouble("lon");
+                    taz = rs.getInt("tapas_taz_id");
+                    dModellZonen.put(id, taz);
+
+                    //create point informations
+                    TAZ entry = new TAZ();
+                    //now convert this id to a zone of the above mapping
+                    entry.id = taz;
+                    entry.taz_id = taz;
+                    entry.coordSource.setValues(sLon, sLat);
+                    entry.coordDestination.setValues(dLon, dLat);
+                    entry.cappa = 0;
+                    this.externalOrigins.put(entry.id, entry);
+                    this.internalDestinations.put(entry.id, entry);
+                }
+            }
+            rs.close();
+
+
+            System.out.println("found " + this.externalOrigins.size() + " origin entires");
+            berlinZone = berlinId;
+
+
+        } catch (SQLException e) {
+            System.err.println("Error in sqlstatement: " + query);
+            e.printStackTrace();
+        }
+    }
+
+    public void loadDayDistribution() {
+//
+//		/*
+//		 * This Method "creates" Static valued derived from the MiD:
+//		 * The weighted shares of all Trips in Berlin starting home and ending at home
+//		 * Since I cannot filter for commuter trips this must be sufficient!
+//		 * DB: perseus.mid2008.wege
+//		 * Filter: Bland=11
+//		 * Stichtag = {2,3,4} (DiMiDo)
+//		 * Anteil gewichtete Anzahl der Wege gruppiert nach Stunde Startzeit
+//		 * Start: Startpunkt Zu Hause
+//		 * Return: Zielpunkt: Zu Hause
+//		 */
+//		this.dayDistributionStart.put( 0, 	0.0);
+//		this.dayDistributionStart.put( 1, 	0.0);
+//		this.dayDistributionStart.put( 2, 	0.0);
+//		this.dayDistributionStart.put( 3, 	0.0);
+//		this.dayDistributionStart.put( 4, 	0.016319554);
+//		this.dayDistributionStart.put( 5, 	0.039152948);
+//		this.dayDistributionStart.put( 6, 	0.063814429);
+//		this.dayDistributionStart.put( 7, 	0.253985158);
+//		this.dayDistributionStart.put( 8, 	0.169123629);
+//		this.dayDistributionStart.put( 9, 	0.127186955);
+//		this.dayDistributionStart.put(10, 	0.097285095);
+//		this.dayDistributionStart.put(11, 	0.067713099);
+//		this.dayDistributionStart.put(12, 	0.04052658);
+//		this.dayDistributionStart.put(13, 	0.026566243);
+//		this.dayDistributionStart.put(14, 	0.037838191);
+//		this.dayDistributionStart.put(15, 	0.016196232);
+//		this.dayDistributionStart.put(16, 	0.010166324);
+//		this.dayDistributionStart.put(17, 	0.019645697);
+//		this.dayDistributionStart.put(18, 	0.002431023);
+//		this.dayDistributionStart.put(19, 	0.007391158);
+//		this.dayDistributionStart.put(20, 	0.00224679);
+//		this.dayDistributionStart.put(21, 	0.002410896);
+//		this.dayDistributionStart.put(22, 	0.0);
+//		this.dayDistributionStart.put(23, 	0.0);
+//
+//		this.dayDistributionReturn.put( 0, 	0.007975497);
+//		this.dayDistributionReturn.put( 1, 	0.0);
+//		this.dayDistributionReturn.put( 2, 	0.006796908);
+//		this.dayDistributionReturn.put( 3, 	0.005046985);
+//		this.dayDistributionReturn.put( 4, 	0.0);
+//		this.dayDistributionReturn.put( 5, 	0.001412515);
+//		this.dayDistributionReturn.put( 6, 	0.002733216);
+//		this.dayDistributionReturn.put( 7, 	0.004537778);
+//		this.dayDistributionReturn.put( 8, 	0.011349728);
+//		this.dayDistributionReturn.put( 9, 	0.024948635);
+//		this.dayDistributionReturn.put(10, 	0.0351713);
+//		this.dayDistributionReturn.put(11, 	0.038384415);
+//		this.dayDistributionReturn.put(12, 	0.058681634);
+//		this.dayDistributionReturn.put(13, 	0.054708503);
+//		this.dayDistributionReturn.put(14, 	0.053853918);
+//		this.dayDistributionReturn.put(15, 	0.078192265);
+//		this.dayDistributionReturn.put(16, 	0.151311135);
+//		this.dayDistributionReturn.put(17, 	0.110716488);
+//		this.dayDistributionReturn.put(18, 	0.119048915);
+//		this.dayDistributionReturn.put(19, 	0.130643535);
+//		this.dayDistributionReturn.put(20, 	0.02524086);
+//		this.dayDistributionReturn.put(21, 	0.017362978);
+//		this.dayDistributionReturn.put(22, 	0.047978302);
+//		this.dayDistributionReturn.put(23, 	0.013904491);
+
+
+        /*
+         * This Method "creates" Static valued derived from the MiD:
+         * The weighted shares of all Trips in Berlin starting home and ending at home
+         * Since I cannot filter for commuter trips this must be sufficient!
+         * DB: perseus.mid2008.wege
+         * Filter: Bland=11
+         * Stichtag = {2,3,4} (DiMiDo)
+         * Anteil gewichtete Anzahl der Wege gruppiert nach Stunde Startzeit
+         * Start: Startpunkt Zu Hause
+         * Return: Zielpunkt: Zu Hause
+         */
+        this.dayDistributionStart.put(0, 0.001538715);
+        this.dayDistributionStart.put(1, 0.000714403);
+        this.dayDistributionStart.put(2, 0.000659449);
+        this.dayDistributionStart.put(3, 0.000851789);
+        this.dayDistributionStart.put(4, 0.003517063);
+        this.dayDistributionStart.put(5, 0.018464582);
+        this.dayDistributionStart.put(6, 0.043523658);
+        this.dayDistributionStart.put(7, 0.07561686);
+        this.dayDistributionStart.put(8, 0.057811727);
+        this.dayDistributionStart.put(9, 0.057536957);
+        this.dayDistributionStart.put(10, 0.061658515);
+        this.dayDistributionStart.put(11, 0.057646865);
+        this.dayDistributionStart.put(12, 0.061548607);
+        this.dayDistributionStart.put(13, 0.058004067);
+        this.dayDistributionStart.put(14, 0.064653514);
+        this.dayDistributionStart.put(15, 0.074462824);
+        this.dayDistributionStart.put(16, 0.089135572);
+        this.dayDistributionStart.put(17, 0.085618509);
+        this.dayDistributionStart.put(18, 0.070533604);
+        this.dayDistributionStart.put(19, 0.049348794);
+        this.dayDistributionStart.put(20, 0.026405451);
+        this.dayDistributionStart.put(21, 0.01923394);
+        this.dayDistributionStart.put(22, 0.015634445);
+        this.dayDistributionStart.put(23, 0.00588009);
+
+        this.dayDistributionReturn.put(0, 0.001538715);
+        this.dayDistributionReturn.put(1, 0.000714403);
+        this.dayDistributionReturn.put(2, 0.000659449);
+        this.dayDistributionReturn.put(3, 0.000851789);
+        this.dayDistributionReturn.put(4, 0.003517063);
+        this.dayDistributionReturn.put(5, 0.018464582);
+        this.dayDistributionReturn.put(6, 0.043523658);
+        this.dayDistributionReturn.put(7, 0.07561686);
+        this.dayDistributionReturn.put(8, 0.057811727);
+        this.dayDistributionReturn.put(9, 0.057536957);
+        this.dayDistributionReturn.put(10, 0.061658515);
+        this.dayDistributionReturn.put(11, 0.057646865);
+        this.dayDistributionReturn.put(12, 0.061548607);
+        this.dayDistributionReturn.put(13, 0.058004067);
+        this.dayDistributionReturn.put(14, 0.064653514);
+        this.dayDistributionReturn.put(15, 0.074462824);
+        this.dayDistributionReturn.put(16, 0.089135572);
+        this.dayDistributionReturn.put(17, 0.085618509);
+        this.dayDistributionReturn.put(18, 0.070533604);
+        this.dayDistributionReturn.put(19, 0.049348794);
+        this.dayDistributionReturn.put(20, 0.026405451);
+        this.dayDistributionReturn.put(21, 0.01923394);
+        this.dayDistributionReturn.put(22, 0.015634445);
+        this.dayDistributionReturn.put(23, 0.00588009);
+
+        this.dayDistributionIntern.put(0, 0.001538715);
+        this.dayDistributionIntern.put(1, 0.000714403);
+        this.dayDistributionIntern.put(2, 0.000659449);
+        this.dayDistributionIntern.put(3, 0.000851789);
+        this.dayDistributionIntern.put(4, 0.003517063);
+        this.dayDistributionIntern.put(5, 0.018464582);
+        this.dayDistributionIntern.put(6, 0.043523658);
+        this.dayDistributionIntern.put(7, 0.07561686);
+        this.dayDistributionIntern.put(8, 0.057811727);
+        this.dayDistributionIntern.put(9, 0.057536957);
+        this.dayDistributionIntern.put(10, 0.061658515);
+        this.dayDistributionIntern.put(11, 0.057646865);
+        this.dayDistributionIntern.put(12, 0.061548607);
+        this.dayDistributionIntern.put(13, 0.058004067);
+        this.dayDistributionIntern.put(14, 0.064653514);
+        this.dayDistributionIntern.put(15, 0.074462824);
+        this.dayDistributionIntern.put(16, 0.089135572);
+        this.dayDistributionIntern.put(17, 0.085618509);
+        this.dayDistributionIntern.put(18, 0.070533604);
+        this.dayDistributionIntern.put(19, 0.049348794);
+        this.dayDistributionIntern.put(20, 0.026405451);
+        this.dayDistributionIntern.put(21, 0.01923394);
+        this.dayDistributionIntern.put(22, 0.015634445);
+        this.dayDistributionIntern.put(23, 0.00588009);
+    }
+
     public void loadExternalPositions(String tableName, String mappingTable) {
         StringBuilder query = new StringBuilder();
         try {
@@ -347,99 +761,6 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
             System.out.println("Mapped " + KreisMap.size() + " district values to peripheral districts");
 
 
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
-    }
-
-    public void loadCordonDistricts(String tableName, String dmod, int berlinId) {
-        String query = "";
-        try {
-            int id, taz;
-            double sLon, sLat, dLon, dLat;
-
-            //load the external mapping
-            query = "SELECT z.tapas_taz_id,z.vbz_no, vbz_6561, z.nuts_id ISNULL as isberlin, " +
-                    "st_X(st_transform(st_centroid(z.the_geom),4326)) as lon, " +
-                    "st_Y(st_transform(st_centroid(z.the_geom),4326)) as lat " + "  from " + tableName + " as z join " +
-                    dmod + " as d on z.vbz_no=d.ver_nr";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                if (!rs.getBoolean("isberlin")) {
-                    id = (int) (rs.getDouble("vbz_6561") + 0.1);
-                    sLat = rs.getDouble("lat");
-                    sLon = rs.getDouble("lon");
-                    dLat = rs.getDouble("lat");
-                    dLon = rs.getDouble("lon");
-                    taz = rs.getInt("tapas_taz_id");
-                    dModellZonen.put(id, taz);
-
-                    //create point informations
-                    TAZ entry = new TAZ();
-                    //now convert this id to a zone of the above mapping
-                    entry.id = taz;
-                    entry.taz_id = taz;
-                    entry.coordSource.setValues(sLon, sLat);
-                    entry.coordDestination.setValues(dLon, dLat);
-                    entry.cappa = 0;
-                    this.externalOrigins.put(entry.id, entry);
-                    this.internalDestinations.put(entry.id, entry);
-                }
-            }
-            rs.close();
-
-
-            System.out.println("found " + this.externalOrigins.size() + " origin entires");
-            berlinZone = berlinId;
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
-    }
-
-    public void loadTAPASDeutschlandmodellMapping(int minCapacity, String locName, String zonierungsName) {
-
-        String query =
-                "with l as ( select loc_id, loc_taz_id, loc_capacity, loc_coordinate, st_transform(loc_coordinate,31467) as trans from " +
-                        locName + " where loc_code = 1001000000 and loc_capacity>" + minCapacity + ") " +
-                        "select \"NO\" as id, " + "loc_id, " + "loc_taz_id, " + "loc_capacity, " +
-                        "st_X(loc_coordinate) as lon, " + "st_Y(loc_coordinate) as lat " + "from	l " + "join " +
-                        zonierungsName + " as b " + "on within(trans,b.the_geom)";
-        try {
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            int id, count = 0;
-            double lon, lat;
-            Map<Integer, TAZ> globalList = new HashMap<>();
-            while (rs.next()) {
-                id = rs.getInt("id");
-                lon = rs.getDouble("lon");
-                lat = rs.getDouble("lat");
-
-                TAZ entry = new TAZ();
-                entry.id = rs.getInt("loc_id");
-                entry.taz_id = rs.getInt("loc_taz_id");
-                entry.coordSource.setValues(lon, lat);
-                entry.coordDestination.setValues(lon, lat);
-                entry.cappa = rs.getInt("loc_capacity");
-                Map<Integer, TAZ> list = this.berlinDModel.get(id);
-                if (list == null) {
-                    list = new HashMap<>();
-                }
-                list.put(entry.id, entry);
-                globalList.put(entry.id, entry);
-                this.internalDestinations.put(entry.id, entry);
-                this.berlinDModel.put(id, list);
-                count++;
-            }
-            rs.close();
-            this.berlinDModel.put(this.berlinZone, globalList);
-
-            System.out.println(
-                    "found " + this.berlinDModel.size() + " destination entires which are mapped to " + count +
-                            " work locations");
         } catch (SQLException e) {
             System.err.println("Error in sqlstatement: " + query);
             e.printStackTrace();
@@ -600,317 +921,50 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
 //		}
     }
 
-    public void distributeOverDay() {
-        //go through the OD-List
-        for (ODPair p : this.ODPairs.values()) {
+    public void loadTAPASDeutschlandmodellMapping(int minCapacity, String locName, String zonierungsName) {
 
-            //check if the origin is outside berlin -> distribute according to start list
-            if (p.inBound) {
-                for (Entry<Integer, Double> e : this.dayDistributionStart.entrySet()) {
-                    ODPair pair = new ODPair();
-                    pair.idOrigin = p.idOrigin;
-                    pair.idDestination = p.idDestination;
-                    pair.inBound = p.inBound;
-                    pair.internalTraffic = p.internalTraffic;
-                    pair.hourOfDay = e.getKey();
-                    pair.volume = p.volume * e.getValue();
-                    this.ODPairsDayDistributed.add(pair);
+        String query =
+                "with l as ( select loc_id, loc_taz_id, loc_capacity, loc_coordinate, st_transform(loc_coordinate,31467) as trans from " +
+                        locName + " where loc_code = 1001000000 and loc_capacity>" + minCapacity + ") " +
+                        "select \"NO\" as id, " + "loc_id, " + "loc_taz_id, " + "loc_capacity, " +
+                        "st_X(loc_coordinate) as lon, " + "st_Y(loc_coordinate) as lat " + "from	l " + "join " +
+                        zonierungsName + " as b " + "on within(trans,b.the_geom)";
+        try {
+            ResultSet rs = this.dbCon.executeQuery(query, this);
+            int id, count = 0;
+            double lon, lat;
+            Map<Integer, TAZ> globalList = new HashMap<>();
+            while (rs.next()) {
+                id = rs.getInt("id");
+                lon = rs.getDouble("lon");
+                lat = rs.getDouble("lat");
+
+                TAZ entry = new TAZ();
+                entry.id = rs.getInt("loc_id");
+                entry.taz_id = rs.getInt("loc_taz_id");
+                entry.coordSource.setValues(lon, lat);
+                entry.coordDestination.setValues(lon, lat);
+                entry.cappa = rs.getInt("loc_capacity");
+                Map<Integer, TAZ> list = this.berlinDModel.get(id);
+                if (list == null) {
+                    list = new HashMap<>();
                 }
-            } else if (p.internalTraffic) {
-                for (Entry<Integer, Double> e : this.dayDistributionIntern.entrySet()) {
-                    ODPair pair = new ODPair();
-                    pair.idOrigin = p.idOrigin;
-                    pair.idDestination = p.idDestination;
-                    pair.inBound = p.inBound;
-                    pair.internalTraffic = p.internalTraffic;
-                    pair.hourOfDay = e.getKey();
-                    pair.volume = p.volume * e.getValue();
-                    this.ODPairsDayDistributed.add(pair);
-                }
-            } else {
-                //check if the origin is inside berlin -> distribute according to return list
-                for (Entry<Integer, Double> e : this.dayDistributionReturn.entrySet()) {
-                    ODPair pair = new ODPair();
-                    pair.idOrigin = p.idOrigin;
-                    pair.idDestination = p.idDestination;
-                    pair.inBound = p.inBound;
-                    pair.internalTraffic = p.internalTraffic;
-                    pair.hourOfDay = e.getKey();
-                    pair.volume = p.volume * e.getValue();
-                    this.ODPairsDayDistributed.add(pair);
-                }
+                list.put(entry.id, entry);
+                globalList.put(entry.id, entry);
+                this.internalDestinations.put(entry.id, entry);
+                this.berlinDModel.put(id, list);
+                count++;
             }
+            rs.close();
+            this.berlinDModel.put(this.berlinZone, globalList);
+
+            System.out.println(
+                    "found " + this.berlinDModel.size() + " destination entires which are mapped to " + count +
+                            " work locations");
+        } catch (SQLException e) {
+            System.err.println("Error in sqlstatement: " + query);
+            e.printStackTrace();
         }
-    }
-
-    public void loadDayDistribution() {
-//
-//		/*
-//		 * This Method "creates" Static valued derived from the MiD:
-//		 * The weighted shares of all Trips in Berlin starting home and ending at home
-//		 * Since I cannot filter for commuter trips this must be sufficient!
-//		 * DB: perseus.mid2008.wege
-//		 * Filter: Bland=11
-//		 * Stichtag = {2,3,4} (DiMiDo)
-//		 * Anteil gewichtete Anzahl der Wege gruppiert nach Stunde Startzeit
-//		 * Start: Startpunkt Zu Hause
-//		 * Return: Zielpunkt: Zu Hause
-//		 */
-//		this.dayDistributionStart.put( 0, 	0.0);
-//		this.dayDistributionStart.put( 1, 	0.0);
-//		this.dayDistributionStart.put( 2, 	0.0);
-//		this.dayDistributionStart.put( 3, 	0.0);
-//		this.dayDistributionStart.put( 4, 	0.016319554);
-//		this.dayDistributionStart.put( 5, 	0.039152948);
-//		this.dayDistributionStart.put( 6, 	0.063814429);
-//		this.dayDistributionStart.put( 7, 	0.253985158);
-//		this.dayDistributionStart.put( 8, 	0.169123629);
-//		this.dayDistributionStart.put( 9, 	0.127186955);
-//		this.dayDistributionStart.put(10, 	0.097285095);
-//		this.dayDistributionStart.put(11, 	0.067713099);
-//		this.dayDistributionStart.put(12, 	0.04052658);
-//		this.dayDistributionStart.put(13, 	0.026566243);
-//		this.dayDistributionStart.put(14, 	0.037838191);
-//		this.dayDistributionStart.put(15, 	0.016196232);
-//		this.dayDistributionStart.put(16, 	0.010166324);
-//		this.dayDistributionStart.put(17, 	0.019645697);
-//		this.dayDistributionStart.put(18, 	0.002431023);
-//		this.dayDistributionStart.put(19, 	0.007391158);
-//		this.dayDistributionStart.put(20, 	0.00224679);
-//		this.dayDistributionStart.put(21, 	0.002410896);
-//		this.dayDistributionStart.put(22, 	0.0);
-//		this.dayDistributionStart.put(23, 	0.0);
-//
-//		this.dayDistributionReturn.put( 0, 	0.007975497);
-//		this.dayDistributionReturn.put( 1, 	0.0);
-//		this.dayDistributionReturn.put( 2, 	0.006796908);
-//		this.dayDistributionReturn.put( 3, 	0.005046985);
-//		this.dayDistributionReturn.put( 4, 	0.0);
-//		this.dayDistributionReturn.put( 5, 	0.001412515);
-//		this.dayDistributionReturn.put( 6, 	0.002733216);
-//		this.dayDistributionReturn.put( 7, 	0.004537778);
-//		this.dayDistributionReturn.put( 8, 	0.011349728);
-//		this.dayDistributionReturn.put( 9, 	0.024948635);
-//		this.dayDistributionReturn.put(10, 	0.0351713);
-//		this.dayDistributionReturn.put(11, 	0.038384415);
-//		this.dayDistributionReturn.put(12, 	0.058681634);
-//		this.dayDistributionReturn.put(13, 	0.054708503);
-//		this.dayDistributionReturn.put(14, 	0.053853918);
-//		this.dayDistributionReturn.put(15, 	0.078192265);
-//		this.dayDistributionReturn.put(16, 	0.151311135);
-//		this.dayDistributionReturn.put(17, 	0.110716488);
-//		this.dayDistributionReturn.put(18, 	0.119048915);
-//		this.dayDistributionReturn.put(19, 	0.130643535);
-//		this.dayDistributionReturn.put(20, 	0.02524086);
-//		this.dayDistributionReturn.put(21, 	0.017362978);
-//		this.dayDistributionReturn.put(22, 	0.047978302);
-//		this.dayDistributionReturn.put(23, 	0.013904491);
-
-
-        /*
-         * This Method "creates" Static valued derived from the MiD:
-         * The weighted shares of all Trips in Berlin starting home and ending at home
-         * Since I cannot filter for commuter trips this must be sufficient!
-         * DB: perseus.mid2008.wege
-         * Filter: Bland=11
-         * Stichtag = {2,3,4} (DiMiDo)
-         * Anteil gewichtete Anzahl der Wege gruppiert nach Stunde Startzeit
-         * Start: Startpunkt Zu Hause
-         * Return: Zielpunkt: Zu Hause
-         */
-        this.dayDistributionStart.put(0, 0.001538715);
-        this.dayDistributionStart.put(1, 0.000714403);
-        this.dayDistributionStart.put(2, 0.000659449);
-        this.dayDistributionStart.put(3, 0.000851789);
-        this.dayDistributionStart.put(4, 0.003517063);
-        this.dayDistributionStart.put(5, 0.018464582);
-        this.dayDistributionStart.put(6, 0.043523658);
-        this.dayDistributionStart.put(7, 0.07561686);
-        this.dayDistributionStart.put(8, 0.057811727);
-        this.dayDistributionStart.put(9, 0.057536957);
-        this.dayDistributionStart.put(10, 0.061658515);
-        this.dayDistributionStart.put(11, 0.057646865);
-        this.dayDistributionStart.put(12, 0.061548607);
-        this.dayDistributionStart.put(13, 0.058004067);
-        this.dayDistributionStart.put(14, 0.064653514);
-        this.dayDistributionStart.put(15, 0.074462824);
-        this.dayDistributionStart.put(16, 0.089135572);
-        this.dayDistributionStart.put(17, 0.085618509);
-        this.dayDistributionStart.put(18, 0.070533604);
-        this.dayDistributionStart.put(19, 0.049348794);
-        this.dayDistributionStart.put(20, 0.026405451);
-        this.dayDistributionStart.put(21, 0.01923394);
-        this.dayDistributionStart.put(22, 0.015634445);
-        this.dayDistributionStart.put(23, 0.00588009);
-
-        this.dayDistributionReturn.put(0, 0.001538715);
-        this.dayDistributionReturn.put(1, 0.000714403);
-        this.dayDistributionReturn.put(2, 0.000659449);
-        this.dayDistributionReturn.put(3, 0.000851789);
-        this.dayDistributionReturn.put(4, 0.003517063);
-        this.dayDistributionReturn.put(5, 0.018464582);
-        this.dayDistributionReturn.put(6, 0.043523658);
-        this.dayDistributionReturn.put(7, 0.07561686);
-        this.dayDistributionReturn.put(8, 0.057811727);
-        this.dayDistributionReturn.put(9, 0.057536957);
-        this.dayDistributionReturn.put(10, 0.061658515);
-        this.dayDistributionReturn.put(11, 0.057646865);
-        this.dayDistributionReturn.put(12, 0.061548607);
-        this.dayDistributionReturn.put(13, 0.058004067);
-        this.dayDistributionReturn.put(14, 0.064653514);
-        this.dayDistributionReturn.put(15, 0.074462824);
-        this.dayDistributionReturn.put(16, 0.089135572);
-        this.dayDistributionReturn.put(17, 0.085618509);
-        this.dayDistributionReturn.put(18, 0.070533604);
-        this.dayDistributionReturn.put(19, 0.049348794);
-        this.dayDistributionReturn.put(20, 0.026405451);
-        this.dayDistributionReturn.put(21, 0.01923394);
-        this.dayDistributionReturn.put(22, 0.015634445);
-        this.dayDistributionReturn.put(23, 0.00588009);
-
-        this.dayDistributionIntern.put(0, 0.001538715);
-        this.dayDistributionIntern.put(1, 0.000714403);
-        this.dayDistributionIntern.put(2, 0.000659449);
-        this.dayDistributionIntern.put(3, 0.000851789);
-        this.dayDistributionIntern.put(4, 0.003517063);
-        this.dayDistributionIntern.put(5, 0.018464582);
-        this.dayDistributionIntern.put(6, 0.043523658);
-        this.dayDistributionIntern.put(7, 0.07561686);
-        this.dayDistributionIntern.put(8, 0.057811727);
-        this.dayDistributionIntern.put(9, 0.057536957);
-        this.dayDistributionIntern.put(10, 0.061658515);
-        this.dayDistributionIntern.put(11, 0.057646865);
-        this.dayDistributionIntern.put(12, 0.061548607);
-        this.dayDistributionIntern.put(13, 0.058004067);
-        this.dayDistributionIntern.put(14, 0.064653514);
-        this.dayDistributionIntern.put(15, 0.074462824);
-        this.dayDistributionIntern.put(16, 0.089135572);
-        this.dayDistributionIntern.put(17, 0.085618509);
-        this.dayDistributionIntern.put(18, 0.070533604);
-        this.dayDistributionIntern.put(19, 0.049348794);
-        this.dayDistributionIntern.put(20, 0.026405451);
-        this.dayDistributionIntern.put(21, 0.01923394);
-        this.dayDistributionIntern.put(22, 0.015634445);
-        this.dayDistributionIntern.put(23, 0.00588009);
-    }
-
-    public void distributeOverLocations(double calib) {
-        double way = 0;
-        Map<Integer, Integer> timeDistCheck = new HashMap<>();
-        for (int i = 0; i < 24; ++i)
-            timeDistCheck.put(i, 0);
-        TAZ o;
-        Map<Integer, TAZ> dSet, dSet2;
-        for (ODPair p : this.ODPairsDayDistributed) {
-            if (!p.internalTraffic) {
-                //first calculate the weight of the locations
-                //it doesnt matter if o and d are exchanged: "gravity" is symmetric
-                if (p.inBound) {
-                    o = this.externalOrigins.get(p.idOrigin);
-                    dSet = this.berlinDModel.get(p.idDestination);
-                } else {
-                    o = this.externalOrigins.get(p.idDestination);
-                    dSet = this.berlinDModel.get(p.idOrigin);
-                }
-                double sum = 0;
-                for (TAZ d : dSet.values()) {
-                    if (o.useGravity) d.tempWeight = d.cappa * Math.pow(TPS_Geometrics
-                            .getDistance(d.coordDestination.getValue(0), d.coordDestination.getValue(1),
-                                    o.coordSource.getValue(0), o.coordSource.getValue(1)), -calib);
-                    else d.tempWeight = d.cappa;
-                    sum += d.tempWeight;
-                }
-                //normalize
-                sum = 1.0 / sum;
-                for (TAZ d : dSet.values()) {
-                    d.tempWeight *= sum;
-                }
-
-                //now distribute the volume
-                int totalVolume = 0;
-                for (TAZ d : dSet.values()) {
-
-                    way += d.tempWeight * p.volume;
-                    if (way >= 1.0) {
-                        //we have some trips!
-                        ODPair distributedPair = new ODPair();
-                        distributedPair.inBound = p.inBound;
-                        distributedPair.hourOfDay = p.hourOfDay;
-                        if (p.inBound) {
-                            distributedPair.idOrigin = p.idOrigin;
-                            distributedPair.idDestination = d.id;
-                        } else {
-                            distributedPair.idOrigin = d.id;
-                            distributedPair.idDestination = p.idDestination;
-
-                        }
-
-                        distributedPair.volume = (int) way; // this is the integer-part
-                        totalVolume += distributedPair.volume;
-                        way -= distributedPair.volume; // this is the remainer
-                        this.ODPairsGravityDistributed.add(distributedPair);
-                    }
-                }
-                timeDistCheck.put(p.hourOfDay, timeDistCheck.get(p.hourOfDay) + totalVolume);
-                //System.out.println("Pair o:"+p.idOrigin+" d:"+p.idDestination+" h:"+p.hourOfDay+" v:"+p.volume+" distributed:"+totalVolume);
-            } else {
-                //first calculate the weight of the locations
-                //just the capacity for internal traffics!
-                dSet = this.berlinDModel.get(p.idOrigin);
-                dSet2 = this.berlinDModel.get(p.idDestination);
-                double sum = 0;
-                for (TAZ d : dSet.values()) {
-                    d.tempWeight = d.cappa;
-                    sum += d.tempWeight;
-                }
-                //normalize
-                sum = 1.0 / sum;
-                for (TAZ d : dSet.values()) {
-                    d.tempWeight *= sum;
-                }
-
-                //now distribute the volume
-                int totalVolume = 0;
-                for (TAZ oSet : dSet.values()) {
-                    if (way + oSet.tempWeight * p.volume > 1.0) {
-                        for (TAZ d : dSet2.values()) {
-
-                            way += d.tempWeight * oSet.tempWeight * p.volume;
-                            if (way >= 1.0 && oSet.id != d.id) {
-                                //we have some trips!
-                                ODPair distributedPair = new ODPair();
-                                distributedPair.inBound = p.inBound;
-                                distributedPair.internalTraffic = p.internalTraffic;
-                                distributedPair.hourOfDay = p.hourOfDay;
-                                distributedPair.idOrigin = oSet.id;
-                                distributedPair.idDestination = d.id;
-                                distributedPair.volume = (int) way; // this is the integer-part
-                                totalVolume += distributedPair.volume;
-                                way -= distributedPair.volume; // this is the remainer
-                                this.ODPairsGravityDistributed.add(distributedPair);
-                            }
-                        }
-                    } else {
-                        way += oSet.tempWeight * p.volume;
-                    }
-                    timeDistCheck.put(p.hourOfDay, timeDistCheck.get(p.hourOfDay) + totalVolume);
-                    //System.out.println("Pair o:"+p.idOrigin+" d:"+p.idDestination+" h:"+p.hourOfDay+" v:"+p.volume+" distributed:"+totalVolume);
-                }
-            }
-        }
-//		for(int i=0; i<24;++i){
-//			System.out.println("Hour "+i+" volume: "+timeDistCheck.get(i));
-//		}
-    }
-
-    public void clearTrafficDistribution() {
-        this.carTypeDistribution.clear();
-        this.dayDistributionStart.clear();
-        this.dayDistributionReturn.clear();
-        this.dayDistributionIntern.clear();
-        this.ODPairsGravityDistributed.clear();
-        this.ODPairsDayDistributed.clear();
-        this.ODPairs.clear();
     }
 
     public void saveToDB(String tablename, int modeNumber, boolean is_resticted, boolean createTable) {
@@ -1014,64 +1068,11 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
 
     }
 
-    public void fillCarDistribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(2, 0.3);
-        this.carTypeDistribution.add(tmp);
-        tmp = new Vehicle(17, 0.5);
-        this.carTypeDistribution.add(tmp);
-        tmp = new Vehicle(20, 0.19);
-        this.carTypeDistribution.add(tmp);
-        tmp = new Vehicle(23, 0.01);
-        this.carTypeDistribution.add(tmp);
-    }
-
-    public void fillPTDistribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(0, 1);
-        this.carTypeDistribution.add(tmp);
-    }
-
-    public void fillTruck35Distribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(33, 1.0);
-        this.carTypeDistribution.add(tmp);
-    }
-
-    public void fillTruck75Distribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(34, 1.0);
-        this.carTypeDistribution.add(tmp);
-    }
-
-    public void fillTruck12Distribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(35, 1.0);
-        this.carTypeDistribution.add(tmp);
-    }
-
-    public void fillHDVDistribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(36, 1.0);
-        this.carTypeDistribution.add(tmp);
-    }
-
-    public void fillTrailerDistribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(37, 1.0);
-        this.carTypeDistribution.add(tmp);
-    }
-
-    public void fillBusDistribution2010() {
-        Vehicle tmp;
-        tmp = new Vehicle(38, 1.0);
-        this.carTypeDistribution.add(tmp);
-    }
-
     class Vehicle {
         int id;
         boolean isRestricted = false;
         double weight;
+
         Vehicle(int id, double weight) {
             this.id = id;
             this.weight = weight;

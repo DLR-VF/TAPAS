@@ -12,17 +12,17 @@ public class TPS_SettlementSystem {
     /**
      * maps ids from the db to {@link TPS_SettlementSystem} objects constructed from corresponding db data
      */
-    private static HashMap<Integer, TPS_SettlementSystem> SETTLEMENT_SYSTEMS_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_SettlementSystem> SETTLEMENT_SYSTEMS_MAP = new HashMap<>();
 
     /**
      * mapping of the {@link TPS_SettlementSystemType} to the internal representation
      */
-    private EnumMap<TPS_SettlementSystemType, TPS_InternalConstant<TPS_SettlementSystemType>> map;
+    private final EnumMap<TPS_SettlementSystemType, TPS_InternalConstant<TPS_SettlementSystemType>> map;
 
     /**
      * settlement system id obtained from the db
      */
-    private int id;
+    private final int id;
 
     /**
      * Basic constructor for a TPS_SettlementSystem

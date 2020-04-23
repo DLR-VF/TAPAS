@@ -40,15 +40,15 @@ public class TPS_Main {
     public static TPS_State STATE = new TPS_State();
     public static boolean waitForMe = false;
     /// Flag for DEBUG-Modus
-    private static boolean DEBUG = false;
+    private static final boolean DEBUG = false;
     /**
      * persistence manager of the whole simulation run
      */
-    private TPS_PersistenceManager PM;
+    private final TPS_PersistenceManager PM;
     /**
      * container which holds all parameter values
      */
-    private TPS_ParameterClass parameterClass;
+    private final TPS_ParameterClass parameterClass;
 
     /**
      * This constructor reads all parameters and tries to initialise all data which is available via the
@@ -62,16 +62,15 @@ public class TPS_Main {
     public TPS_Main(File file, String simKey) {
         this.parameterClass = new TPS_ParameterClass();
 
-        if (simKey == null)
-            simKey = TPS_Main.getDefaultSimKey();
+        if (simKey == null) simKey = TPS_Main.getDefaultSimKey();
         try {
             this.parameterClass.setString(ParamString.RUN_IDENTIFIER, simKey);
             this.parameterClass.loadRuntimeParameters(file);
             TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
 
             File tmpFile = new File(file.getPath());
-            while (!tmpFile.getPath()
-                    .endsWith(this.parameterClass.SIM_DIR.substring(0, this.parameterClass.SIM_DIR.length() - 1))) {
+            while (!tmpFile.getPath().endsWith(
+                    this.parameterClass.SIM_DIR.substring(0, this.parameterClass.SIM_DIR.length() - 1))) {
                 tmpFile = tmpFile.getParentFile();
             }
             this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getParent());
@@ -89,11 +88,12 @@ public class TPS_Main {
 
             TPS_Logger.log(SeverenceLogLevel.INFO,
                     "Starting iteration: " + this.parameterClass.paramValueClass.getIntValue(ParamValue.ITERATION));
-          //  this.parameterClass.checkParameters();
+            //  this.parameterClass.checkParameters();
 
             dbConnector.closeConnection(this);
             Class<?> clazz = Class.forName(this.parameterClass.getString(ParamString.CLASS_DATA_SCOURCE_ORIGIN));
-            PM = (TPS_PersistenceManager) clazz.getConstructor(TPS_ParameterClass.class).newInstance(this.parameterClass);
+            PM = (TPS_PersistenceManager) clazz.getConstructor(TPS_ParameterClass.class).newInstance(
+                    this.parameterClass);
         } catch (Exception e) {
             TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
@@ -119,10 +119,10 @@ public class TPS_Main {
         Calendar c = Calendar.getInstance();
         NumberFormat f00 = new DecimalFormat("00");
         NumberFormat f000 = new DecimalFormat("000");
-        return c.get(Calendar.YEAR) + "y_" + f00.format(c.get(Calendar.MONTH) + 1) + "m_" +
-                f00.format(c.get(Calendar.DAY_OF_MONTH)) + "d_" + f00.format(c.get(Calendar.HOUR_OF_DAY)) + "h_" +
-                f00.format(c.get(Calendar.MINUTE)) + "m_" + f00.format(c.get(Calendar.SECOND)) + "s_" +
-                f000.format(c.get(Calendar.MILLISECOND)) + "ms";
+        return c.get(Calendar.YEAR) + "y_" + f00.format(c.get(Calendar.MONTH) + 1) + "m_" + f00.format(
+                c.get(Calendar.DAY_OF_MONTH)) + "d_" + f00.format(c.get(Calendar.HOUR_OF_DAY)) + "h_" + f00.format(
+                c.get(Calendar.MINUTE)) + "m_" + f00.format(c.get(Calendar.SECOND)) + "s_" + f000.format(
+                c.get(Calendar.MILLISECOND)) + "ms";
     }
 
     /**
@@ -168,65 +168,6 @@ public class TPS_Main {
     }
 
     /**
-     * @return persistence manager of the whole simulation run
-     */
-    public TPS_PersistenceManager getPersistenceManager() {
-        return PM;
-    }
-
-    private void updateCosts() {
-
-        TPS_Mode mode;
-        mode = TPS_Mode.get(ModeType.BIKE);
-        mode.velocity = ParamValue.VELOCITY_BIKE;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.BIKE_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.BIKE_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE);
-
-        mode = TPS_Mode.get(ModeType.MIT);
-        mode.velocity = ParamValue.VELOCITY_CAR;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass
-                .getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM_BASE);
-        mode.variable_cost_per_km = this.parameterClass.paramValueClass
-                .getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM);
-        mode.variable_cost_per_km_base = this.parameterClass.paramValueClass
-                .getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
-
-        mode = TPS_Mode.get(ModeType.MIT_PASS);
-        mode.velocity = ParamValue.VELOCITY_CAR;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PASS_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PASS_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
-
-        mode = TPS_Mode.get(ModeType.TAXI);
-        mode.velocity = ParamValue.VELOCITY_CAR;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
-
-        mode = TPS_Mode.get(ModeType.PT);
-        mode.velocity = ParamValue.VELOCITY_TRAIN;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PT_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PT_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
-
-        mode = TPS_Mode.get(ModeType.TRAIN);
-        mode.velocity = ParamValue.VELOCITY_TRAIN;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
-
-        mode = TPS_Mode.get(ModeType.WALK);
-        mode.velocity = ParamValue.VELOCITY_FOOT;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.WALK_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.WALK_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE);
-
-    }
-
-    /**
      * This method drops the temporary tables from the database if necessary.
      */
     public void finish() {
@@ -239,6 +180,13 @@ public class TPS_Main {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    /**
+     * @return persistence manager of the whole simulation run
+     */
+    public TPS_PersistenceManager getPersistenceManager() {
+        return PM;
     }
 
     /**
@@ -309,6 +257,58 @@ public class TPS_Main {
             TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
         }
         TPS_Logger.closeLoggers();
+    }
+
+    private void updateCosts() {
+
+        TPS_Mode mode;
+        mode = TPS_Mode.get(ModeType.BIKE);
+        mode.velocity = ParamValue.VELOCITY_BIKE;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.BIKE_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.BIKE_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE);
+
+        mode = TPS_Mode.get(ModeType.MIT);
+        mode.velocity = ParamValue.VELOCITY_CAR;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(
+                ParamValue.MIT_GASOLINE_COST_PER_KM_BASE);
+        mode.variable_cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(
+                ParamValue.MIT_VARIABLE_COST_PER_KM);
+        mode.variable_cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(
+                ParamValue.MIT_VARIABLE_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
+
+        mode = TPS_Mode.get(ModeType.MIT_PASS);
+        mode.velocity = ParamValue.VELOCITY_CAR;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PASS_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PASS_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
+
+        mode = TPS_Mode.get(ModeType.TAXI);
+        mode.velocity = ParamValue.VELOCITY_CAR;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
+
+        mode = TPS_Mode.get(ModeType.PT);
+        mode.velocity = ParamValue.VELOCITY_TRAIN;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PT_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PT_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
+
+        mode = TPS_Mode.get(ModeType.TRAIN);
+        mode.velocity = ParamValue.VELOCITY_TRAIN;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
+
+        mode = TPS_Mode.get(ModeType.WALK);
+        mode.velocity = ParamValue.VELOCITY_FOOT;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.WALK_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.WALK_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE);
+
     }
 
     /**

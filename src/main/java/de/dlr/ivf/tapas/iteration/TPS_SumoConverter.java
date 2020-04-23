@@ -49,7 +49,7 @@ public class TPS_SumoConverter {
     /**
      * extracted reference to the dbManager
      */
-    private TPS_DB_Connector dbManager;
+    private final TPS_DB_Connector dbManager;
     /**
      * array for the net-distances in m
      */
@@ -69,11 +69,11 @@ public class TPS_SumoConverter {
     /**
      * hashmap for id conversion
      */
-    private HashMap<Integer, Integer> idToIndex = new HashMap<>();
+    private final HashMap<Integer, Integer> idToIndex = new HashMap<>();
     /**
      * hashmap for id conversion
      */
-    private HashMap<Integer, Integer> indexToId = new HashMap<>();
+    private final HashMap<Integer, Integer> indexToId = new HashMap<>();
 
     /**
      * Constructor, if this is called externally with already loaded parameters.
@@ -166,121 +166,41 @@ public class TPS_SumoConverter {
         }
     }
 
-    public MatrixMap readMatrixMap(ParamString matrixName, List<String> matrixNames) {
-        String query = "";
-        ResultSet rs = null;
+    /**
+     * This method checks if the given matrix already exists
+     *
+     * @param matrixName the name of the matrix
+     * @return true if
+     */
+    public boolean checkMatrixName(String matrixName) {
+        boolean returnVal = false;
+        //load the data from the db
+        String query = "SELECT * FROM " + this.dbManager.getParameters().getString(ParamString.DB_SCHEMA_CORE) +
+                this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + " WHERE \"matrix_name\" = '" +
+                matrixName + "'";
         try {
-            query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
-                    this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRIXMAPS) +
-                    " WHERE \"matrixMap_name\"='" + this.dbManager.getParameters().getString(matrixName) + "'";
-            rs = this.dbManager.executeQuery(query, this);
-
+            ResultSet rs = this.dbManager.executeQuery(query, this);
             if (rs.next()) {
-                // get number of matrices to load
-                int numOfMatrices = rs.getInt("matrixMap_num");
-                // get matrix names
-                String[] matrix_names = TPS_DB_IO.extractStringArray(rs, "matrixMap_matrixNames");
-                // get distribution
-                double[] thisDistribution = TPS_DB_IO.extractDoubleArray(rs, "matrixMap_distribution");
-                rs.close();
-                // check sizes
-                if (numOfMatrices != matrix_names.length) {
-                    TPS_Logger.log(SeverenceLogLevel.FATAL,
-                            "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixName) +
-                                    " from database. Different array sizes (num, matrices, distribution): " +
-                                    numOfMatrices + " " + matrix_names.length + " " + distribution.length +
-                                    " SQL query: " + query);
-                }
-
-                // init matrix map
-                Matrix[] matrices = new Matrix[numOfMatrices];
-
-                // load matrix map
-                for (int i = 0; i < numOfMatrices; ++i) {
-                    matrixNames.add(matrix_names[i]);
-                    query = "SELECT matrix_values FROM " + this.dbManager.getParameters().getString(
-                            ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrix_names[i] + "'";
-                    rs = this.dbManager.executeQuery(query, this);
-                    if (rs.next()) {
-                        int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                        int len = (int) Math.sqrt(iArray.length);
-                        matrices[i] = new Matrix(len, len);
-                        for (int index = 0; index < iArray.length; index++) {
-                            matrices[i].setRawValue(index, iArray[index]);
-                        }
-                        rs.close();
-                    } else {
-                        TPS_Logger.log(SeverenceLogLevel.FATAL,
-                                "Couldn't load matrix " + matrix_names[i] + " form matrix map" +
-                                        this.dbManager.getParameters().getString(matrixName) +
-                                        ": No such matrix. SQL Query: " + query);
-                        return null;
-                    }
-                }
-                return new MatrixMap(thisDistribution, matrices);
+                returnVal = true;
             }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL,
-                    "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixName) +
-                            " from database: No such entry. SQL Query: " + query, e);
-        }
-        return null;
-    }
-
-    /**
-     * This method exports the trips to Sumo TripFile
-     *
-     * @param outputPath the path to store the OD-matrix. usually Trip-Exports
-     */
-    public void writeTripFile(String outputPath) throws SQLException {
-        String query = "";
-        try {
-            query = "SELECT core.simple_export_trip_table('" + this.dbManager.getParameters().getString(
-                    ParamString.DB_REGION) + "_trips_" + this.dbManager.getParameters().getString(
-                    ParamString.RUN_IDENTIFIER) + "_IT_" + this.dbManager.getParameters().getIntValue(
-                    ParamValue.ITERATION) + "')";
-
-            ResultSet rs = dbManager.executeQuery(query, this);
             rs.close();
-
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Exception during Sumo export! Error reading SQL! Query:" + query,
-                    e);
-            throw new SQLException("Exception during Sumo export! Error reading SQL! Query:" + query, e);
+            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! ", e);
+            return false;
         }
+        return returnVal;
     }
 
     /**
-     * Setter if the input is pt or iv
+     * This method deletes the matrix from the db
      *
-     * @param isPT the flag
+     * @param matrixName the matrix to delete
      */
-    public void setPT(boolean isPT) {
-        this.isPT = isPT;
-    }
+    public void deleteMatrix(String matrixName) {
+        String query = "DELETE FROM " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
+                " WHERE \"matrix_name\" = '" + matrixName + "'";
+        this.dbManager.execute(query, this);
 
-    /**
-     * Sets the weight for merging with the old matrix.
-     * val = (old_val + weight*new_val)/(1+weight)
-     *
-     * @param weight the weight of the new values
-     */
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    /**
-     * @return the iteration
-     */
-    public int getIteration() {
-        return iteration;
-    }
-
-    /**
-     * @param iteration the iteration to set
-     */
-    public void setIteration(int iteration) {
-        this.iteration = iteration;
     }
 
     /**
@@ -326,6 +246,20 @@ public class TPS_SumoConverter {
     }
 
     /**
+     * @return the iteration
+     */
+    public int getIteration() {
+        return iteration;
+    }
+
+    /**
+     * @param iteration the iteration to set
+     */
+    public void setIteration(int iteration) {
+        this.iteration = iteration;
+    }
+
+    /**
      * @return the matrixArray
      */
     public Matrix[] getMatrixArray() {
@@ -337,35 +271,6 @@ public class TPS_SumoConverter {
      */
     public void setMatrixArray(Matrix[] matrixArray) {
         this.matrixArray = matrixArray;
-    }
-
-    public void readIDMap() throws SQLException {
-        String query = "";
-        ResultSet rs = null;
-        int taz, externalId;
-        try {
-            query = "SELECT taz_id, taz_num_id FROM " + this.dbManager.getParameters().getString(
-                    ParamString.DB_TABLE_TAZ);
-            rs = this.dbManager.executeQuery(query, this);
-            while (rs.next()) {
-                taz = rs.getInt("taz_id") - 1;
-                externalId = rs.getInt("taz_num_id");
-                if (externalId > 0) {
-                    if (idToIndex.get(externalId) == null) {//new tvz
-                        idToIndex.put(externalId, taz);
-                        indexToId.put(taz, externalId);
-                    }
-                }
-            }
-            rs.close();
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
-            }
-
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! Query: " + query, e);
-            throw new SQLException("SQL error! Query: " + query, e);
-        }
     }
 
     /**
@@ -389,28 +294,45 @@ public class TPS_SumoConverter {
         return -1;
     }
 
-    public void readAllParis(String tablename) {
-        String query = "";
-        try {
-            query = "select taz_id_start, taz_id_end, interval_end, travel_time_sec, distance_real from " + tablename;
-            ResultSet rs = this.dbManager.executeQuery(query, this);
-            int fromTVZ, toTVZ, distributionIndex;
-            double tt, dist;
-            while (rs.next()) {
-                distributionIndex = this.getTimeSliceIndex(rs.getInt("interval_end") / 60);
-                fromTVZ = this.idToIndex.get(rs.getInt("taz_id_start"));
-                toTVZ = this.idToIndex.get(rs.getInt("taz_id_end"));
-                tt = rs.getDouble("travel_time_sec");
-                dist = rs.getDouble("distance_real");
-                this.distance[fromTVZ][toTVZ] = dist;
-                this.matrixArray[distributionIndex].setValue(fromTVZ, toTVZ, tt);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in query: " + query, e);
-        }
+    /**
+     * Method to merge the matrices according to the weight
+     */
+    public void mergeMatrices() {
     }
 
+    /**
+     * This method merges the two matrices. The result is stored in "newVals".
+     * Every value of the matrix is updated by: val = ( old_val+weight*new_val)/(1+weight)
+     *
+     * @param oldVals matrix containing the old values
+     * @param index   index of the internal matrix containing the new values and return object
+     */
+    public void mergeMatrixPair(Matrix oldVals, int index) {
+        int i, j;
+        double oldVal, newVal;
+        double error, maxError = 0, minError = 1e100, avgError = 0;
+        final int size = this.matrixArray[index].getNumberOfColums();
+        final double normalizationFactor = 1.0 / (1.0 + this.weight);
+        for (i = 0; i < size; ++i) {
+            for (j = 0; j < size; ++j) {
+                oldVal = oldVals.getValue(i, j);
+                newVal = this.matrixArray[index].getValue(i, j);
+                error = oldVal - newVal;
+                if (newVal > 0.0) {//ignore invalid cells (no trafic)
+                    maxError = Math.max(maxError, error);
+                    minError = Math.min(minError, error);
+                    avgError += error;
+                    newVal = (oldVal + this.weight * newVal) * normalizationFactor;
+                    this.matrixArray[index].setValue(i, j, newVal);
+                }
+            }
+        }
+        avgError /= size * size;
+        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+            TPS_Logger.log(SeverenceLogLevel.INFO,
+                    "max error: " + maxError + " minError: " + minError + " avg error: " + avgError);
+        }
+    }
 
     public void prepareNextSimulationIteration(String key) {
         //read some Param-Values
@@ -441,6 +363,27 @@ public class TPS_SumoConverter {
         this.dbManager.executeQuery(query, this);
     }
 
+    public void readAllParis(String tablename) {
+        String query = "";
+        try {
+            query = "select taz_id_start, taz_id_end, interval_end, travel_time_sec, distance_real from " + tablename;
+            ResultSet rs = this.dbManager.executeQuery(query, this);
+            int fromTVZ, toTVZ, distributionIndex;
+            double tt, dist;
+            while (rs.next()) {
+                distributionIndex = this.getTimeSliceIndex(rs.getInt("interval_end") / 60);
+                fromTVZ = this.idToIndex.get(rs.getInt("taz_id_start"));
+                toTVZ = this.idToIndex.get(rs.getInt("taz_id_end"));
+                tt = rs.getDouble("travel_time_sec");
+                dist = rs.getDouble("distance_real");
+                this.distance[fromTVZ][toTVZ] = dist;
+                this.matrixArray[distributionIndex].setValue(fromTVZ, toTVZ, tt);
+            }
+            rs.close();
+        } catch (SQLException e) {
+            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in query: " + query, e);
+        }
+    }
 
     /**
      * This Method reads the csv-file and stores the information in the according matrices.
@@ -545,123 +488,34 @@ public class TPS_SumoConverter {
         }//finally
     }
 
-
-    /**
-     * This method checks if the given matrix already exists
-     *
-     * @param matrixName the name of the matrix
-     * @return true if
-     */
-    public boolean checkMatrixName(String matrixName) {
-        boolean returnVal = false;
-        //load the data from the db
-        String query = "SELECT * FROM " + this.dbManager.getParameters().getString(ParamString.DB_SCHEMA_CORE) +
-                this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + " WHERE \"matrix_name\" = '" +
-                matrixName + "'";
-        try {
-            ResultSet rs = this.dbManager.executeQuery(query, this);
-            if (rs.next()) {
-                returnVal = true;
-            }
-            rs.close();
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! ", e);
-            return false;
-        }
-        return returnVal;
-    }
-
-    /**
-     * This method deletes the matrix from the db
-     *
-     * @param matrixName the matrix to delete
-     */
-    public void deleteMatrix(String matrixName) {
-        String query = "DELETE FROM " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
-                " WHERE \"matrix_name\" = '" + matrixName + "'";
-        this.dbManager.execute(query, this);
-
-    }
-
-    /**
-     * Method to store the matrixMap of this set of matrices inthe db
-     *
-     * @param matrixMapName
-     * @param matrixNames
-     * @return
-     */
-    public void storeMatrixMap(ParamString matrixMapName, List<String> matrixNames) {
+    public void readIDMap() throws SQLException {
         String query = "";
         ResultSet rs = null;
+        int taz, externalId;
         try {
-            query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
-                    this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRIXMAPS) +
-                    " WHERE \"matrixMap_name\"='" + this.dbManager.getParameters().getString(matrixMapName) + "'";
+            query = "SELECT taz_id, taz_num_id FROM " + this.dbManager.getParameters().getString(
+                    ParamString.DB_TABLE_TAZ);
             rs = this.dbManager.executeQuery(query, this);
-
-            if (rs.next()) {
-                //update
-                query = "";
-            } else {
-                //insert
-                query = "";
+            while (rs.next()) {
+                taz = rs.getInt("taz_id") - 1;
+                externalId = rs.getInt("taz_num_id");
+                if (externalId > 0) {
+                    if (idToIndex.get(externalId) == null) {//new tvz
+                        idToIndex.put(externalId, taz);
+                        indexToId.put(taz, externalId);
+                    }
+                }
             }
-            this.dbManager.execute(query, this);
+            rs.close();
+            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(SeverenceLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
+            }
+
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL,
-                    "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixMapName) +
-                            " from database: No such entry. SQL Query: " + query, e);
+            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! Query: " + query, e);
+            throw new SQLException("SQL error! Query: " + query, e);
         }
     }
-
-    /**
-     * This method stores the given matrix with the given key in the db
-     *
-     * @param matrixName    the key for this matrix
-     * @param mat           the Matrix to store
-     * @param decimalPlaces the number of decimal placed, curently only 0 is supported!
-     */
-    public void storeInDB(String matrixName, Matrix mat, int decimalPlaces) {
-        if (decimalPlaces != 0) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN,
-                        "Decimal places are currently incompatible with the db (integers not doubles). Setting Decimal Places to 0!");
-            }
-            decimalPlaces = 0;
-        }
-        //load the data from the db
-        String query = "SELECT * FROM " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
-                " WHERE \"matrix_name\" = '" + matrixName + "'";
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
-                    this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES));
-        }
-        if (checkMatrixName(matrixName)) {
-            //update!
-            query = "UPDATE " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
-                    " SET matrix_values = ";
-            query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + " WHERE \"matrix_name\" = '" + matrixName +
-                    "'";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
-                        this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");
-            }
-        } else {
-            query = "INSERT INTO " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
-                    " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
-            query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + ")";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
-                        this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");
-            }
-        }
-        this.dbManager.execute(query, this);
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Successful!");
-        }
-
-    }
-
 
     /**
      * This method reads the square matrix from the db and returns a 2D-Array
@@ -706,43 +560,184 @@ public class TPS_SumoConverter {
         return returnVal;
     }
 
-    /**
-     * This method merges the two matrices. The result is stored in "newVals".
-     * Every value of the matrix is updated by: val = ( old_val+weight*new_val)/(1+weight)
-     *
-     * @param oldVals matrix containing the old values
-     * @param index   index of the internal matrix containing the new values and return object
-     */
-    public void mergeMatrixPair(Matrix oldVals, int index) {
-        int i, j;
-        double oldVal, newVal;
-        double error, maxError = 0, minError = 1e100, avgError = 0;
-        final int size = this.matrixArray[index].getNumberOfColums();
-        final double normalizationFactor = 1.0 / (1.0 + this.weight);
-        for (i = 0; i < size; ++i) {
-            for (j = 0; j < size; ++j) {
-                oldVal = oldVals.getValue(i, j);
-                newVal = this.matrixArray[index].getValue(i, j);
-                error = oldVal - newVal;
-                if (newVal > 0.0) {//ignore invalid cells (no trafic)
-                    maxError = Math.max(maxError, error);
-                    minError = Math.min(minError, error);
-                    avgError += error;
-                    newVal = (oldVal + this.weight * newVal) * normalizationFactor;
-                    this.matrixArray[index].setValue(i, j, newVal);
+    public MatrixMap readMatrixMap(ParamString matrixName, List<String> matrixNames) {
+        String query = "";
+        ResultSet rs = null;
+        try {
+            query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
+                    this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRIXMAPS) +
+                    " WHERE \"matrixMap_name\"='" + this.dbManager.getParameters().getString(matrixName) + "'";
+            rs = this.dbManager.executeQuery(query, this);
+
+            if (rs.next()) {
+                // get number of matrices to load
+                int numOfMatrices = rs.getInt("matrixMap_num");
+                // get matrix names
+                String[] matrix_names = TPS_DB_IO.extractStringArray(rs, "matrixMap_matrixNames");
+                // get distribution
+                double[] thisDistribution = TPS_DB_IO.extractDoubleArray(rs, "matrixMap_distribution");
+                rs.close();
+                // check sizes
+                if (numOfMatrices != matrix_names.length) {
+                    TPS_Logger.log(SeverenceLogLevel.FATAL,
+                            "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixName) +
+                                    " from database. Different array sizes (num, matrices, distribution): " +
+                                    numOfMatrices + " " + matrix_names.length + " " + distribution.length +
+                                    " SQL query: " + query);
                 }
+
+                // init matrix map
+                Matrix[] matrices = new Matrix[numOfMatrices];
+
+                // load matrix map
+                for (int i = 0; i < numOfMatrices; ++i) {
+                    matrixNames.add(matrix_names[i]);
+                    query = "SELECT matrix_values FROM " + this.dbManager.getParameters().getString(
+                            ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrix_names[i] + "'";
+                    rs = this.dbManager.executeQuery(query, this);
+                    if (rs.next()) {
+                        int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+                        int len = (int) Math.sqrt(iArray.length);
+                        matrices[i] = new Matrix(len, len);
+                        for (int index = 0; index < iArray.length; index++) {
+                            matrices[i].setRawValue(index, iArray[index]);
+                        }
+                        rs.close();
+                    } else {
+                        TPS_Logger.log(SeverenceLogLevel.FATAL,
+                                "Couldn't load matrix " + matrix_names[i] + " form matrix map" +
+                                        this.dbManager.getParameters().getString(matrixName) +
+                                        ": No such matrix. SQL Query: " + query);
+                        return null;
+                    }
+                }
+                return new MatrixMap(thisDistribution, matrices);
+            }
+        } catch (SQLException e) {
+            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                    "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixName) +
+                            " from database: No such entry. SQL Query: " + query, e);
+        }
+        return null;
+    }
+
+    /**
+     * Setter if the input is pt or iv
+     *
+     * @param isPT the flag
+     */
+    public void setPT(boolean isPT) {
+        this.isPT = isPT;
+    }
+
+    /**
+     * Sets the weight for merging with the old matrix.
+     * val = (old_val + weight*new_val)/(1+weight)
+     *
+     * @param weight the weight of the new values
+     */
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    /**
+     * This method stores the given matrix with the given key in the db
+     *
+     * @param matrixName    the key for this matrix
+     * @param mat           the Matrix to store
+     * @param decimalPlaces the number of decimal placed, curently only 0 is supported!
+     */
+    public void storeInDB(String matrixName, Matrix mat, int decimalPlaces) {
+        if (decimalPlaces != 0) {
+            if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
+                TPS_Logger.log(SeverenceLogLevel.WARN,
+                        "Decimal places are currently incompatible with the db (integers not doubles). Setting Decimal Places to 0!");
+            }
+            decimalPlaces = 0;
+        }
+        //load the data from the db
+        String query = "SELECT * FROM " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
+                " WHERE \"matrix_name\" = '" + matrixName + "'";
+        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+            TPS_Logger.log(SeverenceLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
+                    this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES));
+        }
+        if (checkMatrixName(matrixName)) {
+            //update!
+            query = "UPDATE " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
+                    " SET matrix_values = ";
+            query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + " WHERE \"matrix_name\" = '" + matrixName + "'";
+            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(SeverenceLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
+                        this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");
+            }
+        } else {
+            query = "INSERT INTO " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
+                    " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
+            query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + ")";
+            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(SeverenceLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
+                        this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");
             }
         }
-        avgError /= size * size;
+        this.dbManager.execute(query, this);
         if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO,
-                    "max error: " + maxError + " minError: " + minError + " avg error: " + avgError);
+            TPS_Logger.log(SeverenceLogLevel.INFO, "Successful!");
+        }
+
+    }
+
+    /**
+     * Method to store the matrixMap of this set of matrices inthe db
+     *
+     * @param matrixMapName
+     * @param matrixNames
+     * @return
+     */
+    public void storeMatrixMap(ParamString matrixMapName, List<String> matrixNames) {
+        String query = "";
+        ResultSet rs = null;
+        try {
+            query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
+                    this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRIXMAPS) +
+                    " WHERE \"matrixMap_name\"='" + this.dbManager.getParameters().getString(matrixMapName) + "'";
+            rs = this.dbManager.executeQuery(query, this);
+
+            if (rs.next()) {
+                //update
+                query = "";
+            } else {
+                //insert
+                query = "";
+            }
+            this.dbManager.execute(query, this);
+        } catch (SQLException e) {
+            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                    "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixMapName) +
+                            " from database: No such entry. SQL Query: " + query, e);
         }
     }
 
     /**
-     * Method to merge the matrices according to the weight
+     * This method exports the trips to Sumo TripFile
+     *
+     * @param outputPath the path to store the OD-matrix. usually Trip-Exports
      */
-    public void mergeMatrices() {
+    public void writeTripFile(String outputPath) throws SQLException {
+        String query = "";
+        try {
+            query = "SELECT core.simple_export_trip_table('" + this.dbManager.getParameters().getString(
+                    ParamString.DB_REGION) + "_trips_" + this.dbManager.getParameters().getString(
+                    ParamString.RUN_IDENTIFIER) + "_IT_" + this.dbManager.getParameters().getIntValue(
+                    ParamValue.ITERATION) + "')";
+
+            ResultSet rs = dbManager.executeQuery(query, this);
+            rs.close();
+
+        } catch (SQLException e) {
+            TPS_Logger.log(SeverenceLogLevel.FATAL, "Exception during Sumo export! Error reading SQL! Query:" + query,
+                    e);
+            throw new SQLException("Exception during Sumo export! Error reading SQL! Query:" + query, e);
+        }
     }
 }

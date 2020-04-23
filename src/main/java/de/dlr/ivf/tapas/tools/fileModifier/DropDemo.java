@@ -13,73 +13,76 @@ import java.util.Vector;
 
 @SuppressWarnings("unused")
 public class DropDemo extends JFrame implements DropTargetListener {
-	static final long serialVersionUID = 385983557;
+    static final long serialVersionUID = 385983557;
 
-	private Container conPane;
-	private String targetDir = "T:/";
+    private final Container conPane;
+    private final String targetDir = "T:/";
 
-	public DropDemo() {
-		conPane = getContentPane();
-		initCenter();
-		initFrame();
-	}
+    public DropDemo() {
+        conPane = getContentPane();
+        initCenter();
+        initFrame();
+    }
 
-	// ----------------------------- initCenter ----------------------------- \\
-	private void initCenter() {
-		File source = new File(targetDir);
-		File[] files = source.listFiles();
-		Vector<String> fileVector = new Vector<>();
-		for (File file : files) {
-			if (file.isDirectory()) fileVector.add("<dir>  " + file.getName());
-			else fileVector.add("<file> " + file.getName());
-		}
+    public static void main(String[] args) {
+        DropDemo wnd = new DropDemo();
+    }
 
-		JList<String> dropFileList = new JList<>(fileVector);
+    public void dragEnter(DropTargetDragEvent e) {
+    }
 
-		dropFileList.setDragEnabled(true);
-		DropTarget dropTarget = new DropTarget(dropFileList, this);
+    // -------------- vom DropTargetListener gefordete methoden -------------- \\
 
-		JScrollPane sp = new JScrollPane(dropFileList);
-		conPane.add(dropFileList, BorderLayout.CENTER);
-	}
+    public void dragExit(DropTargetEvent e) {
+    }
 
-	// ------------------------------ initFrame ------------------------------ \\
-	private void initFrame() {
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setTitle(" DropDemo listing of " + targetDir);
-		setSize(300, 400);
-		setLocation(47, 47);
-		setVisible(true);
-	}
+    public void dragOver(DropTargetDragEvent e) {
+    }
 
-	// -------------- vom DropTargetListener gefordete methoden -------------- \\
+    @SuppressWarnings("unchecked")
+    public void drop(DropTargetDropEvent e) {
+        Transferable tr = e.getTransferable();
+        if (tr.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+            e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
+            try {
+                List<File> files = (List<File>) tr.getTransferData(DataFlavor.javaFileListFlavor);
+                for (File file : files) {
+                    System.out.println(file.getClass());
+                }
+            } catch (UnsupportedFlavorException | IOException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
 
-	public void dragEnter(DropTargetDragEvent e) {}
+    public void dropActionChanged(DropTargetDragEvent e) {
+    }
 
-	public void dragExit(DropTargetEvent e) {}
+    // ----------------------------- initCenter ----------------------------- \\
+    private void initCenter() {
+        File source = new File(targetDir);
+        File[] files = source.listFiles();
+        Vector<String> fileVector = new Vector<>();
+        for (File file : files) {
+            if (file.isDirectory()) fileVector.add("<dir>  " + file.getName());
+            else fileVector.add("<file> " + file.getName());
+        }
 
-	public void dragOver(DropTargetDragEvent e) {}
+        JList<String> dropFileList = new JList<>(fileVector);
 
-	@SuppressWarnings("unchecked")
-	public void drop(DropTargetDropEvent e) {
-		Transferable tr = e.getTransferable();
-        if (tr.isDataFlavorSupported (DataFlavor.javaFileListFlavor))
-        {
-           e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-           try {
-			List<File> files = (List<File>) tr.getTransferData(DataFlavor.javaFileListFlavor);
-			for (File file : files){
-				System.out.println(file.getClass());
-			}
-		} catch (UnsupportedFlavorException | IOException e1) {
-			e1.printStackTrace();
-		}
-		}
-	}
+        dropFileList.setDragEnabled(true);
+        DropTarget dropTarget = new DropTarget(dropFileList, this);
 
-	public void dropActionChanged(DropTargetDragEvent e) {}
+        JScrollPane sp = new JScrollPane(dropFileList);
+        conPane.add(dropFileList, BorderLayout.CENTER);
+    }
 
-	public static void main(String[] args) {
-		DropDemo wnd = new DropDemo();
-	}
+    // ------------------------------ initFrame ------------------------------ \\
+    private void initFrame() {
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setTitle(" DropDemo listing of " + targetDir);
+        setSize(300, 400);
+        setLocation(47, 47);
+        setVisible(true);
+    }
 }

@@ -17,12 +17,10 @@ import java.util.*;
 public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZone>, Locatable {
 
     /// Mapping between corresponding codes
-    public static ArrayListValuedHashMap<TPS_ActivityConstant, TPS_LocationConstant> ACTIVITY2LOCATIONS_MAP =
-            new ArrayListValuedHashMap<>();
+    public static ArrayListValuedHashMap<TPS_ActivityConstant, TPS_LocationConstant> ACTIVITY2LOCATIONS_MAP = new ArrayListValuedHashMap<>();
     //public static MultiMap<TPS_ActivityConstant, TPS_LocationConstant, List<TPS_LocationConstant>> ACTIVITY2LOCATIONS_MAP =  new MultiMap<>(new ArrayList<>());
 
-    public static ArrayListValuedHashMap<TPS_LocationConstant, TPS_ActivityConstant> LOCATION2ACTIVITIES_MAP =
-            new ArrayListValuedHashMap<>();
+    public static ArrayListValuedHashMap<TPS_LocationConstant, TPS_ActivityConstant> LOCATION2ACTIVITIES_MAP = new ArrayListValuedHashMap<>();
 //    public static MultiMap<TPS_LocationConstant, TPS_ActivityConstant, List<TPS_ActivityConstant>> LOCATION2ACTIVITIES_MAP = new MultiMap<>(new ArrayList<>());
 
     // locations storage
@@ -30,11 +28,11 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     /// community type, used during choice of locations
     private TPS_SettlementSystem bbrType;
     /// Collection with all blocks of this traffic analysis zone
-    private SortedMap<Integer, TPS_Block> blocks;
+    private final SortedMap<Integer, TPS_Block> blocks;
     /// Coordinate of the center point of this traffic analysis zone
     private TPS_Coordinate center;
     /// id of the traffic analysis zone
-    private int id;
+    private final int id;
     /// Reference to the region
     private TPS_Region region;
     /// score value for the quality of pt access and service in the traffic analysis zone
@@ -44,7 +42,7 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     /// reference to external id code
     private int externalId = -1;
     /// Map which stores the values for the corresponding SimulationType
-    private Map<SimulationType, ScenarioTypeValues> simulationTypeValues;
+    private final Map<SimulationType, ScenarioTypeValues> simulationTypeValues;
     /// Local variable for the TAZData (locations etc.)
     private TPS_TAZData data;
     private boolean isRestricted = false; // restricted zone, e.g. only for electric vehicles etc.
@@ -61,30 +59,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         this.simulationTypeValues = new HashMap<>();
         this.simulationTypeValues.put(SimulationType.BASE, new ScenarioTypeValues());
         this.simulationTypeValues.put(SimulationType.SCENARIO, new ScenarioTypeValues());
-    }
-
-    @Override
-    public int compareTo(TPS_TrafficAnalysisZone o) {
-        return Integer.compare(this.id, o.id);
-    }
-
-
-    /**
-     * Returns the external id of this TAZ.
-     *
-     * @return the external id or -1, if no external id is known
-     */
-    public int getExternalId() {
-        return externalId;
-    }
-
-    /**
-     * Sets the external id number of this TAZ.
-     *
-     * @param externalId The external id number. Set to -1, if unknown.
-     */
-    public void setExternalId(int externalId) {
-        this.externalId = externalId;
     }
 
     /**
@@ -106,7 +80,7 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
 
         // add to the activity storages
         Collection<TPS_ActivityConstant> actCodes = LOCATION2ACTIVITIES_MAP.get(locType);
-                //TPS_AbstractConstant.getConnectedConstants(locType,TPS_ActivityCode.class);
+        //TPS_AbstractConstant.getConnectedConstants(locType,TPS_ActivityCode.class);
         if (actCodes != null) {
             for (TPS_ActivityConstant actCode : actCodes) {
                 if (!this.locationsByActivity.containsKey(actCode)) {
@@ -118,23 +92,43 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     }
 
     /**
-     * Returns whether this TAZ has data
+     * Returns whether this activity can be performed within this TAZ
+     * (whether at least one location that supports this activity is included in this TAZ)
      *
-     * @return Whether this TAZ has data
+     * @param actCode The code of the activity it is asked for
+     * @return Whether at least one location allows the activity to be performed
      */
-    public boolean hasData() {
-        return this.getData() != null;
+    public boolean allowsActivity(TPS_ActivityConstant actCode) {
+        return this.locationsByActivity.containsKey(actCode);
+    }
+
+    @Override
+    public int compareTo(TPS_TrafficAnalysisZone o) {
+        return Integer.compare(this.id, o.id);
     }
 
     /**
-     * Returns the data attached to this zone.
+     * Returns whether the named block is contained
      *
-     * @return This TAZ's data
+     * @param blockId The id of the block
+     * @return true if the block is contained, false otherwise
      */
-    public TPS_TAZData getData() {
-        return data;
+    public boolean containsBlock(int blockId) {
+        return this.blocks.containsKey(blockId);
     }
 
+    /**
+     * Returns the weight sum of locations that support the given activity
+     *
+     * @param actCode The code of the activity
+     * @return The sum of weights of the locations that support this activity
+     */
+    public double getActivityWeightSum(TPS_ActivityConstant actCode) {
+        if (!allowsActivity(actCode)) {
+            return 0;
+        }
+        return this.locationsByActivity.get(actCode).getWeightSum();
+    }
 
     /**
      * Returns the community / region type of the traffic analysis zone according to BBR
@@ -155,16 +149,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     }
 
     /**
-     * Returns whether the named block is contained
-     *
-     * @param blockId The id of the block
-     * @return true if the block is contained, false otherwise
-     */
-    public boolean containsBlock(int blockId) {
-        return this.blocks.containsKey(blockId);
-    }
-
-    /**
      * Returns the block corresponding to the given blockId.
      * If the block doesn't exist it is created.
      *
@@ -179,6 +163,16 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
             this.blocks.put(blockId, block);
         }
         return block;
+    }
+
+    /**
+     * TODO check
+     *
+     * @return <code>null</code>
+     */
+    @Override
+    public TPS_Block getBlock() {
+        return null;
     }
 
     /**
@@ -200,54 +194,30 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     }
 
     /**
-     * Returns the ID of this TAZ
+     * Returns the data attached to this zone.
      *
-     * @return This TAZ's ID
+     * @return This TAZ's data
      */
-    @Override
-    public int getTAZId() {
-        return id;
+    public TPS_TAZData getData() {
+        return data;
     }
 
     /**
-     * Returns this TAZ
+     * Returns the external id of this TAZ.
      *
-     * @return This TAZ
+     * @return the external id or -1, if no external id is known
      */
-    @Override
-    public TPS_TrafficAnalysisZone getTrafficAnalysisZone() {
-        return this;
+    public int getExternalId() {
+        return externalId;
     }
 
     /**
-     * TODO check
+     * Sets the external id number of this TAZ.
      *
-     * @return <code>null</code>
+     * @param externalId The external id number. Set to -1, if unknown.
      */
-    @Override
-    public TPS_Block getBlock() {
-        return null;
-    }
-
-    /**
-     * TODO check
-     *
-     * @return <code>false</code>
-     */
-    @Override
-    public boolean hasBlock() {
-        return false;
-    }
-
-    /**
-     * Returns the parking fee for an hour for the traffic analysis zone in the
-     * scenario or base situation as specified
-     *
-     * @param scenario
-     * @return Parking fee
-     */
-    public boolean isCarSharingService(SimulationType scenario) {
-        return this.getSimulationTypeValues(scenario).isCarsharingServiceArea();
+    public void setExternalId(int externalId) {
+        this.externalId = externalId;
     }
 
     /**
@@ -327,6 +297,16 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     }
 
     /**
+     * Returns the ID of this TAZ
+     *
+     * @return This TAZ's ID
+     */
+    @Override
+    public int getTAZId() {
+        return id;
+    }
+
+    /**
      * Returns the toll fee in EURO per entrance for the traffic analysis zone in
      * the specified scenario
      *
@@ -335,6 +315,35 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
      */
     public double getTollFee(SimulationType scenario) {
         return this.getSimulationTypeValues(scenario).getFeeToll();
+    }
+
+    /**
+     * Returns this TAZ
+     *
+     * @return This TAZ
+     */
+    @Override
+    public TPS_TrafficAnalysisZone getTrafficAnalysisZone() {
+        return this;
+    }
+
+    /**
+     * TODO check
+     *
+     * @return <code>false</code>
+     */
+    @Override
+    public boolean hasBlock() {
+        return false;
+    }
+
+    /**
+     * Returns whether this TAZ has data
+     *
+     * @return Whether this TAZ has data
+     */
+    public boolean hasData() {
+        return this.getData() != null;
     }
 
     /**
@@ -347,6 +356,15 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         return this.getSimulationTypeValues(scenario).hasParkingFee();
     }
 
+//	todo remove
+//	/** Initializer for the array of fees and their value
+//	 * @param has dummy boolean
+//	 * @param type dummy type
+//	 */
+//	public void nitFeesTolls(boolean[] has, int[] type) {
+//		this.initFeesTolls(has[0], type[0], has[1], type[1], has[2], type[2], has[3], type[3], has[4],has[5]);
+//	}
+
     /**
      * Returns if a toll fee has to be payed in the scenario specified
      *
@@ -356,15 +374,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     public boolean hasToll(SimulationType scenario) {
         return this.getSimulationTypeValues(scenario).hasToll();
     }
-
-//	todo remove
-//	/** Initializer for the array of fees and their value
-//	 * @param has dummy boolean
-//	 * @param type dummy type
-//	 */
-//	public void nitFeesTolls(boolean[] has, int[] type) {
-//		this.initFeesTolls(has[0], type[0], has[1], type[1], has[2], type[2], has[3], type[3], has[4],has[5]);
-//	}
 
     /**
      * Constructor of the traffic analysis zone with information concerning the
@@ -413,6 +422,47 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     }
 
     /**
+     * Returns the parking fee for an hour for the traffic analysis zone in the
+     * scenario or base situation as specified
+     *
+     * @param scenario
+     * @return Parking fee
+     */
+    public boolean isCarSharingService(SimulationType scenario) {
+        return this.getSimulationTypeValues(scenario).isCarsharingServiceArea();
+    }
+
+    public boolean isPNR() {
+        return isPNR;
+    }
+
+    public void setPNR(boolean isPNR) {
+        this.isPNR = isPNR;
+    }
+
+    public boolean isRestricted() {
+        return isRestricted;
+    }
+
+    public void setRestricted(boolean isRestricted) {
+        this.isRestricted = isRestricted;
+    }
+
+    /**
+     * Chooses the given number of locations that support te given activity
+     *
+     * @param actCode The code of the activity
+     * @param number  The number of locations to select
+     * @return The list of the selected locations
+     */
+    public ArrayList<TPS_Location> selectActivityLocations(TPS_ActivityConstant actCode, int number) {
+        if (!allowsActivity(actCode)) {
+            return null;
+        }
+        return this.locationsByActivity.get(actCode).selectActivityLocations(number);
+    }
+
+    /**
      * This method sets the center coordinate to the given value
      * TODO: check whether this could be done within the constructor
      *
@@ -426,7 +476,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
             this.center.setValues(x, y);
         }
     }
-
 
     /**
      * Calculates the hourly fee in Euro for parking in the TAZ according to the
@@ -456,7 +505,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
             }
         }
     }
-
 
     /**
      * Calculates the hourly fee in € for entering in the tvz according to the
@@ -501,17 +549,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     }
 
     /**
-     * Returns whether this activity can be performed within this TAZ
-     * (whether at least one location that supports this activity is included in this TAZ)
-     *
-     * @param actCode The code of the activity it is asked for
-     * @return Whether at least one location allows the activity to be performed
-     */
-    public boolean allowsActivity(TPS_ActivityConstant actCode) {
-        return this.locationsByActivity.containsKey(actCode);
-    }
-
-    /**
      * Updates the weights (occupancies) of the activity within this TAZ
      *
      * @param actCode   The code of the activity
@@ -523,49 +560,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
             throw new RuntimeException("");
         }
         this.locationsByActivity.get(actCode).updateOccupancy(oldWeight, weight);
-    }
-
-    /**
-     * Returns the weight sum of locations that support the given activity
-     *
-     * @param actCode The code of the activity
-     * @return The sum of weights of the locations that support this activity
-     */
-    public double getActivityWeightSum(TPS_ActivityConstant actCode) {
-        if (!allowsActivity(actCode)) {
-            return 0;
-        }
-        return this.locationsByActivity.get(actCode).getWeightSum();
-    }
-
-    /**
-     * Chooses the given number of locations that support te given activity
-     *
-     * @param actCode The code of the activity
-     * @param number  The number of locations to select
-     * @return The list of the selected locations
-     */
-    public ArrayList<TPS_Location> selectActivityLocations(TPS_ActivityConstant actCode, int number) {
-        if (!allowsActivity(actCode)) {
-            return null;
-        }
-        return this.locationsByActivity.get(actCode).selectActivityLocations(number);
-    }
-
-    public boolean isRestricted() {
-        return isRestricted;
-    }
-
-    public void setRestricted(boolean isRestricted) {
-        this.isRestricted = isRestricted;
-    }
-
-    public boolean isPNR() {
-        return isPNR;
-    }
-
-    public void setPNR(boolean isPNR) {
-        this.isPNR = isPNR;
     }
 
     public class TPS_TAZData {
@@ -657,56 +651,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
             this.setHasToll(false);
             this.setTypeToll(0);
             this.setCarsharingServiceArea(false);
-        }
-
-        /**
-         * @return the isCarsharingServiceArea
-         */
-        public boolean isCarsharingServiceArea() {
-            return isCarsharingServiceArea;
-        }
-
-        /**
-         * @param isCarsharingServiceArea the isCarsharingServiceArea to set
-         */
-        public void setCarsharingServiceArea(boolean isCarsharingServiceArea) {
-            this.isCarsharingServiceArea = isCarsharingServiceArea;
-        }
-
-        /**
-         * This method returns true if intra cell traffic is allowed for MIT
-         *
-         * @return Whether intra MIT traffic is allowed
-         */
-        public boolean isIntraMITTrafficAllowed() {
-            return intraMITTrafficAllowed;
-        }
-
-        /**
-         * This method sets the intra cell traffic for MIT
-         *
-         * @param intraMITTrafficAllowed true if traffic within this cell is allowed
-         */
-        public void setIntraMITTrafficAllowed(boolean intraMITTrafficAllowed) {
-            this.intraMITTrafficAllowed = intraMITTrafficAllowed;
-        }
-
-        /**
-         * This method returns true if intra cell traffic is allowed for PT
-         *
-         * @return Whether intra PT traffic is allowed
-         */
-        public boolean isIntraPTTrafficAllowed() {
-            return intraPTTrafficAllowed;
-        }
-
-        /**
-         * This method sets the intra cell traffic for PT
-         *
-         * @param intraPTTrafficAllowed true if traffic within this cell is allowed
-         */
-        public void setIntraPTTrafficAllowed(boolean intraPTTrafficAllowed) {
-            this.intraPTTrafficAllowed = intraPTTrafficAllowed;
         }
 
         /**
@@ -805,6 +749,24 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         }
 
         /**
+         * This Method returns the fare zone for the given TAZ- cell
+         *
+         * @return The id of the PT fare zone this TAZ is assigned to
+         */
+        public int getPtZone() {
+            return ptZone;
+        }
+
+        /**
+         * This method sets the PT zone for the PT fare
+         *
+         * @param ptZone The id of the PT fare zone
+         */
+        public void setPtZone(int ptZone) {
+            this.ptZone = ptZone;
+        }
+
+        /**
          * Returns the parking type / category
          *
          * @return the category of parking fee
@@ -859,6 +821,56 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         }
 
         /**
+         * @return the isCarsharingServiceArea
+         */
+        public boolean isCarsharingServiceArea() {
+            return isCarsharingServiceArea;
+        }
+
+        /**
+         * @param isCarsharingServiceArea the isCarsharingServiceArea to set
+         */
+        public void setCarsharingServiceArea(boolean isCarsharingServiceArea) {
+            this.isCarsharingServiceArea = isCarsharingServiceArea;
+        }
+
+        /**
+         * This method returns true if intra cell traffic is allowed for MIT
+         *
+         * @return Whether intra MIT traffic is allowed
+         */
+        public boolean isIntraMITTrafficAllowed() {
+            return intraMITTrafficAllowed;
+        }
+
+        /**
+         * This method sets the intra cell traffic for MIT
+         *
+         * @param intraMITTrafficAllowed true if traffic within this cell is allowed
+         */
+        public void setIntraMITTrafficAllowed(boolean intraMITTrafficAllowed) {
+            this.intraMITTrafficAllowed = intraMITTrafficAllowed;
+        }
+
+        /**
+         * This method returns true if intra cell traffic is allowed for PT
+         *
+         * @return Whether intra PT traffic is allowed
+         */
+        public boolean isIntraPTTrafficAllowed() {
+            return intraPTTrafficAllowed;
+        }
+
+        /**
+         * This method sets the intra cell traffic for PT
+         *
+         * @param intraPTTrafficAllowed true if traffic within this cell is allowed
+         */
+        public void setIntraPTTrafficAllowed(boolean intraPTTrafficAllowed) {
+            this.intraPTTrafficAllowed = intraPTTrafficAllowed;
+        }
+
+        /**
          * Sets the flag indicating, if a parking fee is charged in the TAZ
          *
          * @param hasParkingFee Whether a parking fee is charged in this TAZ
@@ -874,24 +886,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
          */
         public void setHasToll(boolean hasToll) {
             this.hasToll = hasToll;
-        }
-
-        /**
-         * This Method returns the fare zone for the given TAZ- cell
-         *
-         * @return The id of the PT fare zone this TAZ is assigned to
-         */
-        public int getPtZone() {
-            return ptZone;
-        }
-
-        /**
-         * This method sets the PT zone for the PT fare
-         *
-         * @param ptZone The id of the PT fare zone
-         */
-        public void setPtZone(int ptZone) {
-            this.ptZone = ptZone;
         }
 
         /**
@@ -937,33 +931,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         }
 
         /**
-         * Updates the weights after changing the weight of a location given by the prior and current weights
-         *
-         * @param priorWeight The prior weight of the location
-         * @param postWeight  The new weight of the location
-         */
-        public void updateOccupancy(double priorWeight, double postWeight) {
-            if (postWeight > 1e-15 && freeWeightSum > 1e-15) {
-                freeWeightSum = freeWeightSum - priorWeight + postWeight;
-            } else {
-                //very tiny numbers: calculate from scratch to avoid strange floating point errors!
-                freeWeightSum = 0;
-                for (TPS_Location t : locations) {
-                    freeWeightSum += t.getData().getWeight();
-                }
-            }
-        }
-
-        /**
-         * Chooses a random location, weighted by the locations' weights
-         *
-         * @return A randomly selected weighted location
-         */
-        public TPS_Location select() {
-            return select(freeWeightSum, locations);
-        }
-
-        /**
          * Returns the sum of the stored locations weights
          *
          * @return The sum of the locations weights
@@ -973,29 +940,12 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         }
 
         /**
-         * Chooses the given number of locations randomly, taking their weights into account
+         * Chooses a random location, weighted by the locations' weights
          *
-         * @param number The number of locations to choose
-         * @return List of selected locations
+         * @return A randomly selected weighted location
          */
-        public ArrayList<TPS_Location> selectActivityLocations(int number) {
-            ArrayList<TPS_Location> ret = new ArrayList<>();
-            if (this.locations.size() <= number) {
-                ret.addAll(locations);
-            } else {
-                double cCapacitySum = freeWeightSum;
-                Vector<TPS_Location> cLocations = new Vector<>(locations);
-                for (int i = 0; i < number; ++i) {
-                    TPS_Location selected = select(cCapacitySum, cLocations);
-                    if (selected == null) {
-                        break;
-                    }
-                    ret.add(selected);
-                    cCapacitySum -= selected.getData().getWeight();
-                    cLocations.remove(selected);
-                }
-            }
-            return ret;
+        public TPS_Location select() {
+            return select(freeWeightSum, locations);
         }
 
         /**
@@ -1035,6 +985,50 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
             if (from.size() > 0) return from.get(0);
             else return null;
             //throw new RuntimeException("Ran over available weights; Input was: weightSum=" + weightSum);
+        }
+
+        /**
+         * Chooses the given number of locations randomly, taking their weights into account
+         *
+         * @param number The number of locations to choose
+         * @return List of selected locations
+         */
+        public ArrayList<TPS_Location> selectActivityLocations(int number) {
+            ArrayList<TPS_Location> ret = new ArrayList<>();
+            if (this.locations.size() <= number) {
+                ret.addAll(locations);
+            } else {
+                double cCapacitySum = freeWeightSum;
+                Vector<TPS_Location> cLocations = new Vector<>(locations);
+                for (int i = 0; i < number; ++i) {
+                    TPS_Location selected = select(cCapacitySum, cLocations);
+                    if (selected == null) {
+                        break;
+                    }
+                    ret.add(selected);
+                    cCapacitySum -= selected.getData().getWeight();
+                    cLocations.remove(selected);
+                }
+            }
+            return ret;
+        }
+
+        /**
+         * Updates the weights after changing the weight of a location given by the prior and current weights
+         *
+         * @param priorWeight The prior weight of the location
+         * @param postWeight  The new weight of the location
+         */
+        public void updateOccupancy(double priorWeight, double postWeight) {
+            if (postWeight > 1e-15 && freeWeightSum > 1e-15) {
+                freeWeightSum = freeWeightSum - priorWeight + postWeight;
+            } else {
+                //very tiny numbers: calculate from scratch to avoid strange floating point errors!
+                freeWeightSum = 0;
+                for (TPS_Location t : locations) {
+                    freeWeightSum += t.getData().getWeight();
+                }
+            }
         }
 
     }

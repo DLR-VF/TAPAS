@@ -6,12 +6,13 @@ package de.dlr.ivf.tapas.util.parameters;
  *
  * @author mark_ma
  */
-public enum SimulationType {BASE(0), SCENARIO(1);
+public enum SimulationType {
+    BASE(0), SCENARIO(1);
     /**
      * index of the simulation type. This index can be used to access values
      * in an array of size two.
      */
-    private int index;
+    private final int index;
 
     /**
      * Constructor sets the index.
@@ -27,4 +28,5 @@ public enum SimulationType {BASE(0), SCENARIO(1);
      */
     public int getIndex() {
         return index;
-    }}
+    }
+}

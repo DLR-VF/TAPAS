@@ -13,28 +13,28 @@ public class TPS_Distance {
     /**
      * DISTANCE_MAP maps ids to TPS_Distance objects containing (name, code, type)
      */
-    private static HashMap<Integer, TPS_Distance> DISTANCE_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_Distance> DISTANCE_MAP = new HashMap<>();
     /**
      * MAX_VALUES maps max values of distance to ids (=keys in DISTANCE_MAP)
      */
-    private static TreeMap<Integer, Integer> MAX_VALUES = new TreeMap<>();
+    private static final TreeMap<Integer, Integer> MAX_VALUES = new TreeMap<>();
 
 
     /**
      * maximum value of a distance category
      */
-    private int max;
+    private final int max;
     /**
      * id corresponding to the db entry
      */
-    private int id;
+    private final int id;
     /**
      * mapping of distance code types to (name, code, type) triples
      * Example:
      * VOT -> (under 10k, 2, VOT)
      * MCT -> (under 7k, 7000, MCT)
      */
-    private EnumMap<TPS_DistanceCodeType, TPS_InternalConstant<TPS_DistanceCodeType>> map;
+    private final EnumMap<TPS_DistanceCodeType, TPS_InternalConstant<TPS_DistanceCodeType>> map;
 
     /**
      * Basic constructor for a TPS_Distance object
