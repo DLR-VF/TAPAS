@@ -21,8 +21,6 @@ import java.util.*;
 
 /**
  * This class provides all constants which are available in the application
- *
- * @author mark_ma, radk_an
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class TPS_ParameterClass {
@@ -31,19 +29,19 @@ public class TPS_ParameterClass {
     /**
      * Name of the binary folder
      */
-    public String BIN_DIR = "Programm/";
+    public String BIN_DIR;
     /**
      * Name of the Input folder
      */
-    public String INPUT_DIR = "Inputdateien/";
+    public String INPUT_DIR;
     /**
      * Name of the output folder
      */
-    public String OUTPUT_DIR = "Outputdateien/";
+    public String OUTPUT_DIR;
     /**
      * Name of the binary folder
      */
-    public String SIM_DIR = "Simulationen/";
+    public String SIM_DIR;
     /**
      * Name of the log folder
      */
@@ -69,10 +67,10 @@ public class TPS_ParameterClass {
      * parameter enums TPS_Param*
      */
     public TPS_ParameterClass() {
-        this.BIN_DIR = "Programm/";
-        this.INPUT_DIR = "Inputdateien/";
-        this.OUTPUT_DIR = "Outputdateien/";
-        this.SIM_DIR = "Simulationen/";
+        this.BIN_DIR = "Program/";
+        this.INPUT_DIR = "Inputfiles/";
+        this.OUTPUT_DIR = "Outputfiles/";
+        this.SIM_DIR = "Simulations/";
         this.LOG_DIR = "Log/";
         this.parameterFiles = new Stack<>();
         this.paramFlagClass = new ParamFlagClass();

@@ -1,6 +1,6 @@
 name,value,comment
 FLAG_DELETE_TEMPORARY_TABLES,false,
-DB_DBNAME,tapas_baz,
+DB_DBNAME,tapas,
 DB_DRIVER,org.postgresql.Driver,
 DB_REGION,berlin,
 DB_NAME_BLOCK_NEXT_PT_STOP,Block_OEVNearest_Berlin_2008,
@@ -14,9 +14,9 @@ DB_NAME_MCT,BBR1_PKW_Alter_Dist_CHAID,Berlin_FS_DIST_2008
 DB_NAME_EKT,DummyExpert
 DB_NAME_SCHEME_CLASS_DISTRIBUTION,MID_2008_TBG_7_Di-Do_PolGK6,
 DB_NAME_VOT,default,
-DB_NAME_MATRIX_DISTANCES_STREET,WALK_IHK_DIST,Laufweiten verwenden um kürzeste Route zu verwenden - WALK_TVZ_1193_IT_1_DIST
-DB_NAME_MATRIX_DISTANCES_BIKE,WALK_IHK_DIST,Laufweiten verwenden um kürzeste Route zu verwenden - WALK_TVZ_1193_IT_1_DIST
-DB_NAME_MATRIX_DISTANCES_WALK,WALK_IHK_DIST,Laufweiten verwenden um kürzeste Route zu verwenden - WALK_TVZ_1193_IT_1_DIST
+DB_NAME_MATRIX_DISTANCES_STREET,WALK_IHK_DIST,Laufweiten verwenden um kï¿½rzeste Route zu verwenden - WALK_TVZ_1193_IT_1_DIST
+DB_NAME_MATRIX_DISTANCES_BIKE,WALK_IHK_DIST,Laufweiten verwenden um kï¿½rzeste Route zu verwenden - WALK_TVZ_1193_IT_1_DIST
+DB_NAME_MATRIX_DISTANCES_WALK,WALK_IHK_DIST,Laufweiten verwenden um kï¿½rzeste Route zu verwenden - WALK_TVZ_1193_IT_1_DIST
 DB_NAME_MATRIX_DISTANCES_PT,WALK_IHK_DIST,
 DB_NAME_MATRIX_ACCESS_WALK,CONST_0MIN_1223,
 DB_NAME_MATRIX_ACCESS_WALK_BASE,CONST_0MIN_1223,

@@ -65,26 +65,24 @@ public class TPS_BasicConnectionClass {
             int val = choose.showOpenDialog(null);
             String baseDirectory;
             File tmpFile;
-            /* Abfrage, ob auf "Öffnen" geklickt wurde */
+            // did they click on open
             if (val == JFileChooser.APPROVE_OPTION) {
                 tmpFile = choose.getSelectedFile();
                 loginFile = tmpFile.getAbsolutePath();
-
                 props.set(ClientControlPropKey.LOGIN_CONFIG, loginFile);
                 if (System.getProperty("os.name").toLowerCase().contains("windows")) {
                     baseDirectory = loginFile.substring(0, loginFile.indexOf(":" + File.separator) + 2);
                     props.set(ClientControlPropKey.TAPAS_DIR_WIN, baseDirectory);
                 } else {
                     baseDirectory = loginFile.substring(0, loginFile.indexOf(File.separator, 1));
-                    props.set(ClientControlPropKey.TAPAS_DIR_LINUX, baseDirectory);
+                    props.set(ClientControlPropKey.TAPAS_DIR_LINUX, tmpFile.getParent());
                 }
+                props.set(ClientControlPropKey.LOGIN_CONFIG, tmpFile.getAbsolutePath());
                 props.updateFile();
                 runtimeFile = new File(loginFile);
             } else {
                 runtimeFile = null;
             }
-
-
         }
         return runtimeFile;
     }
