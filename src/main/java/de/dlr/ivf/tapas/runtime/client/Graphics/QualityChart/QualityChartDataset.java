@@ -1,13 +1,9 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.EnumMap;
-import java.util.EnumSet;
-
 import org.jfree.data.DomainOrder;
 import org.jfree.data.xy.AbstractXYDataset;
+
+import java.util.*;
 
 public class QualityChartDataset extends AbstractXYDataset {
 

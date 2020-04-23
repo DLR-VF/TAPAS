@@ -1,14 +1,13 @@
 package de.dlr.ivf.tapas.persistence.io;
 
+import com.csvreader.CsvReader;
+import de.dlr.ivf.tapas.log.LogHierarchy;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-import com.csvreader.CsvReader;
-
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 
 /**
  * This class provides basic methods to open and read from a comma separated value file via a CsvReader. You can

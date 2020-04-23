@@ -1,11 +1,5 @@
 package de.dlr.ivf.tapas.iteration;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
@@ -15,6 +9,12 @@ import de.dlr.ivf.tapas.util.TPS_GX;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 /**
  * This Class provides a method to select plans according to their acceptance and acceptance delta.

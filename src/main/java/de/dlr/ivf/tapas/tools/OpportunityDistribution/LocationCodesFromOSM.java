@@ -1,17 +1,11 @@
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
+import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 public class LocationCodesFromOSM extends TPS_BasicConnectionClass {
 

@@ -1,15 +1,15 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.TPS_VariableMap;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Encapsulates all tables for cfn* values.

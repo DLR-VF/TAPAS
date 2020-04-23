@@ -1,9 +1,9 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general;
 
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
 import de.dlr.ivf.tapas.tools.TUM.IntegratedTUM;
 import jxl.Workbook;
 import jxl.write.Number;

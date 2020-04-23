@@ -1,21 +1,14 @@
 package de.dlr.ivf.tapas.log;
 
+import de.dlr.ivf.tapas.runtime.util.IPInfo;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import org.apache.log4j.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.log4j.Appender;
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-
-import de.dlr.ivf.tapas.runtime.util.IPInfo;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * Class to connect the TAPAS logging behaviour to the Log4J classes

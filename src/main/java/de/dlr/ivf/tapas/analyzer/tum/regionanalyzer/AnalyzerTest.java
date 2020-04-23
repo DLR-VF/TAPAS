@@ -1,13 +1,13 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntention;
+
+import java.util.ArrayList;
+import java.util.EnumSet;
 //import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Job;
 
 @SuppressWarnings("rawtypes")

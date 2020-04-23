@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.plan;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
+import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_Region;
 import de.dlr.ivf.tapas.log.LogHierarchy;

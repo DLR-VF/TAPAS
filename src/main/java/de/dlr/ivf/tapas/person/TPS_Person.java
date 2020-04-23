@@ -1,7 +1,5 @@
 package de.dlr.ivf.tapas.person;
 
-import java.util.Map;
-
 import de.dlr.ivf.tapas.constants.TPS_AgeClass;
 import de.dlr.ivf.tapas.constants.TPS_AgeClass.TPS_AgeCodeType;
 import de.dlr.ivf.tapas.constants.TPS_DrivingLicenseInformation;
@@ -17,6 +15,8 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
+
+import java.util.Map;
 
 /**
  * This class represents a person.

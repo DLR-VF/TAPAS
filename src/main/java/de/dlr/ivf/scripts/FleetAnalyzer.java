@@ -1,18 +1,14 @@
 package de.dlr.ivf.scripts;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Car.CarSize;
 import de.dlr.ivf.tapas.person.TPS_Car.FuelType;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * This script was used in the project of ecoMove to analyze a new car fleet.

@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 public class TPS_FillLocationRepresentatives extends TPS_BasicConnectionClass{
 	

@@ -6,28 +6,18 @@
 
 package de.dlr.ivf.tapas.tools.matrixMap;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.io.File;
-import java.io.IOException;
-import java.util.Properties;
+import de.dlr.ivf.tapas.util.PropertyReader;
 
-import javax.swing.AbstractButton;
-import javax.swing.ButtonModel;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileFilter;
-
-import de.dlr.ivf.tapas.util.PropertyReader;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Properties;
 
 /**
  * @author Reyn

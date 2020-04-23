@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.tools.riesel;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
 import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -7,9 +10,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * This class distributes a given number of inhabitants on addresses found within the geometries.<br>

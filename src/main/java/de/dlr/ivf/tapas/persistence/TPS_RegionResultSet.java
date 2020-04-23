@@ -1,16 +1,12 @@
 package de.dlr.ivf.tapas.persistence;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
+
+import java.util.*;
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
 /**

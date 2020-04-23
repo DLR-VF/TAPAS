@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.person;
 
-import java.util.Iterator;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
+
+import java.util.Iterator;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Set with all households

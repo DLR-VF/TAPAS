@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.tools.fileModifier.persistence;
 
-import java.io.PrintWriter;
-
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.io.PrintWriter;
 
 public class TPS_ParameterCSVDAO extends AbstractTPS_ParameterDAO {
 	

@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.tools.riesel;
 
+import de.dlr.ivf.tapas.TPS_Main;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.BlockingQueue;
-
-import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 
 /**
  * <p>

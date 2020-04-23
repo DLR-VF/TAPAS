@@ -1,5 +1,9 @@
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -10,10 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 public class GroupToTAZ {
 

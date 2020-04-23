@@ -1,26 +1,17 @@
 package de.dlr.ivf.tapas.tools.persitence.db.dbImport;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import java.awt.*;
 import java.io.File;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import javax.swing.AbstractCellEditor;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 class DBImportTableModel extends DefaultTableModel {
 

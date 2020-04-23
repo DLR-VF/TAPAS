@@ -1,16 +1,12 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
-
-import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
+import java.util.*;
 
 public class TPS_CSV2SQLMatrix {
 

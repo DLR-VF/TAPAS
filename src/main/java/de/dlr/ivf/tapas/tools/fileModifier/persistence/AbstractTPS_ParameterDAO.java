@@ -1,14 +1,14 @@
 package de.dlr.ivf.tapas.tools.fileModifier.persistence;
 
+import de.dlr.ivf.tapas.util.parameters.ParamFlag;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.ParamValue;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
 
 public abstract class AbstractTPS_ParameterDAO implements ITPS_ParameterDAO {
 	/** local variable for mapping the parameter key to an enum type */

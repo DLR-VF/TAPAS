@@ -1,11 +1,19 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import de.dlr.ivf.tapas.analyzer.core.CoreProcessInterface;
+import de.dlr.ivf.tapas.analyzer.gui.ControlInputInterface;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
+
+import javax.swing.*;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.MouseInputAdapter;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeWillExpandListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.tree.*;
+import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -17,48 +25,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
-
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.DefaultListModel;
-import javax.swing.DropMode;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JTree;
-import javax.swing.KeyStroke;
-import javax.swing.TransferHandler;
-import javax.swing.border.LineBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.MouseInputAdapter;
-import javax.swing.event.TreeExpansionEvent;
-import javax.swing.event.TreeWillExpandListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.ExpandVetoException;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-
-import de.dlr.ivf.tapas.analyzer.core.CoreProcessInterface;
-import de.dlr.ivf.tapas.analyzer.gui.ControlInputInterface;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DefaultDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.EquiFiveDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.EquiTenDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.ModeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCodeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TravelTimeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
 
 
 @SuppressWarnings("rawtypes")

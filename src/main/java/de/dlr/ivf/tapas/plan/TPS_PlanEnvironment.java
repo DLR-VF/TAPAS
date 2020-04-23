@@ -1,13 +1,13 @@
 package de.dlr.ivf.tapas.plan;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.acceptance.TPS_PlanAcceptance;
 import de.dlr.ivf.tapas.plan.acceptance.TPS_PlanEVA1Acceptance;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class provides the plan environment for the simulation of one person. It stores all fix locations which were selected

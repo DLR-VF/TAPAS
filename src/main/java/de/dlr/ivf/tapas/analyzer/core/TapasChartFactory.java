@@ -1,11 +1,13 @@
 package de.dlr.ivf.tapas.analyzer.core;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.print.attribute.standard.MediaSize.Other;
-
+import de.dlr.ivf.tapas.analyzer.inputfileconverter.*;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategory;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategory.ModalSplitForDistanceCategoryElement;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategoryAndTripIntention;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategoryAndTripIntention.ModalSplitForDistanceCategoryAndTripIntentionElement;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.RegionCode;
+import de.dlr.ivf.tapas.analyzer.tum.StatisticPOJO;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartTheme;
@@ -17,18 +19,10 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.AbstractDataset;
 import org.jfree.data.general.DefaultPieDataset;
 
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.DistanceCategory;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.Job;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.Mode;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.TripIntention;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategory;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategory.ModalSplitForDistanceCategoryElement;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategoryAndTripIntention;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategoryAndTripIntention.ModalSplitForDistanceCategoryAndTripIntentionElement;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.RegionCode;
-import de.dlr.ivf.tapas.analyzer.tum.StatisticPOJO;
+import javax.print.attribute.standard.MediaSize.Other;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Factory Class for creating the Graphics {@link JFreeChart}s from given {@link StatisticPOJO}'s

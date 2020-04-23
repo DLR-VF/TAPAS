@@ -1,11 +1,10 @@
 package de.dlr.ivf.tapas.analyzer.inputfileconverter;
 
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
 import java.io.File;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
 
 /**
  * Wrapper to make {@link TapasTripConverter} {@link Iterable} without changing

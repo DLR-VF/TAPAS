@@ -1,9 +1,5 @@
 package de.dlr.ivf.tapas.scheme;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.log.LogHierarchy;
@@ -12,6 +8,10 @@ import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.NestedIterator;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This class provides a scheme. All schemes are singleton instances, so that the plans have just a reference to the scheme

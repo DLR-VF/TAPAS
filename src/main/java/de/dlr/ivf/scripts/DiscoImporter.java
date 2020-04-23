@@ -1,13 +1,13 @@
 package de.dlr.ivf.scripts;
 
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 /**
  * Class which realizes the DB-Import for a DISCO-Sample from STATA.
  * 

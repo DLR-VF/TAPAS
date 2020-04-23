@@ -1,19 +1,15 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.util.TPS_Geometrics;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
 
 public class TPS_PTStopWeightCalculator extends TPS_BasicConnectionClass {
 	class PTStop implements Comparable<PTStop>{

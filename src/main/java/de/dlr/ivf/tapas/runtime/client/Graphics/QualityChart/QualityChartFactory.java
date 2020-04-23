@@ -1,13 +1,6 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Stroke;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-
+import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.QualityChartDataset.Key;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.ChartUtils;
@@ -19,7 +12,11 @@ import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 
-import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.QualityChartDataset.Key;
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumSet;
 
 /**
  * Factory to create a {@link JFreeChart} for quality assessment of traffic

@@ -1,23 +1,15 @@
 package de.dlr.ivf.tapas.tools.persitence.db.dbImport;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.tools.fileModifier.TPS_ModeChoiceTreeConverter;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.io.*;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.fileModifier.TPS_ModeChoiceTreeConverter;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 public class DBImportV2 {
 

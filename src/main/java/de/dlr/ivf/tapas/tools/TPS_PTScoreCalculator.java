@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -12,9 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * Class to calculate the PT score for blocks and TAZs

@@ -1,15 +1,15 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.ActivityTimeChart;
 
-import java.awt.Color;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.StandardCategoryToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
+
+import java.awt.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
 
 /**
  * This class is a factory to create {@link JFreeChart}s showing the activity

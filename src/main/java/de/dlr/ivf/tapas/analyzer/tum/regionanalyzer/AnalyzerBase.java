@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
+import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
+
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.EnumMap;
-
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 
 /**
  * This class groups an enumeration <code>C</code> with its according split

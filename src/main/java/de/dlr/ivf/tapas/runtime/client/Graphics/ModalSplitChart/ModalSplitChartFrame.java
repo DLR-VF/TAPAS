@@ -1,20 +1,18 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.ModalSplitChart;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
-
-import javax.swing.JMenuItem;
-
+import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.entity.XYItemEntity;
 
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
 
 /**
  * This frame encapsulates a {@link ModalSplitChart} and adds specific behavior

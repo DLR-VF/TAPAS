@@ -1,7 +1,5 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.EnumMap;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
@@ -9,6 +7,8 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
+
+import java.util.EnumMap;
 
 public abstract class TPS_LocationChooser {
 

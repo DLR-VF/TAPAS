@@ -1,18 +1,5 @@
 package de.dlr.ivf.tapas.persistence.db;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.loc.TPS_Location;
@@ -28,16 +15,17 @@ import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
-import de.dlr.ivf.tapas.scheme.TPS_Episode;
-import de.dlr.ivf.tapas.scheme.TPS_SchemeSet;
-import de.dlr.ivf.tapas.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.runtime.util.IPInfo;
+import de.dlr.ivf.tapas.scheme.*;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.sql.*;
+import java.util.*;
 
 /**
  * Class for IO management regarding Database IO like connection check, statement execution, temporary table creation, higher-level functions

@@ -1,8 +1,5 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import de.dlr.ivf.tapas.TPS_Main;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
@@ -21,6 +18,9 @@ import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
 	/// The number of representats to choose

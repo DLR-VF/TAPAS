@@ -1,11 +1,5 @@
 package de.dlr.ivf.tapas.scheme;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
@@ -16,8 +10,10 @@ import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.*;
 
 /**
  * This class represents a tour part. It is characterised by one trip at the beginning and at the end and all stays between

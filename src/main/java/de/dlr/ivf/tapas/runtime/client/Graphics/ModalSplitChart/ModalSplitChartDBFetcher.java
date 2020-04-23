@@ -1,15 +1,15 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.ModalSplitChart;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 import de.dlr.ivf.tapas.analyzer.tum.results.CalibrationResultsReader;
 import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.QualityChartData;
 import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.ReferenceDBReader;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class ModalSplitChartDBFetcher {
 

@@ -1,9 +1,9 @@
 package de.dlr.ivf.tapas.analyzer.tum.constants;
 
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
+
 import java.util.ArrayList;
 import java.util.Arrays;
-
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 
 /**
  * Immutable object used as key for different splits.

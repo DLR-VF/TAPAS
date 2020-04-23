@@ -1,17 +1,17 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import de.dlr.ivf.tapas.constants.TPS_LocationConstant;
+import de.dlr.ivf.tapas.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.HashSet;
+import java.util.Set;
 
 
 /**

@@ -2,8 +2,8 @@ package de.dlr.ivf.tapas.mode;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.constants.TPS_Distance;
+import de.dlr.ivf.tapas.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
@@ -20,10 +20,10 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * Class for the organisation of the modes available for choice as well as the choice of a mode considering the existing

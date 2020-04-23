@@ -1,32 +1,16 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Set;
+import de.dlr.ivf.tapas.analyzer.gui.AbstractCoreProcess;
+import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+import de.dlr.ivf.tapas.analyzer.tum.results.DatabaseSummaryExport;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
-
-import de.dlr.ivf.tapas.analyzer.gui.AbstractCoreProcess;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.ModeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCodeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCodeIgnored;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TapasPersonGroupAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.results.DatabaseSummaryExport;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * <p>

@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.tools.locationallocation;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.tools.locationallocation.LocationProcessor.Location;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.locationallocation.LocationProcessor.Location;
 
 public class Locator {
 

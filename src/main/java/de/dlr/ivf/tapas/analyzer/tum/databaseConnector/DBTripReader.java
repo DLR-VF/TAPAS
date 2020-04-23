@@ -1,23 +1,5 @@
 package de.dlr.ivf.tapas.analyzer.tum.databaseConnector;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.io.IOException;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
-
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
@@ -26,6 +8,19 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.io.IOException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * This class provides a way to export {@link TapasTrip}s directly from the database without using a file export first.<br>

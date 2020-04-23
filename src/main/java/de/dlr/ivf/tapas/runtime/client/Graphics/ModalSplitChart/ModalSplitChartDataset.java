@@ -1,15 +1,14 @@
 package de.dlr.ivf.tapas.runtime.client.Graphics.ModalSplitChart;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumMap;
-
-import org.jfree.data.DomainOrder;
-import org.jfree.data.xy.AbstractXYDataset;
-
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
 import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.Quality;
+import org.jfree.data.DomainOrder;
+import org.jfree.data.xy.AbstractXYDataset;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumMap;
 
 public class ModalSplitChartDataset extends AbstractXYDataset {
 

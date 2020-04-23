@@ -1,31 +1,19 @@
 package de.dlr.ivf.tapas.tools.persitence.db.dbImport;
 
-import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportTableModel.COL_ACC;
-import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportTableModel.COL_F_NAME;
-import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportTableModel.COL_ID;
-import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportTableModel.COL_T_KEY;
-import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportTableModel.COL_T_NAME;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
 
-import java.awt.Cursor;
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.JTable;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
+import static de.dlr.ivf.tapas.tools.persitence.db.dbImport.DBImportTableModel.*;
 
 public class DBImportController {
 

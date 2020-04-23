@@ -1,16 +1,16 @@
 package de.dlr.ivf.tapas.modechoice;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Vector;
-
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Vector;
 
 /**
  * This class is a node in the {@link TPS_ModeChoiceTree}. It can either be a real node or leaf. Each real node contains a

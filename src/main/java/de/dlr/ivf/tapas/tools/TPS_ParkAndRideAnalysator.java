@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.util.Matrix;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import de.dlr.ivf.tapas.util.Matrix;
 
 public class TPS_ParkAndRideAnalysator  extends TPS_ParkAndRideRouter {
 	

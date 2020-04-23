@@ -1,22 +1,12 @@
 package de.dlr.ivf.tapas.tools.matrixMap;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+
+import javax.swing.*;
+import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Vector;
-
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JDialog;
-import java.awt.GridBagLayout;
-import javax.swing.JSplitPane;
-import java.awt.GridBagConstraints;
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
-import javax.swing.JList;
 
 /**
  * Class for the "edit MatrixMap"-Dialog.

@@ -1,11 +1,11 @@
 package de.dlr.ivf.scripts;
 
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map.Entry;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 public class LocationGroupAnalyzer extends TPS_BasicConnectionClass {
 

@@ -1,17 +1,17 @@
 package de.dlr.ivf.tapas.loc;
 
-import de.dlr.ivf.tapas.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
+import de.dlr.ivf.tapas.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet.Result;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeigthBased {
 

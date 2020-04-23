@@ -1,6 +1,25 @@
 package de.dlr.ivf.tapas.runtime.client;
 
-import java.awt.Component;
+import com.csvreader.CsvReader;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
+import de.dlr.ivf.tapas.runtime.server.SimulationData;
+import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
+import de.dlr.ivf.tapas.runtime.server.SimulationServerData;
+import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
+import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
+import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import de.dlr.ivf.tapas.runtime.util.ServerControlState;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.util.TPS_Argument;
+import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.awt.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -11,43 +30,12 @@ import java.rmi.RemoteException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
-import java.util.Set;
-import java.util.Stack;
 import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-import javax.swing.filechooser.FileFilter;
-
-import com.csvreader.CsvReader;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.runtime.server.SimulationData;
-import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
-import de.dlr.ivf.tapas.runtime.server.SimulationServerData;
-import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
-import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.runtime.util.ServerControlState;
-import de.dlr.ivf.tapas.util.TPS_Argument;
-import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 /**
  * The {@link SimulationControl} represents the controller for the simulation

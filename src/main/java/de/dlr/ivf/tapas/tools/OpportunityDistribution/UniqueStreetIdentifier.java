@@ -1,5 +1,7 @@
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,8 +10,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 public class UniqueStreetIdentifier extends TPS_BasicConnectionClass {
 

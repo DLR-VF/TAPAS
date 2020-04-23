@@ -1,17 +1,13 @@
 
 package de.dlr.ivf.tapas.tools.tazcalculator;
 
+import de.dlr.ivf.tapas.util.TPS_Geometrics;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.StringTokenizer;
-
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
+import java.util.*;
 
 /**
  * This class reads a mapping file for tvz to a more aggregate level. 

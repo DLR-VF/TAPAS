@@ -1,17 +1,8 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
+import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
 import de.dlr.ivf.tapas.log.LogHierarchy;
@@ -29,6 +20,10 @@ import de.dlr.ivf.tapas.util.TPS_VariableMap;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 /**
  * This class represents a complete region for a TAPAS simulation. A region can be Berlin. The region contains all

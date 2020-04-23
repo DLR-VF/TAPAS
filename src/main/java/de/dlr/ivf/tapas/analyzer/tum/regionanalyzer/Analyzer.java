@@ -1,16 +1,12 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
+import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
+import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.TASplitData;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.TASplitData;
-import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntention;
 
 /**
  * This class combines a number of {@link AnalyzerBase} instances. The split

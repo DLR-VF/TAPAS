@@ -1,9 +1,5 @@
 package de.dlr.ivf.tapas.mode;
 
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
@@ -11,6 +7,10 @@ import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.modechoice.TPS_UtilityFunction;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
+
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Class for calculating the modal distributions in the case of a scenario. Based on the empirical modal splits as pivot

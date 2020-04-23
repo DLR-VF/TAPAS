@@ -1,15 +1,5 @@
 package de.dlr.ivf.tapas.tools.persitence.db;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import javax.swing.JFileChooser;
-
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
@@ -17,6 +7,15 @@ import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class TPS_BasicConnectionClass {
 

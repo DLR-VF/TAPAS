@@ -1,12 +1,5 @@
 package de.dlr.ivf.tapas.util;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import de.dlr.ivf.tapas.loc.Locatable;
 import de.dlr.ivf.tapas.loc.TPS_Coordinate;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
@@ -14,6 +7,13 @@ import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamMatrix;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Class for geometric operations. EG distance on earth surface etc.

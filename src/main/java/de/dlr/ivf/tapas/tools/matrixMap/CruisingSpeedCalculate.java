@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.tools.matrixMap;
 
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.util.TPS_Geometrics;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
 
 public class CruisingSpeedCalculate extends TPS_BasicConnectionClass
 {

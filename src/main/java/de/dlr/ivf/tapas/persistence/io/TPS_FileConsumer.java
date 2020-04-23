@@ -1,5 +1,10 @@
 package de.dlr.ivf.tapas.persistence.io;
 
+import de.dlr.ivf.tapas.log.LogHierarchy;
+import de.dlr.ivf.tapas.log.TPS_Logger;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -7,11 +12,6 @@ import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.SortedMap;
 import java.util.TreeMap;
-
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 
 /**
  * This class provides basic behaviour for reading a file. It can open the file, read the header and all lines and close the

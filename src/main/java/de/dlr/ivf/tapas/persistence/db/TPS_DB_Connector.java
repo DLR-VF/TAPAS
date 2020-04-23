@@ -1,20 +1,5 @@
 package de.dlr.ivf.tapas.persistence.db;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
@@ -24,6 +9,13 @@ import de.dlr.ivf.tapas.util.MatrixMap;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import javax.swing.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class provides in general two services. After you built one instance you

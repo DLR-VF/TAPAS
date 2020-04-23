@@ -1,13 +1,15 @@
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.EnumMap;
-import java.util.Enumeration;
-import java.util.HashSet;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.traversal.DocumentTraversal;
+import org.w3c.dom.traversal.NodeFilter;
+import org.w3c.dom.traversal.TreeWalker;
+import org.xml.sax.SAXException;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.xml.parsers.DocumentBuilder;
@@ -19,23 +21,14 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.traversal.DocumentTraversal;
-import org.w3c.dom.traversal.NodeFilter;
-import org.w3c.dom.traversal.TreeWalker;
-import org.xml.sax.SAXException;
-
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DefaultDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.ModeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCodeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.EnumMap;
+import java.util.Enumeration;
+import java.util.HashSet;
 
 public class GeneralAnalyzerTreeExporter {
 

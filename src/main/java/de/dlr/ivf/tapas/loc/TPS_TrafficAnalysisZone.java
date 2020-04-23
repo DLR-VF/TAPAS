@@ -1,15 +1,5 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.Vector;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
@@ -19,6 +9,9 @@ import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+
+import java.util.*;
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
 public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZone>, Locatable {

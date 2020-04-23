@@ -1,8 +1,5 @@
 package de.dlr.ivf.tapas.loc;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_Distance;
@@ -31,6 +28,9 @@ import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class TPS_SelectWithMultipleAccessModeLogSum  extends TPS_SelectWithMultipleAccessMode{
 

@@ -1,13 +1,5 @@
 package de.dlr.ivf.tapas.scheme;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
 import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.log.LogHierarchy;
@@ -17,6 +9,8 @@ import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.NestedIterator;
+
+import java.util.*;
 
 /**
  * This class is a collection of all schemes collected by several scheme classes. Furthermore the scheme classes are

@@ -1,17 +1,13 @@
 package de.dlr.ivf.tapas.analyzer.tum;
 
+import de.dlr.ivf.tapas.analyzer.inputfileconverter.*;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategory.ModalSplitForDistanceCategoryElement;
+import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategoryAndTripIntention.ModalSplitForDistanceCategoryAndTripIntentionElement;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.DistanceCategory;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.Job;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.Mode;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.PersonGroup;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.TripIntention;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategory.ModalSplitForDistanceCategoryElement;
-import de.dlr.ivf.tapas.analyzer.tum.RegionPOJO.ModalSplitForDistanceCategoryAndTripIntention.ModalSplitForDistanceCategoryAndTripIntentionElement;
 
 @SuppressWarnings("unused")
 public class RegionPOJO implements Comparable<RegionPOJO>

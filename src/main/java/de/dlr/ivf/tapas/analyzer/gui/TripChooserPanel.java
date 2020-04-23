@@ -1,12 +1,10 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
-import java.awt.GridLayout;
-
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.text.StyledDocument;
-
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
+
+import javax.swing.*;
+import javax.swing.text.StyledDocument;
+import java.awt.*;
 
 public class TripChooserPanel extends JPanel {
 

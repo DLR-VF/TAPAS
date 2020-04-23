@@ -1,18 +1,14 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
+import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 /**
  * In several scenarios households within a restricted access area poses a restricted car. This is highly unlikely!

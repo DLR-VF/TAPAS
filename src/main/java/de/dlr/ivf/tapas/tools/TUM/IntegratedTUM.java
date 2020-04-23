@@ -1,6 +1,22 @@
 package de.dlr.ivf.tapas.tools.TUM;
 
 
+import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.AnalyzerCollection;
+import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.GeneralAnalyzer;
+import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.runtime.client.SimulationMonitor;
+import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import org.postgresql.util.PSQLException;
+
+import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.text.DateFormat;
@@ -10,32 +26,6 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.swing.JFileChooser;
-import javax.swing.SwingWorker;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
-import javax.swing.tree.DefaultMutableTreeNode;
-
-import org.postgresql.util.PSQLException;
-import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.AnalyzerCollection;
-import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.GeneralAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DefaultDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.EquiFiveDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.EquiTenDistanceCategoryAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.ModeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCodeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TravelTimeAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
-import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.runtime.client.SimulationMonitor;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
 
 
 /**

@@ -1,20 +1,10 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
+import com.jgoodies.forms.layout.*;
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
-
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-
-import com.jgoodies.forms.layout.FormSpecs;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
-import com.jgoodies.forms.layout.Sizes;
 
 /**
  * Eine UI-Komponente die das Auswählen einer Datei ermöglicht. Der Pfad der ausgewählten Datei wird in einem Label angezeigt.

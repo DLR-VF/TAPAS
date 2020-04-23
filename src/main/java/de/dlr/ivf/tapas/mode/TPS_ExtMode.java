@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.mode;
 
-import de.dlr.ivf.tapas.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
+import de.dlr.ivf.tapas.mode.TPS_Mode.TPS_ModeCodeType;
 
 public class TPS_ExtMode {
 	public TPS_Mode primary;
