@@ -28,11 +28,10 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
 
     /**
      * Utility function, which implements the mnl-model according to the complex  model developped by Alexander Kihm.
-	 * See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
+     * See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
      * @author hein_mh
      *
-     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime,
-                                    TPS_ModeChoiceContext mcc, SimulationType simType) {
+     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
         if (writeStats && writer == null) {
             try {
                 writer = new BufferedWriter(new FileWriter("d:\\measures.txt"));
@@ -175,21 +174,20 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                 int ptBikeAccessTAZId = -1;
                 int ptBikeEgressTAZId = -1;
                 if (mcc.isBikeAvailable) {
-                    ptBikeAccessTAZId = (int) mode.getParameters().paramMatrixMapClass
-                            .getValue(ParamMatrixMap.PTBIKE_ACCESS_TAZ,
-                                    mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
-                                    mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(),mcc.startTime);
+                    ptBikeAccessTAZId = (int) mode.getParameters().paramMatrixMapClass.getValue(
+                            ParamMatrixMap.PTBIKE_ACCESS_TAZ, mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
+                            mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), mcc.startTime);
                     if (ptBikeAccessTAZId > 0) {
-                        ptBikeEgressTAZId = (int) mode.getParameters().paramMatrixMapClass
-                                .getValue(ParamMatrixMap.PTBIKE_EGRESS_TAZ,
-                                        mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
-                                        mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(),mcc.startTime);
+                        ptBikeEgressTAZId = (int) mode.getParameters().paramMatrixMapClass.getValue(
+                                ParamMatrixMap.PTBIKE_EGRESS_TAZ,
+                                mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
+                                mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), mcc.startTime);
                     }
                     if (ptBikeEgressTAZId > 0) {
                         double combinesWithBikeB = 0.141320637281871 * (double) plan.getPerson().getAge() +
                                 -0.00160474148006888 * (double) plan.getPerson().getAge() * plan.getPerson().getAge() +
-                                1.27962291294572 * ((plan.getPerson().isPupil() ||
-                                        plan.getPerson().isStudent()) ? 1. : 0.) +
+                                1.27962291294572 *
+                                        ((plan.getPerson().isPupil() || plan.getPerson().isStudent()) ? 1. : 0.) +
 
                                 -0.629866549978136 * (double) plan.getPerson().getHousehold().getNumGrownups() +
                                 0.148756452170525 * (double) plan.getPerson().getHousehold().getNumChildren() +
@@ -204,16 +202,12 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                                 0.0463649704603541 * distanceNet / 1000. +
 
                                 0.497463612431901 * sizeK + 0 * (workK ? 1. : 0) +
-                                0.839470117785873 * (educationK ? 1. : 0.) +
-                                1.3512939071016 * (errantK ? 1. : 0.) +
-                                1.01952548420693 * (shoppingK ? 1. : 0.) +
-                                0.468623879577511 * (leisureK ? 1. : 0.) +
+                                0.839470117785873 * (educationK ? 1. : 0.) + 1.3512939071016 * (errantK ? 1. : 0.) +
+                                1.01952548420693 * (shoppingK ? 1. : 0.) + 0.468623879577511 * (leisureK ? 1. : 0.) +
 
                                 -0.40157254397825 * sizeT + 0 * (workT ? 1. : 0) +
-                                -2.02239144139734 * (educationT ? 1. : 0.) +
-                                -2.07278998520244 * (errantT ? 1. : 0.) +
-                                -2.12972593375702 * (shoppingT ? 1. : 0.) +
-                                -1.68198344209646 * (leisureT ? 1. : 0.) +
+                                -2.02239144139734 * (educationT ? 1. : 0.) + -2.07278998520244 * (errantT ? 1. : 0.) +
+                                -2.12972593375702 * (shoppingT ? 1. : 0.) + -1.68198344209646 * (leisureT ? 1. : 0.) +
 
                                 -0.574793618624035 * sizeK +// !!!prüfen - Tour?
                                 0.34876419149304 * (educationK ? 1. : 0.) +// !!!prüfen - Tour?
@@ -223,77 +217,69 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                         pCombineWithBike = 1. / (1. + Math.exp(-combinesWithBikeB));
                     }
                 }
-                if (writeStats)
-                    sb.append(mcc.isBikeAvailable).append(';').append(pCombineWithBike).append(';')
-                            .append(ptBikeAccessTAZId).append(';').append(ptBikeEgressTAZId).append(';');
+                if (writeStats) sb.append(mcc.isBikeAvailable).append(';').append(pCombineWithBike).append(';').append(
+                        ptBikeAccessTAZId).append(';').append(ptBikeEgressTAZId).append(';');
 
                 // Car+ÖPNV_TAPAS_ÖPNV_B
                 double pCombineWithCar = 0;
                 int ptCarAccessTAZId = -1;
                 if (mcc.carForThisPlan != null && plan.getPerson().mayDriveACar()) {
-                    ptCarAccessTAZId = (int) mode.getParameters().paramMatrixMapClass
-                            .getValue(ParamMatrixMap.PTCAR_ACCESS_TAZ,
-                                    mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
-                                    mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(),mcc.startTime);
+                    ptCarAccessTAZId = (int) mode.getParameters().paramMatrixMapClass.getValue(
+                            ParamMatrixMap.PTCAR_ACCESS_TAZ, mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
+                            mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), mcc.startTime);
                     if (mcc.toStayLocation.getTrafficAnalysisZone().isRestricted() &&
                             mcc.carForThisPlan.isRestricted()) {
                         ptCarAccessTAZId = -1;
                     }
                     if (ptCarAccessTAZId > 0) {
-                        double combinesWithCarB =
-                                0.473495331672679 * (plan.getPerson().mayDriveACar() ? 1. : 0.) +
-                                        -2.46390987118912 * (
-                                                plan.getPerson().getHousehold().getCarNumber() == 0 ? 1. : 0.) +
-                                        // !!! prüfen
-                                        -0.295204809067696 * (plan.getPerson().hasAbo() ? 1. : 0.) +
+                        double combinesWithCarB = 0.473495331672679 * (plan.getPerson().mayDriveACar() ? 1. : 0.) +
+                                -2.46390987118912 * (plan.getPerson().getHousehold().getCarNumber() == 0 ? 1. : 0.) +
+                                // !!! prüfen
+                                -0.295204809067696 * (plan.getPerson().hasAbo() ? 1. : 0.) +
 
-                                        -0.663841245241534 *
-                                                (double) plan.getPerson().getHousehold().getNumMalePersons() +
-                                        0.000175464954796569 * plan.getPerson().getHousehold().getIncome() +
-                                        0 * (plan.getPerson().getHousehold().getCarNumber() == 0 ? 1. : 0.) +
-                                        // !!! prüfen
-                                        -0.164594273391178 * (
-                                                plan.getPerson().getHousehold().getCarNumber() == 1 ? 1. : 0.) +
-                                        // !!! prüfen
-                                        1.00960568985536 * (
-                                                plan.getPerson().getHousehold().getCarNumber() == 2 ? 1. : 0.) +
-                                        // !!! prüfen
+                                -0.663841245241534 * (double) plan.getPerson().getHousehold().getNumMalePersons() +
+                                0.000175464954796569 * plan.getPerson().getHousehold().getIncome() +
+                                0 * (plan.getPerson().getHousehold().getCarNumber() == 0 ? 1. : 0.) +
+                                // !!! prüfen
+                                -0.164594273391178 * (plan.getPerson().getHousehold().getCarNumber() == 1 ? 1. : 0.) +
+                                // !!! prüfen
+                                1.00960568985536 * (plan.getPerson().getHousehold().getCarNumber() == 2 ? 1. : 0.) +
+                                // !!! prüfen
 
-                                        0.07887060144215 * distanceNet / 1000. + // !!! prüfen
+                                0.07887060144215 * distanceNet / 1000. + // !!! prüfen
 
-                                        -0.211469360657672 * sizeK +// !!!prüfen - Kette?
-                                        0 * (workK ? 1. : 0) + -0.180768877177397 * (educationK ? 1. : 0.) +
-                                        -1.55855402377174 * (errantK ? 1. : 0.) +
-                                        // !!! prüfen - Hauptzweck, errant=priv. Erledigungen?
-                                        -1.80437905346604 * (shoppingK ? 1. : 0.) +// !!! prüfen - Hauptzweck?
-                                        -0.814605797582529 * (leisureK ? 1. : 0.) +// !!! prüfen - Hauptzweck?
+                                -0.211469360657672 * sizeK +// !!!prüfen - Kette?
+                                0 * (workK ? 1. : 0) + -0.180768877177397 * (educationK ? 1. : 0.) +
+                                -1.55855402377174 * (errantK ? 1. : 0.) +
+                                // !!! prüfen - Hauptzweck, errant=priv. Erledigungen?
+                                -1.80437905346604 * (shoppingK ? 1. : 0.) +// !!! prüfen - Hauptzweck?
+                                -0.814605797582529 * (leisureK ? 1. : 0.) +// !!! prüfen - Hauptzweck?
 
-                                        0.293226404357034 * sizeT +// !!!prüfen - Tour?
-                                        0 * (workT ? 1. : 0.) +// !!! prüfen - Hauptzweck?
-                                        -0.879662952772845 * (educationT ? 1. : 0.) +
-                                        // !!! prüfen - Hauptzweck?
-                                        1.71873275466625 * (errantT ? 1. : 0.) +
-                                        // !!! prüfen - Hauptzweck, errant=priv. Erledigungen?
-                                        1.41425149891885 * (shoppingT ? 1. : 0.) +// !!! prüfen - Hauptzweck?
-                                        0.298604609664767 * (leisureT ? 1. : 0.) +// !!! prüfen - Hauptzweck?
+                                0.293226404357034 * sizeT +// !!!prüfen - Tour?
+                                0 * (workT ? 1. : 0.) +// !!! prüfen - Hauptzweck?
+                                -0.879662952772845 * (educationT ? 1. : 0.) +
+                                // !!! prüfen - Hauptzweck?
+                                1.71873275466625 * (errantT ? 1. : 0.) +
+                                // !!! prüfen - Hauptzweck, errant=priv. Erledigungen?
+                                1.41425149891885 * (shoppingT ? 1. : 0.) +// !!! prüfen - Hauptzweck?
+                                0.298604609664767 * (leisureT ? 1. : 0.) +// !!! prüfen - Hauptzweck?
 
-                                        0.737956530296847 * (educationK ? 1. : 0.) +// !!!prüfen - Tour?
-                                        0.544761874732552 * (leisureK ? 1. : 0.) +// !!!prüfen - Tour?
-                                        -4.45118725324756;
+                                0.737956530296847 * (educationK ? 1. : 0.) +// !!!prüfen - Tour?
+                                0.544761874732552 * (leisureK ? 1. : 0.) +// !!!prüfen - Tour?
+                                -4.45118725324756;
 
                         pCombineWithCar = 1. / (1. + Math.exp(-combinesWithCarB));
                     }
                 }
-                if (writeStats)
-                    sb.append(mcc.carForThisPlan != null && plan.getPerson().mayDriveACar()).append(';')
-                            .append(pCombineWithCar).append(';').append(ptCarAccessTAZId).append(';');
+                if (writeStats) sb.append(mcc.carForThisPlan != null && plan.getPerson().mayDriveACar()).append(';')
+                                  .append(pCombineWithCar).append(';').append(ptCarAccessTAZId).append(';');
 
                 double val = Math.random();
                 int combi = 0;
-                double cpCombineWithBike = pCombineWithBike *
-                        mode.getParameters().getDoubleValue(ParamValue.PTBIKE_MODE_PROB_FACTOR);
-                double cpCombineWithCar = pCombineWithCar *
-                        mode.getParameters().getDoubleValue(ParamValue.PTCAR_MODE_PROB_FACTOR);
+                double cpCombineWithBike = pCombineWithBike * mode.getParameters().getDoubleValue(
+                        ParamValue.PTBIKE_MODE_PROB_FACTOR);
+                double cpCombineWithCar = pCombineWithCar * mode.getParameters().getDoubleValue(
+                        ParamValue.PTCAR_MODE_PROB_FACTOR);
                 if (val < cpCombineWithBike) {
                     combi = 1; // with bike
                     mcc.combinedMode = TPS_Mode.get(ModeType.BIKE);
@@ -303,8 +289,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                     mcc.combinedMode = TPS_Mode.get(ModeType.MIT);
                     modeConstant = mode.getParameters().getDoubleValue(ParamValue.PTCAR_MODE_CONSTANT);
                 }
-                if (writeStats)
-                    sb.append(val).append(';').append(combi).append(';');
+                if (writeStats) sb.append(val).append(';').append(combi).append(';');
 
                 double numInterchanges = 0;
                 switch (combi) {
@@ -313,50 +298,53 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                     case 1:
                         // pt+bike
                         TPS_TrafficAnalysisZone accessTAZ = mcc.fromStayLocation.getTrafficAnalysisZone().getRegion()
-                                .getTrafficAnalysisZone(ptBikeAccessTAZId);
+                                                                                .getTrafficAnalysisZone(
+                                                                                        ptBikeAccessTAZId);
                         TPS_TrafficAnalysisZone egressTAZ = mcc.fromStayLocation.getTrafficAnalysisZone().getRegion()
-                                .getTrafficAnalysisZone(ptBikeEgressTAZId);
+                                                                                .getTrafficAnalysisZone(
+                                                                                        ptBikeEgressTAZId);
 
                         if (accessTAZ == null || egressTAZ == null) {
-                            ptBikeAccessTAZId = (int) mode.getParameters().paramMatrixMapClass
-                                    .getValue(ParamMatrixMap.PTBIKE_ACCESS_TAZ,
-                                            mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
-                                            mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(),mcc.startTime);
-                            ptBikeEgressTAZId = (int) mode.getParameters().paramMatrixMapClass
-                                    .getValue(ParamMatrixMap.PTBIKE_EGRESS_TAZ,
-                                            mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
-                                            mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(),mcc.startTime);
+                            ptBikeAccessTAZId = (int) mode.getParameters().paramMatrixMapClass.getValue(
+                                    ParamMatrixMap.PTBIKE_ACCESS_TAZ,
+                                    mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
+                                    mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), mcc.startTime);
+                            ptBikeEgressTAZId = (int) mode.getParameters().paramMatrixMapClass.getValue(
+                                    ParamMatrixMap.PTBIKE_EGRESS_TAZ,
+                                    mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
+                                    mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), mcc.startTime);
                             accessTAZ = mcc.fromStayLocation.getTrafficAnalysisZone().getRegion()
-                                    .getTrafficAnalysisZone(ptBikeAccessTAZId);
+                                                            .getTrafficAnalysisZone(ptBikeAccessTAZId);
                             egressTAZ = mcc.fromStayLocation.getTrafficAnalysisZone().getRegion()
-                                    .getTrafficAnalysisZone(ptBikeEgressTAZId);
+                                                            .getTrafficAnalysisZone(ptBikeEgressTAZId);
                         }
 
-                        double travelTimeBike = TPS_Mode.get(ModeType.BIKE)
-                                .getTravelTime(mcc.fromStayLocation, accessTAZ, mcc.startTime, simType,
-                                        TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(),
-                                        mcc.carForThisPlan);
-                        double travelTimeBike1 = travelTimeBike;
-                        double travelTimePT = mode.getParameters().paramMatrixMapClass
-                                .getValue(ParamMatrixMap.TRAVEL_TIME_PT, ptBikeAccessTAZId, ptBikeEgressTAZId, simType,
-                                        (int)(mcc.startTime + travelTimeBike));//TPS_Mode.get(ModeType.PT).getTravelTime(accessTAZ, egressTAZ,
-						// mcc.startTime + travelTimeBike, simType, TPS_ActivityCode.DUMMY, TPS_ActivityCode.DUMMY,
-						// plan.getPerson(), mcc.carForThisPlan);
-                        travelTimeBike += TPS_Mode.get(ModeType.BIKE).getTravelTime(egressTAZ, mcc.toStayLocation,
-                                (int)(mcc.startTime + (travelTimeBike + travelTimePT)) , simType, TPS_ActivityConstant.DUMMY,
+                        double travelTimeBike = TPS_Mode.get(ModeType.BIKE).getTravelTime(mcc.fromStayLocation,
+                                accessTAZ, mcc.startTime, simType, TPS_ActivityConstant.DUMMY,
                                 TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
+                        double travelTimeBike1 = travelTimeBike;
+                        double travelTimePT = mode.getParameters().paramMatrixMapClass.getValue(
+                                ParamMatrixMap.TRAVEL_TIME_PT, ptBikeAccessTAZId, ptBikeEgressTAZId, simType,
+                                (int) (mcc.startTime +
+                                        travelTimeBike));//TPS_Mode.get(ModeType.PT).getTravelTime(accessTAZ, egressTAZ,
+                        // mcc.startTime + travelTimeBike, simType, TPS_ActivityCode.DUMMY, TPS_ActivityCode.DUMMY,
+                        // plan.getPerson(), mcc.carForThisPlan);
+                        travelTimeBike += TPS_Mode.get(ModeType.BIKE).getTravelTime(egressTAZ, mcc.toStayLocation,
+                                (int) (mcc.startTime + (travelTimeBike + travelTimePT)), simType,
+                                TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(),
+                                mcc.carForThisPlan);
 
-                        double distanceNetBike = TPS_Mode.get(ModeType.BIKE)
-                                .getDistance(mcc.fromStayLocation, accessTAZ, simType, null) +
-                                TPS_Mode.get(ModeType.BIKE).getDistance(egressTAZ, mcc.toStayLocation, simType, null);
+                        double distanceNetBike = TPS_Mode.get(ModeType.BIKE).getDistance(mcc.fromStayLocation,
+                                accessTAZ, simType, null) + TPS_Mode.get(ModeType.BIKE).getDistance(egressTAZ,
+                                mcc.toStayLocation, simType, null);
                         double distanceNetPT = mode.getDistance(accessTAZ, egressTAZ, simType, mcc.carForThisPlan);
 
                         double costPT = 0;
                         double costBike = TPS_Mode.get(ModeType.BIKE).getCost_per_km(simType) * distanceNetBike * 0.001;
                         if (!plan.getPerson().hasAbo()) {
                             if (simType == SimulationType.BASE) {
-                                costPT = mode.getParameters()
-                                        .getDoubleValue(ParamValue.PTBIKE_COST_PER_KM_BASE); // + Rad!!!
+                                costPT = mode.getParameters().getDoubleValue(
+                                        ParamValue.PTBIKE_COST_PER_KM_BASE); // + Rad!!!
                             } else {
                                 costPT = mode.getParameters().getDoubleValue(ParamValue.PTBIKE_COST_PER_KM); // + Rad!!!
                             }
@@ -367,10 +355,8 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
 
                         double tttmp = travelTimePT + travelTimeBike;
 
-                        if (writeStats)
-                            sb.append(travelTimeBike1).append(';').append(travelTimePT).append(';')
-                                    .append(travelTimeBike - travelTimeBike1).append(';').append(travelTime)
-                                    .append(';');
+                        if (writeStats) sb.append(travelTimeBike1).append(';').append(travelTimePT).append(';').append(
+                                travelTimeBike - travelTimeBike1).append(';').append(travelTime).append(';');
 
                         if (travelTime * 1.5 < tttmp/*||tttmp-600>travelTime*/) {
                             combi = 0;
@@ -380,35 +366,31 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                             cost = costBike + costPT;
                             // travel time
                             // !!! todo: correct number of interchanges
-                            numInterchanges = mode.getParameters().paramMatrixMapClass
-                                    .getValue(ParamMatrixMap.PTBIKE_INTERCHANGES, ptBikeAccessTAZId, ptBikeEgressTAZId,
-                                            (int)(mcc.startTime + travelTimeBike1));
+                            numInterchanges = mode.getParameters().paramMatrixMapClass.getValue(
+                                    ParamMatrixMap.PTBIKE_INTERCHANGES, ptBikeAccessTAZId, ptBikeEgressTAZId,
+                                    (int) (mcc.startTime + travelTimeBike1));
                             numInterchanges = Math.max(0, numInterchanges - 100.);
                             expInterChanges = TPS_FastMath.exp(numInterchanges * TPS_DB_IO.INTERCHANGE_FACTOR);
-                            if (writeStats)
-                                sb.append(travelTime).append(';').append(distanceNet).append(';').append(cost)
-                                        .append(';').append(numInterchanges).append(';');
+                            if (writeStats) sb.append(travelTime).append(';').append(distanceNet).append(';').append(
+                                    cost).append(';').append(numInterchanges).append(';');
                         }
                         break;
                     case 2:
                         // pt+car
-                        accessTAZ = mcc.fromStayLocation.getTrafficAnalysisZone().getRegion()
-                                .getTrafficAnalysisZone(ptCarAccessTAZId);
-                        double travelTimeCar = TPS_Mode.get(ModeType.MIT)
-                                .getTravelTime(mcc.fromStayLocation, accessTAZ, mcc.startTime, simType,
-                                        TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(),
-                                        mcc.carForThisPlan);
-                        travelTimePT = mode.getParameters().paramMatrixMapClass
-                                .getValue(ParamMatrixMap.TRAVEL_TIME_PT, ptCarAccessTAZId,
-                                        mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), simType,
-                                        (int)(mcc.startTime + travelTimeCar));
-                        double distanceNetCar = TPS_Mode.get(ModeType.MIT)
-                                .getDistance(mcc.fromStayLocation, accessTAZ, simType, mcc.carForThisPlan);
+                        accessTAZ = mcc.fromStayLocation.getTrafficAnalysisZone().getRegion().getTrafficAnalysisZone(
+                                ptCarAccessTAZId);
+                        double travelTimeCar = TPS_Mode.get(ModeType.MIT).getTravelTime(mcc.fromStayLocation, accessTAZ,
+                                mcc.startTime, simType, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
+                                plan.getPerson(), mcc.carForThisPlan);
+                        travelTimePT = mode.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_PT,
+                                ptCarAccessTAZId, mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), simType,
+                                (int) (mcc.startTime + travelTimeCar));
+                        double distanceNetCar = TPS_Mode.get(ModeType.MIT).getDistance(mcc.fromStayLocation, accessTAZ,
+                                simType, mcc.carForThisPlan);
                         distanceNetPT = mode.getDistance(accessTAZ, mcc.toStayLocation, simType, mcc.carForThisPlan);
 
-                        if (writeStats)
-                            sb.append(travelTimeCar).append(';').append(travelTimePT).append(';').append(travelTime)
-                                    .append(';');
+                        if (writeStats) sb.append(travelTimeCar).append(';').append(travelTimePT).append(';').append(
+                                travelTime).append(';');
 
                         costPT = 0;
                         if (!plan.getPerson().hasAbo()) {
@@ -473,14 +455,13 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                             distanceNet = distanceNetCar + distanceNetPT;
                             cost = costCar + costPT;
                             // travel time
-                            numInterchanges = mode.getParameters().paramMatrixMapClass
-                                    .getValue(ParamMatrixMap.PTCAR_INTERCHANGES, ptCarAccessTAZId,
-                                            mcc.toStayLocation.getTAZId(), (int)(mcc.startTime + travelTimeCar));
+                            numInterchanges = mode.getParameters().paramMatrixMapClass.getValue(
+                                    ParamMatrixMap.PTCAR_INTERCHANGES, ptCarAccessTAZId, mcc.toStayLocation.getTAZId(),
+                                    (int) (mcc.startTime + travelTimeCar));
                             //numInterchanges = Math.max(0, numInterchanges-200.);
                             expInterChanges = TPS_FastMath.exp(numInterchanges * TPS_DB_IO.INTERCHANGE_FACTOR);
-                            if (writeStats)
-                                sb.append(travelTime).append(';').append(distanceNet).append(';').append(cost)
-                                        .append(';').append(numInterchanges).append(';');
+                            if (writeStats) sb.append(travelTime).append(';').append(distanceNet).append(';').append(
+                                    cost).append(';').append(numInterchanges).append(';');
                         }
                         break;
                 }
@@ -497,13 +478,11 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                             cost *= distanceNet * 0.001;
                         }
                     }
-                    numInterchanges = mode.getParameters().paramMatrixMapClass
-                            .getValue(ParamMatrixMap.INTERCHANGES_PT, mcc.fromStayLocation.getTAZId(),
-                                    mcc.toStayLocation.getTAZId(), mcc.startTime);
+                    numInterchanges = mode.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.INTERCHANGES_PT,
+                            mcc.fromStayLocation.getTAZId(), mcc.toStayLocation.getTAZId(), mcc.startTime);
                     expInterChanges = TPS_FastMath.exp(numInterchanges * TPS_DB_IO.INTERCHANGE_FACTOR);
-                    if (writeStats)
-                        sb.append(travelTime).append(';').append(distanceNet).append(';').append(cost).append(';')
-                                .append(numInterchanges).append(';');
+                    if (writeStats) sb.append(travelTime).append(';').append(distanceNet).append(';').append(cost)
+                                      .append(';').append(numInterchanges).append(';');
                 }
                 if (writeStats) {
                     try {
@@ -515,22 +494,20 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                 }
                 break;
             case TRAIN: //car sharing-faker
-                if (mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) &&
-                        mode.getParameters().isTrue(ParamFlag.FLAG_USE_CARSHARING) &&
-                        plan.getPerson().isCarPooler()) { //no cs user!
+                if (mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) && mode.getParameters().isTrue(
+                        ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler()) { //no cs user!
                     //service area in scenario?
                     if (!mcc.toStayLocation.getTrafficAnalysisZone().isCarSharingService(SimulationType.SCENARIO) ||
-                            !mcc.fromStayLocation.getTrafficAnalysisZone()
-                                    .isCarSharingService(SimulationType.SCENARIO)) {
+                            !mcc.fromStayLocation.getTrafficAnalysisZone().isCarSharingService(
+                                    SimulationType.SCENARIO)) {
                         return Double.NaN;
                     }
                     // time equals MIT + 3 min more access
-                    travelTime = TPS_Mode.get(ModeType.MIT)
-                            .getTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime, simType,
-                                    TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(),
-                                    mcc.carForThisPlan);
-                    travelTime += mode.getParameters()
-                            .getDoubleValue(ParamValue.CARSHARING_ACCESS_ADDON); //Longer Access for Carsharing
+                    travelTime = TPS_Mode.get(ModeType.MIT).getTravelTime(mcc.fromStayLocation, mcc.toStayLocation,
+                            mcc.startTime, simType, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
+                            plan.getPerson(), mcc.carForThisPlan);
+                    travelTime += mode.getParameters().getDoubleValue(
+                            ParamValue.CARSHARING_ACCESS_ADDON); //Longer Access for Carsharing
                     cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
                 } else {
                     return Double.NaN;

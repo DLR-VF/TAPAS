@@ -19,23 +19,23 @@ public class TPS_AgeClass {
     /**
      * maps ids from the db to {@link TPS_AgeClass} objects constructed from corresponding db data
      */
-    private static HashMap<Integer, TPS_AgeClass> AGE_CLASS_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_AgeClass> AGE_CLASS_MAP = new HashMap<>();
     /**
      * Included maximum vale
      */
-    private int max;
+    private final int max;
     /**
      * Included minimum value
      */
-    private int min;
+    private final int min;
     /**
      * id obtained from the db
      */
-    private int id;
+    private final int id;
     /**
      * mapping of the {@link TPS_AgeCodeType} to the internal representation
      */
-    private EnumMap<TPS_AgeCodeType, TPS_InternalConstant<TPS_AgeCodeType>> map;
+    private final EnumMap<TPS_AgeCodeType, TPS_InternalConstant<TPS_AgeCodeType>> map;
 
     /**
      * Basic constructor for a TPS_AgeClass

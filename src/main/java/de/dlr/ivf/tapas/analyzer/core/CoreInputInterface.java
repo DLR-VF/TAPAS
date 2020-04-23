@@ -13,43 +13,42 @@ import java.util.List;
  * @author Marco
  */
 public interface CoreInputInterface {
-	
-	/**
-	 * all implemented modules
-	 */
-	enum Module {
-		TUM
-	}
-	
-	
-	/**
-	 * @param module
-	 * @return corresponding {@link ControlInputInterface} or null if not existent
-	 */
-    ControlInputInterface getInterface(Module module);
-	
-	/**
-	 * @return path of output files
-	 */
-    String getOutputPath();
-	
-	/**
-	 * @return paths of selected trip files
-	 */
-    List<File> getTripFiles();
-	
-	
-	TapasTripReader getTripReader();
-	
-	/**
-	 * @param module
-	 * @return returns true if the corresponding {@link ControlInputInterface} is currently in process
-	 */
-    boolean isActive(Module module);
-	
-	/**
-	 * @return UI component of status bar
-	 */
+
+    /**
+     * @return UI component of status bar
+     */
     StyledDocument getConsole();
-	
+
+    /**
+     * @param module
+     * @return corresponding {@link ControlInputInterface} or null if not existent
+     */
+    ControlInputInterface getInterface(Module module);
+
+    /**
+     * @return path of output files
+     */
+    String getOutputPath();
+
+    /**
+     * @return paths of selected trip files
+     */
+    List<File> getTripFiles();
+
+
+    TapasTripReader getTripReader();
+
+    /**
+     * @param module
+     * @return returns true if the corresponding {@link ControlInputInterface} is currently in process
+     */
+    boolean isActive(Module module);
+
+    /**
+     * all implemented modules
+     */
+    enum Module {
+        TUM
+    }
+
 }

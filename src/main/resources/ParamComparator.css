@@ -1,126 +1,124 @@
-#tvSimComparator .table-row-cell:filled:even{	
-	-fx-background-color: #515247;
+#tvSimComparator .table-row-cell:filled:even {
+    -fx-background-color: #515247;
 }
 
-#topBox, #topBox .label{
-	-fx-background-color: #393A32;
-	-fx-background-fills: #393A32;
-	-fx-text-fill: white;
+#topBox, #topBox .label {
+    -fx-background-color: #393A32;
+    -fx-background-fills: #393A32;
+    -fx-text-fill: white;
 }
 
-#cbFilter{
- -fx-border-style: solid;
- -fx-border-width: 1px;
- -fx-border-radius: 3px;
- -fx-background-radius: 3px;
- -fx-background-color: transparent;
- -fx-border-color: rgb(108,109,105);
- -fx-text-fill: white; 
+#cbFilter {
+    -fx-border-style: solid;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+    -fx-background-color: transparent;
+    -fx-border-color: rgb(108, 109, 105);
+    -fx-text-fill: white;
 }
 
-#cbFilter:hover, #cbFilter:showing{
-	-fx-border-color: white;
-	-fx-background-color: derive(#393A32,20%);
+#cbFilter:hover, #cbFilter:showing {
+    -fx-border-color: white;
+    -fx-background-color: derive(#393A32, 20%);
 }
 
-#cbFilter .list-cell:hover{
- 	-fx-background-color: derive(#393A32,20%);
- 	-fx-font-weight: bold;
- }
-
-#cbFilter > .arrow-button > .arrow{
-	-fx-background-color: white;
+#cbFilter .list-cell:hover {
+    -fx-background-color: derive(#393A32, 20%);
+    -fx-font-weight: bold;
 }
 
- #cbFilter .list-cell{
- 	-fx-text-fill: white;
- 	-fx-background-color: #393A32;
- }
+#cbFilter > .arrow-button > .arrow {
+    -fx-background-color: white;
+}
 
-#tvSimComparator .table-row-cell:filled:odd, .tvSimComparator .placeholder, #tvSimComparator .filler, #tvSimComparator .column-header-background {	
-	-fx-background-color: #393A32;
+#cbFilter .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: #393A32;
+}
+
+#tvSimComparator .table-row-cell:filled:odd, .tvSimComparator .placeholder, #tvSimComparator .filler, #tvSimComparator .column-header-background {
+    -fx-background-color: #393A32;
 }
 
 #tvSimComparator:focused {
     -fx-border-color: none;
 }
 
-.table-row-cell:focused{
+.table-row-cell:focused {
     -fx-background-insets: 1;
     -fx-table-cell-border-color: transparent;
 }
 
-#tcParameter{
-	-fx-font-weight: bold;
+#tcParameter {
+    -fx-font-weight: bold;
 }
 
 
-#tvSimComparator .table-row-cell:filled:even:isequal, #tvSimComparator .table-row-cell:filled:odd:isequal{
-	-fx-background-color: #12ba7a;
-	-fx-background-fills: #12ba7a;
+#tvSimComparator .table-row-cell:filled:even:isequal, #tvSimComparator .table-row-cell:filled:odd:isequal {
+    -fx-background-color: #12ba7a;
+    -fx-background-fills: #12ba7a;
 }
 
-#tvSimComparator .table-row-cell:filled:even:isnull, #tvSimComparator .table-row-cell:filled:odd:isnull{
-	-fx-background-color: rgb(185,77,85);
-	-fx-background-fills: rgb(185,77,85);
+#tvSimComparator .table-row-cell:filled:even:isnull, #tvSimComparator .table-row-cell:filled:odd:isnull {
+    -fx-background-color: rgb(185, 77, 85);
+    -fx-background-fills: rgb(185, 77, 85);
 }
 
-#tvSimComparator .table-row-cell:filled:even:inequal, #tvSimComparator .table-row-cell:filled:odd:inequal{
-	-fx-background-color: #4295f4;
-	-fx-background-fills: #4295f4;
+#tvSimComparator .table-row-cell:filled:even:inequal, #tvSimComparator .table-row-cell:filled:odd:inequal {
+    -fx-background-color: #4295f4;
+    -fx-background-fills: #4295f4;
 }
 
-.default-circle{
-	-fx-smooth: true;
-	-fx-fill: #f48c41;
-	-fx-stroke: black;
-	-fx-stroke-type: outside;
-	-fx-stroke-width: 1;
+.default-circle {
+    -fx-smooth: true;
+    -fx-fill: #f48c41;
+    -fx-stroke: black;
+    -fx-stroke-type: outside;
+    -fx-stroke-width: 1;
 }
 
-#tvSimComparator .text{
-	-fx-fill: white;
+#tvSimComparator .text {
+    -fx-fill: white;
 }
 
-.table-view .column-header{
-	-fx-background-color: #393A32;
-	-fx-text-fill: white;
-	-fx-border-width: 0 0 1 0;
-	-fx-border-color: white;
+.table-view .column-header {
+    -fx-background-color: #393A32;
+    -fx-text-fill: white;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: white;
 }
 
-.scroll-bar {	
-	-fx-background-color: #393A32;
-	-fx-border-color: white;
-	-fx-padding: 2px;
+.scroll-bar {
+    -fx-background-color: #393A32;
+    -fx-border-color: white;
+    -fx-padding: 2px;
 }
 
-.scroll-bar{
-	-fx-pref-width: 15px;
+.scroll-bar {
+    -fx-pref-width: 15px;
 }
 
-.scroll-bar:vertical .thumb{
-	-fx-background-color:
-     -fx-box-border,
-     linear-gradient(to right, derive(#393A32,90%), derive(#393A32,10%)),
-     linear-gradient(to right, derive(#393A32,30%), derive(#393A32,-20%));
+.scroll-bar:vertical .thumb {
+    -fx-background-color: -fx-box-border,
+    linear-gradient(to right, derive(#393A32, 90%), derive(#393A32, 10%)),
+    linear-gradient(to right, derive(#393A32, 30%), derive(#393A32, -20%));
     -fx-background-insets: 0, 1, 2;
     -fx-background-radius: 0.5em;
 }
 
-.scroll-bar:horizontal .thumb{
-	-fx-background-color:
-     -fx-box-border,
-     linear-gradient(to bottom, derive(#393A32,90%), derive(#393A32,10%)),
-     linear-gradient(to bottom, derive(#393A32,30%), derive(#393A32,-20%));
+.scroll-bar:horizontal .thumb {
+    -fx-background-color: -fx-box-border,
+    linear-gradient(to bottom, derive(#393A32, 90%), derive(#393A32, 10%)),
+    linear-gradient(to bottom, derive(#393A32, 30%), derive(#393A32, -20%));
     -fx-background-insets: 0, 1, 2;
     -fx-background-radius: 0.5em;
 }
 
-.corner{
-	-fx-background-color: #393A32;
+.corner {
+    -fx-background-color: #393A32;
 }
 
-.scroll-bar > .increment-button > .increment-arrow, .scroll-bar > .decrement-button > .decrement-arrow{
-	-fx-background-color: white;
+.scroll-bar > .increment-button > .increment-arrow, .scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: white;
 }

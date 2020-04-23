@@ -23,7 +23,7 @@ public class TPS_ActivityConstant {
     /**
      * maps ids from the db to {@link TPS_ActivityConstant} objects constructed from corresponding db data
      */
-    private static HashMap<Integer, TPS_ActivityConstant> ACTIVITY_CONSTANTS_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_ActivityConstant> ACTIVITY_CONSTANTS_MAP = new HashMap<>();
     /**
      * Special attribute of the constant
      */
@@ -32,20 +32,20 @@ public class TPS_ActivityConstant {
      * This flag determines whether the location which is chosen to this kind of activity is fix. When it is true, e.g.
      * for work, then the location can only be chosen once, otherwise the location to this activity is chosen every time.
      */
-    private boolean isFix;
+    private final boolean isFix;
     /**
      * This flag determines whether the activity constant is a trip or a stay.
      */
-    private boolean isTrip;
+    private final boolean isTrip;
 
     /**
      * id of the activity constant (in the db)
      */
-    private int id;
+    private final int id;
     /**
      * mapping enum TPS_ActivityCodeType to internal constant, i.e. its three properties (name, code, type)
      */
-    private EnumMap<TPS_ActivityCodeType, TPS_InternalConstant<TPS_ActivityCodeType>> map;
+    private final EnumMap<TPS_ActivityCodeType, TPS_InternalConstant<TPS_ActivityCodeType>> map;
 
     /**
      * Basic constructor for a TPS_ActivityConstant

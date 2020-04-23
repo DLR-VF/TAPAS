@@ -5,7 +5,7 @@ import org.apache.commons.lang3.tuple.MutablePair;
 import java.util.EnumMap;
 
 public class ParamStringClass {
-    private EnumMap<ParamString, MutablePair<ParamType, String>> paramStrings;
+    private final EnumMap<ParamString, MutablePair<ParamType, String>> paramStrings;
 
     ParamStringClass() {
         this.paramStrings = new EnumMap<>(ParamString.class);
@@ -165,29 +165,6 @@ public class ParamStringClass {
         this.paramStrings.put(ParamString.DB_NAME_EKT, new MutablePair<>(ParamType.DB, null));
     }
 
-
-    /**
-     * @param param string parameter enum
-     * @return constant string
-     * @throws RuntimeException if the constant was not defined
-     */
-    public String getString(ParamString param) throws RuntimeException {
-        if (!this.isDefined(param)) {
-            throw new RuntimeException("Enum-String is not defined: " + param);
-        }
-        return this.paramStrings.get(param).getRight();
-    }
-
-    /**
-     * Sets the string value
-     *
-     * @param param  string parameter enum
-     * @param string string value to be set to the parameter
-     */
-    public void setString(ParamString param, String string) {
-        this.paramStrings.get(param).setRight(string);
-    }
-
     /**
      * Append a given string to this String
      *
@@ -254,22 +231,6 @@ public class ParamStringClass {
     }
 
     /**
-     * @param param string parameter enum
-     * @return parameter type
-     */
-    public ParamType getType(ParamString param) {
-        return this.paramStrings.get(param).getLeft();
-    }
-
-    /**
-     * @param param string parameter enum
-     * @return true if the string is defined (not null), false otherwise
-     */
-    public boolean isDefined(ParamString param) {
-        return this.paramStrings.get(param).getRight() != null && this.paramStrings.get(param).getRight().length() > 0;
-    }
-
-    /**
      * clears the attached String value to the default value
      */
     public void clear(ParamString param) {
@@ -288,5 +249,43 @@ public class ParamStringClass {
         } catch (RuntimeException e) {
             return null;
         }
+    }
+
+    /**
+     * @param param string parameter enum
+     * @return constant string
+     * @throws RuntimeException if the constant was not defined
+     */
+    public String getString(ParamString param) throws RuntimeException {
+        if (!this.isDefined(param)) {
+            throw new RuntimeException("Enum-String is not defined: " + param);
+        }
+        return this.paramStrings.get(param).getRight();
+    }
+
+    /**
+     * @param param string parameter enum
+     * @return parameter type
+     */
+    public ParamType getType(ParamString param) {
+        return this.paramStrings.get(param).getLeft();
+    }
+
+    /**
+     * @param param string parameter enum
+     * @return true if the string is defined (not null), false otherwise
+     */
+    public boolean isDefined(ParamString param) {
+        return this.paramStrings.get(param).getRight() != null && this.paramStrings.get(param).getRight().length() > 0;
+    }
+
+    /**
+     * Sets the string value
+     *
+     * @param param  string parameter enum
+     * @param string string value to be set to the parameter
+     */
+    public void setString(ParamString param, String string) {
+        this.paramStrings.get(param).setRight(string);
     }
 }

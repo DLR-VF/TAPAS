@@ -4,53 +4,60 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
-<AnchorPane fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
-      <VBox>
-         <children>
-            <AnchorPane fx:id="topBox">
-               <children>
-                  <HBox spacing="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="10.0">
-                     <children>
-                        <Label alignment="CENTER" prefHeight="25.0" prefWidth="84.0" text="ParamFilter:" underline="true" />
-                        <ComboBox fx:id="cbFilter" prefWidth="150.0" />
-                     </children>
-                  </HBox>
-                  <GridPane hgap="5.0" prefWidth="123.0" AnchorPane.rightAnchor="5.0">
-                     <columnConstraints>
-                        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" />
-                        <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                     <children>
-                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#b94d55" height="15.0" stroke="WHITE" strokeType="INSIDE" width="40.0" />
-                        <Label text="Null" GridPane.columnIndex="1" />
-                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#12ba7a" height="15.0" stroke="WHITE" strokeType="INSIDE" width="40.0" GridPane.rowIndex="1" />
-                        <Label text="Equal" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#4295f4" height="15.0" stroke="WHITE" strokeType="INSIDE" width="40.0" GridPane.rowIndex="2" />
-                        <Label text="Not equal" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <Circle fill="#f48c41" radius="8.0" stroke="WHITE" strokeType="INSIDE" GridPane.rowIndex="3" />
-                        <Label text="Default" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                     </children>
-                  </GridPane>
-               </children>
-            </AnchorPane>
-            <TableView fx:id="tvSimComparator">
-              <columns>
-                <TableColumn fx:id="tcParameter" prefWidth="75.0" text="Parameter" />
-                <TableColumn fx:id="tcSim1" prefWidth="75.0" text="Sim1Values" />
-                  <TableColumn fx:id="tcSim2" prefWidth="75.0" text="Sim2Values" />
-              </columns>
-               <columnResizePolicy>
-                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-               </columnResizePolicy>
-            </TableView>
-         </children>
-      </VBox>
-   </children>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="root" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity"
+            minWidth="-Infinity" prefHeight="800.0" prefWidth="800.0"
+            xmlns="http://javafx.com/javafx/8.0.171">
+    <children>
+        <VBox>
+            <children>
+                <AnchorPane fx:id="topBox">
+                    <children>
+                        <HBox spacing="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.topAnchor="10.0">
+                            <children>
+                                <Label alignment="CENTER" prefHeight="25.0" prefWidth="84.0" text="ParamFilter:"
+                                       underline="true"/>
+                                <ComboBox fx:id="cbFilter" prefWidth="150.0"/>
+                            </children>
+                        </HBox>
+                        <GridPane hgap="5.0" prefWidth="123.0" AnchorPane.rightAnchor="5.0">
+                            <columnConstraints>
+                                <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES"/>
+                                <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES"/>
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+                                <RowConstraints minHeight="10.0" prefHeight="20.0" vgrow="SOMETIMES"/>
+                            </rowConstraints>
+                            <children>
+                                <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#b94d55" height="15.0" stroke="WHITE"
+                                           strokeType="INSIDE" width="40.0"/>
+                                <Label text="Null" GridPane.columnIndex="1"/>
+                                <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#12ba7a" height="15.0" stroke="WHITE"
+                                           strokeType="INSIDE" width="40.0" GridPane.rowIndex="1"/>
+                                <Label text="Equal" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#4295f4" height="15.0" stroke="WHITE"
+                                           strokeType="INSIDE" width="40.0" GridPane.rowIndex="2"/>
+                                <Label text="Not equal" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                <Circle fill="#f48c41" radius="8.0" stroke="WHITE" strokeType="INSIDE"
+                                        GridPane.rowIndex="3"/>
+                                <Label text="Default" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                            </children>
+                        </GridPane>
+                    </children>
+                </AnchorPane>
+                <TableView fx:id="tvSimComparator">
+                    <columns>
+                        <TableColumn fx:id="tcParameter" prefWidth="75.0" text="Parameter"/>
+                        <TableColumn fx:id="tcSim1" prefWidth="75.0" text="Sim1Values"/>
+                        <TableColumn fx:id="tcSim2" prefWidth="75.0" text="Sim2Values"/>
+                    </columns>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+                    </columnResizePolicy>
+                </TableView>
+            </children>
+        </VBox>
+    </children>
 </AnchorPane>

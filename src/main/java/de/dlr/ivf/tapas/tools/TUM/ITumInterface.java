@@ -7,20 +7,16 @@ import java.io.File;
 
 /**
  * @author sche_ai
- *
  */
 public interface ITumInterface {
-	
-	File[] getExportFiles();
-	
-	StyledDocument getConsole();
-	
-	TPS_DB_Connector getConnection();
-	
-	String[] getSimKeys();
-	
-	
-	
-	
+
+    TPS_DB_Connector getConnection();
+
+    StyledDocument getConsole();
+
+    File[] getExportFiles();
+
+    String[] getSimKeys();
+
 
 }

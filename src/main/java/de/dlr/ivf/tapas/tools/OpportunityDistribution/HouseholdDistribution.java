@@ -28,13 +28,13 @@ public class HouseholdDistribution extends TPS_BasicConnectionClass {
     static final int INDUSTRIAL = 3; // 2112;
     static final double[] DEFAULT_DISTRIBUTION = {0.6, 0.39, 0.1, MIN_PROB};
     private final int BATCH_SIZE = 10000;
-    private ArrayList<Integer> blocks = new ArrayList<>();
-    private ArrayList<String> keys = new ArrayList<>();
+    private final ArrayList<Integer> blocks = new ArrayList<>();
+    private final ArrayList<String> keys = new ArrayList<>();
 
     private long cntHouseholdsUpdated = 0;
     private long cntHouseholdsNoBuilding = 0;
 
-    private ArrayList<Integer> emptyBlocks = new ArrayList<>();
+    private final ArrayList<Integer> emptyBlocks = new ArrayList<>();
 
     private PreparedStatement updateHouseholds;
     private PreparedStatement updateHouseholdsNoBuilding;
@@ -149,66 +149,140 @@ public class HouseholdDistribution extends TPS_BasicConnectionClass {
 
     }
 
-    /**
-     * Updates all household positions from block centroid to actual buildings.
-     * The households are distributed mainly on residential buildings. 3 stage
-     * algorithm:
-     * <ol>
-     * <li>Try to match dlm blocks to blocks and find buildings in there</li>
-     * <li>If that fails, try find buildings just in blocks</li>
-     * <li>If that fails as well, update households to block centroid instead</li>
-     * </ol>
-     *
-     * @param verbose If <code>true</code>, a status report for every block is given
-     *                to track progress.
-     */
-    public void updateHouseholds(boolean verbose) {
-        for (int block : blocks) {
-            HashMap<Integer, ArrayList<Integer>> buildings = retrieveBuildingsByLanduse(block);
-            double[] locDist = DEFAULT_DISTRIBUTION;
+    private void addNoBuildingUpdate(int block) {
 
-            boolean foundAny = false;
-            for (ArrayList<Integer> al : buildings.values()) {
-                foundAny |= al.size() > 0;
+        if (block == -1) { // update rest
+            try {
+                updateHouseholdsNoBuilding.executeBatch();
+            } catch (SQLException e) {
+                System.err.println("Error when trying to update last empty blocks.");
+                e.printStackTrace();
             }
-            if (!foundAny) {// no buildings found by landuse
-                // use simple approach
-                ArrayList<Integer> buildingsSimple = retrieveBuildingsSimple(block);
+            return;
+        }
 
-                if (buildingsSimple.size() == 0) {// block is empty
-                    emptyBlocks.add(block);
-                    addNoBuildingUpdate(block);
-                } else {// simple update
-                    for (String key : keys) {
-                        ArrayList<Integer> households = retrieveHouseholds(key, block);
-                        for (int household : households) {
-                            int building = buildingsSimple.get((int) (Math.random() * buildingsSimple.size()));
-                            addRegularUpdate(building, household, key, verbose);
-                        }
+        cntHouseholdsNoBuilding++;
+        try {
+            updateHouseholdsNoBuilding.setInt(1, block);
+            updateHouseholdsNoBuilding.addBatch();
+
+            if (cntHouseholdsNoBuilding % BATCH_SIZE == 0) {
+                int[] successer = updateHouseholdsNoBuilding.executeBatch();
+                int cntFailed = 0;
+                for (int i : successer) {
+                    if (i == PreparedStatement.EXECUTE_FAILED) {
+                        cntFailed++;
+                    }
+                    System.err.println(cntFailed + " updates (buildingless) have failed at block " + block);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addRegularUpdate(int building, int household, String key, boolean verbose) {
+
+        if (building == -1) {// update rest
+            try {
+                updateHouseholds.executeBatch();
+            } catch (SQLException e) {
+                System.err.println("Error while updating last households.");
+                e.printStackTrace();
+            }
+
+        }
+
+        cntHouseholdsUpdated++;
+        try {
+            updateHouseholds.setInt(1, household);
+            updateHouseholds.setString(2, key);
+            updateHouseholds.setInt(3, building);
+            updateHouseholds.addBatch();
+
+            if (cntHouseholdsUpdated % BATCH_SIZE == 0) {
+                int[] successer = updateHouseholds.executeBatch();
+                int cntFailed = 0;
+                for (int i : successer) {
+                    if (i == PreparedStatement.EXECUTE_FAILED) {
+                        cntFailed++;
+                    }
+                    if (cntFailed > 0) {
+                        System.err.println(
+                                cntFailed + " updates have failed at household " + household + " of " + key + ".");
                     }
                 }
-            } else {// buildings found in normal approach
-                try {
-                    locDist = getDistribution(buildings);
-                } catch (DistributionException e) {
-                    // should not happen
-                    System.err.println("Something went wrong while calculating distributions for block " + block);
-                    continue;
-                }
 
-                for (String key : keys) {
-                    ArrayList<Integer> households = retrieveHouseholds(key, block);
-                    for (int household : households) {
-                        int type = getLanduse(locDist);
-                        int building = buildings.get(type).get((int) (Math.random() * buildings.get(type).size()));
-                        addRegularUpdate(building, household, key, verbose);
+                if (verbose) {
+                    System.out.println("So far I have updated \t" + cntHouseholdsUpdated);
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Example: There are no MIXED buildings Default is [0.6,0.39,0.01,0.0]
+     * Result is (roughly) [0.98,0.0, 0.2,0.0] After that, we weight the
+     * distribution with the number of buildings in each category
+     *
+     * @param buildings
+     * @return
+     * @throws DistributionException
+     */
+    private double[] getDistribution(HashMap<Integer, ArrayList<Integer>> buildings) throws DistributionException {
+        double[] result = DEFAULT_DISTRIBUTION.clone();
+
+        for (int i = 0; i < DEFAULT_DISTRIBUTION.length; i++) {
+            if (buildings.get(i).size() == 0 && result[i] > 0) {
+                for (int j = 0; j < DEFAULT_DISTRIBUTION.length; j++) {
+                    if (i != j) {
+                        result[j] = result[j] + result[j] * result[i] / (1 - result[i]);
                     }
                 }
+                result[i] = 0;
             }
         }
-        // update the rest
-        addNoBuildingUpdate(-1);
-        addRegularUpdate(-1, -1, null, true);
+
+        double sum = 0;
+        for (int i = 0; i < DEFAULT_DISTRIBUTION.length; i++) {
+            result[i] *= buildings.get(i).size();
+            sum += result[i];
+        }
+        for (int i = 0; i < DEFAULT_DISTRIBUTION.length; i++) {
+            result[i] /= sum;
+        }
+
+        // validate numbers
+
+        sum = 0;
+        for (double d : result) {
+            if (Double.isNaN(d)) throw new DistributionException();
+            sum += d;
+        }
+
+        if (Double.compare(Math.abs(sum - 1), MIN_PROB) > 0) throw new DistributionException();
+
+        return result;
+    }
+
+    public ArrayList<Integer> getEmptyBlocks() {
+        return emptyBlocks;
+    }
+
+    public long getHouseholdCnt() {
+        return cntHouseholdsUpdated;
+    }
+
+    private int getLanduse(double[] locDist) {
+        double r = Math.random();
+        if (r < locDist[RESIDENTIAL]) return RESIDENTIAL;
+        else if (r < locDist[RESIDENTIAL] + locDist[MIXED]) return MIXED;
+        else if (r < locDist[RESIDENTIAL] + locDist[MIXED] + locDist[SPECIAL]) return SPECIAL;
+        else return INDUSTRIAL;
     }
 
     /**
@@ -297,139 +371,65 @@ public class HouseholdDistribution extends TPS_BasicConnectionClass {
     }
 
     /**
-     * Example: There are no MIXED buildings Default is [0.6,0.39,0.01,0.0]
-     * Result is (roughly) [0.98,0.0, 0.2,0.0] After that, we weight the
-     * distribution with the number of buildings in each category
+     * Updates all household positions from block centroid to actual buildings.
+     * The households are distributed mainly on residential buildings. 3 stage
+     * algorithm:
+     * <ol>
+     * <li>Try to match dlm blocks to blocks and find buildings in there</li>
+     * <li>If that fails, try find buildings just in blocks</li>
+     * <li>If that fails as well, update households to block centroid instead</li>
+     * </ol>
      *
-     * @param buildings
-     * @return
-     * @throws DistributionException
+     * @param verbose If <code>true</code>, a status report for every block is given
+     *                to track progress.
      */
-    private double[] getDistribution(HashMap<Integer, ArrayList<Integer>> buildings) throws DistributionException {
-        double[] result = DEFAULT_DISTRIBUTION.clone();
+    public void updateHouseholds(boolean verbose) {
+        for (int block : blocks) {
+            HashMap<Integer, ArrayList<Integer>> buildings = retrieveBuildingsByLanduse(block);
+            double[] locDist = DEFAULT_DISTRIBUTION;
 
-        for (int i = 0; i < DEFAULT_DISTRIBUTION.length; i++) {
-            if (buildings.get(i).size() == 0 && result[i] > 0) {
-                for (int j = 0; j < DEFAULT_DISTRIBUTION.length; j++) {
-                    if (i != j) {
-                        result[j] = result[j] + result[j] * result[i] / (1 - result[i]);
+            boolean foundAny = false;
+            for (ArrayList<Integer> al : buildings.values()) {
+                foundAny |= al.size() > 0;
+            }
+            if (!foundAny) {// no buildings found by landuse
+                // use simple approach
+                ArrayList<Integer> buildingsSimple = retrieveBuildingsSimple(block);
+
+                if (buildingsSimple.size() == 0) {// block is empty
+                    emptyBlocks.add(block);
+                    addNoBuildingUpdate(block);
+                } else {// simple update
+                    for (String key : keys) {
+                        ArrayList<Integer> households = retrieveHouseholds(key, block);
+                        for (int household : households) {
+                            int building = buildingsSimple.get((int) (Math.random() * buildingsSimple.size()));
+                            addRegularUpdate(building, household, key, verbose);
+                        }
                     }
                 }
-                result[i] = 0;
-            }
-        }
-
-        double sum = 0;
-        for (int i = 0; i < DEFAULT_DISTRIBUTION.length; i++) {
-            result[i] *= buildings.get(i).size();
-            sum += result[i];
-        }
-        for (int i = 0; i < DEFAULT_DISTRIBUTION.length; i++) {
-            result[i] /= sum;
-        }
-
-        // validate numbers
-
-        sum = 0;
-        for (double d : result) {
-            if (Double.isNaN(d)) throw new DistributionException();
-            sum += d;
-        }
-
-        if (Double.compare(Math.abs(sum - 1), MIN_PROB) > 0) throw new DistributionException();
-
-        return result;
-    }
-
-    private int getLanduse(double[] locDist) {
-        double r = Math.random();
-        if (r < locDist[RESIDENTIAL]) return RESIDENTIAL;
-        else if (r < locDist[RESIDENTIAL] + locDist[MIXED]) return MIXED;
-        else if (r < locDist[RESIDENTIAL] + locDist[MIXED] + locDist[SPECIAL]) return SPECIAL;
-        else return INDUSTRIAL;
-    }
-
-    public ArrayList<Integer> getEmptyBlocks() {
-        return emptyBlocks;
-    }
-
-    public long getHouseholdCnt() {
-        return cntHouseholdsUpdated;
-    }
-
-    private void addRegularUpdate(int building, int household, String key, boolean verbose) {
-
-        if (building == -1) {// update rest
-            try {
-                updateHouseholds.executeBatch();
-            } catch (SQLException e) {
-                System.err.println("Error while updating last households.");
-                e.printStackTrace();
-            }
-
-        }
-
-        cntHouseholdsUpdated++;
-        try {
-            updateHouseholds.setInt(1, household);
-            updateHouseholds.setString(2, key);
-            updateHouseholds.setInt(3, building);
-            updateHouseholds.addBatch();
-
-            if (cntHouseholdsUpdated % BATCH_SIZE == 0) {
-                int[] successer = updateHouseholds.executeBatch();
-                int cntFailed = 0;
-                for (int i : successer) {
-                    if (i == PreparedStatement.EXECUTE_FAILED) {
-                        cntFailed++;
-                    }
-                    if (cntFailed > 0) {
-                        System.err.println(
-                                cntFailed + " updates have failed at household " + household + " of " + key + ".");
-                    }
+            } else {// buildings found in normal approach
+                try {
+                    locDist = getDistribution(buildings);
+                } catch (DistributionException e) {
+                    // should not happen
+                    System.err.println("Something went wrong while calculating distributions for block " + block);
+                    continue;
                 }
 
-                if (verbose) {
-                    System.out.println("So far I have updated \t" + cntHouseholdsUpdated);
-                }
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void addNoBuildingUpdate(int block) {
-
-        if (block == -1) { // update rest
-            try {
-                updateHouseholdsNoBuilding.executeBatch();
-            } catch (SQLException e) {
-                System.err.println("Error when trying to update last empty blocks.");
-                e.printStackTrace();
-            }
-            return;
-        }
-
-        cntHouseholdsNoBuilding++;
-        try {
-            updateHouseholdsNoBuilding.setInt(1, block);
-            updateHouseholdsNoBuilding.addBatch();
-
-            if (cntHouseholdsNoBuilding % BATCH_SIZE == 0) {
-                int[] successer = updateHouseholdsNoBuilding.executeBatch();
-                int cntFailed = 0;
-                for (int i : successer) {
-                    if (i == PreparedStatement.EXECUTE_FAILED) {
-                        cntFailed++;
+                for (String key : keys) {
+                    ArrayList<Integer> households = retrieveHouseholds(key, block);
+                    for (int household : households) {
+                        int type = getLanduse(locDist);
+                        int building = buildings.get(type).get((int) (Math.random() * buildings.get(type).size()));
+                        addRegularUpdate(building, household, key, verbose);
                     }
-                    System.err.println(cntFailed + " updates (buildingless) have failed at block " + block);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+        // update the rest
+        addNoBuildingUpdate(-1);
+        addRegularUpdate(-1, -1, null, true);
     }
 
     private class DistributionException extends Exception {

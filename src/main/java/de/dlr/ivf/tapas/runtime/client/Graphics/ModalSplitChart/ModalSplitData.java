@@ -7,61 +7,58 @@ import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.Quality;
 
 public class ModalSplitData {
 
-	private CategoryCombination categoryCombination;
-	private Quality quality;
-	private double model;
-	private double reference;
+    private final CategoryCombination categoryCombination;
+    private final Quality quality;
+    private final double model;
+    private final double reference;
 
-	public ModalSplitData(CategoryCombination cc, Quality q, double model,
-			double reference) {
+    public ModalSplitData(CategoryCombination cc, Quality q, double model, double reference) {
 
-		if (!cc.contains(Categories.Mode)) {
-			throw new IllegalArgumentException(
-					"The CategoryCombination must contain MODE");
-		}
+        if (!cc.contains(Categories.Mode)) {
+            throw new IllegalArgumentException("The CategoryCombination must contain MODE");
+        }
 
-		categoryCombination = new CategoryCombination(cc.getCategories());
+        categoryCombination = new CategoryCombination(cc.getCategories());
 
-		quality = q;
-		this.model = model;
-		this.reference = reference;
-	}
+        quality = q;
+        this.model = model;
+        this.reference = reference;
+    }
 
-	public Quality getQuality() {
-		return quality;
-	}
+    public CategoryCombination getCategories() {
+        return categoryCombination;
+    }
 
-	public double getModel() {
-		return model;
-	}
+    public String getLabel() {
+        return categoryCombination.toString();
+    }
 
-	public double getReference() {
-		return reference;
-	}
+    /**
+     * @return the {@link Mode} of this data point.
+     */
+    @SuppressWarnings("rawtypes")
+    public Mode getMode() {
+        for (Enum e : categoryCombination.getCategories()) {
+            if (e instanceof Mode) return (Mode) e;
+        }
+        return null;
+    }
 
-	public String getLabel() {
-		return categoryCombination.toString();
-	}
+    public double getModel() {
+        return model;
+    }
 
-	@Override
-	public String toString() {
-		return "[" + getLabel() + ",ref=" + reference + ",mod=" + model + "]";
-	}
+    public Quality getQuality() {
+        return quality;
+    }
 
-	/**
-	 * @return the {@link Mode} of this data point.
-	 */
-	@SuppressWarnings("rawtypes")
-	public Mode getMode() {
-		for (Enum e : categoryCombination.getCategories()) {
-			if (e instanceof Mode)
-				return (Mode) e;
-		}
-		return null;
-	}
+    public double getReference() {
+        return reference;
+    }
 
-	public CategoryCombination getCategories() {
-		return categoryCombination;
-	}
+    @Override
+    public String toString() {
+        return "[" + getLabel() + ",ref=" + reference + ",mod=" + model + "]";
+    }
 
 }

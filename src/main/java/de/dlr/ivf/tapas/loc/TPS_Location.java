@@ -27,26 +27,26 @@ import java.util.Set;
 public class TPS_Location implements Locatable {
 
     /// Reference to the block if this information is available
-    private TPS_Block block;
+    private final TPS_Block block;
     /// Coordinate of the location
-    private TPS_Coordinate coordinate;
+    private final TPS_Coordinate coordinate;
     /// The location code of the location
-    private TPS_LocationConstant locType;
+    private final TPS_LocationConstant locType;
     /// The list of possible activities (determined from the location code at initialisation)
     private Set<TPS_ActivityConstant> activities = null;
     /// This location's data
     private TPS_LocationData data = null;
     /// The id of the location
-    private int id;
-    private TPS_ParameterClass parameterClass;
+    private final int id;
+    private final TPS_ParameterClass parameterClass;
     /**
      * Group Id of the location, which associates this location to a group, e.g.
      * shopping mall, where you can shop, eat and work. Should be set to -1, if
      * no information is available.
      */
-    private int groupId;
+    private final int groupId;
     /// The traffic analysis zone this location is located in
-    private TPS_TrafficAnalysisZone taz;
+    private final TPS_TrafficAnalysisZone taz;
 
     /**
      * The constructor sets the id of the location. The occupancy is set to 0
@@ -67,7 +67,7 @@ public class TPS_Location implements Locatable {
         this.coordinate.setValues(x, y);
         if (locType != TPS_LocationConstant.HOME) {
             this.activities = new HashSet<>(TPS_TrafficAnalysisZone.LOCATION2ACTIVITIES_MAP.get(locType));
-                    //TPS_AbstractConstant.getConnectedConstants(locType, TPS_ActivityCode.class));
+            //TPS_AbstractConstant.getConnectedConstants(locType, TPS_ActivityCode.class));
         }
         this.taz = taz;
         this.block = block;
@@ -102,13 +102,21 @@ public class TPS_Location implements Locatable {
     }
 
     /**
-     * Returns the id of the traffic assignment zone this location belongs to
+     * Returns the id of the group this location belongs to
      *
-     * @return The id of the traffic assignment zone this location belongs to
+     * @return The id of this location's group (may be -1 if not given)
      */
-    @Override
-    public int getTAZId() {
-        return this.getTrafficAnalysisZone().getTAZId();
+    public int getGroupId() {
+        return groupId;
+    }
+
+    /**
+     * Returns the id of this location
+     *
+     * @return The id of this location
+     */
+    public int getId() {
+        return id;
     }
 
     /**
@@ -121,40 +129,22 @@ public class TPS_Location implements Locatable {
     }
 
     /**
+     * Returns the id of the traffic assignment zone this location belongs to
+     *
+     * @return The id of the traffic assignment zone this location belongs to
+     */
+    @Override
+    public int getTAZId() {
+        return this.getTrafficAnalysisZone().getTAZId();
+    }
+
+    /**
      * Returns the traffic analysis zone this location belongs to
      *
      * @return The traffic analysis zone this location belongs to
      */
     public TPS_TrafficAnalysisZone getTrafficAnalysisZone() {
         return this.taz;
-    }
-
-    /**
-     * Method to determine if two locations are within the same group.
-     *
-     * @param ref The location to check
-     * @return true if both locations are in the same location group
-     */
-    public boolean isSameLocationGroup(TPS_Location ref) {
-        return this.groupId >= 0 && ref.getGroupId() >= 0 && this.groupId == ref.getGroupId();
-    }
-
-    /**
-     * Returns the id of this location
-     *
-     * @return The id of this location
-     */
-    public int getId() {
-        return id;
-    }
-    
-    /**
-     * Returns the id of the group this location belongs to
-     *
-     * @return The id of this location's group (may be -1 if not given)
-     */
-    public int getGroupId() {
-        return groupId;
     }
 
     /**
@@ -184,6 +174,16 @@ public class TPS_Location implements Locatable {
     public void initCapacity(int capacity, boolean fixCapacity) {
         this.data = new TPS_LocationData(this.parameterClass);
         this.data.init(capacity, fixCapacity);
+    }
+
+    /**
+     * Method to determine if two locations are within the same group.
+     *
+     * @param ref The location to check
+     * @return true if both locations are in the same location group
+     */
+    public boolean isSameLocationGroup(TPS_Location ref) {
+        return this.groupId >= 0 && ref.getGroupId() >= 0 && this.groupId == ref.getGroupId();
     }
 
     /**
@@ -238,7 +238,7 @@ public class TPS_Location implements Locatable {
         /// Weight represents the amount of free capacities
         private double weight = 0;
 
-        private TPS_ParameterClass parameterClass;
+        private final TPS_ParameterClass parameterClass;
 
         TPS_LocationData(TPS_ParameterClass parameterClass) {
             this.parameterClass = parameterClass;

@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas.util.parameters;
 /**
  * This class provides all flag (boolean) enums which determine the name of
  * parameters available in the application
- *
+ * <p>
  * This enum provides constants in a map of matrix form for the application.
  * It is possible that on constant has two matrix maps depending on the type
  * of the constant. If it is simulation type dependent there exist one

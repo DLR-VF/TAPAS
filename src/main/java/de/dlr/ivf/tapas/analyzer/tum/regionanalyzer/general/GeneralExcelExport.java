@@ -31,11 +31,47 @@ public class GeneralExcelExport {
     private WritableCellFormat percentageFormat;
     private WritableCellFormat floatFormat;
     private WritableCellFormat intFormat;
-    private GeneralAnalyzer analyzer;
+    private final GeneralAnalyzer analyzer;
 
     public GeneralExcelExport(GeneralAnalyzer analyzer) {
         this.analyzer = analyzer;
         System.out.println(this.analyzer.getNumberTrips());
+    }
+
+    private void createFormats() {
+        percentageFormat = new WritableCellFormat(NumberFormats.PERCENT_FLOAT);
+        floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
+        intFormat = new WritableCellFormat(NumberFormats.INTEGER);
+
+    }
+
+    /**
+     * Used by the {@link IntegratedTUM}
+     *
+     * @param file
+     */
+    public boolean writeAnalysis(File file) {
+
+        DefaultMutableTreeNode root = analyzer.getRoot();
+        boolean result = false;
+        for (int i = 0; i < root.getChildCount(); ++i) {
+
+            try {
+                DefaultMutableTreeNode fileNode = (DefaultMutableTreeNode) root.getChildAt(i);
+
+                WritableWorkbook workbook = Workbook.createWorkbook(file);
+
+                writeFile(workbook, fileNode, new Enum[0]);
+                workbook.write();
+                workbook.close();
+                result = true;
+
+            } catch (Exception e) {
+                result = false;
+            }
+        }
+
+        return result;
     }
 
     public void writeAnalysis(String baseName) throws IOException, WriteException {
@@ -85,32 +121,74 @@ public class GeneralExcelExport {
     }
 
     /**
-     * Used by the {@link IntegratedTUM}
-     *
-     * @param file
+     * @param workbook
+     * @param fileNode
+     * @param fixedSheetValues are the categories that are fixed for the whole file (usually,
+     *                         this would be a zero-length-array.
+     * @return <code>true</code> if empty.
+     * @throws RowsExceededException
+     * @throws WriteException
      */
-    public boolean writeAnalysis(File file){
+    private boolean writeFile(WritableWorkbook workbook, DefaultMutableTreeNode fileNode, Enum[] fixedSheetValues) throws RowsExceededException, WriteException {
 
-        DefaultMutableTreeNode root = analyzer.getRoot();
-        boolean result = false;
-        for (int i = 0; i < root.getChildCount(); ++i) {
+        // has to be called for each workbook as formats rely on them
+        // implicitly. :(
+        createFormats();
+        boolean empty = true;
+        int numberOfTabs = fileNode.getChildCount();
+        int tabIndex = 0;
+        for (int i = 0; i < numberOfTabs; ++i) {// tab classes
+            AnalyzerCollection tabAnalyzer = (AnalyzerCollection) ((DefaultMutableTreeNode) fileNode.getChildAt(i))
+                    .getUserObject();
+            if (tabAnalyzer.getCategories().length > 0) {
+                ArrayList<CategoryCombination> tabCombinations = CategoryCombination.listAllCombinations(
+                        tabAnalyzer.getCategories());
 
-            try {
-                DefaultMutableTreeNode fileNode = (DefaultMutableTreeNode) root.getChildAt(i);
+                for (CategoryCombination cc : tabCombinations) {
+                    WritableSheet sheet = workbook.createSheet(tabAnalyzer.getName() + cc.toString(), tabIndex++);
 
-                WritableWorkbook workbook = Workbook.createWorkbook(file);
+                    // build new fixed values
+                    Enum[] fixedValues = new Enum[fixedSheetValues.length + cc.getCategories().length];
+                    System.arraycopy(fixedSheetValues, 0, fixedValues, 0, fixedSheetValues.length);
+                    System.arraycopy(cc.getCategories(), 0, fixedValues, 0, cc.getCategories().length);
+                    if (!writeTab(sheet, (DefaultMutableTreeNode) fileNode.getChildAt(i), fixedValues)) {
+                        empty = false;
+                    } else {
+                        workbook.removeSheet(--tabIndex);
+                    }
+                }
 
-                writeFile(workbook, fileNode, new Enum[0]);
-                workbook.write();
-                workbook.close();
-                result = true;
-
-            } catch (Exception e) {
-                result = false;
+            } else {// one tab only
+                WritableSheet sheet = workbook.createSheet(tabAnalyzer.toString(), tabIndex++);
+                if (!writeTab(sheet, (DefaultMutableTreeNode) fileNode.getChildAt(i), fixedSheetValues)) {
+                    empty = false;
+                } else {
+                    workbook.removeSheet(--tabIndex);
+                }
             }
         }
+        return empty;
+    }
 
-        return result;
+    /**
+     * @return new y
+     */
+    private int writeSplit(WritableSheet sheet, Analyzer a, Enum[] fixedSplitValues, Enum[] splitValues, int x, int y) throws WriteException {
+
+        ArrayList<TASplitData> split = a.getSplit(fixedSplitValues);
+        if (split == null) {
+            return y;
+        }
+
+        for (int i = 0; i < split.size(); ++i) {
+            sheet.addCell(new Label(x, y, splitValues[i].toString()));
+            sheet.addCell(new Number(x + 1, y, split.get(i).getSplit(), percentageFormat));
+            sheet.addCell(new Number(x + 2, y, split.get(i).getCntTrips()));
+            sheet.addCell(new Number(x + 3, y, split.get(i).getAvgLength(), floatFormat));
+
+            y++;
+        }
+        return y;
     }
 
     /**
@@ -192,77 +270,6 @@ public class GeneralExcelExport {
         return empty;
     }
 
-    /**
-     * @return new y
-     */
-    private int writeSplit(WritableSheet sheet, Analyzer a, Enum[] fixedSplitValues, Enum[] splitValues, int x, int y) throws WriteException {
-
-        ArrayList<TASplitData> split = a.getSplit(fixedSplitValues);
-        if (split == null) {
-            return y;
-        }
-
-        for (int i = 0; i < split.size(); ++i) {
-            sheet.addCell(new Label(x, y, splitValues[i].toString()));
-            sheet.addCell(new Number(x + 1, y, split.get(i).getSplit(), percentageFormat));
-            sheet.addCell(new Number(x + 2, y, split.get(i).getCntTrips()));
-            sheet.addCell(new Number(x + 3, y, split.get(i).getAvgLength(), floatFormat));
-
-            y++;
-        }
-        return y;
-    }
-
-    /**
-     * @param workbook
-     * @param fileNode
-     * @param fixedSheetValues are the categories that are fixed for the whole file (usually,
-     *                         this would be a zero-length-array.
-     * @return <code>true</code> if empty.
-     * @throws RowsExceededException
-     * @throws WriteException
-     */
-    private boolean writeFile(WritableWorkbook workbook, DefaultMutableTreeNode fileNode, Enum[] fixedSheetValues) throws RowsExceededException, WriteException {
-
-        // has to be called for each workbook as formats rely on them
-        // implicitly. :(
-        createFormats();
-        boolean empty = true;
-        int numberOfTabs = fileNode.getChildCount();
-        int tabIndex = 0;
-        for (int i = 0; i < numberOfTabs; ++i) {// tab classes
-            AnalyzerCollection tabAnalyzer = (AnalyzerCollection) ((DefaultMutableTreeNode) fileNode.getChildAt(i))
-                    .getUserObject();
-            if (tabAnalyzer.getCategories().length > 0) {
-                ArrayList<CategoryCombination> tabCombinations = CategoryCombination.listAllCombinations(
-                        tabAnalyzer.getCategories());
-
-                for (CategoryCombination cc : tabCombinations) {
-                    WritableSheet sheet = workbook.createSheet(tabAnalyzer.getName() + cc.toString(), tabIndex++);
-
-                    // build new fixed values
-                    Enum[] fixedValues = new Enum[fixedSheetValues.length + cc.getCategories().length];
-                    System.arraycopy(fixedSheetValues, 0, fixedValues, 0, fixedSheetValues.length);
-                    System.arraycopy(cc.getCategories(), 0, fixedValues, 0, cc.getCategories().length);
-                    if (!writeTab(sheet, (DefaultMutableTreeNode) fileNode.getChildAt(i), fixedValues)) {
-                        empty = false;
-                    } else {
-                        workbook.removeSheet(--tabIndex);
-                    }
-                }
-
-            } else {// one tab only
-                WritableSheet sheet = workbook.createSheet(tabAnalyzer.toString(), tabIndex++);
-                if (!writeTab(sheet, (DefaultMutableTreeNode) fileNode.getChildAt(i), fixedSheetValues)) {
-                    empty = false;
-                } else {
-                    workbook.removeSheet(--tabIndex);
-                }
-            }
-        }
-        return empty;
-    }
-
     private void writeTabHeader(WritableSheet sheet) throws WriteException {
         int y = 0;
 
@@ -274,13 +281,6 @@ public class GeneralExcelExport {
         sheet.addCell(new Number(1, y++, analyzer.getNumberTrips(), intFormat));
 
         HEADER_HEIGHT = y;
-
-    }
-
-    private void createFormats() {
-        percentageFormat = new WritableCellFormat(NumberFormats.PERCENT_FLOAT);
-        floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
-        intFormat = new WritableCellFormat(NumberFormats.INTEGER);
 
     }
 }

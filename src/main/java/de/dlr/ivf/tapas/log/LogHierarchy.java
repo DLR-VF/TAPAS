@@ -12,19 +12,17 @@ import java.lang.annotation.Target;
  * With this annotation you can select a HierarchyLogLevel for a complete class. For usage see TPS_Main.
  * If this annotation is included you can call the short forms of the log method in TPS_Logger without the
  * explicit parameter of the HierarchyLogLevel.
- * 
+ *
+ * @author mark_ma
  * @see TPS_Logger
  * @see TPS_Main
- * 
- * @author mark_ma
- * 
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)
 public @interface LogHierarchy {
-	
-	/**
-	 * @return HierarchyLogLevel for this instance
-	 */
-	HierarchyLogLevel hierarchyLogLevel() default HierarchyLogLevel.OFF;
+
+    /**
+     * @return HierarchyLogLevel for this instance
+     */
+    HierarchyLogLevel hierarchyLogLevel() default HierarchyLogLevel.OFF;
 }

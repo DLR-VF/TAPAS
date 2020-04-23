@@ -27,10 +27,10 @@ public class CruisingSpeed extends TPS_BasicConnectionClass {
 
     private CruisingSpeedCalcData calcData = null;
     private CruisingSpeedValData valData = null;
-    private boolean[] val;
+    private final boolean[] val;
     private boolean validation = false;
     @SuppressWarnings("unused")
-    private boolean indirectWayFactor = true;
+    private final boolean indirectWayFactor = true;
 
 
     public CruisingSpeed() {
@@ -431,7 +431,8 @@ public class CruisingSpeed extends TPS_BasicConnectionClass {
             cv.start();
         }
 
-        java.awt.EventQueue.invokeLater(() -> {});
+        java.awt.EventQueue.invokeLater(() -> {
+        });
 
         // Exit, OK.
         System.out.println("Exit(0)");

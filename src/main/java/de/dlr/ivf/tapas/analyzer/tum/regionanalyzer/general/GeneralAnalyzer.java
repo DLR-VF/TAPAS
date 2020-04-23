@@ -41,272 +41,260 @@ import java.util.*;
  * <code>writeToDB</code> is set on construction, a
  * {@link GeneralDatabaseSummaryExport} will be started as well.
  * </p>
- * 
+ *
  * @author boec_pa
  */
 @SuppressWarnings("rawtypes")
 public class GeneralAnalyzer extends AbstractCoreProcess {
 
-	private StyledDocument console;
-	private String outputPath;
+    private final static String sourceSeperator = ";";
+    private StyledDocument console;
+    private String outputPath;
+    private final HashSet<String> sources = new HashSet<>();
+    private final HashMap<DefaultMutableTreeNode, Analyzer> analyzers;
+    private final DefaultMutableTreeNode root;
+    private final boolean writeToDB;
+    private final String region;
+    private String description;
+    private long totalTrips = 0;
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
-	private HashSet<String> sources = new HashSet<>();
-	private final static String sourceSeperator = ";";
+    public GeneralAnalyzer(DefaultMutableTreeNode root, boolean writeToDB) {
+        this(root, writeToDB, "");
+    }
 
-	private HashMap<DefaultMutableTreeNode, Analyzer> analyzers;
-	private DefaultMutableTreeNode root;
-	private boolean writeToDB;
-	private String region;
-	private String description;
-	/**
-	 * @return the description
-	 */
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * @param root      must be the root of a tree of {@link AnalyzerCollection}s as
+     *                  provided by {@link TUMControlGeneral}.
+     * @param writeToDB if <code>true</code>, it will trigger a
+     *                  {@link GeneralDatabaseSummaryExport} on finish.
+     * @param region    only used for the {@link GeneralExcelExport} as a flag in the
+     *                  header. Defaults to <code>""</code>.
+     */
 
-	/**
-	 * @param description the description to set
-	 */
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public GeneralAnalyzer(DefaultMutableTreeNode root, boolean writeToDB, String region) {
+        this.root = root;
+        this.writeToDB = writeToDB;
+        this.analyzers = buildAnalyzerList();
+        this.region = region;
+    }
 
-	private long totalTrips = 0;
-	
-	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-	
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
 
-	public GeneralAnalyzer(DefaultMutableTreeNode root, boolean writeToDB) {
-		this(root, writeToDB, "");
-	}
+        this.pcs.addPropertyChangeListener(listener);
+    }
 
-	/**
-	 * @param root
-	 *            must be the root of a tree of {@link AnalyzerCollection}s as
-	 *            provided by {@link TUMControlGeneral}.
-	 * @param writeToDB
-	 *            if <code>true</code>, it will trigger a
-	 *            {@link GeneralDatabaseSummaryExport} on finish.
-	 * @param region
-	 *            only used for the {@link GeneralExcelExport} as a flag in the
-	 *            header. Defaults to <code>""</code>.
-	 */
+    private HashMap<DefaultMutableTreeNode, Analyzer> buildAnalyzerList() {
+        HashMap<DefaultMutableTreeNode, Analyzer> result = new HashMap<>();
+        Enumeration en = root.depthFirstEnumeration();
+        while (en.hasMoreElements()) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) en.nextElement();
+            if (node.isLeaf()) {
 
-	public GeneralAnalyzer(DefaultMutableTreeNode root, boolean writeToDB,
-			String region) {
-		this.root = root;
-		this.writeToDB = writeToDB;
-		this.analyzers = buildAnalyzerList();
-		this.region = region;
-	}
+                Object[] oPath = node.getUserObjectPath();
+                ArrayList<AnalyzerBase> analyzerPath = new ArrayList<>();
+                for (Object o : oPath) {
+                    analyzerPath.addAll(Arrays.asList(((AnalyzerCollection) o).getAnalyzers()));
+                }
+                result.put(node, new Analyzer(analyzerPath.toArray(new AnalyzerBase[0])));
+            }
+        }
 
-	@Override
-	public boolean finish() throws BadLocationException {
-		
-		isProcessing = false;
-		if (null != console) {
-			console.insertString(console.getLength(),"Region Auswertung beendet. Ergebnisse werden nach "
-					+ outputPath + " exportiert\n",null);
-		}
+        if (writeToDB) {// add the calibration results analyzer
+            ModeAnalyzer mo = new ModeAnalyzer();
+            TripIntentionAnalyzer ti = new TripIntentionAnalyzer();
+            DefaultDistanceCategoryAnalyzer dc = new DefaultDistanceCategoryAnalyzer();
+            PersonGroupAnalyzer pg = new PersonGroupAnalyzer(mo, ti, dc);
 
-		GeneralExcelExport excelExport = new GeneralExcelExport(this);
-		boolean excelSuccess = false;
-		try {
-			if (!outputPath.endsWith("/")) {
-				outputPath += "/";
-			}
-			excelExport.writeAnalysis(outputPath);
-			excelSuccess = true;
+            Analyzer analyzer = new Analyzer(mo, pg, ti, dc);
+            result.put(null, analyzer);
+        }
 
-		} catch (IOException | WriteException e) {
-			e.printStackTrace();
-		} finally {
-			if (excelSuccess) {
-				if (null != console) {
-					console.insertString(console.getLength(),"Excel export successful.\n",null);
-				}
-			} else {
-				if (null != console) {
-					console.insertString(console.getLength(),"Excel export failed.\n",null);
-				} else {
-					System.err.println("Excel export failed.\n");
-				}
-			}
-		}
+        return result;
+    }
 
-		if (writeToDB) {
-			boolean dbSuccess = false;
-			try {
-				GeneralDatabaseSummaryExport dbExport = new GeneralDatabaseSummaryExport(
-						analyzers.get(null), sourceSeperator);
-				dbSuccess = dbExport.writeSummary();
-			} catch (ClassNotFoundException | IOException e) {
-				e.printStackTrace();
-			} finally {
-				if (dbSuccess) {
-					if (null != console) {
-						console.insertString(console.getLength(),"DB export successful.\n",null);
-					}
-				} else {
-					if (null != console) {
-						console.insertString(console.getLength(),"DB export failed.\n",null);
-					} else {
-						System.err.println("DB export failed.\n");
-					}
-				}
-			}
-		}
-		return false;
-	}
-	
-	@Override
-	public boolean finish(File exportfile) throws BadLocationException {
-		
-		isProcessing = false;
+    @Override
+    public boolean finish() throws BadLocationException {
 
-		GeneralExcelExport excelExport = new GeneralExcelExport(this);
-		boolean excelSuccess = false;
-		try {
-			excelSuccess = excelExport.writeAnalysis(exportfile);
+        isProcessing = false;
+        if (null != console) {
+            console.insertString(console.getLength(),
+                    "Region Auswertung beendet. Ergebnisse werden nach " + outputPath + " exportiert\n", null);
+        }
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			if (excelSuccess) {
-				if (null != console) {
-					console.insertString(console.getLength(),"Excel export successful.\n",null);
-				}
-			} else {
-				if (null != console) {
-					console.insertString(console.getLength(),"Excel export failed.\n",null);
-				} else {
-					System.err.println("Excel export failed.\n");
-				}
-			}
-		}
+        GeneralExcelExport excelExport = new GeneralExcelExport(this);
+        boolean excelSuccess = false;
+        try {
+            if (!outputPath.endsWith("/")) {
+                outputPath += "/";
+            }
+            excelExport.writeAnalysis(outputPath);
+            excelSuccess = true;
 
-		return excelSuccess;
-	}
-	
-	@Override
-	public boolean prepare(String source, TapasTrip trip, TPS_ParameterClass parameterClass) {
-		
-		try{
-			if (sources.add(source) && null != console) {
-				console.insertString(console.getLength(),"The following source was added: " + source + "\n",null);
-			}
-			
-			totalTrips++;
-			for (Analyzer a : analyzers.values()) {
-				a.addTrip(trip);
-			}
-			return true;
-		}catch(Exception e){
-			e.printStackTrace();
-			return false;
-		}
-			
-		
-	}
+        } catch (IOException | WriteException e) {
+            e.printStackTrace();
+        } finally {
+            if (excelSuccess) {
+                if (null != console) {
+                    console.insertString(console.getLength(), "Excel export successful.\n", null);
+                }
+            } else {
+                if (null != console) {
+                    console.insertString(console.getLength(), "Excel export failed.\n", null);
+                } else {
+                    System.err.println("Excel export failed.\n");
+                }
+            }
+        }
 
-	@Override
-	public boolean init(String outputPath, StyledDocument console, boolean clearSources) throws BadLocationException {
-		isProcessing = true;
-		this.console = console;
-		this.outputPath = outputPath;
-		if(clearSources)
-			this.sources.clear();
-		if (null != console)
-			console.insertString(console.getLength(),"Region Analysis started.\n",null);
-		return true;
-	}
-	
-	/**
-	 * Used by the {@link de.dlr.ivf.tapas.tools.TUM.IntegratedTUM}
-	 * 
-	 * @param clearSources
-	 * @return
-	 */
-	@Override
-	public boolean init(boolean clearSources){
-		isProcessing = true;
-		if(clearSources)
-			this.sources.clear();
-		return true;
-	}
+        if (writeToDB) {
+            boolean dbSuccess = false;
+            try {
+                GeneralDatabaseSummaryExport dbExport = new GeneralDatabaseSummaryExport(analyzers.get(null),
+                        sourceSeperator);
+                dbSuccess = dbExport.writeSummary();
+            } catch (ClassNotFoundException | IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (dbSuccess) {
+                    if (null != console) {
+                        console.insertString(console.getLength(), "DB export successful.\n", null);
+                    }
+                } else {
+                    if (null != console) {
+                        console.insertString(console.getLength(), "DB export failed.\n", null);
+                    } else {
+                        System.err.println("DB export failed.\n");
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
-	/**
-	 * @return the accumulated sources of all added trips.
-	 */
-	public String getSource() {
-		StringBuilder source = new StringBuilder();
-		for (String s : sources) {
-			source.append(sourceSeperator).append(s);
-		}
-		return source.toString().replaceFirst(sourceSeperator, "");
-	}
+    @Override
+    public boolean finish(File exportfile) throws BadLocationException {
 
-	/**
-	 * @return the region of the analysis given at construction time. May be
-	 *         empty (but not <code>null</code>).
-	 */
-	public String getRegion() {
-		return region;
-	}
+        isProcessing = false;
 
-	/**
-	 * @return the total number of added trips.
-	 */
-	public long getNumberTrips() {
-		return totalTrips;
-	}
+        GeneralExcelExport excelExport = new GeneralExcelExport(this);
+        boolean excelSuccess = false;
+        try {
+            excelSuccess = excelExport.writeAnalysis(exportfile);
 
-	private HashMap<DefaultMutableTreeNode, Analyzer> buildAnalyzerList() {
-		HashMap<DefaultMutableTreeNode, Analyzer> result = new HashMap<>();
-		Enumeration en = root.depthFirstEnumeration();
-		while (en.hasMoreElements()) {
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode) en
-					.nextElement();
-			if (node.isLeaf()) {
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (excelSuccess) {
+                if (null != console) {
+                    console.insertString(console.getLength(), "Excel export successful.\n", null);
+                }
+            } else {
+                if (null != console) {
+                    console.insertString(console.getLength(), "Excel export failed.\n", null);
+                } else {
+                    System.err.println("Excel export failed.\n");
+                }
+            }
+        }
 
-				Object[] oPath = node.getUserObjectPath();
-				ArrayList<AnalyzerBase> analyzerPath = new ArrayList<>();
-				for (Object o : oPath) {
-					analyzerPath.addAll(Arrays.asList(((AnalyzerCollection) o).getAnalyzers()));
-				}
-				result.put(	node, new Analyzer(analyzerPath.toArray(new AnalyzerBase[0])));
-			}
-		}
+        return excelSuccess;
+    }
 
-		if (writeToDB) {// add the calibration results analyzer
-			ModeAnalyzer mo = new ModeAnalyzer();
-			TripIntentionAnalyzer ti = new TripIntentionAnalyzer();
-			DefaultDistanceCategoryAnalyzer dc = new DefaultDistanceCategoryAnalyzer();
-			PersonGroupAnalyzer pg = new PersonGroupAnalyzer(mo, ti, dc);
+    public HashMap<DefaultMutableTreeNode, Analyzer> getAnalyzers() {
+        return analyzers;
+    }
 
-			Analyzer analyzer = new Analyzer(mo, pg, ti, dc);
-			result.put(null, analyzer);
-		}
+    /**
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
 
-		return result;
-	}
+    /**
+     * @param description the description to set
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public DefaultMutableTreeNode getRoot() {
-		return this.root;
-	}
+    /**
+     * @return the total number of added trips.
+     */
+    public long getNumberTrips() {
+        return totalTrips;
+    }
 
-	public HashMap<DefaultMutableTreeNode, Analyzer> getAnalyzers() {
-		return analyzers;
-	}
-	
-	public void addPropertyChangeListener(PropertyChangeListener listener){
-		
-		this.pcs.addPropertyChangeListener(listener);
-	}
-	
-	public void removePropertyChangeListener(PropertyChangeListener listener){
-		
-		this.pcs.removePropertyChangeListener(listener);
-	}
+    /**
+     * @return the region of the analysis given at construction time. May be
+     * empty (but not <code>null</code>).
+     */
+    public String getRegion() {
+        return region;
+    }
+
+    public DefaultMutableTreeNode getRoot() {
+        return this.root;
+    }
+
+    /**
+     * @return the accumulated sources of all added trips.
+     */
+    public String getSource() {
+        StringBuilder source = new StringBuilder();
+        for (String s : sources) {
+            source.append(sourceSeperator).append(s);
+        }
+        return source.toString().replaceFirst(sourceSeperator, "");
+    }
+
+    @Override
+    public boolean init(String outputPath, StyledDocument console, boolean clearSources) throws BadLocationException {
+        isProcessing = true;
+        this.console = console;
+        this.outputPath = outputPath;
+        if (clearSources) this.sources.clear();
+        if (null != console) console.insertString(console.getLength(), "Region Analysis started.\n", null);
+        return true;
+    }
+
+    /**
+     * Used by the {@link de.dlr.ivf.tapas.tools.TUM.IntegratedTUM}
+     *
+     * @param clearSources
+     * @return
+     */
+    @Override
+    public boolean init(boolean clearSources) {
+        isProcessing = true;
+        if (clearSources) this.sources.clear();
+        return true;
+    }
+
+    @Override
+    public boolean prepare(String source, TapasTrip trip, TPS_ParameterClass parameterClass) {
+
+        try {
+            if (sources.add(source) && null != console) {
+                console.insertString(console.getLength(), "The following source was added: " + source + "\n", null);
+            }
+
+            totalTrips++;
+            for (Analyzer a : analyzers.values()) {
+                a.addTrip(trip);
+            }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener listener) {
+
+        this.pcs.removePropertyChangeListener(listener);
+    }
 }

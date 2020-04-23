@@ -8,87 +8,86 @@ import java.util.EnumMap;
 import java.util.HashSet;
 
 public class GlobalAnalysis {
-	private final RegionCode region;
-	private final AnalyzerBase<PersonGroup> personGroupAnalyzer;
+    private final RegionCode region;
+    private final AnalyzerBase<PersonGroup> personGroupAnalyzer;
 
-	private double totalTripLength = 0.0;
-	private double minTripLength = Double.MAX_VALUE;
-	private double maxTripLength = Double.MIN_VALUE;
+    private double totalTripLength = 0.0;
+    private double minTripLength = Double.MAX_VALUE;
+    private double maxTripLength = Double.MIN_VALUE;
 
-	private double totalDuration = 0.0;
-	private double minDuration = Double.MAX_VALUE;
-	private double maxDuration = Double.MIN_VALUE;
+    private double totalDuration = 0.0;
+    private double minDuration = Double.MAX_VALUE;
+    private double maxDuration = Double.MIN_VALUE;
 
-	private long cntTrips = 0;
-	private HashSet<Integer> uniquePersons = new HashSet<>();
-	private EnumMap<PersonGroup, Integer> cntPersons = new EnumMap<>(PersonGroup.class);
+    private long cntTrips = 0;
+    private final HashSet<Integer> uniquePersons = new HashSet<>();
+    private final EnumMap<PersonGroup, Integer> cntPersons = new EnumMap<>(PersonGroup.class);
 
-	public GlobalAnalysis(RegionCode region,
-			AnalyzerBase<PersonGroup> personGroupAnalyzer) {
-		this.region = region;
-		this.personGroupAnalyzer = personGroupAnalyzer;
-		for (PersonGroup pg : PersonGroup.values()) {
-			cntPersons.put(pg, 0);
-		}
-	}
+    public GlobalAnalysis(RegionCode region, AnalyzerBase<PersonGroup> personGroupAnalyzer) {
+        this.region = region;
+        this.personGroupAnalyzer = personGroupAnalyzer;
+        for (PersonGroup pg : PersonGroup.values()) {
+            cntPersons.put(pg, 0);
+        }
+    }
 
-	public void addTrip(TapasTrip tt) {
-		if (uniquePersons.add(tt.getIdPers())) {
-			PersonGroup pg = personGroupAnalyzer.assignTrip(tt);
-			cntPersons.put(pg, cntPersons.get(pg) + 1);
-		}
+    public void addTrip(TapasTrip tt) {
+        if (uniquePersons.add(tt.getIdPers())) {
+            PersonGroup pg = personGroupAnalyzer.assignTrip(tt);
+            cntPersons.put(pg, cntPersons.get(pg) + 1);
+        }
 
-		totalTripLength += tt.getDistNet();
-		totalDuration += tt.getTT();
+        totalTripLength += tt.getDistNet();
+        totalDuration += tt.getTT();
 
-		maxTripLength = Math.max(tt.getDistNet(), maxTripLength);
-		minTripLength = Math.min(tt.getDistNet(), minTripLength);
+        maxTripLength = Math.max(tt.getDistNet(), maxTripLength);
+        minTripLength = Math.min(tt.getDistNet(), minTripLength);
 
-		maxDuration = Math.max(tt.getTT(), maxDuration);
-		minDuration = Math.min(tt.getTT(), minDuration);
+        maxDuration = Math.max(tt.getTT(), maxDuration);
+        minDuration = Math.min(tt.getTT(), minDuration);
 
-		cntTrips++;
-	}
+        cntTrips++;
+    }
 
-	// getters
-	public RegionCode getRegion() {
-		return region;
-	}
+    public int getCntPersons() {
+        return uniquePersons.size();
+    }
 
-	public double getTotalTripLength() {
-		return totalTripLength;
-	}
+    public int getCntPersons(PersonGroup pg) {
+        return cntPersons.get(pg);
+    }
 
-	public double getMinTripLength() {
-		return minTripLength;
-	}
+    public long getCntTrips() {
+        return cntTrips;
+    }
 
-	public double getMaxTripLength() {
-		return maxTripLength;
-	}
+    public double getMaxDuration() {
+        return maxDuration;
+    }
 
-	public double getTotalDuration() {
-		return totalDuration;
-	}
+    public double getMaxTripLength() {
+        return maxTripLength;
+    }
 
-	public double getMinDuration() {
-		return minDuration;
-	}
+    public double getMinDuration() {
+        return minDuration;
+    }
 
-	public double getMaxDuration() {
-		return maxDuration;
-	}
+    public double getMinTripLength() {
+        return minTripLength;
+    }
 
-	public long getCntTrips() {
-		return cntTrips;
-	}
+    // getters
+    public RegionCode getRegion() {
+        return region;
+    }
 
-	public int getCntPersons() {
-		return uniquePersons.size();
-	}
+    public double getTotalDuration() {
+        return totalDuration;
+    }
 
-	public int getCntPersons(PersonGroup pg) {
-		return cntPersons.get(pg);
-	}
+    public double getTotalTripLength() {
+        return totalTripLength;
+    }
 
 }

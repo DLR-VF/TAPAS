@@ -44,11 +44,11 @@ public class TPS_MassTransportMode extends TPS_Mode {
     @Override
     public double getDistance(Locatable start, Locatable end, SimulationType simType, TPS_Car car) {
         if (this.getParameters().isDefined(ParamMatrix.DISTANCES_PT)) {
-            return this.getParameters().paramMatrixClass
-                    .getValue(ParamMatrix.DISTANCES_PT, start.getTrafficAnalysisZone().getTAZId(),
-                            end.getTrafficAnalysisZone().getTAZId());
+            return this.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_PT,
+                    start.getTrafficAnalysisZone().getTAZId(), end.getTrafficAnalysisZone().getTAZId());
         } else {
-            double beelineDistanceLoc = TPS_Geometrics.getDistance(start, end, this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
+            double beelineDistanceLoc = TPS_Geometrics.getDistance(start, end,
+                    this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
             return this.getDefaultDistance(beelineDistanceLoc);
         }
     }
@@ -68,8 +68,8 @@ public class TPS_MassTransportMode extends TPS_Mode {
         double interChanges = 0;
 
         if (this.getParameters().isDefined(ParamMatrixMap.INTERCHANGES_PT)) {
-            interChanges = this.getParameters().paramMatrixMapClass
-                    .getValue(ParamMatrixMap.TRAVEL_TIME_PT, start.getTAZId(), end.getTAZId(), simType, time);
+            interChanges = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_PT,
+                    start.getTAZId(), end.getTAZId(), simType, time);
         }
 
         return interChanges;
@@ -112,20 +112,19 @@ public class TPS_MassTransportMode extends TPS_Mode {
      * @see mode.TPS_Mode#getTravelTime(loc.tpsLocation, loc.tpsLocation, int, double, boolean, int, int, int)
      */
     @Override
-    public double getTravelTime(Locatable start, Locatable end, int time, SimulationType simType,
-                                TPS_ActivityConstant actCodeFrom, TPS_ActivityConstant actCodeTo, TPS_Person person,
-                                TPS_Car car) {
+    public double getTravelTime(Locatable start, Locatable end, int time, SimulationType simType, TPS_ActivityConstant actCodeFrom, TPS_ActivityConstant actCodeTo, TPS_Person person, TPS_Car car) {
 
         double tt = -1.0; // this is the indicator, of an invalid tt -time
         int TVZfrom = start.getTrafficAnalysisZone().getTAZId();
         int TVZto = end.getTrafficAnalysisZone().getTAZId();
 
-        double beelineDistanceLoc = TPS_Geometrics.getDistance(start, end, this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
+        double beelineDistanceLoc = TPS_Geometrics.getDistance(start, end,
+                this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
         double beelineDistanceTAZ;
 
         if (TVZfrom != TVZto) {
-            beelineDistanceTAZ = this.getParameters().paramMatrixClass
-                    .getValue(ParamMatrix.DISTANCES_BL, TVZfrom, TVZto);
+            beelineDistanceTAZ = this.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_BL, TVZfrom,
+                    TVZto);
         } else {
             beelineDistanceTAZ = beelineDistanceLoc;
         }
@@ -138,30 +137,30 @@ public class TPS_MassTransportMode extends TPS_Mode {
             double scoreTo = 0;
 
 
-            double ttBuf = this.getParameters().paramMatrixMapClass
-                    .getValue(ParamMatrixMap.TRAVEL_TIME_PT, TVZfrom, TVZto, simType, time);
+            double ttBuf = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_PT, TVZfrom,
+                    TVZto, simType, time);
 
 
             // if the pt matrix has no valid entry for the relation and the existence of a school bus should be
             // simulated
             if (TPS_Mode.noConnection(ttBuf)) {
                 ttBuf = TPS_Mode.NO_CONNECTION;
-                if (TPS_PersonType.PUPIL.equals(person.getPersGroup().getPersType()) &&
-                        this.getParameters().isTrue(ParamFlag.FLAG_USE_SCHOOLBUS) &&
-                        (actCodeFrom.hasAttribute(TPS_ActivityConstantAttribute.SCHOOL) ||
-                                actCodeTo.hasAttribute(TPS_ActivityConstantAttribute.SCHOOL))) {
+                if (TPS_PersonType.PUPIL.equals(person.getPersGroup().getPersType()) && this.getParameters().isTrue(
+                        ParamFlag.FLAG_USE_SCHOOLBUS) && (actCodeFrom.hasAttribute(
+                        TPS_ActivityConstantAttribute.SCHOOL) || actCodeTo.hasAttribute(
+                        TPS_ActivityConstantAttribute.SCHOOL))) {
                     // getting average speed per combination of bbr-codes
                     int fromBBR = start.getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystemType.FORDCP);
                     int toBBR = end.getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystemType.FORDCP);
-                    double schoolBusSpeed = this.getParameters().paramMatrixMapClass
-                            .getValue(ParamMatrixMap.AVERAGE_SPEED_SCHOOLBUS, fromBBR, toBBR, simType, time);
+                    double schoolBusSpeed = this.getParameters().paramMatrixMapClass.getValue(
+                            ParamMatrixMap.AVERAGE_SPEED_SCHOOLBUS, fromBBR, toBBR, simType, time);
 
                     // Assumtion: traveltime plus time for access and egress and waiting
                     // beta * beeline / schulBusSpeed + Zugang + Abgang + Wartezeit
-                    tt = beelineFaktor * beelineDistanceLoc / schoolBusSpeed +
-                            this.getParameters().getDoubleValue(ParamValue.DEFAULT_SCHOOL_BUS_ACCESS) +
-                            this.getParameters().getDoubleValue(ParamValue.DEFAULT_SCHOOL_BUS_EGRESS) +
-                            this.getParameters().getDoubleValue(ParamValue.DEFAULT_SCHOOL_BUS_WAIT);
+                    tt = beelineFaktor * beelineDistanceLoc / schoolBusSpeed + this.getParameters().getDoubleValue(
+                            ParamValue.DEFAULT_SCHOOL_BUS_ACCESS) + this.getParameters().getDoubleValue(
+                            ParamValue.DEFAULT_SCHOOL_BUS_EGRESS) + this.getParameters().getDoubleValue(
+                            ParamValue.DEFAULT_SCHOOL_BUS_WAIT);
                     if (travelTimeIsInvalid(tt)) {
                         TPS_Logger.log(SeverenceLogLevel.DEBUG,
                                 "Invalid travel time detected: " + tt + " from " + TVZfrom + " to " + TVZto +
@@ -172,7 +171,7 @@ public class TPS_MassTransportMode extends TPS_Mode {
                     //no connection via PT!
                     tt = TPS_Mode.NO_CONNECTION;
                     //					tt= beelineDistanceLoc * ModeType.WALK.getBeelineFactor().getDoubleValue() /
-					//					get(ModeType.WALK).getVelocity().getDoubleValue();
+                    //					get(ModeType.WALK).getVelocity().getDoubleValue();
                     //					if(travelTimeIsInvalid(tt))
                     //						TPS_Logger.log(SeverenceLogLevel.FATAL, "NaN detected");
                 }
@@ -182,13 +181,13 @@ public class TPS_MassTransportMode extends TPS_Mode {
                 // access time
                 double TT1 = 0;
                 if (this.getParameters().isDefined(ParamMatrixMap.ARRIVAL_PT))
-                    TT1 = this.getParameters().paramMatrixMapClass
-                            .getValue(ParamMatrixMap.ARRIVAL_PT, TVZfrom, TVZto, simType, time);
+                    TT1 = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.ARRIVAL_PT, TVZfrom, TVZto,
+                            simType, time);
                 // egress time
                 double TT2 = 0;
                 if (this.getParameters().isDefined(ParamMatrixMap.EGRESS_PT))
-                    TT2 = this.getParameters().paramMatrixMapClass
-                            .getValue(ParamMatrixMap.EGRESS_PT, TVZfrom, TVZto, simType, time);
+                    TT2 = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.EGRESS_PT, TVZfrom, TVZto,
+                            simType, time);
 
                 if (this.getParameters().isTrue(ParamFlag.FLAG_USE_BLOCK_LEVEL)) {
                     scoreFrom = this.getScore(start.getTrafficAnalysisZone()) - this.getScore(start.getBlock());
@@ -242,7 +241,8 @@ public class TPS_MassTransportMode extends TPS_Mode {
 
                     // egress distance to pt
                     double distTo = end.hasBlock() ? end.getBlock().getNearestPubTransStop() : this.getParameters()
-                            .getDoubleValue(ParamValue.AVERAGE_DISTANCE_PT_STOP);
+                                                                                                   .getDoubleValue(
+                                                                                                           ParamValue.AVERAGE_DISTANCE_PT_STOP);
 
                     // !!!dk
                     if (distTo < 0) {
@@ -270,8 +270,8 @@ public class TPS_MassTransportMode extends TPS_Mode {
                 if (this.getParameters().isTrue(ParamFlag.FLAG_INTRA_INFOS_MATRIX)) {
                     // information about situation within traffic analysis zones are in the travel time matrices
                     double ttBuf = 0;
-                    ttBuf = this.getParameters().paramMatrixMapClass
-                            .getValue(ParamMatrixMap.TRAVEL_TIME_PT, TVZfrom, TVZto, simType, time);
+                    ttBuf = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_PT, TVZfrom,
+                            TVZto, simType, time);
 
                     if (TPS_Mode.noConnection(ttBuf)) {
                         // no connection via PT!
@@ -284,20 +284,18 @@ public class TPS_MassTransportMode extends TPS_Mode {
                     tt = beelineFaktor * ttBuf;
                     // access time
                     double TT1 = 0;
-                    if (this.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT) &&
-                            simType.equals(SimulationType.SCENARIO) ||
-                            this.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE) &&
-                                    simType.equals(SimulationType.BASE))
-                        TT1 = this.getParameters().paramMatrixMapClass
-                                .getValue(ParamMatrixMap.ARRIVAL_PT, TVZfrom, TVZto, simType, time);
+                    if (this.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT) && simType.equals(
+                            SimulationType.SCENARIO) || this.getParameters().isDefined(
+                            ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE) && simType.equals(SimulationType.BASE))
+                        TT1 = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.ARRIVAL_PT, TVZfrom,
+                                TVZto, simType, time);
                     // egress time
                     double TT2 = 0;
-                    if (this.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT) &&
-                            simType.equals(SimulationType.SCENARIO) ||
-                            this.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE) &&
-                                    simType.equals(SimulationType.BASE))
-                        TT2 = this.getParameters().paramMatrixMapClass
-                                .getValue(ParamMatrixMap.EGRESS_PT, TVZfrom, TVZto, simType, time);
+                    if (this.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT) && simType.equals(
+                            SimulationType.SCENARIO) || this.getParameters().isDefined(
+                            ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE) && simType.equals(SimulationType.BASE))
+                        TT2 = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.EGRESS_PT, TVZfrom,
+                                TVZto, simType, time);
 
                     tt += TT1 + TT2;
                     if (travelTimeIsInvalid(tt)) {
@@ -313,11 +311,11 @@ public class TPS_MassTransportMode extends TPS_Mode {
                     // Otherwise the travel time is calculated by the beeline distance and a factor and the average speed inside
                     // this traffic analysis zone.
                     double factor = start.getTrafficAnalysisZone().getSimulationTypeValues(simType)
-                            .getBeelineFactorMIT();
+                                         .getBeelineFactorMIT();
                     if (Double.isNaN(factor) || factor == 0)//safety fix
                         factor = 1.4;
                     double avSpeed = start.getTrafficAnalysisZone().getSimulationTypeValues(simType)
-                            .getAverageSpeedPT();
+                                          .getAverageSpeedPT();
                     if (Double.isNaN(avSpeed) || avSpeed == 0)//safety fix
                         avSpeed = 8;
                     tt = ((beelineDistanceLoc * factor) / avSpeed);

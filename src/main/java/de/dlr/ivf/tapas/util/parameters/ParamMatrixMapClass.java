@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.EnumMap;
 
 public class ParamMatrixMapClass {
-    private EnumMap<ParamMatrixMap, MutablePair<ParamType, MatrixMap[]>> paramMatrixMaps;
+    private final EnumMap<ParamMatrixMap, MutablePair<ParamType, MatrixMap[]>> paramMatrixMaps;
 
     ParamMatrixMapClass() {
         this.paramMatrixMaps = new EnumMap<>(ParamMatrixMap.class);
@@ -46,24 +46,6 @@ public class ParamMatrixMapClass {
     }
 
     /**
-     * This method gets the whole MatrixMap for the given SimulationType
-     *
-     * @param param matrix map parameter enum
-     * @param type  SimulationType for this request
-     * @return the MatrixMap for the given SimulationType
-     */
-    public MatrixMap getMatrixMap(ParamMatrixMap param, SimulationType type) {
-        if (this.paramMatrixMaps.get(param).getRight().length < 2) {
-            throw new RuntimeException("MatrixMap is not simulation type " + "dependent: " + this);
-        }
-        int index = type.getIndex();
-        if (this.paramMatrixMaps.get(param).getRight()[index] == null) throw new RuntimeException(
-                "MatrixMap for index " + index + " is not defined: " + this);
-        return this.paramMatrixMaps.get(param).getRight()[index];
-    }
-
-
-    /**
      * This method clears all matrix maps.
      *
      * @param param matrix map parameter enum
@@ -84,11 +66,11 @@ public class ParamMatrixMapClass {
      * @throws RuntimeException if the constant was not defined
      */
     private Matrix getMatrixFromMap(ParamMatrixMap param, int time) {
-    	SimulationType type = SimulationType.BASE;
+        SimulationType type = SimulationType.BASE;
         if (this.paramMatrixMaps.get(param).getRight().length > 1) {
-        	type = SimulationType.SCENARIO;
+            type = SimulationType.SCENARIO;
         }
-        return this.getMatrixFromMap(param,type,time);
+        return this.getMatrixFromMap(param, type, time);
     }
 
     /**
@@ -103,20 +85,31 @@ public class ParamMatrixMapClass {
      *                          or the constant is not simulation type
      *                          dependent
      */
-    private Matrix getMatrixFromMap(ParamMatrixMap param,
-                                   SimulationType type, int time) {
+    private Matrix getMatrixFromMap(ParamMatrixMap param, SimulationType type, int time) {
         if (this.paramMatrixMaps.get(param).getRight().length < 2) {
-            throw new RuntimeException(
-                    "Enum-Value is not simulation " + "type" +
-                            " dependent: " + this);
+            throw new RuntimeException("Enum-Value is not simulation " + "type" + " dependent: " + this);
         }
         int index = type.getIndex();
-        if (this.paramMatrixMaps.get(param).getRight()[index] == null)
-            throw new RuntimeException(
-                    "MatrixMap for index " + index + " is not defined: " +
-                            this);
-        return this.paramMatrixMaps.get(param).getRight()[index]
-                .getMatrix(time);
+        if (this.paramMatrixMaps.get(param).getRight()[index] == null) throw new RuntimeException(
+                "MatrixMap for index " + index + " is not defined: " + this);
+        return this.paramMatrixMaps.get(param).getRight()[index].getMatrix(time);
+    }
+
+    /**
+     * This method gets the whole MatrixMap for the given SimulationType
+     *
+     * @param param matrix map parameter enum
+     * @param type  SimulationType for this request
+     * @return the MatrixMap for the given SimulationType
+     */
+    public MatrixMap getMatrixMap(ParamMatrixMap param, SimulationType type) {
+        if (this.paramMatrixMaps.get(param).getRight().length < 2) {
+            throw new RuntimeException("MatrixMap is not simulation type " + "dependent: " + this);
+        }
+        int index = type.getIndex();
+        if (this.paramMatrixMaps.get(param).getRight()[index] == null) throw new RuntimeException(
+                "MatrixMap for index " + index + " is not defined: " + this);
+        return this.paramMatrixMaps.get(param).getRight()[index];
     }
 
     /**
@@ -139,8 +132,7 @@ public class ParamMatrixMapClass {
      * @return value at position (i,j)
      * @throws RuntimeException if the constant was not defined
      */
-    public double getValue(ParamMatrixMap param, int i, int j,
-                           int time) {
+    public double getValue(ParamMatrixMap param, int i, int j, int time) {
         return this.getMatrixFromMap(param, time).getValue(i, j);
     }
 
@@ -157,8 +149,7 @@ public class ParamMatrixMapClass {
      * @return value at position (i,j)
      * @throws RuntimeException if the constant was not defined
      */
-    public double getValue(ParamMatrixMap param, int i, int j,
-                           SimulationType type, int time) {
+    public double getValue(ParamMatrixMap param, int i, int j, SimulationType type, int time) {
         return this.getMatrixFromMap(param, type, time).getValue(i, j);
     }
 
@@ -174,6 +165,47 @@ public class ParamMatrixMapClass {
             isDefined = this.paramMatrixMaps.get(param).getRight()[i] != null || isDefined;
         }
         return isDefined;
+    }
+
+    /**
+     * This method sets one matrixMap in the array, which contains only one
+     * matrix. This method is for constants which don't depend on the
+     * simulation type
+     *
+     * @param param  matrix map parameter enum
+     * @param matrix new matrix to set
+     * @throws RuntimeException if matrix map is simulation dependent and
+     *                          no simulation type is set
+     */
+    public void setMatrix(ParamMatrixMap param, Matrix matrix) {
+        if (this.paramMatrixMaps.get(param).getRight().length > 1) throw new RuntimeException(
+                "Specialise which matrix you set: " + "Choose one Simulation " + "type and call " +
+                        "setMatrixMap(Matrix " + "matrix, SimulationType " + "type)");
+        double[] distribution = new double[]{0};
+        Matrix[] matrices = new Matrix[distribution.length];
+        matrices[0] = matrix;
+        this.paramMatrixMaps.get(param).getRight()[0] = new MatrixMap(distribution, matrices);
+    }
+
+    /**
+     * This method sets one matrix in the array, which contains only one
+     * matrix. This method is for constants which do depend on the
+     * simulation type
+     *
+     * @param param  matrix map parameter enum
+     * @param matrix new matrix to set
+     * @param type   simulation type
+     * @throws RuntimeException if the parameter is independent from the
+     *                          simulation type
+     */
+    public void setMatrix(ParamMatrixMap param, Matrix matrix, SimulationType type) {
+        if (this.paramMatrixMaps.get(param).getRight().length == 1) throw new RuntimeException(
+                "This parameter is independent " + "from the simulation type:" + " " + "call setMatrix(Matrix " +
+                        "matrix)");
+        double[] distribution = new double[]{0};
+        Matrix[] matrices = new Matrix[distribution.length];
+        matrices[0] = matrix;
+        this.paramMatrixMaps.get(param).getRight()[type.getIndex()] = new MatrixMap(distribution, matrices);
     }
 
     /**
@@ -218,48 +250,6 @@ public class ParamMatrixMapClass {
             TPS_Logger.log(SeverenceLogLevel.DEBUG, "Overwriting existing matrix map");
         }
         map[index] = matrixMap;
-    }
-
-
-    /**
-     * This method sets one matrixMap in the array, which contains only one
-     * matrix. This method is for constants which don't depend on the
-     * simulation type
-     *
-     * @param param  matrix map parameter enum
-     * @param matrix new matrix to set
-     * @throws RuntimeException if matrix map is simulation dependent and
-     *                          no simulation type is set
-     */
-    public void setMatrix(ParamMatrixMap param, Matrix matrix) {
-        if (this.paramMatrixMaps.get(param).getRight().length > 1) throw new RuntimeException(
-                "Specialise which matrix you set: " + "Choose one Simulation " + "type and call " +
-                        "setMatrixMap(Matrix " + "matrix, SimulationType " + "type)");
-        double[] distribution = new double[]{0};
-        Matrix[] matrices = new Matrix[distribution.length];
-        matrices[0] = matrix;
-        this.paramMatrixMaps.get(param).getRight()[0] = new MatrixMap(distribution, matrices);
-    }
-
-    /**
-     * This method sets one matrix in the array, which contains only one
-     * matrix. This method is for constants which do depend on the
-     * simulation type
-     *
-     * @param param  matrix map parameter enum
-     * @param matrix new matrix to set
-     * @param type   simulation type
-     * @throws RuntimeException if the parameter is independent from the
-     *                          simulation type
-     */
-    public void setMatrix(ParamMatrixMap param, Matrix matrix, SimulationType type) {
-        if (this.paramMatrixMaps.get(param).getRight().length == 1) throw new RuntimeException(
-                "This parameter is independent " + "from the simulation type:" + " " + "call setMatrix(Matrix " +
-                        "matrix)");
-        double[] distribution = new double[]{0};
-        Matrix[] matrices = new Matrix[distribution.length];
-        matrices[0] = matrix;
-        this.paramMatrixMaps.get(param).getRight()[type.getIndex()] = new MatrixMap(distribution, matrices);
     }
 
     /**

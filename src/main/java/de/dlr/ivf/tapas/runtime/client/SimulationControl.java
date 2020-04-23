@@ -73,7 +73,7 @@ public class SimulationControl {
      * Stack to store the parents of the parameter files. Needed to descent in
      * the correct order.
      */
-    private Stack<File> parameterFiles = new Stack<>();
+    private final Stack<File> parameterFiles = new Stack<>();
     /**
      * Connection to the database
      */
@@ -85,21 +85,21 @@ public class SimulationControl {
     /**
      * the client graphical user interface
      */
-    private SimulationMonitor gui;
+    private final SimulationMonitor gui;
     /**
      * All available servers
      */
-    private volatile Map<String, SimulationServerData> simulationServerDataMap;
-    private ExecutorService executorpool = Executors.newCachedThreadPool();
+    private final Map<String, SimulationServerData> simulationServerDataMap;
+    private final ExecutorService executorpool = Executors.newCachedThreadPool();
     /**
      * This instance can test if a SimulationServer is online
      */
     @SuppressWarnings("unused")
-    private ServerOnlineTester serverOnlineTester = new ServerOnlineTester();
+    private final ServerOnlineTester serverOnlineTester = new ServerOnlineTester();
     /**
      * Map with all available simulations from the database
      */
-    private Map<String, SimulationData> simulationDataMap;
+    private final Map<String, SimulationData> simulationDataMap;
     /**
      * This flag indicates if one update step of the SimulationData in
      * SimulationDataUpdateTask has to be skipped
@@ -108,11 +108,11 @@ public class SimulationControl {
     /**
      * Complete local path to the TAPAS directory
      */
-    private File tapasNetworkDirectory;
+    private final File tapasNetworkDirectory;
     /**
      * Timer for all internal tasks
      */
-    private Timer timer;
+    private final Timer timer;
     /**
      * The Client control properties
      */
@@ -252,100 +252,6 @@ public class SimulationControl {
     }
 
     /**
-     * @return parameter class reference
-     */
-    public TPS_ParameterClass getParameters() {
-        return this.dbConnection.getParameters();
-    }
-
-    /**
-     * This method changes the state of the simulation corresponding to the
-     * parameter sim_key.<br>
-     * The changes are:<br>
-     * <br>
-     * INSERTED -> STARTED<br>
-     * STOPPED -> STARTED<br>
-     * <br>
-     * STARTED -> STOPPED<br>
-     * FINISHED -> Remove simulation completely from the database<br>
-     * <br>
-     * The changes are done via a SQl statement and the skipUpdate flag is set
-     * to true after the statement was committed.
-     *
-     * @param sim_key key for the simulation in the database
-     */
-    public void changeSimulationDataState(String sim_key) {
-        SimulationData simulation = this.simulationDataMap.get(sim_key);
-        TPS_SimulationState state = TPS_SimulationState.getState(simulation);
-
-        // synchronized (simulationDataMap) {
-        String query;
-        switch (state) { // the state represents the PAST state!
-            case INSERTED:
-                // make simulation ready and start it
-                query = "select core.prepare_simulation_for_start('" + sim_key + "')";
-                SimulationControl.this.dbConnection.execute(query, this);
-                break;
-            case STOPPED:
-                // start the sim
-                query = "UPDATE simulations SET sim_ready = true, " +
-                        "sim_started = true, sim_finished = false WHERE sim_key = '" + sim_key + "'";
-                SimulationControl.this.dbConnection.execute(query, this);
-                break;
-            case STARTED:
-                // stop simulation
-                query = "UPDATE simulations SET sim_ready = true, " +
-                        "sim_started = false, sim_finished = false WHERE sim_key = '" + sim_key + "'";
-                SimulationControl.this.dbConnection.execute(query, this);
-                break;
-            case FINISHED:
-                // remove simulation from database
-                this.removeSimulation(sim_key, true);
-                break;
-        }
-        this.skipUpdate = true;
-        // }
-    }
-
-    /**
-     * This method loads all given parameter entries and stores them in a
-     * hashmap: (key,value). This hashmap is used to put the parameters into the
-     * database.
-     */
-    private int loadParameters(File name, HashMap<String, String> parameters) throws IOException {
-        String key;
-        String value;
-        String parent;
-        int counter = 0;
-        CsvReader reader = new CsvReader(new FileReader(name.getAbsolutePath()));
-        reader.readHeaders();
-        while (reader.readRecord()) {
-            key = reader.get(0);
-            value = reader.get(1);
-
-            if (key.equals("FILE_PARENT_PROPERTIES") || key.equals("FILE_FILE_PROPERTIES") || key.equals(
-                    "FILE_LOGGING_PROPERTIES") || key.equals("FILE_PARAMETER_PROPERTIES") || key.equals(
-                    "FILE_DATABASE_PROPERTIES")) {
-                parent = name.getParent();
-                while (value.startsWith("./")) {
-                    value = value.substring(2);
-                    parent = new File(parent).getParent();
-                }
-                this.parameterFiles.push(new File(parent, value));
-            } else {
-                if (!parameters.containsKey(key)) {
-                    counter++;
-                    parameters.put(key, value); // this does not overwrites old
-                    // values!
-                }
-            }
-        }
-        reader.close();
-
-        return counter;
-    }
-
-    /**
      * This method loads all values from the run properties file by the
      * parameter 'filename' and stores a simulation in the database. The
      * simulation is added to the internal map and the GUI via the
@@ -431,6 +337,59 @@ public class SimulationControl {
     }
 
     /**
+     * This method changes the state of the simulation corresponding to the
+     * parameter sim_key.<br>
+     * The changes are:<br>
+     * <br>
+     * INSERTED -> STARTED<br>
+     * STOPPED -> STARTED<br>
+     * <br>
+     * STARTED -> STOPPED<br>
+     * FINISHED -> Remove simulation completely from the database<br>
+     * <br>
+     * The changes are done via a SQl statement and the skipUpdate flag is set
+     * to true after the statement was committed.
+     *
+     * @param sim_key key for the simulation in the database
+     */
+    public void changeSimulationDataState(String sim_key) {
+        SimulationData simulation = this.simulationDataMap.get(sim_key);
+        TPS_SimulationState state = TPS_SimulationState.getState(simulation);
+
+        // synchronized (simulationDataMap) {
+        String query;
+        switch (state) { // the state represents the PAST state!
+            case INSERTED:
+                // make simulation ready and start it
+                query = "select core.prepare_simulation_for_start('" + sim_key + "')";
+                SimulationControl.this.dbConnection.execute(query, this);
+                break;
+            case STOPPED:
+                // start the sim
+                query = "UPDATE simulations SET sim_ready = true, " +
+                        "sim_started = true, sim_finished = false WHERE sim_key = '" + sim_key + "'";
+                SimulationControl.this.dbConnection.execute(query, this);
+                break;
+            case STARTED:
+                // stop simulation
+                query = "UPDATE simulations SET sim_ready = true, " +
+                        "sim_started = false, sim_finished = false WHERE sim_key = '" + sim_key + "'";
+                SimulationControl.this.dbConnection.execute(query, this);
+                break;
+            case FINISHED:
+                // remove simulation from database
+                this.removeSimulation(sim_key, true);
+                break;
+        }
+        this.skipUpdate = true;
+        // }
+    }
+
+    public boolean checkConnection() throws SQLException {
+        return !this.dbConnection.getConnection(this).isClosed();
+    }
+
+    /**
      * This method opens a file dialog in which you can choose a run properties
      * file, which have a name like 'run_*.csv' where * can be any string.
      *
@@ -498,17 +457,22 @@ public class SimulationControl {
     }
 
     /**
-     * writes all properties to the property file
-     */
-    public void updateProperties() {
-        this.props.updateFile();
-    }
-
-    /**
      * check if changes are made
      */
     public boolean configChanged() {
         return this.props.isChanged();
+    }
+
+    protected String getBuilddate() {
+        return builddate;
+    }
+
+    protected String getBuildnumber() {
+        return buildnumber;
+    }
+
+    public TPS_DB_Connector getConnection() {
+        return this.dbConnection;
     }
 
     /**
@@ -518,12 +482,86 @@ public class SimulationControl {
         return currentDatabaseTimestamp;
     }
 
-    public boolean checkConnection() throws SQLException {
-        return !this.dbConnection.getConnection(this).isClosed();
+    /**
+     * @return parameter class reference
+     */
+    public TPS_ParameterClass getParameters() {
+        return this.dbConnection.getParameters();
     }
 
-    public TPS_DB_Connector getConnection() {
-        return this.dbConnection;
+    protected ClientControlProperties getProperties() {
+        return this.props;
+    }
+
+    /**
+     * Retrieves the ServerHash-String from the internal servers map
+     *
+     * @param hostname the host from which the Hash is retrieved
+     * @return - empty String if server is <strong>offline</strong> or no Hash is defined
+     * - the hash string if server is <strong>online</strong> and the Hash has been set inside the database
+     */
+    public String getServerHash(String hostname) {
+
+        if (simulationServerDataMap.containsKey(hostname)) {
+            SimulationServerData ssd = simulationServerDataMap.get(hostname);
+            String hashstring = ssd.getHashString() == null || ssd.getHashString().equals("") ? MultilanguageSupport
+                    .getString("HASH_MESSAGE_ERROR") : ssd.getHashString();
+
+            return ssd.isOnline() ? hashstring : MultilanguageSupport.getString("HASH_MESSAGE_UNKNOWN");
+        } else return MultilanguageSupport.getString("HASH_MESSAGE_ERROR");
+    }
+
+    protected String getVersion() {
+        return version;
+    }
+
+    /**
+     * This method loads all given parameter entries and stores them in a
+     * hashmap: (key,value). This hashmap is used to put the parameters into the
+     * database.
+     */
+    private int loadParameters(File name, HashMap<String, String> parameters) throws IOException {
+        String key;
+        String value;
+        String parent;
+        int counter = 0;
+        CsvReader reader = new CsvReader(new FileReader(name.getAbsolutePath()));
+        reader.readHeaders();
+        while (reader.readRecord()) {
+            key = reader.get(0);
+            value = reader.get(1);
+
+            if (key.equals("FILE_PARENT_PROPERTIES") || key.equals("FILE_FILE_PROPERTIES") || key.equals(
+                    "FILE_LOGGING_PROPERTIES") || key.equals("FILE_PARAMETER_PROPERTIES") || key.equals(
+                    "FILE_DATABASE_PROPERTIES")) {
+                parent = name.getParent();
+                while (value.startsWith("./")) {
+                    value = value.substring(2);
+                    parent = new File(parent).getParent();
+                }
+                this.parameterFiles.push(new File(parent, value));
+            } else {
+                if (!parameters.containsKey(key)) {
+                    counter++;
+                    parameters.put(key, value); // this does not overwrites old
+                    // values!
+                }
+            }
+        }
+        reader.close();
+
+        return counter;
+    }
+
+    /**
+     * Remove a TAPAS SimulationServer from DB
+     *
+     * @param ip
+     */
+    public void removeServer(InetAddress ip) {
+        String query = "DELETE FROM " + this.getParameters().getString(ParamString.DB_TABLE_SERVERS) +
+                " WHERE server_ip = inet'" + ip.getHostAddress() + "'";
+        this.dbConnection.execute(query, this);
     }
 
     /**
@@ -551,17 +589,6 @@ public class SimulationControl {
                     "DELETE FROM " + this.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
                             " WHERE sim_key='" + sim_key + "'", this);
         }
-    }
-
-    /**
-     * Remove a TAPAS SimulationServer from DB
-     *
-     * @param ip
-     */
-    public void removeServer(InetAddress ip) {
-        String query = "DELETE FROM " + this.getParameters().getString(ParamString.DB_TABLE_SERVERS) +
-                " WHERE server_ip = inet'" + ip.getHostAddress() + "'";
-        this.dbConnection.execute(query, this);
     }
 
     /**
@@ -604,37 +631,10 @@ public class SimulationControl {
     }
 
     /**
-     * Retrieves the ServerHash-String from the internal servers map
-     *
-     * @param hostname the host from which the Hash is retrieved
-     * @return - empty String if server is <strong>offline</strong> or no Hash is defined
-     * - the hash string if server is <strong>online</strong> and the Hash has been set inside the database
+     * writes all properties to the property file
      */
-    public String getServerHash(String hostname) {
-
-        if (simulationServerDataMap.containsKey(hostname)) {
-            SimulationServerData ssd = simulationServerDataMap.get(hostname);
-            String hashstring = ssd.getHashString() == null || ssd.getHashString().equals("") ? MultilanguageSupport
-                    .getString("HASH_MESSAGE_ERROR") : ssd.getHashString();
-
-            return ssd.isOnline() ? hashstring : MultilanguageSupport.getString("HASH_MESSAGE_UNKNOWN");
-        } else return MultilanguageSupport.getString("HASH_MESSAGE_ERROR");
-    }
-
-    protected ClientControlProperties getProperties() {
-        return this.props;
-    }
-
-    protected String getVersion() {
-        return version;
-    }
-
-    protected String getBuilddate() {
-        return builddate;
-    }
-
-    protected String getBuildnumber() {
-        return buildnumber;
+    public void updateProperties() {
+        this.props.updateFile();
     }
 
     /**
@@ -667,7 +667,7 @@ public class SimulationControl {
             /**
              * IP Address of the SimulationServer to test
              */
-            private InetAddress simulationServerIPAddress;
+            private final InetAddress simulationServerIPAddress;
 
             /**
              * Constructs the thread an sets the SimulationServer IP Address

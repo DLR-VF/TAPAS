@@ -4,24 +4,24 @@ import java.util.Iterator;
 
 public interface TapasTripReader {
 
-	Iterator<TapasTrip> getIterator();
+    void close();
 
-	/**
-	 * @return a human readable description of the source of the trips.
-	 */
-    String getSource();
+    Iterator<TapasTrip> getIterator();
 
-	/**
-	 * @return (estimated) number of elements to be read.
-	 */
-    long getTotal();
-
-	/**
-	 * Returns an estimated progress between <code>0</code> and <code>100</code>
-	 * .
-	 */
+    /**
+     * Returns an estimated progress between <code>0</code> and <code>100</code>
+     * .
+     */
     int getProgress();
 
-	void close();
+    /**
+     * @return a human readable description of the source of the trips.
+     */
+    String getSource();
+
+    /**
+     * @return (estimated) number of elements to be read.
+     */
+    long getTotal();
 
 }

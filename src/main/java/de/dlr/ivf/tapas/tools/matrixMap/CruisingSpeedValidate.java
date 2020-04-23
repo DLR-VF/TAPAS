@@ -24,11 +24,11 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
     final int BINS_WIDTH = 500;
     final int RECORDS_ALL = 3;
     final int RECORDS = RECORDS_ALL - 1;
-    private CruisingSpeedValData propData;
-    private CruisingSpeedCalcData calcData;
-    private DataRecord[] records;
-    private DataRecord[] differences;
-    private DataRecord[] factors;
+    private final CruisingSpeedValData propData;
+    private final CruisingSpeedCalcData calcData;
+    private final DataRecord[] records;
+    private final DataRecord[] differences;
+    private final DataRecord[] factors;
     private int sizeOfClassDistance;
     private int length;
     private String directory = null;
@@ -40,6 +40,7 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
     //private boolean top3;
     //private boolean indirectWayFactor;
     private double[] calcFactors = null;
+
     public CruisingSpeedValidate(CruisingSpeedValData valData, CruisingSpeedCalcData calcData) {
         records = new DataRecord[RECORDS_ALL];        // record[0] - validation data
         // record[1] - reference data
@@ -551,7 +552,7 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
     {
         VALIDATION_DATA(0), REFERENCE_DATA(1), BASE_DATA(2);        // distances without detour factor
 
-        private int value;
+        private final int value;
 
         Data(int value) {
             this.value = value;
@@ -565,7 +566,7 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
     enum Evaluation {
         FACTOR(0), DIFFERENCE(1);
 
-        private int value;
+        private final int value;
 
         Evaluation(int value) {
             this.value = value;

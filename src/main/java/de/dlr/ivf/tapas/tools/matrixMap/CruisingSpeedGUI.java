@@ -24,11 +24,11 @@ import java.util.Properties;
  */
 public class CruisingSpeedGUI extends javax.swing.JFrame {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8820976812627995474L;
-	private Properties properties = null;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 8820976812627995474L;
+    private Properties properties = null;
     private boolean changes = false;
     private javax.swing.JButton bStart;
     private javax.swing.JCheckBox cbActivateValidation;
@@ -80,6 +80,7 @@ public class CruisingSpeedGUI extends javax.swing.JFrame {
     private javax.swing.JTextField tfWalkDist;
     private javax.swing.JTextField tfWalkTimeApproach;
     private javax.swing.JTextField tfWalkTimeDeparture;
+
     /**
      * Creates new form CruisingSpeedGUI
      */
@@ -149,6 +150,311 @@ public class CruisingSpeedGUI extends javax.swing.JFrame {
         gui.setLocationRelativeTo(null);
         gui.setVisible(true);
     }
+
+    private void bCancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_bCancelActionPerformed
+    {//GEN-HEADEREND:event_bCancelActionPerformed
+        close();
+    }//GEN-LAST:event_bCancelActionPerformed
+
+    private void bPathActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_bPathActionPerformed
+    {//GEN-HEADEREND:event_bPathActionPerformed
+        String titel = "Vaildierungspfad";
+        JFileChooser fileChooser = new JFileChooser(titel);
+        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
+
+        fileChooser.setFileFilter(new FolderFileFilter());
+
+        // u.a notwendig, damit das ausgewählte Direktory als
+        // Ordnername angezeigt wird
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        fileChooser.setAcceptAllFileFilterUsed(false);
+
+        //showDialog liefert einen int-Wert
+        int abbrechen = fileChooser.showDialog(null, "Auswählen");
+        if (abbrechen != JFileChooser.CANCEL_OPTION) {
+            File file = fileChooser.getSelectedFile();
+            tfPath.setText(file.getAbsolutePath());
+            changes = true;
+        }
+    }//GEN-LAST:event_bPathActionPerformed
+
+    private void bSaveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_bSaveActionPerformed
+    {//GEN-HEADEREND:event_bSaveActionPerformed
+        if (changes) {
+            savePropertieFile();
+            changes = false;
+            JOptionPane.showMessageDialog(this, "Die Daten wurden gespeichert.");
+        } else {
+            JOptionPane.showMessageDialog(this, "Die Daten wurden nicht verändert, speichern nicht notwengig.");
+        }
+
+    }//GEN-LAST:event_bSaveActionPerformed
+
+    private void bStartActionPerformed(java.awt.event.ActionEvent evt) {
+        if (changes) savePropertieFile();
+        CruisingSpeed cs = new CruisingSpeed();
+        CruisingSpeed.setProperties(properties);
+        cs.start(null);
+        changes = false;
+        JOptionPane.showMessageDialog(this, "Die Daten wurden generiert");
+    }
+
+    private void cbActivateValidationItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbActivateValidationItemStateChanged
+    {//GEN-HEADEREND:event_cbActivateValidationItemStateChanged
+        JCheckBox source = (JCheckBox) evt.getSource();
+        enableCheckboxComponents(evt, pGroupValidation);
+        source.setEnabled(true);
+
+        // if activated  enable/disable dependend checkboxes and textfields
+        if (source.isSelected()) {
+            enableCheckboxes(cbValWalkDist, tfValWalkDist);
+            enableCheckboxes(cbValBikeDist, tfValBikeDist);
+            enableCheckboxes(cbValPTDist, tfValPTDist);
+            enableCheckboxes(cbValMIVDist, tfValMIVDist);
+
+            // traveltime (TT)
+            enableCheckboxes(cbValWalkTT, tfValWalkTT);
+            enableCheckboxes(cbValBikeTT, tfValBikeTT);
+            enableCheckboxes(cbValPTTT, tfValPTTT);
+            enableCheckboxes(cbValMIVTT, tfValMIVTT);
+        }
+
+    }//GEN-LAST:event_cbActivateValidationItemStateChanged
+
+    private void cbBikeDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbBikeDistItemStateChanged
+    {//GEN-HEADEREND:event_cbBikeDistItemStateChanged
+        //changes = changes | distanceSelected(Modus.BIKE);
+        distanceSelected(Modus.BIKE);
+        changes = true;
+    }//GEN-LAST:event_cbBikeDistItemStateChanged
+
+    private void cbBikeTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbBikeTTItemStateChanged
+    {//GEN-HEADEREND:event_cbBikeTTItemStateChanged
+        //changes = changes | distanceSelected(Modus.BIKE);
+        distanceSelected(Modus.BIKE);
+        changes = true;
+    }//GEN-LAST:event_cbBikeTTItemStateChanged
+
+    private void cbMIVDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbMIVDistItemStateChanged
+    {//GEN-HEADEREND:event_cbMIVDistItemStateChanged
+        //changes = changes | distanceSelected(Modus.MIV);
+        distanceSelected(Modus.MIV);
+        changes = true;
+    }//GEN-LAST:event_cbMIVDistItemStateChanged
+
+    private void cbMIVTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbMIVTTItemStateChanged
+    {//GEN-HEADEREND:event_cbMIVTTItemStateChanged
+        //changes = changes | distanceSelected(Modus.MIV);
+        distanceSelected(Modus.MIV);
+        changes = true;
+    }//GEN-LAST:event_cbMIVTTItemStateChanged
+
+    private void cbPTDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbPTDistItemStateChanged
+    {//GEN-HEADEREND:event_cbPTDistItemStateChanged
+        //changes = changes | distanceSelected(Modus.PT);
+        distanceSelected(Modus.PT);
+        changes = true;
+    }//GEN-LAST:event_cbPTDistItemStateChanged
+
+    private void cbPTTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbPTTTItemStateChanged
+    {//GEN-HEADEREND:event_cbPTTTItemStateChanged
+        //changes = changes | distanceSelected(Modus.PT);
+        distanceSelected(Modus.PT);
+        changes = true;
+    }//GEN-LAST:event_cbPTTTItemStateChanged
+
+    private void cbTerrainItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbTerrainItemStateChanged
+    {//GEN-HEADEREND:event_cbTerrainItemStateChanged
+        if (!cbTerrain.getSelectedItem().toString().equals(properties.getProperty("terrain"))) changes = true;
+    }//GEN-LAST:event_cbTerrainItemStateChanged
+
+    private void cbTop3ItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbTop3ItemStateChanged
+    {//GEN-HEADEREND:event_cbTop3ItemStateChanged
+        changes = true;
+    }//GEN-LAST:event_cbTop3ItemStateChanged
+
+    private void cbValBikeDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValBikeDistItemStateChanged
+    {//GEN-HEADEREND:event_cbValBikeDistItemStateChanged
+        enableCheckboxComponents(evt, tfValBikeDist);
+    }//GEN-LAST:event_cbValBikeDistItemStateChanged
+
+    private void cbValBikeTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValBikeTTItemStateChanged
+    {//GEN-HEADEREND:event_cbValBikeTTItemStateChanged
+        enableCheckboxComponents(evt, tfValBikeTT);
+    }//GEN-LAST:event_cbValBikeTTItemStateChanged
+
+    private void cbValMIVDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValMIVDistItemStateChanged
+    {//GEN-HEADEREND:event_cbValMIVDistItemStateChanged
+        enableCheckboxComponents(evt, tfValMIVDist);
+    }//GEN-LAST:event_cbValMIVDistItemStateChanged
+
+    private void cbValMIVTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValMIVTTItemStateChanged
+    {//GEN-HEADEREND:event_cbValMIVTTItemStateChanged
+        enableCheckboxComponents(evt, tfValMIVTT);
+    }//GEN-LAST:event_cbValMIVTTItemStateChanged
+
+    private void cbValPTDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValPTDistItemStateChanged
+    {//GEN-HEADEREND:event_cbValPTDistItemStateChanged
+        enableCheckboxComponents(evt, tfValPTDist);
+    }//GEN-LAST:event_cbValPTDistItemStateChanged
+
+    private void cbValPTTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValPTTTItemStateChanged
+    {//GEN-HEADEREND:event_cbValPTTTItemStateChanged
+        enableCheckboxComponents(evt, tfValPTTT);
+    }//GEN-LAST:event_cbValPTTTItemStateChanged
+
+    private void cbValWalkDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValWalkDistItemStateChanged
+    {//GEN-HEADEREND:event_cbValWalkDistItemStateChanged
+        enableCheckboxComponents(evt, tfValWalkDist);
+    }//GEN-LAST:event_cbValWalkDistItemStateChanged
+
+    private void cbValWalkTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValWalkTTItemStateChanged
+    {//GEN-HEADEREND:event_cbValWalkTTItemStateChanged
+        enableCheckboxComponents(evt, tfValWalkTT);
+    }//GEN-LAST:event_cbValWalkTTItemStateChanged
+
+    private void cbWalkDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbWalkDistItemStateChanged
+    {//GEN-HEADEREND:event_cbWalkDistItemStateChanged
+        //changes = changes | distanceSelected(Modus.WALK);
+        distanceSelected(Modus.WALK);
+        changes = true;
+    }//GEN-LAST:event_cbWalkDistItemStateChanged
+
+    private void cbWalkTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbWalkTTItemStateChanged
+    {//GEN-HEADEREND:event_cbWalkTTItemStateChanged
+        //changes = changes | distanceSelected(Modus.WALK);
+        distanceSelected(Modus.WALK);
+        changes = true;
+    }//GEN-LAST:event_cbWalkTTItemStateChanged
+
+    private void cbZValueItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbZValueItemStateChanged
+    {//GEN-HEADEREND:event_cbZValueItemStateChanged
+        changes = true;
+    }//GEN-LAST:event_cbZValueItemStateChanged
+
+    private void checkMandantoryFields() {
+        enableComponents(bStart, !tfTazTable.getText().isEmpty() && !tfMatrixTable.getText().isEmpty() &&
+                !tfRecordName.getText().isEmpty());
+
+    }
+
+    private void close() {
+        int choice;
+        if (changes) {
+            choice = JOptionPane.showConfirmDialog(this, "Wollen Sie die Änderungen speichern?", "Speichern",
+                    JOptionPane.YES_NO_CANCEL_OPTION);
+            if (choice == JOptionPane.YES_OPTION) savePropertieFile();
+        }
+        System.exit(0);
+    }
+
+    private boolean distanceSelected(Modus modus) {
+        switch (modus) {
+            case WALK:
+                if (!cbWalkDist.isSelected() && cbWalkTT.isSelected()) {
+                    cbWalkDist.setSelected(true);
+                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
+                    return false;
+                }
+
+            case BIKE:
+                if (!cbBikeDist.isSelected() && cbBikeTT.isSelected()) {
+                    cbBikeDist.setSelected(true);
+                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
+                    return false;
+                }
+
+            case PT:
+                if (!cbPTDist.isSelected() && cbPTTT.isSelected()) {
+                    cbPTDist.setSelected(true);
+                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
+                    return false;
+                }
+
+            case MIV:
+                if (!cbMIVDist.isSelected() && cbMIVTT.isSelected()) {
+                    cbMIVDist.setSelected(true);
+                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
+                    return false;
+                }
+        }
+
+        enableComponents(pTTPara,
+                cbWalkTT.isSelected() || cbBikeTT.isSelected() || cbPTTT.isSelected() || cbMIVTT.isSelected());
+
+        if (!cbWalkDist.isSelected() && !cbBikeDist.isSelected() && !cbPTDist.isSelected() && !cbMIVDist.isSelected()) {
+            enableComponents(bStart, false);
+            enableComponents(pGroupValidation, false);
+        } else {
+            enableComponents(bStart, true);
+            cbActivateValidation.setEnabled(true);
+            if (cbActivateValidation.isSelected()) {
+                cbValWalkDist.setEnabled(true);
+                cbValBikeDist.setEnabled(true);
+                cbValPTDist.setEnabled(true);
+                cbValMIVDist.setEnabled(true);
+
+                cbValWalkTT.setEnabled(true);
+                cbValBikeTT.setEnabled(true);
+                cbValPTTT.setEnabled(true);
+                cbValMIVTT.setEnabled(true);
+
+                if (cbValWalkDist.isSelected()) tfValWalkDist.setEnabled(true);
+                if (cbValBikeDist.isSelected()) tfValBikeDist.setEnabled(true);
+                if (cbValPTDist.isSelected()) tfValPTDist.setEnabled(true);
+                if (cbValMIVDist.isSelected()) tfValMIVDist.setEnabled(true);
+
+                if (cbValWalkTT.isSelected()) tfValWalkTT.setEnabled(true);
+                if (cbValBikeTT.isSelected()) tfValBikeTT.setEnabled(true);
+                if (cbValPTTT.isSelected()) tfValPTTT.setEnabled(true);
+                if (cbValMIVTT.isSelected()) tfValMIVTT.setEnabled(true);
+            }
+            bStart.setEnabled(true);
+        }
+
+        lInfo.setText("");
+        return true;
+    }
+
+    private void enableCheckboxComponents(java.awt.event.ItemEvent evt, Container container) {
+        enableComponents(container, ((JCheckBox) evt.getSource()).isSelected());
+
+        changes = true;
+    }
+
+    private void enableCheckboxes(JCheckBox caller, JTextField textfield) {
+        enableComponents(textfield, caller.isSelected());
+        caller.setEnabled(true);
+    }
+
+    private void enableComponentOnStart(Container caller, Container container, boolean enable) {
+        enableComponents(container, enable);
+        caller.setEnabled(true);
+    }
+
+    private void enableComponentOnStart(Container caller, Container container, String property) {
+        enableComponentOnStart(caller, container, Boolean.parseBoolean(properties.getProperty(property)));
+    }
+    // End of variables declaration//GEN-END:variables
+
+    private void enableComponents(Container container, boolean enable) {
+        Component[] components = container.getComponents();
+
+        if (components.length == 0) container.setEnabled(enable);
+
+        for (Component component : components) {
+            component.setEnabled(enable);
+
+            if (component instanceof Container) {
+                enableComponents((Container) component, enable);
+            }
+        }
+    }
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
+    {//GEN-HEADEREND:event_formWindowClosing
+        close();
+    }//GEN-LAST:event_formWindowClosing
 
     /**
      * This method is called from within the constructor to initialize
@@ -1295,152 +1601,6 @@ public class CruisingSpeedGUI extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    public void start() {
-        try {
-            properties = PropertyReader.getProperties(CruisingSpeed.propertyFileName);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
-    }
-
-    private void bPathActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_bPathActionPerformed
-    {//GEN-HEADEREND:event_bPathActionPerformed
-        String titel = "Vaildierungspfad";
-        JFileChooser fileChooser = new JFileChooser(titel);
-        fileChooser.setCurrentDirectory(new File(System.getProperty("user.home")));
-
-        fileChooser.setFileFilter(new FolderFileFilter());
-
-        // u.a notwendig, damit das ausgewählte Direktory als
-        // Ordnername angezeigt wird
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setAcceptAllFileFilterUsed(false);
-
-        //showDialog liefert einen int-Wert
-        int abbrechen = fileChooser.showDialog(null, "Auswählen");
-        if (abbrechen != JFileChooser.CANCEL_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            tfPath.setText(file.getAbsolutePath());
-            changes = true;
-        }
-    }//GEN-LAST:event_bPathActionPerformed
-
-    private void bCancelActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_bCancelActionPerformed
-    {//GEN-HEADEREND:event_bCancelActionPerformed
-        close();
-    }//GEN-LAST:event_bCancelActionPerformed
-
-    private void bSaveActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_bSaveActionPerformed
-    {//GEN-HEADEREND:event_bSaveActionPerformed
-        if (changes) {
-            savePropertieFile();
-            changes = false;
-            JOptionPane.showMessageDialog(this, "Die Daten wurden gespeichert.");
-        } else {
-            JOptionPane.showMessageDialog(this, "Die Daten wurden nicht verändert, speichern nicht notwengig.");
-        }
-
-    }//GEN-LAST:event_bSaveActionPerformed
-
-    private void cbTerrainItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbTerrainItemStateChanged
-    {//GEN-HEADEREND:event_cbTerrainItemStateChanged
-        if (!cbTerrain.getSelectedItem().toString().equals(properties.getProperty("terrain"))) changes = true;
-    }//GEN-LAST:event_cbTerrainItemStateChanged
-
-    private void cbActivateValidationItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbActivateValidationItemStateChanged
-    {//GEN-HEADEREND:event_cbActivateValidationItemStateChanged
-        JCheckBox source = (JCheckBox) evt.getSource();
-        enableCheckboxComponents(evt, pGroupValidation);
-        source.setEnabled(true);
-
-        // if activated  enable/disable dependend checkboxes and textfields
-        if (source.isSelected()) {
-            enableCheckboxes(cbValWalkDist, tfValWalkDist);
-            enableCheckboxes(cbValBikeDist, tfValBikeDist);
-            enableCheckboxes(cbValPTDist, tfValPTDist);
-            enableCheckboxes(cbValMIVDist, tfValMIVDist);
-
-            // traveltime (TT)
-            enableCheckboxes(cbValWalkTT, tfValWalkTT);
-            enableCheckboxes(cbValBikeTT, tfValBikeTT);
-            enableCheckboxes(cbValPTTT, tfValPTTT);
-            enableCheckboxes(cbValMIVTT, tfValMIVTT);
-        }
-
-    }//GEN-LAST:event_cbActivateValidationItemStateChanged
-
-    private void formWindowClosing(java.awt.event.WindowEvent evt)//GEN-FIRST:event_formWindowClosing
-    {//GEN-HEADEREND:event_formWindowClosing
-        close();
-    }//GEN-LAST:event_formWindowClosing
-
-    private void cbWalkDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbWalkDistItemStateChanged
-    {//GEN-HEADEREND:event_cbWalkDistItemStateChanged
-        //changes = changes | distanceSelected(Modus.WALK);
-        distanceSelected(Modus.WALK);
-        changes = true;
-    }//GEN-LAST:event_cbWalkDistItemStateChanged
-
-    private void cbBikeDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbBikeDistItemStateChanged
-    {//GEN-HEADEREND:event_cbBikeDistItemStateChanged
-        //changes = changes | distanceSelected(Modus.BIKE);
-        distanceSelected(Modus.BIKE);
-        changes = true;
-    }//GEN-LAST:event_cbBikeDistItemStateChanged
-
-    private void cbPTDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbPTDistItemStateChanged
-    {//GEN-HEADEREND:event_cbPTDistItemStateChanged
-        //changes = changes | distanceSelected(Modus.PT);
-        distanceSelected(Modus.PT);
-        changes = true;
-    }//GEN-LAST:event_cbPTDistItemStateChanged
-
-    private void cbMIVDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbMIVDistItemStateChanged
-    {//GEN-HEADEREND:event_cbMIVDistItemStateChanged
-        //changes = changes | distanceSelected(Modus.MIV);
-        distanceSelected(Modus.MIV);
-        changes = true;
-    }//GEN-LAST:event_cbMIVDistItemStateChanged
-
-    private void cbWalkTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbWalkTTItemStateChanged
-    {//GEN-HEADEREND:event_cbWalkTTItemStateChanged
-        //changes = changes | distanceSelected(Modus.WALK);
-        distanceSelected(Modus.WALK);
-        changes = true;
-    }//GEN-LAST:event_cbWalkTTItemStateChanged
-
-    private void cbBikeTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbBikeTTItemStateChanged
-    {//GEN-HEADEREND:event_cbBikeTTItemStateChanged
-        //changes = changes | distanceSelected(Modus.BIKE);
-        distanceSelected(Modus.BIKE);
-        changes = true;
-    }//GEN-LAST:event_cbBikeTTItemStateChanged
-
-    private void cbPTTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbPTTTItemStateChanged
-    {//GEN-HEADEREND:event_cbPTTTItemStateChanged
-        //changes = changes | distanceSelected(Modus.PT);
-        distanceSelected(Modus.PT);
-        changes = true;
-    }//GEN-LAST:event_cbPTTTItemStateChanged
-
-    private void cbMIVTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbMIVTTItemStateChanged
-    {//GEN-HEADEREND:event_cbMIVTTItemStateChanged
-        //changes = changes | distanceSelected(Modus.MIV);
-        distanceSelected(Modus.MIV);
-        changes = true;
-    }//GEN-LAST:event_cbMIVTTItemStateChanged
-
-    private void cbZValueItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbZValueItemStateChanged
-    {//GEN-HEADEREND:event_cbZValueItemStateChanged
-        changes = true;
-    }//GEN-LAST:event_cbZValueItemStateChanged
-
     private void jTabbedPane1FocusGained(java.awt.event.FocusEvent evt)//GEN-FIRST:event_jTabbedPane1FocusGained
     {//GEN-HEADEREND:event_jTabbedPane1FocusGained
         // dist
@@ -1464,76 +1624,6 @@ public class CruisingSpeedGUI extends javax.swing.JFrame {
         changes = false;
 
     }//GEN-LAST:event_jTabbedPane1FocusGained
-
-    private void cbValWalkDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValWalkDistItemStateChanged
-    {//GEN-HEADEREND:event_cbValWalkDistItemStateChanged
-        enableCheckboxComponents(evt, tfValWalkDist);
-    }//GEN-LAST:event_cbValWalkDistItemStateChanged
-
-    private void cbValBikeDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValBikeDistItemStateChanged
-    {//GEN-HEADEREND:event_cbValBikeDistItemStateChanged
-        enableCheckboxComponents(evt, tfValBikeDist);
-    }//GEN-LAST:event_cbValBikeDistItemStateChanged
-
-    private void cbValPTDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValPTDistItemStateChanged
-    {//GEN-HEADEREND:event_cbValPTDistItemStateChanged
-        enableCheckboxComponents(evt, tfValPTDist);
-    }//GEN-LAST:event_cbValPTDistItemStateChanged
-
-    private void cbValMIVDistItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValMIVDistItemStateChanged
-    {//GEN-HEADEREND:event_cbValMIVDistItemStateChanged
-        enableCheckboxComponents(evt, tfValMIVDist);
-    }//GEN-LAST:event_cbValMIVDistItemStateChanged
-
-    private void cbValWalkTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValWalkTTItemStateChanged
-    {//GEN-HEADEREND:event_cbValWalkTTItemStateChanged
-        enableCheckboxComponents(evt, tfValWalkTT);
-    }//GEN-LAST:event_cbValWalkTTItemStateChanged
-
-    private void cbValBikeTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValBikeTTItemStateChanged
-    {//GEN-HEADEREND:event_cbValBikeTTItemStateChanged
-        enableCheckboxComponents(evt, tfValBikeTT);
-    }//GEN-LAST:event_cbValBikeTTItemStateChanged
-
-    private void cbValPTTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValPTTTItemStateChanged
-    {//GEN-HEADEREND:event_cbValPTTTItemStateChanged
-        enableCheckboxComponents(evt, tfValPTTT);
-    }//GEN-LAST:event_cbValPTTTItemStateChanged
-
-    private void cbValMIVTTItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbValMIVTTItemStateChanged
-    {//GEN-HEADEREND:event_cbValMIVTTItemStateChanged
-        enableCheckboxComponents(evt, tfValMIVTT);
-    }//GEN-LAST:event_cbValMIVTTItemStateChanged
-
-    private void cbTop3ItemStateChanged(java.awt.event.ItemEvent evt)//GEN-FIRST:event_cbTop3ItemStateChanged
-    {//GEN-HEADEREND:event_cbTop3ItemStateChanged
-        changes = true;
-    }//GEN-LAST:event_cbTop3ItemStateChanged
-
-    private void tfTazTableKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_tfTazTableKeyReleased
-    {//GEN-HEADEREND:event_tfTazTableKeyReleased
-        checkMandantoryFields();
-    }//GEN-LAST:event_tfTazTableKeyReleased
-
-    private void tfMatrixTableKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_tfMatrixTableKeyReleased
-    {//GEN-HEADEREND:event_tfMatrixTableKeyReleased
-        checkMandantoryFields();
-    }//GEN-LAST:event_tfMatrixTableKeyReleased
-
-    private void tfRecordNameKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_tfRecordNameKeyReleased
-    {//GEN-HEADEREND:event_tfRecordNameKeyReleased
-        checkMandantoryFields();
-    }//GEN-LAST:event_tfRecordNameKeyReleased
-
-    private void bStartActionPerformed(java.awt.event.ActionEvent evt) {
-        if (changes) savePropertieFile();
-        CruisingSpeed cs = new CruisingSpeed();
-        CruisingSpeed.setProperties(properties);
-        cs.start(null);
-        changes = false;
-        JOptionPane.showMessageDialog(this, "Die Daten wurden generiert");
-    }
-    // End of variables declaration//GEN-END:variables
 
     private void savePropertieFile() {
         try {
@@ -1637,127 +1727,34 @@ public class CruisingSpeedGUI extends javax.swing.JFrame {
         System.out.println("Speichern");
     }
 
-    private void close() {
-        int choice;
-        if (changes) {
-            choice = JOptionPane.showConfirmDialog(this, "Wollen Sie die Änderungen speichern?", "Speichern",
-                    JOptionPane.YES_NO_CANCEL_OPTION);
-            if (choice == JOptionPane.YES_OPTION) savePropertieFile();
+    public void start() {
+        try {
+            properties = PropertyReader.getProperties(CruisingSpeed.propertyFileName);
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
-        System.exit(0);
-    }
 
-    private void enableComponents(Container container, boolean enable) {
-        Component[] components = container.getComponents();
-
-        if (components.length == 0) container.setEnabled(enable);
-
-        for (Component component : components) {
-            component.setEnabled(enable);
-
-            if (component instanceof Container) {
-                enableComponents((Container) component, enable);
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
             }
-        }
+        });
     }
 
-    private void enableCheckboxComponents(java.awt.event.ItemEvent evt, Container container) {
-        if (((JCheckBox) evt.getSource()).isSelected()) {
-            enableComponents(container, true);
-        } else enableComponents(container, false);
+    private void tfMatrixTableKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_tfMatrixTableKeyReleased
+    {//GEN-HEADEREND:event_tfMatrixTableKeyReleased
+        checkMandantoryFields();
+    }//GEN-LAST:event_tfMatrixTableKeyReleased
 
-        changes = true;
-    }
+    private void tfRecordNameKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_tfRecordNameKeyReleased
+    {//GEN-HEADEREND:event_tfRecordNameKeyReleased
+        checkMandantoryFields();
+    }//GEN-LAST:event_tfRecordNameKeyReleased
 
-    private void enableCheckboxes(JCheckBox caller, JTextField textfield) {
-        enableComponents(textfield, caller.isSelected());
-        caller.setEnabled(true);
-    }
-
-    private void enableComponentOnStart(Container caller, Container container, boolean enable) {
-        enableComponents(container, enable);
-        caller.setEnabled(true);
-    }
-
-    private void enableComponentOnStart(Container caller, Container container, String property) {
-        enableComponentOnStart(caller, container, Boolean.parseBoolean(properties.getProperty(property)));
-    }
-
-    private void checkMandantoryFields() {
-        if (tfTazTable.getText().isEmpty() || tfMatrixTable.getText().isEmpty() || tfRecordName.getText().isEmpty())
-            enableComponents(bStart, false);
-        else enableComponents(bStart, true);
-
-    }
-
-    private boolean distanceSelected(Modus modus) {
-        switch (modus) {
-            case WALK:
-                if (!cbWalkDist.isSelected() && cbWalkTT.isSelected()) {
-                    cbWalkDist.setSelected(true);
-                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
-                    return false;
-                }
-
-            case BIKE:
-                if (!cbBikeDist.isSelected() && cbBikeTT.isSelected()) {
-                    cbBikeDist.setSelected(true);
-                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
-                    return false;
-                }
-
-            case PT:
-                if (!cbPTDist.isSelected() && cbPTTT.isSelected()) {
-                    cbPTDist.setSelected(true);
-                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
-                    return false;
-                }
-
-            case MIV:
-                if (!cbMIVDist.isSelected() && cbMIVTT.isSelected()) {
-                    cbMIVDist.setSelected(true);
-                    lInfo.setText("Die Distanz wird für die Reisezeitberechnung benötigt.");
-                    return false;
-                }
-        }
-
-        if (!cbWalkTT.isSelected() && !cbBikeTT.isSelected() && !cbPTTT.isSelected() && !cbMIVTT.isSelected())
-            enableComponents(pTTPara, false);
-        else enableComponents(pTTPara, true);
-
-        if (!cbWalkDist.isSelected() && !cbBikeDist.isSelected() && !cbPTDist.isSelected() && !cbMIVDist.isSelected()) {
-            enableComponents(bStart, false);
-            enableComponents(pGroupValidation, false);
-        } else {
-            enableComponents(bStart, true);
-            cbActivateValidation.setEnabled(true);
-            if (cbActivateValidation.isSelected()) {
-                cbValWalkDist.setEnabled(true);
-                cbValBikeDist.setEnabled(true);
-                cbValPTDist.setEnabled(true);
-                cbValMIVDist.setEnabled(true);
-
-                cbValWalkTT.setEnabled(true);
-                cbValBikeTT.setEnabled(true);
-                cbValPTTT.setEnabled(true);
-                cbValMIVTT.setEnabled(true);
-
-                if (cbValWalkDist.isSelected()) tfValWalkDist.setEnabled(true);
-                if (cbValBikeDist.isSelected()) tfValBikeDist.setEnabled(true);
-                if (cbValPTDist.isSelected()) tfValPTDist.setEnabled(true);
-                if (cbValMIVDist.isSelected()) tfValMIVDist.setEnabled(true);
-
-                if (cbValWalkTT.isSelected()) tfValWalkTT.setEnabled(true);
-                if (cbValBikeTT.isSelected()) tfValBikeTT.setEnabled(true);
-                if (cbValPTTT.isSelected()) tfValPTTT.setEnabled(true);
-                if (cbValMIVTT.isSelected()) tfValMIVTT.setEnabled(true);
-            }
-            bStart.setEnabled(true);
-        }
-
-        lInfo.setText("");
-        return true;
-    }
+    private void tfTazTableKeyReleased(java.awt.event.KeyEvent evt)//GEN-FIRST:event_tfTazTableKeyReleased
+    {//GEN-HEADEREND:event_tfTazTableKeyReleased
+        checkMandantoryFields();
+    }//GEN-LAST:event_tfTazTableKeyReleased
 
     public static class FolderFileFilter extends FileFilter {
         /**
@@ -1780,12 +1777,20 @@ public class CruisingSpeedGUI extends javax.swing.JFrame {
     } // Ende der Inner-Class FolderFileFilter
 
     class TextFieldDokumentlistener implements DocumentListener {
-        private JTextField textField;
-        private String propertieKey;
+        private final JTextField textField;
+        private final String propertieKey;
 
         public TextFieldDokumentlistener(JTextField textField, String propertieKey) {
             this.textField = textField;
             this.propertieKey = propertieKey;
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            if (!textField.getText().trim().equals(properties.getProperty(propertieKey))) {
+                //  System.out.println("Changes = "+changes+"\nchangedUpdate: "+textField.getText()+", "+properties.getProperty(propertieKey));
+                changes = true;
+            }
         }
 
         @Override
@@ -1801,14 +1806,6 @@ public class CruisingSpeedGUI extends javax.swing.JFrame {
         public void removeUpdate(DocumentEvent e) {
             if (!textField.getText().trim().equals(properties.getProperty(propertieKey))) {
                 // System.out.println("Changes = "+changes+"\nremoveUpdate: "+textField.getText()+", "+properties.getProperty(propertieKey));
-                changes = true;
-            }
-        }
-
-        @Override
-        public void changedUpdate(DocumentEvent e) {
-            if (!textField.getText().trim().equals(properties.getProperty(propertieKey))) {
-                //  System.out.println("Changes = "+changes+"\nchangedUpdate: "+textField.getText()+", "+properties.getProperty(propertieKey));
                 changes = true;
             }
         }

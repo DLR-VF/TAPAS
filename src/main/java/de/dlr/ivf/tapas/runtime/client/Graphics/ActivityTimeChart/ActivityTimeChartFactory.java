@@ -14,63 +14,59 @@ import java.util.HashMap;
 /**
  * This class is a factory to create {@link JFreeChart}s showing the activity
  * distribution of a model and a reference.
- * 
+ *
  * @author boec_pa
- * 
  */
 public class ActivityTimeChartFactory {
-	// TODO add alternative input possibilities
+    // TODO add alternative input possibilities
 
-	public static JFreeChart createChart(HashMap<Date, Number> reference,
-			HashMap<Date, Number> model) {
+    public static void categorySeriesTest() {
+        HashMap<Date, Number> reference = new HashMap<>();
+        HashMap<Date, Number> model = new HashMap<>();
 
-		ActivityTimeDataset dataset = new ActivityTimeDataset(reference, model);
+        // Create example data
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 2);
+        reference.put(cal.getTime(), 0.3);
+        model.put(cal.getTime(), 0.2);
+        cal.set(Calendar.HOUR_OF_DAY, 5);
+        reference.put(cal.getTime(), 0.5);
+        model.put(cal.getTime(), 0.6);
+        cal.set(Calendar.HOUR_OF_DAY, 8);
+        reference.put(cal.getTime(), 0.3);
+        model.put(cal.getTime(), 0.1);
+        cal.set(Calendar.HOUR_OF_DAY, 12);
+        reference.put(cal.getTime(), 0.2);
+        model.put(cal.getTime(), 0.1);
 
-		JFreeChart chart = ChartFactory.createBarChart(null, null, null,
-				dataset, PlotOrientation.VERTICAL, true, false, false);
+        JFreeChart chart = createChart(reference, model);
 
-		chart.getPlot().setBackgroundPaint(Color.WHITE);
+        // Show Chart
+        ChartFrame frame = new ChartFrame("Activity Time Chart", chart);
+        frame.pack();
+        frame.setVisible(true);
 
-		chart.getCategoryPlot()
-				.getRenderer()
-				.setDefaultToolTipGenerator(new StandardCategoryToolTipGenerator());
+    }
 
-		return chart;
-	}
+    public static JFreeChart createChart(HashMap<Date, Number> reference, HashMap<Date, Number> model) {
 
-	/**
-	 * For testing purposes only
-	 */
-	public static void main(String[] args) {
-		categorySeriesTest();
+        ActivityTimeDataset dataset = new ActivityTimeDataset(reference, model);
 
-	}
+        JFreeChart chart = ChartFactory.createBarChart(null, null, null, dataset, PlotOrientation.VERTICAL, true, false,
+                false);
 
-	public static void categorySeriesTest() {
-		HashMap<Date, Number> reference = new HashMap<>();
-		HashMap<Date, Number> model = new HashMap<>();
+        chart.getPlot().setBackgroundPaint(Color.WHITE);
 
-		// Create example data
-		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.HOUR_OF_DAY, 2);
-		reference.put(cal.getTime(), 0.3);
-		model.put(cal.getTime(), 0.2);
-		cal.set(Calendar.HOUR_OF_DAY, 5);
-		reference.put(cal.getTime(), 0.5);
-		model.put(cal.getTime(), 0.6);
-		cal.set(Calendar.HOUR_OF_DAY, 8);
-		reference.put(cal.getTime(), 0.3);
-		model.put(cal.getTime(), 0.1);
-		cal.set(Calendar.HOUR_OF_DAY, 12);
-		reference.put(cal.getTime(), 0.2);
-		model.put(cal.getTime(), 0.1);
+        chart.getCategoryPlot().getRenderer().setDefaultToolTipGenerator(new StandardCategoryToolTipGenerator());
 
-		JFreeChart chart = createChart(reference, model);
+        return chart;
+    }
 
-		// Show Chart
-		ChartFrame frame = new ChartFrame("Activity Time Chart", chart);
-		frame.pack();
-		frame.setVisible(true);
+    /**
+     * For testing purposes only
+     */
+    public static void main(String[] args) {
+        categorySeriesTest();
 
-	}
+    }
 }

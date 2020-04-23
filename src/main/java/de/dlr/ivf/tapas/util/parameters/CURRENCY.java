@@ -6,10 +6,11 @@ package de.dlr.ivf.tapas.util.parameters;
  *
  * @author mark_ma
  */
-public enum CURRENCY {/**
- * German currency until 2002: German Mark (Deutsche Mark)
- */
-DM(1),
+public enum CURRENCY {
+    /**
+     * German currency until 2002: German Mark (Deutsche Mark)
+     */
+    DM(1),
     /**
      * European currency: EURO
      */
@@ -18,7 +19,7 @@ DM(1),
     /**
      * Factor to convert between currencies
      */
-    private double factor;
+    private final double factor;
 
     /**
      * Constructor sets the factor
@@ -39,4 +40,5 @@ DM(1),
      */
     public double convert(double value, CURRENCY currentCurrency) {
         return value / currentCurrency.factor * this.factor;
-    }}
+    }
+}

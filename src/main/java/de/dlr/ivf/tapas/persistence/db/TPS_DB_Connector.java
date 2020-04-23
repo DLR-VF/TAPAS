@@ -36,7 +36,8 @@ public class TPS_DB_Connector {
      * established in the constructor and closed when the application exits, via
      * a shutdown hook.
      */
-    private Map<Object, Connection> connections;
+    private final Map<Object, Connection> connections;
+
     /**
      * The constructor has three parts. Fist of all the database properties are
      * read from a file. Then these properties are checked if they have correct
@@ -58,17 +59,8 @@ public class TPS_DB_Connector {
     }
 
     public TPS_DB_Connector(TPS_ParameterClass parameterClass) throws UnknownHostException, ClassNotFoundException {
-        this(parameterClass.getString(ParamString.DB_USER),
-                parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
-    }
-
-
-    /**
-     * returns the parameters class reference
-     * @return
-     */
-    public TPS_ParameterClass getParameters(){
-        return this.parameterClass;
+        this(parameterClass.getString(ParamString.DB_USER), parameterClass.getString(ParamString.DB_PASSWORD),
+                parameterClass);
     }
 
     /**
@@ -84,8 +76,7 @@ public class TPS_DB_Connector {
      * @throws IllegalArgumentException This exception is thrown if the port is outside the value
      *                                  range of [1,65534]
      */
-    private static void checkProperties(TPS_ParameterClass parameterClass) throws ClassNotFoundException,
-			UnknownHostException {
+    private static void checkProperties(TPS_ParameterClass parameterClass) throws ClassNotFoundException, UnknownHostException {
         checkProperty(ParamString.DB_DRIVER, parameterClass);
         // check if the driver exists
         Class.forName(parameterClass.getString(ParamString.DB_DRIVER));
@@ -99,8 +90,8 @@ public class TPS_DB_Connector {
 
         // check if port is between [0,65535]
         int port = parameterClass.paramValueClass.getIntValue(ParamValue.DB_PORT);
-        if (port < 0 || port > 65535)
-            throw new IllegalArgumentException("The value for 'port' is outside the correct range [0, 65535]: " + port);
+        if (port < 0 || port > 65535) throw new IllegalArgumentException(
+                "The value for 'port' is outside the correct range [0, 65535]: " + port);
 
         checkProperty(ParamString.DB_DBNAME, parameterClass);
     }
@@ -121,29 +112,43 @@ public class TPS_DB_Connector {
     }
 
     /**
-     * Method to return a parameter value for a given simulation key and parameter key. Returns null, if simulation or
-     * parameter key is not present
+     * This method checks if the connection is still alive.
      *
-     * @param simKey   The simulation to look for
-     * @param paramKey The parameter to look for
-     * @param caller   The caller for connection hygiene
-     * @return A String containing the parameter value
+     * @param caller Caller object, which should be checked for connectivity.
+     * @return
      */
-    public String readParameter(String simKey, String paramKey, Object caller) {
-        String query = "";
-        String result = null;
+    public boolean checkConnection(Object caller) {
         try {
-            query = "SELECT param_value from simulation_parameters WHERE sim_key = '" + simKey + "' and param_key = '" +
-                    paramKey + "'";
-            ResultSet rs = this.executeQuery(query, caller);
-            if (rs.next()) {
-                result = rs.getString("param_value");
-            }
+            return connections.get(caller) != null && !connections.get(caller).isClosed();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in SQL-query: " + query, e);
-            throw new RuntimeException(e);
+            return false;
         }
-        return result;
+    }
+
+    /**
+     * This method checks the basic connectivity to the database. It builds up a
+     * connection, sends a basic query and closes the connection. If no
+     * exception is thrown everything is alright.
+     *
+     * @throws SQLException TZhis exception is thrown if a task in the connectivity check
+     *                      fails
+     */
+    void checkConnectivity() throws SQLException {
+        Connection con = this.openConnection();
+        Statement s = con.createStatement();
+        ResultSet set = s.executeQuery(
+                "SELECT core.check_user('" + this.parameterClass.getString(ParamString.DB_USER) + "')");
+        while (set.next()) {
+            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(SeverenceLogLevel.INFO,
+                        "Connectivity check for user " + this.parameterClass.getString(ParamString.DB_USER) +
+                                " was successful");
+            }
+        }
+        set.close();
+        if (!con.getAutoCommit()) con.commit();
+        s.close();
+        con.close();
     }
 
     /**
@@ -156,8 +161,7 @@ public class TPS_DB_Connector {
     public void closeConnection(Object key) throws SQLException {
         Connection c = this.connections.remove(key);
         if (c != null) {
-            if (!c.getAutoCommit())
-                c.commit();
+            if (!c.getAutoCommit()) c.commit();
             c.close();
         }
     }
@@ -176,176 +180,65 @@ public class TPS_DB_Connector {
     }
 
     /**
-     * Returns the connection specified via its object key; if the key does not
-     * reference an existing connection, a new connection with the provided
-     * object key is opened
+     * This method commits the db-changes if autocommit is disabled.
      *
-     * @param key the object key of the connection
-     * @return the connection referenced by the key
-     * @throws SQLException This exception is thrown in case of non-existence or
-     *                      non-accessibility to the server or refusing the connection by
-     *                      the server (e.g. this IP has no permission to connect to the
-     *                      database)
+     * @param c the connection to commit
+     * @throws SQLException any exception, e.g connection loss
      */
-    public Connection getConnection(Object key) throws SQLException {
-        Connection c = connections.get(key);
-        if (c != null && c.isClosed()) {
-            c = null;
-        }
+    public void commit(Connection c) throws SQLException {
+        if (!c.getAutoCommit()) c.commit();
+    }
+
+    /**
+     * This method does a sql-execute for the given string with the given calling class. Each calling class gets its own connection
+     *
+     * @param query  The sql-query
+     * @param caller the caller Object. If this Object made a call before, Its connection is reused. Otherwise a new connection is created.
+     */
+    public void execute(String query, Object caller) {
+        boolean finished = false;
         SQLException ex = null;
-        for (int i = 0; i < 120 && c == null; ++i) {
+        int tries = 0;
+        while (!finished && tries < 10) {
             try {
-                if (i > 0) {
-                    Thread.sleep(1000);
+                Connection con = this.getConnection(caller);
+                if (con != null) {
+                    synchronized (this.getConnection(caller)) {
+                        Statement s = this.getConnection(caller).createStatement();
+                        s.execute(query);
+                        //commit(this.getConnection(caller));
+                        s.close();
+                        finished = true;
+                    }
                 }
-                c = this.openConnection();
-                this.connections.put(key, c);
             } catch (SQLException e) {
-                TPS_Logger
-                        .log(SeverenceLogLevel.ERROR, "Error creating db-connection. Try: " + i + "\n" + e.getMessage(),
-                                e);
+                finished = !isSqlConnectionError(e);
+                tries++;
                 ex = e;
-            } catch (InterruptedException e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
+            } catch (Exception e) {
+                TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+                ex = new SQLException(e);
             }
         }
-        if (c == null) {
-            if (ex == null)
-                throw new RuntimeException("Unknown error while creating connection");
-            throw ex;
+        if (ex != null) {
+            TPS_Logger.log(SeverenceLogLevel.ERROR, ex);
+            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
+            TPS_Logger.log(SeverenceLogLevel.ERROR, ex.getNextException());
+            System.err.println("Error during sql-statement: " + query);
+            ex.printStackTrace();
+            if (ex.getNextException() != null) {
+                System.err.println("Next exception:");
+                ex.getNextException().printStackTrace();
+            }
         }
-        return c;
     }
 
     /**
-     * This method checks the basic connectivity to the database. It builds up a
-     * connection, sends a basic query and closes the connection. If no
-     * exception is thrown everything is alright.
-     *
-     * @throws SQLException TZhis exception is thrown if a task in the connectivity check
-     *                      fails
-     */
-    void checkConnectivity() throws SQLException {
-        Connection con = this.openConnection();
-        Statement s = con.createStatement();
-        ResultSet set = s
-                .executeQuery("SELECT core.check_user('" + this.parameterClass.getString(ParamString.DB_USER) + "')");
-        while (set.next()) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO,
-                        "Connectivity check for user " + this.parameterClass.getString(ParamString.DB_USER) +
-                                " was successful");
-            }
-        }
-        set.close();
-        if (!con.getAutoCommit())
-            con.commit();
-        s.close();
-        con.close();
-    }
-
-    /**
-     * This method opens a connection to a database if there doesn't already
-     * exist one. All parameters for the connection are determined by the
-     * properties file. If there is no password set, the user gets a dialog
-     * where is asked for the password.
-     *
-     * @throws SQLException This exception is thrown in case of non-existence or
-     *                      non-accessibility to the server or refuting the connection by
-     *                      the server (e.g. this IP has no permission to connect to the
-     *                      database)
-     */
-    private Connection openConnection() throws SQLException {
-        String url = "jdbc:" + this.parameterClass.getString(ParamString.DB_TYPE) + "://" +
-                this.parameterClass.getString(ParamString.DB_HOST) + ":" +
-                this.parameterClass.getIntValue(ParamValue.DB_PORT) + "/" +
-                this.parameterClass.getString(ParamString.DB_DBNAME);
-
-
-        if (this.myUserName == null) {
-            if (this.parameterClass.isDefined(ParamString.DB_USER)) {
-                this.myUserName = this.parameterClass.getString(ParamString.DB_USER);
-            } else {
-                JLabel label = new JLabel("Please enter database user:");
-                JTextField jtf = new JTextField();
-                JOptionPane
-                        .showConfirmDialog(null, new Object[]{label, jtf}, "Password:", JOptionPane.OK_CANCEL_OPTION);
-                this.myUserName = jtf.getText();
-            }
-        }
-
-        if (this.myUserPwd == null) {
-            if (this.parameterClass.isDefined(ParamString.DB_PASSWORD)) {
-                this.myUserPwd = this.parameterClass.getString(ParamString.DB_PASSWORD);
-            } else {
-                JLabel label = new JLabel("Please enter password for database user '" + this.myUserName + "':");
-                JPasswordField jpf = new JPasswordField();
-                JOptionPane
-                        .showConfirmDialog(null, new Object[]{label, jpf}, "Password:", JOptionPane.OK_CANCEL_OPTION);
-                this.myUserPwd = new String(jpf.getPassword());
-            }
-        }
-
-        Connection con = DriverManager.getConnection(url, this.myUserName, this.myUserPwd);
-        con.setAutoCommit(true);
-        con.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
-
-        return con;
-    }
-
-
-
-	/**
-	 * This method does a sql-execute for the given string with the given calling class. Each calling class gets its own connection
-	 * @param query The sql-query
-	 * @param caller the caller Object. If this Object made a call before, Its connection is reused. Otherwise a new connection is created.
-	 */
-	public void execute(String query, Object caller) {
-		boolean finished = false;
-		SQLException ex = null;
-		int tries=0;
-		while (!finished && tries<10) {
-			try {
-				Connection con = this.getConnection(caller);
-				if (con != null) {
-					synchronized (this.getConnection(caller)) {
-						Statement s = this.getConnection(caller)
-								.createStatement();
-						s.execute(query);
-						//commit(this.getConnection(caller));
-						s.close();
-						finished = true;
-					}
-				}
-			} catch (SQLException e) {
-				finished=!isSqlConnectionError(e);
-				tries++;
-				ex = e;			
-			} catch (Exception e) {
-				TPS_Logger.log(SeverenceLogLevel.ERROR, e);
-				ex = new SQLException(e);
-			}
-		}
-		if (ex != null) {
-			TPS_Logger.log(SeverenceLogLevel.ERROR, ex);
-			TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
-			TPS_Logger.log(SeverenceLogLevel.ERROR, ex.getNextException());
-			System.err.println("Error during sql-statement: "+query);
-			ex.printStackTrace();
-			if(ex.getNextException()!=null) {
-				System.err.println("Next exception:");
-				ex.getNextException().printStackTrace();
-			}
-		}
-	}
-
-    /**
-     *
      * @param query
      * @param caller
      * @return
      */
-    public ResultSet executeQuery(String query, Object caller){
+    public ResultSet executeQuery(String query, Object caller) {
         ResultSet rs = null;
         boolean finished = false;
         SQLException ex = null;
@@ -386,26 +279,15 @@ public class TPS_DB_Connector {
     }
 
     /**
-     * This method commits the db-changes if autocommit is disabled.
-     *
-     * @param c the connection to commit
-     * @throws SQLException any exception, e.g connection loss
-     */
-    public void commit(Connection c) throws SQLException {
-        if (!c.getAutoCommit())
-            c.commit();
-    }
-
-    /**
      * This method does a sql-executeUpdate for the given string with the given calling class and returns the number
      * of updated rows. Each calling class gets its own connection.
      *
      * @param query  The sql-query
      * @param caller the caller Object. If this Object made a call before, Its connection is reused. Otherwise a new
-	 *               connection is created.
+     *               connection is created.
      * @return the number of updated rows
      */
-    public int executeUpdate(String query, Object caller){
+    public int executeUpdate(String query, Object caller) {
         boolean finished = false;
         SQLException ex = null;
         int updatedRows = 0;
@@ -445,6 +327,55 @@ public class TPS_DB_Connector {
         return updatedRows;
     }
 
+    /**
+     * Returns the connection specified via its object key; if the key does not
+     * reference an existing connection, a new connection with the provided
+     * object key is opened
+     *
+     * @param key the object key of the connection
+     * @return the connection referenced by the key
+     * @throws SQLException This exception is thrown in case of non-existence or
+     *                      non-accessibility to the server or refusing the connection by
+     *                      the server (e.g. this IP has no permission to connect to the
+     *                      database)
+     */
+    public Connection getConnection(Object key) throws SQLException {
+        Connection c = connections.get(key);
+        if (c != null && c.isClosed()) {
+            c = null;
+        }
+        SQLException ex = null;
+        for (int i = 0; i < 120 && c == null; ++i) {
+            try {
+                if (i > 0) {
+                    Thread.sleep(1000);
+                }
+                c = this.openConnection();
+                this.connections.put(key, c);
+            } catch (SQLException e) {
+                TPS_Logger.log(SeverenceLogLevel.ERROR,
+                        "Error creating db-connection. Try: " + i + "\n" + e.getMessage(), e);
+                ex = e;
+            } catch (InterruptedException e) {
+                TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
+            }
+        }
+        if (c == null) {
+            if (ex == null) throw new RuntimeException("Unknown error while creating connection");
+            throw ex;
+        }
+        return c;
+    }
+
+    /**
+     * returns the parameters class reference
+     *
+     * @return
+     */
+    public TPS_ParameterClass getParameters() {
+        return this.parameterClass;
+    }
+
     private boolean isSqlConnectionError(SQLException e) {
         return e.getErrorCode() == 8000 ||//CONNECTION EXCEPTION	connection_exception
                 e.getErrorCode() == 8003 ||//CONNECTION DOES NOT EXIST	connection_does_not_exist
@@ -457,17 +388,51 @@ public class TPS_DB_Connector {
     }
 
     /**
-     * This method checks if the connection is still alive.
+     * This method opens a connection to a database if there doesn't already
+     * exist one. All parameters for the connection are determined by the
+     * properties file. If there is no password set, the user gets a dialog
+     * where is asked for the password.
      *
-     * @param caller Caller object, which should be checked for connectivity.
-     * @return
+     * @throws SQLException This exception is thrown in case of non-existence or
+     *                      non-accessibility to the server or refuting the connection by
+     *                      the server (e.g. this IP has no permission to connect to the
+     *                      database)
      */
-    public boolean checkConnection(Object caller) {
-        try {
-            return connections.get(caller) != null && !connections.get(caller).isClosed();
-        } catch (SQLException e) {
-            return false;
+    private Connection openConnection() throws SQLException {
+        String url = "jdbc:" + this.parameterClass.getString(ParamString.DB_TYPE) + "://" +
+                this.parameterClass.getString(ParamString.DB_HOST) + ":" + this.parameterClass.getIntValue(
+                ParamValue.DB_PORT) + "/" + this.parameterClass.getString(ParamString.DB_DBNAME);
+
+
+        if (this.myUserName == null) {
+            if (this.parameterClass.isDefined(ParamString.DB_USER)) {
+                this.myUserName = this.parameterClass.getString(ParamString.DB_USER);
+            } else {
+                JLabel label = new JLabel("Please enter database user:");
+                JTextField jtf = new JTextField();
+                JOptionPane.showConfirmDialog(null, new Object[]{label, jtf}, "Password:",
+                        JOptionPane.OK_CANCEL_OPTION);
+                this.myUserName = jtf.getText();
+            }
         }
+
+        if (this.myUserPwd == null) {
+            if (this.parameterClass.isDefined(ParamString.DB_PASSWORD)) {
+                this.myUserPwd = this.parameterClass.getString(ParamString.DB_PASSWORD);
+            } else {
+                JLabel label = new JLabel("Please enter password for database user '" + this.myUserName + "':");
+                JPasswordField jpf = new JPasswordField();
+                JOptionPane.showConfirmDialog(null, new Object[]{label, jpf}, "Password:",
+                        JOptionPane.OK_CANCEL_OPTION);
+                this.myUserPwd = new String(jpf.getPassword());
+            }
+        }
+
+        Connection con = DriverManager.getConnection(url, this.myUserName, this.myUserPwd);
+        con.setAutoCommit(true);
+        con.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
+
+        return con;
     }
 
     /**
@@ -483,7 +448,7 @@ public class TPS_DB_Connector {
         String query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
                 this.parameterClass.getString(ParamString.DB_TABLE_MATRIXMAPS) + " WHERE \"matrixMap_name\"='" +
                 matrixName + "'";
-        TPS_Logger.log(SeverenceLogLevel.INFO, "Loading matrix map distribution "+matrixName+" from DB: ");
+        TPS_Logger.log(SeverenceLogLevel.INFO, "Loading matrix map distribution " + matrixName + " from DB: ");
         try {
             ResultSet rs = this.executeQuery(query, caller);
             if (rs.next()) {
@@ -505,9 +470,8 @@ public class TPS_DB_Connector {
                 Matrix[] matrices = new Matrix[numOfMatrices];
                 //load matrix map
                 for (int i = 0; i < numOfMatrices; ++i) {
-                    query = "SELECT matrix_values FROM " +
-                            this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" +
-                            matrix_names[i] + "'";
+                    query = "SELECT matrix_values FROM " + this.parameterClass.getString(
+                            ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrix_names[i] + "'";
                     rs = this.executeQuery(query, caller);
                     if (rs.next()) {
                         int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
@@ -522,19 +486,68 @@ public class TPS_DB_Connector {
                                 "Couldn't load matrix " + matrix_names[i] + " form matrix map" + matrixName +
                                         ": No such matrix.");
                     }
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "Loaded matrix from DB: " + matrix_names[i]+ " End time: "+distribution[i]+" Average value: "+matrices[i].getAverageValue(false,true));
+                    TPS_Logger.log(SeverenceLogLevel.INFO,
+                            "Loaded matrix from DB: " + matrix_names[i] + " End time: " + distribution[i] +
+                                    " Average value: " + matrices[i].getAverageValue(false, true));
 
                 }
                 matrix = new MatrixMap(distribution, matrices);
-            }
-            else {
-            	TPS_Logger.log(SeverenceLogLevel.ERROR, "No results from DB!");
+            } else {
+                TPS_Logger.log(SeverenceLogLevel.ERROR, "No results from DB!");
             }
         } catch (SQLException e) {
             TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in sql-query: " + query);
             TPS_Logger.log(SeverenceLogLevel.ERROR, e);
         }
         return matrix;
+    }
+
+    /**
+     * Method to return a parameter value for a given simulation key and parameter key. Returns null, if simulation or
+     * parameter key is not present
+     *
+     * @param simKey   The simulation to look for
+     * @param paramKey The parameter to look for
+     * @param caller   The caller for connection hygiene
+     * @return A String containing the parameter value
+     */
+    public String readParameter(String simKey, String paramKey, Object caller) {
+        String query = "";
+        String result = null;
+        try {
+            query = "SELECT param_value from simulation_parameters WHERE sim_key = '" + simKey + "' and param_key = '" +
+                    paramKey + "'";
+            ResultSet rs = this.executeQuery(query, caller);
+            if (rs.next()) {
+                result = rs.getString("param_value");
+            }
+        } catch (SQLException e) {
+            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in SQL-query: " + query, e);
+            throw new RuntimeException(e);
+        }
+        return result;
+    }
+
+    /**
+     * Method to read simulation parameters from the DB for a given key.
+     *
+     * @param simKey
+     * @return
+     */
+    public void readRuntimeParametersFromDB(String simKey) {
+        String query = "";
+        try {
+
+            query = "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATION_PARAMETERS) +
+                    " WHERE sim_key = '" + simKey + "'";
+            ResultSet rs = this.executeQuery(query, this);
+            this.parameterClass.readRuntimeParametersFromDB(rs);
+            rs.close();
+            this.parameterClass.checkParameters();
+        } catch (SQLException e) {
+            System.err.println("Error in sql-statement: " + query);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -574,7 +587,7 @@ public class TPS_DB_Connector {
     public int updateSingleParameter(String sim_key, String param_key, String paramValue) {
         String query =
                 "UPDATE simulation_parameters set param_value ='" + paramValue + "' where sim_key = '" + sim_key +
-                "' AND " + "param_key = '" + param_key + "'";
+                        "' AND " + "param_key = '" + param_key + "'";
         return this.executeUpdate(query, this); // affected rows
     }
 
@@ -593,28 +606,5 @@ public class TPS_DB_Connector {
          */
         ADMIN
     }
-    
-    /**
-     * Method to read simulation parameters from the DB for a given key.
-     * @param simKey
-     * @return
-     */
-	public void readRuntimeParametersFromDB(String simKey) {
-		String query="";
-		try {
-			
-            query = "SELECT * FROM " +
-                    this.parameterClass.getString(ParamString.DB_TABLE_SIMULATION_PARAMETERS) + " WHERE sim_key = '" +
-                    simKey + "'";
-            ResultSet rs = this.executeQuery(query, this);
-            this.parameterClass.readRuntimeParametersFromDB(rs);
-            rs.close();		
-            this.parameterClass.checkParameters();
-		}
-		catch (SQLException e) {
-            System.err.println("Error in sql-statement: " + query);
-            e.printStackTrace();
-        }
-	}
 
 }

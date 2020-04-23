@@ -33,9 +33,9 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
 
     private DBTripReader tripReader;
     private String source;
-    private LinkedList<String> simulations = new LinkedList<>();
+    private final LinkedList<String> simulations = new LinkedList<>();
     private String simulation;
-    private TPS_DB_Connector connection;
+    private final TPS_DB_Connector connection;
 
 
     /**
@@ -57,13 +57,33 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
         this.connection = connection;
     }
 
-    public String getSource() {
-        return source;
-    }
+    /**
+     * For testing purposes only!
+     *
+     * @throws IOException
+     * @throws SQLException
+     * @throws ClassNotFoundException
+     * @throws ExecutionException
+     * @throws InterruptedException
+     */
+    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException, ExecutionException {
+        String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
+        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+        parameterClass.loadRuntimeParameters(new File(loginInfo));
+        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
 
-    public String getSimulation() {
-        return this.simulation;
-
+        HashSet<Integer> acceptedTAZs = null;
+        String sim = "2013y_03m_18d_11h_43m_32s_420ms";
+        System.out.println("Creating and starting export for " + sim + " with tazFilter " + acceptedTAZs);
+        StandaloneRegionAnalyzer ra = new StandaloneRegionAnalyzer(sim, acceptedTAZs, dbCon) {
+            @Override
+            protected void done() {
+                super.done();
+                System.out.println("Done in worker");
+            }
+        };
+        ra.execute();
+        ra.get();
     }
 
     @Override
@@ -163,33 +183,13 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
 
     }
 
-    /**
-     * For testing purposes only!
-     *
-     * @throws IOException
-     * @throws SQLException
-     * @throws ClassNotFoundException
-     * @throws ExecutionException
-     * @throws InterruptedException
-     */
-    public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException, ExecutionException {
-        String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        parameterClass.loadRuntimeParameters(new File(loginInfo));
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+    public String getSimulation() {
+        return this.simulation;
 
-        HashSet<Integer> acceptedTAZs = null;
-        String sim = "2013y_03m_18d_11h_43m_32s_420ms";
-        System.out.println("Creating and starting export for " + sim + " with tazFilter " + acceptedTAZs);
-        StandaloneRegionAnalyzer ra = new StandaloneRegionAnalyzer(sim, acceptedTAZs, dbCon) {
-            @Override
-            protected void done() {
-                super.done();
-                System.out.println("Done in worker");
-            }
-        };
-        ra.execute();
-        ra.get();
+    }
+
+    public String getSource() {
+        return source;
     }
 
 }

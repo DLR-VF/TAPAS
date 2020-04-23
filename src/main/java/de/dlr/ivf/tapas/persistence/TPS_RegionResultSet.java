@@ -13,169 +13,171 @@ import java.util.*;
  * Class which represents the ResultSet of possible TPS_Location
  * @author hein_mh
  *
- */
-public class TPS_RegionResultSet {
+ */ public class TPS_RegionResultSet {
 
-	/**
-	 * Inner class for a single result
-	 * @author hein_mh
-	 *
-	 */
-	public class Result {
-		/**
-		 * The reference to the TPS_Location
-		 */
-		public TPS_Location loc;
-		/**
-		 * The weight of this Result
-		 */
-		public Double sumWeight;
-		/**
-		 * The reference to the TPS_TrafficAnalysisZone, where the location is in
-		 */
-		public TPS_TrafficAnalysisZone taz;
+    public static Map<ParamValue, Integer> VELOCITY_2_INDEX_MAP;
 
-		/**
-		 * Comparator of two Objects
-		 * @param obj The object to compare with this one
-		 * @return true if taz, loc and sumWeight are the same
-		 */
-		public boolean equals(Result obj) {
-			return taz.equals(obj.taz) && loc.equals(obj.loc) && 0 == Double.compare(sumWeight, obj.sumWeight);
+    static {
+        VELOCITY_2_INDEX_MAP = new HashMap<>();
+        int counter = 0;
+        for (ParamValue pv : ParamValue.values()) {
+            if (pv.name().startsWith("VELOCITY_")) {
+                VELOCITY_2_INDEX_MAP.put(pv, 0);
+            }
+        }
+        for (ParamValue pv : VELOCITY_2_INDEX_MAP.keySet()) {
+            VELOCITY_2_INDEX_MAP.put(pv, counter++);
+        }
+    }
 
-		}
+    private final List<TPS_Location> locList;
+    private final List<Double> sumWeightList;
+    private final List<TPS_TrafficAnalysisZone> tazList;
 
-		@Override
-		public int hashCode() {
-			return taz.hashCode() + loc.hashCode();
-		}
-	}
+    /**
+     * Constructor
+     */
+    public TPS_RegionResultSet() {
+        this.locList = new LinkedList<>();
+        this.tazList = new LinkedList<>();
+        this.sumWeightList = new LinkedList<>();
+    }
 
-	/**
-	 * Iterator for a result set. It holds three iterators of tazList, sumWeightList and locList and moves them all three at the same time.
-	 * @author hein_mh
-	 *
-	 */
-	private class InternalResultIterable implements Iterable<Result>, Iterator<Result> {
+    /**
+     * This method adds one element to the lists.
+     *
+     * @param taz       The taz of this location
+     * @param loc       The location
+     * @param sumWeight The weight of this location
+     */
+    public void add(TPS_TrafficAnalysisZone taz, TPS_Location loc, Double sumWeight) {
+        this.tazList.add(taz);
+        this.locList.add(loc);
+        this.sumWeightList.add(sumWeight);
+    }
 
-		private Iterator<TPS_Location> locListIterator;
+    /**
+     * Method to clear all results.
+     */
+    public void clear() {
+        this.tazList.clear();
+        this.locList.clear();
+        this.sumWeightList.clear();
+    }
 
-		private Iterator<Double> sumWeightListIterator;
+    /**
+     * This Method gets a iterator which provides a Result with the correct aligned taz, location and weights
+     *
+     * @return The iterator
+     */
+    public Iterable<Result> getResultIterable() {
+        return new InternalResultIterable();
+    }
 
-		private Iterator<TPS_TrafficAnalysisZone> tazListIterator;
+    /**
+     * Method to check if the result set is empty
+     *
+     * @return true if no valid data is attached
+     */
+    public boolean isEmpty() {
+        return this.tazList.isEmpty();
+    }
 
-		/**
-		 * Constructor, which sets iterators on some inner variables
-		 */
-		public InternalResultIterable() {
-			this.tazListIterator = tazList.iterator();
-			this.sumWeightListIterator = sumWeightList.iterator();
-			this.locListIterator = locList.iterator();
-		}
+    /**
+     * Returns the amount of added data to this TPS_RegionResultSet.
+     *
+     * @return The number of locations attached.
+     */
+    public int size() {
+        return this.tazList.size();
+    }
 
-		/**
-		 * Returns true if more elements are present.
-		 */
-		public boolean hasNext() {
-			return this.tazListIterator.hasNext();
-		}
+    /**
+     * Inner class for a single result
+     *
+     * @author hein_mh
+     */
+    public class Result {
+        /**
+         * The reference to the TPS_Location
+         */
+        public TPS_Location loc;
+        /**
+         * The weight of this Result
+         */
+        public Double sumWeight;
+        /**
+         * The reference to the TPS_TrafficAnalysisZone, where the location is in
+         */
+        public TPS_TrafficAnalysisZone taz;
 
-		/**
-		 * returns a reference of itself
-		 */
-		public Iterator<Result> iterator() {
-			return this;
-		}
+        /**
+         * Comparator of two Objects
+         *
+         * @param obj The object to compare with this one
+         * @return true if taz, loc and sumWeight are the same
+         */
+        public boolean equals(Result obj) {
+            return taz.equals(obj.taz) && loc.equals(obj.loc) && 0 == Double.compare(sumWeight, obj.sumWeight);
 
-		/**
-		 * moves all three iterators and puts themin a result.
-		 */
-		public Result next() {
-			Result result = new Result();
-			result.taz = this.tazListIterator.next();
-			result.sumWeight = this.sumWeightListIterator.next();
-			result.loc = this.locListIterator.next();
-			return result;
-		}
+        }
 
-		public void remove() {
-			throw new RuntimeException("Method not implemented");
-		}
+        @Override
+        public int hashCode() {
+            return taz.hashCode() + loc.hashCode();
+        }
+    }
 
-	}
+    /**
+     * Iterator for a result set. It holds three iterators of tazList, sumWeightList and locList and moves them all three at the same time.
+     *
+     * @author hein_mh
+     */
+    private class InternalResultIterable implements Iterable<Result>, Iterator<Result> {
 
-	public static Map<ParamValue, Integer> VELOCITY_2_INDEX_MAP;
+        private final Iterator<TPS_Location> locListIterator;
 
-	static {
-		VELOCITY_2_INDEX_MAP = new HashMap<>();
-		int counter = 0;
-		for (ParamValue pv : ParamValue.values()) {
-			if (pv.name().startsWith("VELOCITY_")) {
-				VELOCITY_2_INDEX_MAP.put(pv, 0);
-			}
-		}
-		for (ParamValue pv : VELOCITY_2_INDEX_MAP.keySet()) {
-			VELOCITY_2_INDEX_MAP.put(pv, counter++);
-		}
-	}
+        private final Iterator<Double> sumWeightListIterator;
 
-	private List<TPS_Location> locList;
+        private final Iterator<TPS_TrafficAnalysisZone> tazListIterator;
 
-	private List<Double> sumWeightList;
+        /**
+         * Constructor, which sets iterators on some inner variables
+         */
+        public InternalResultIterable() {
+            this.tazListIterator = tazList.iterator();
+            this.sumWeightListIterator = sumWeightList.iterator();
+            this.locListIterator = locList.iterator();
+        }
 
-	private List<TPS_TrafficAnalysisZone> tazList;
+        /**
+         * Returns true if more elements are present.
+         */
+        public boolean hasNext() {
+            return this.tazListIterator.hasNext();
+        }
 
-	/**
-	 * Constructor
-	 */
-	public TPS_RegionResultSet() {
-		this.locList = new LinkedList<>();
-		this.tazList = new LinkedList<>();
-		this.sumWeightList = new LinkedList<>();
-	}
+        /**
+         * returns a reference of itself
+         */
+        public Iterator<Result> iterator() {
+            return this;
+        }
 
-	/**
-	 * This method adds one element to the lists.
-	 * @param taz The taz of this location
-	 * @param loc The location
-	 * @param sumWeight The weight of this location
-	 */
-	public void add(TPS_TrafficAnalysisZone taz, TPS_Location loc, Double sumWeight) {
-		this.tazList.add(taz);
-		this.locList.add(loc);
-		this.sumWeightList.add(sumWeight);
-	}
-	
-	/**
-	 * Method to clear all results.
-	 */
-	public void clear(){
-		this.tazList.clear();
-		this.locList.clear();
-		this.sumWeightList.clear();		
-	}
+        /**
+         * moves all three iterators and puts themin a result.
+         */
+        public Result next() {
+            Result result = new Result();
+            result.taz = this.tazListIterator.next();
+            result.sumWeight = this.sumWeightListIterator.next();
+            result.loc = this.locListIterator.next();
+            return result;
+        }
 
-	/**
-	 * This Method gets a iterator which provides a Result with the correct aligned taz, location and weights
-	 * @return The iterator
-	 */
-	public Iterable<Result> getResultIterable() {
-		return new InternalResultIterable();
-	}
+        public void remove() {
+            throw new RuntimeException("Method not implemented");
+        }
 
-	/**
-	 * Method to check if the result set is empty
-	 * @return true if no valid data is attached
-	 */
-	public boolean isEmpty() {
-		return this.tazList.isEmpty();
-	}
-
-	/**
-	 * Returns the amount of added data to this TPS_RegionResultSet.
-	 * @return The number of locations attached.
-	 */
-	public int size() {
-		return this.tazList.size();
-	}
+    }
 }

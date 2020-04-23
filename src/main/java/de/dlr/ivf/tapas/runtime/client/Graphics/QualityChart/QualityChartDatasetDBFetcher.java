@@ -17,96 +17,82 @@ import java.util.Map.Entry;
  * This class handles the input from the database (the tables
  * <code>calibration_results</code> and <code>reference</code>) to produce a
  * {@link JFreeChart} with the {@link QualityChartFactory}.
- * 
+ *
  * @author boec_pa
- * 
  */
 public class QualityChartDatasetDBFetcher {
-	/**
-	 * 
-	 * @param refKey
-	 *            the key in the <code>reference</code> table (like
-	 *            <code>mid2008</code>)
-	 * @param modelKey
-	 *            the key of the model run in the
-	 *            <code>calibration_results</code> table.
-	 * @throws ClassNotFoundException
-	 * @throws IOException
-	 */
-	public static JFreeChart makeQSChart(String refKey, String modelKey)
-			throws ClassNotFoundException, IOException {
+    /**
+     * For testing purposes only
+     *
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public static void main(String[] args) throws ClassNotFoundException, IOException {
 
-		CalibrationResultsReader cr = new CalibrationResultsReader(modelKey);
-		HashMap<CategoryCombination, Double> model = cr.getAbsoluteSplit(
-				Categories.Mode, Categories.DistanceCategoryDefault);
+        String modelKey = "2013y_03m_07d_16h_43m_41s_859ms";
+        String referenceKey = "mid2008";
 
-		ReferenceDBReader rr = new ReferenceDBReader(refKey);
-		HashMap<CategoryCombination, QualityChartData> reference = rr
-				.getMoDcValues();
+        JFreeChart chart = makeQSChart(referenceKey, modelKey);
 
-		ArrayList<QualityChartData> data = mergeData(reference, model,
-				cr.getCntTrips(), rr.getCntTrips());
+        ChartFrame frame = new ChartFrame("TestChart", chart);
+        frame.pack();
+        frame.setVisible(true);
+    }
 
-		JFreeChart chart = QualityChartFactory.createChart(data);
+    /**
+     * @param refKey   the key in the <code>reference</code> table (like
+     *                 <code>mid2008</code>)
+     * @param modelKey the key of the model run in the
+     *                 <code>calibration_results</code> table.
+     * @throws ClassNotFoundException
+     * @throws IOException
+     */
+    public static JFreeChart makeQSChart(String refKey, String modelKey) throws ClassNotFoundException, IOException {
 
-		String title = modelKey + " compared to " + refKey;
-		Font font = new Font(Font.MONOSPACED, Font.PLAIN, 14);
+        CalibrationResultsReader cr = new CalibrationResultsReader(modelKey);
+        HashMap<CategoryCombination, Double> model = cr.getAbsoluteSplit(Categories.Mode,
+                Categories.DistanceCategoryDefault);
 
-		chart.setTitle(new TextTitle(title, font));
+        ReferenceDBReader rr = new ReferenceDBReader(refKey);
+        HashMap<CategoryCombination, QualityChartData> reference = rr.getMoDcValues();
 
-		return chart;
-	}
+        ArrayList<QualityChartData> data = mergeData(reference, model, cr.getCntTrips(), rr.getCntTrips());
 
-	/**
-	 * Takes reference and model and merge them into a list of data points for
-	 * the {@link QualityChartFactory}. Also scales the model to fit the
-	 * reference.
-	 * 
-	 * @param reference
-	 * @param model
-	 * @param cntModel
-	 *            number of trips in the model
-	 * @param cntReference
-	 *            number of trips in the reference
-	 * @return
-	 */
-	private static ArrayList<QualityChartData> mergeData(
-			HashMap<CategoryCombination, QualityChartData> reference,
-			HashMap<CategoryCombination, Double> model, double cntModel,
-			double cntReference) {
+        JFreeChart chart = QualityChartFactory.createChart(data);
 
-		/* scale model to fit the number of trips in reference */
-		double scale = cntReference / cntModel;
+        String title = modelKey + " compared to " + refKey;
+        Font font = new Font(Font.MONOSPACED, Font.PLAIN, 14);
 
-		ArrayList<QualityChartData> data = new ArrayList<>();
+        chart.setTitle(new TextTitle(title, font));
 
-		// merge
-		for (Entry<CategoryCombination, Double> e : model.entrySet()) {
-			QualityChartData r = reference.get(e.getKey());
-			data.add(new QualityChartData(e.getValue() * scale, r
-					.getReference(), r.getLabel(), r.getQuality()));
-		}
+        return chart;
+    }
 
-		return data;
-	}
+    /**
+     * Takes reference and model and merge them into a list of data points for
+     * the {@link QualityChartFactory}. Also scales the model to fit the
+     * reference.
+     *
+     * @param reference
+     * @param model
+     * @param cntModel     number of trips in the model
+     * @param cntReference number of trips in the reference
+     * @return
+     */
+    private static ArrayList<QualityChartData> mergeData(HashMap<CategoryCombination, QualityChartData> reference, HashMap<CategoryCombination, Double> model, double cntModel, double cntReference) {
 
-	/**
-	 * For testing purposes only
-	 * 
-	 * @throws IOException
-	 * @throws ClassNotFoundException
-	 */
-	public static void main(String[] args) throws ClassNotFoundException,
-			IOException {
+        /* scale model to fit the number of trips in reference */
+        double scale = cntReference / cntModel;
 
-		String modelKey = "2013y_03m_07d_16h_43m_41s_859ms";
-		String referenceKey = "mid2008";
+        ArrayList<QualityChartData> data = new ArrayList<>();
 
-		JFreeChart chart = makeQSChart(referenceKey, modelKey);
+        // merge
+        for (Entry<CategoryCombination, Double> e : model.entrySet()) {
+            QualityChartData r = reference.get(e.getKey());
+            data.add(new QualityChartData(e.getValue() * scale, r.getReference(), r.getLabel(), r.getQuality()));
+        }
 
-		ChartFrame frame = new ChartFrame("TestChart", chart);
-		frame.pack();
-		frame.setVisible(true);
-	}
+        return data;
+    }
 
 }

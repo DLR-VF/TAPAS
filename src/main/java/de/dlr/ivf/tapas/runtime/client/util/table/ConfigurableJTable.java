@@ -10,126 +10,109 @@ import java.awt.*;
 /**
  * Basic table for this GUI which provides method to initialise complete columns
  * and set their widths.
- * 
+ *
  * @author mark_ma
- * 
  */
 public class ConfigurableJTable extends JTable {
 
-	/**
-	 * This class extends the DefaultTableModel and changes the behaviour of the
-	 * method getColumnClass(...). Here the real class of the component in the
-	 * cell is returned.
-	 * 
-	 * @author mark_ma
-	 * 
-	 */
-	public static class ClassifiedTableModel extends DefaultTableModel {
+    /**
+     * serial UID
+     */
+    private static final long serialVersionUID = -7631195101802198210L;
 
-		/**
-		 * serial UID
-		 */
-		private static final long serialVersionUID = 1249787609359031215L;
+    /**
+     * Calls super constructor and sets the model.
+     *
+     * @param itemTableModel model of the table
+     * @see JTable
+     */
+    public ConfigurableJTable(ClassifiedTableModel itemTableModel) {
+        super(itemTableModel);
+        this.getTableHeader().setReorderingAllowed(false);
+    }
 
-		/**
-		 * Calls super constructor
-		 * 
-		 * @see DefaultTableModel
-		 * 
-		 * @param data
-		 *            row data
-		 * @param columnNames
-		 *            names of the columns
-		 */
-		public ClassifiedTableModel(Object[][] data, Object[] columnNames) {
-			super(data, columnNames);
-		}
+    /**
+     * This method initialises the column by index with a width and a renderer
+     * and an editor.
+     *
+     * @param column   column index
+     * @param width    column's width, only has effect when value is greater 0
+     * @param renderer column's renderer, can be null
+     * @param editor   column's editor, can be null
+     */
+    public void initTableColumn(int column, int width, TableCellRenderer renderer, TableCellEditor editor) {
+        TableColumn tc = this.getColumn(this.getColumnName(column));
+        if (width > 0) {
+            tc.setMaxWidth(width);
+            tc.setMinWidth(width);
+        }
+        if (renderer != null) tc.setCellRenderer(renderer);
+        if (editor != null) tc.setCellEditor(editor);
+    }
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
-		 */
-		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			if (this.getValueAt(0, columnIndex) != null)
-				return this.getValueAt(0, columnIndex).getClass();
-			return Object.class;
-		}
+    /**
+     * This method sets the preferred widths of all columns at once by the
+     * parameter 'percentages'.
+     *
+     * @param percentages width of each column
+     */
+    public void setPreferredColumnWidths(double[] percentages) {
+        Dimension tableDim = this.getPreferredSize();
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see javax.swing.table.DefaultTableModel#isCellEditable(int, int)
-		 */
-		@Override
-		public boolean isCellEditable(int row, int column) {
-			return false;
-		}
-	}
+        double total = 0;
+        for (int i = 0; i < getColumnModel().getColumnCount(); i++)
+            total += percentages[i];
 
-	/**
-	 * serial UID
-	 */
-	private static final long serialVersionUID = -7631195101802198210L;
+        for (int i = 0; i < getColumnModel().getColumnCount(); i++) {
+            TableColumn column = getColumnModel().getColumn(i);
+            column.setPreferredWidth((int) (tableDim.width * (percentages[i] / total)));
+        }
+    }
 
-	/**
-	 * Calls super constructor and sets the model.
-	 * 
-	 * @see JTable
-	 * 
-	 * @param itemTableModel
-	 *            model of the table
-	 */
-	public ConfigurableJTable(ClassifiedTableModel itemTableModel) {
-		super(itemTableModel);
-		this.getTableHeader().setReorderingAllowed(false);
-	}
+    /**
+     * This class extends the DefaultTableModel and changes the behaviour of the
+     * method getColumnClass(...). Here the real class of the component in the
+     * cell is returned.
+     *
+     * @author mark_ma
+     */
+    public static class ClassifiedTableModel extends DefaultTableModel {
 
-	/**
-	 * This method initialises the column by index with a width and a renderer
-	 * and an editor.
-	 * 
-	 * @param column
-	 *            column index
-	 * @param width
-	 *            column's width, only has effect when value is greater 0
-	 * @param renderer
-	 *            column's renderer, can be null
-	 * @param editor
-	 *            column's editor, can be null
-	 */
-	public void initTableColumn(int column, int width, TableCellRenderer renderer,
-								TableCellEditor editor) {
-		TableColumn tc = this.getColumn(this.getColumnName(column));
-		if (width > 0) {
-			tc.setMaxWidth(width);
-			tc.setMinWidth(width);
-		}
-		if (renderer != null)
-			tc.setCellRenderer(renderer);
-		if (editor != null)
-			tc.setCellEditor(editor);
-	}
-	
+        /**
+         * serial UID
+         */
+        private static final long serialVersionUID = 1249787609359031215L;
 
-	/**
-	 * This method sets the preferred widths of all columns at once by the
-	 * parameter 'percentages'.
-	 * 
-	 * @param percentages
-	 *            width of each column
-	 */
-	public void setPreferredColumnWidths(double[] percentages) {
-		Dimension tableDim = this.getPreferredSize();
+        /**
+         * Calls super constructor
+         *
+         * @param data        row data
+         * @param columnNames names of the columns
+         * @see DefaultTableModel
+         */
+        public ClassifiedTableModel(Object[][] data, Object[] columnNames) {
+            super(data, columnNames);
+        }
 
-		double total = 0;
-		for (int i = 0; i < getColumnModel().getColumnCount(); i++)
-			total += percentages[i];
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
+         */
+        @Override
+        public Class<?> getColumnClass(int columnIndex) {
+            if (this.getValueAt(0, columnIndex) != null) return this.getValueAt(0, columnIndex).getClass();
+            return Object.class;
+        }
 
-		for (int i = 0; i < getColumnModel().getColumnCount(); i++) {
-			TableColumn column = getColumnModel().getColumn(i);
-			column.setPreferredWidth((int) (tableDim.width * (percentages[i] / total)));
-		}
-	}
+        /*
+         * (non-Javadoc)
+         *
+         * @see javax.swing.table.DefaultTableModel#isCellEditable(int, int)
+         */
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false;
+        }
+    }
 }
