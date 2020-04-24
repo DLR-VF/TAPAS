@@ -4,20 +4,21 @@ for more information see https://wiki.dlr.de/display/MUD/TAPAS
 
 ## Requirements: 
  - Installed and running Postgres 11 server with the Postgis 3 extension
- - Java 11+
+ - Java 11
  
 ### Basic Postgres DB Setup:
 
 This only applies if you don't have an already running Postgres/Postgis system. 
  
- Get [Postgres 11+](https://www.postgresql.org/) for your operating system and install it. 
+ Get [Postgres 11](https://www.postgresql.org/) for your operating system and install it. 
  Also get and install [Postgis](https://postgis.net/install/) for your system where installed the postgres server. 
 
 
 Initialize local DB Server:
 
   `initdb[.exe] -D path/to/data/dir -E UTF8 -U DEFAULTSUPERUSER --pwprompt`
-  'DEFAULTSUPERUSER' should probably be 'postgres', but you can set whatever you want. 
+  
+  `DEFAULTSUPERUSER` should probably be 'postgres', but you can set whatever you want. 
   
 Start DB server: 
 
@@ -27,29 +28,39 @@ Start DB server:
  
 ##Execution  
 
-There are two ways to execute the Installer, SimulationControl and the SimulationDaemon: Through Gradle (if you
- cloned the git repository) or via the command line (terminal):
+There are several ways to execute the Installer, SimulationControl and the SimulationDaemon
  
-### Command Line
+### Command-Line
  
+#### Installer 
 The Installer creates a minimal functioning install of a TAPAS database on your Postgres server. It needs four
-parameters to work, _dbserver_, _dbname_, _dbuser_, and _dbpassword_. See 
+parameters to work, _`dbserver`_, _`dbname`_, _`dbuser`_, and _`dbpassword`_. See 
 
     java -cp tapas-all.jar de.dlr.ivf.tapas.installer.Installer --help
 
    
-for more information. The _dbuser_ must be a superuser or a user with
+for more information. The _`dbuser`_ must be a superuser or a user with
 sufficient rights on the postgres server. 
  
 Additionally, there must be an sql_dumps.zip archive in your
-current active directory. If not, you will be asked for the archived directory via prompt.
+current active directory. If not, you will be asked for the archive through a prompt.
  
 Start Installer:
 
     java -cp tapas-all.jar de.dlr.ivf.tapas.installer.Installer [--dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres]
 
 The commandline arguments are optional. You can omit them, but then you will be prompted during the Installer run.
+
+Note: This is the recommended way to running the Installer because in this case you can omit the password argument in
+ the command line. You will be then prompted during the run of the script with a secret input of the db password. If
+  you run this script through Gradle or an IDE it is necessary to deliver the argument beforehand because Java does
+   not recognize their standard command line input.  
  
+
+#### SimulationControl
+
+The SimulationControl center is a gui tool for managing your simulations and your simulation processes.
+If not already present it asks for a `runtime.csv` which contains the db server login information and more.  
 
 Start SimulationControl:
 
@@ -58,23 +69,61 @@ Start SimulationControl:
 or
 
     java -cp TAPAS-all.jar de.dlr.ivf.tapas.runtime.client.SimulationControl
- 
+
+
+#### SimulationDaemon 
+
+The SimulationDaemon connects to the db server and starts a SimulationServer which simulates the scenarios. 
+You need to specify the path to a simulations folder (in the TAPAS project is an example folder can be found under `data
+/Simulations`) where a `runtime.csv` is present. 
+
 Start SimulationDaemon: 
 
-    java -cp TAPAS-all.jar de.dlr.ivf.tapas.runtime.server.SimulationDaemon ..\tdatadir\Simulationen
+    java -cp TAPAS-all.jar de.dlr.ivf.tapas.runtime.server.SimulationDaemon path/to/simulations/folder
 
-### Gradle
+### Developer Guide with Gradle 
 
-If you have cloned the git repository you can execute the java programs through gradle (tasks).
+#### Clone (or fork) the Repository from GitHub
 
-Execute Installer with Gradle: 
+    git clone https://github.com/DLR-VF/TAPAS.git
+
+#### Import Project via IntelliJ
+
+File -> Open... -> Either choose the cloned TAPAS folder or the build.gradle.kts file to import the project. The
+ dependencies should be downloaded automatically.
+ 
+In the Gradle menu in IntelliJ (either on the right side or press double shift -> type in Gradle -> Under Actions -> 
+ Gradle) you find the most important tasks: 
+- Build project: `TAPAS -> Tasks -> build -> build` (the `TAPAS-all.jar` jar is located in `build/libs/`)
+- Clean project: `TAPAS -> Tasks -> build -> clean`  
+- Run Installer script : `TAPAS -> Tasks -> runnables -> Installer` (set arguments in build.gradle.kts in the Installer section) 
+- Run SimulationControl: `TAPAS -> Tasks -> runnables -> SimulationControl` 
+- Run SimulationDaemon: `TAPAS -> Tasks -> runnables -> SimulationDaemon` (expects the simulation directory to be in
+ `data/Simulations`)
+
+#### Eclipse
+
+TODO
+
+
+#### Command-Line
+ 
+Note: The gradle executable on Linux is called `gradlew`, on Windows it is `gradlew.bat`. 
+
++ You can compile the project and build the `TAPAS.jar` (without dependencies)/`TAPAS-all.jar` (with deps) through
+
+    `gradlew[.bat] build`
+        
++ Cleanup the project: `gradlew[.bat] clean`     
+
++ Execute Installer with Gradle: 
 
     gradlew[.bat] Installer --args="--dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres"
  
-The commandline arguments must be supplied through the Gradle properties via -P, e.g. -Pmyproperty. You cannot enter
+  The commandline arguments must be supplied through the `--args="..."` parameter. You cannot enter
  the arguments during the Installer run because Gradle (and other IDEs) do not work with the standard input.
  
-SimulationControl: `gradlew[.bat] SimulationControl`
++ SimulationControl: `gradlew[.bat] SimulationControl`
  
-SimulationDaemon:  `gradlew[.bat] SimulationDaemon --args=""`
++ SimulationDaemon:  `gradlew[.bat] SimulationDaemon --args="path/to/simulations/folder"`
  
