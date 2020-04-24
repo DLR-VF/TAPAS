@@ -124,9 +124,11 @@ task("SimulationControl", JavaExec::class) {
 task("Installer", JavaExec::class) {
     group = "runnables"
     description = "Starts the installation script"
+    classpath = sourceSets["main"].runtimeClasspath
     // Define the main class for the application
     main = "de.dlr.ivf.tapas.installer.Installer"
-    classpath = sourceSets["main"].runtimeClasspath
+//    set arguments like in the line below
+//    args = mutableListOf("-s localhost -n my_tapas_db_name -u my_already_existing_tapas_db_user -p my_db_password")
 }
 
 tasks {
