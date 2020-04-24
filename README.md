@@ -36,7 +36,7 @@ There are several ways to execute the Installer, SimulationControl and the Simul
 The Installer creates a minimal functioning install of a TAPAS database on your Postgres server. It needs four
 parameters to work, _`dbserver`_, _`dbname`_, _`dbuser`_, and _`dbpassword`_. See 
 
-    java -cp tapas-all.jar de.dlr.ivf.tapas.installer.Installer --help
+    java -cp TAPAS-all.jar de.dlr.ivf.tapas.installer.Installer --help
 
    
 for more information. The _`dbuser`_ must be a superuser or a user with
@@ -47,7 +47,10 @@ current active directory. If not, you will be asked for the archive through a pr
  
 Start Installer:
 
-    java -cp tapas-all.jar de.dlr.ivf.tapas.installer.Installer [--dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres]
+    java -cp TAPAS-all.jar de.dlr.ivf.tapas.installer.Installer
+or
+
+    java -cp TAPAS-all.jar de.dlr.ivf.tapas.installer.Installer --dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres
 
 The commandline arguments are optional. You can omit them, but then you will be prompted during the Installer run.
 
@@ -108,22 +111,21 @@ TODO
 
 #### Command-Line
  
-Note: The gradle executable on Linux is called `gradlew`, on Windows it is `gradlew.bat`. 
+Note: The gradle executable is called `gradlew`. On Linux one uses `./gradlew` to execute it in a terminal, on Windows
+ it is `gradlew.bat`. Examples are given in Linux command style.  
 
 + You can compile the project and build the `TAPAS.jar` (without dependencies)/`TAPAS-all.jar` (with deps) through
 
-    `gradlew[.bat] build`
+    `./gradlew build`
         
-+ Cleanup the project: `gradlew[.bat] clean`     
++ Cleanup the project: `./gradlew clean`     
 
-+ Execute Installer with Gradle: 
-
-    gradlew[.bat] Installer --args="--dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres"
- 
++ Execute Installer with Gradle: `./gradlew Installer --args="--dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres"`
+  
   The commandline arguments must be supplied through the `--args="..."` parameter. You cannot enter
  the arguments during the Installer run because Gradle (and other IDEs) do not work with the standard input.
  
-+ SimulationControl: `gradlew[.bat] SimulationControl`
++ SimulationControl: `./gradlew SimulationControl`
  
-+ SimulationDaemon:  `gradlew[.bat] SimulationDaemon --args="path/to/simulations/folder"`
++ SimulationDaemon:  `./gradlew SimulationDaemon --args="path/to/simulations/folder"`
  

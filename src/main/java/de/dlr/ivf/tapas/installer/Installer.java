@@ -29,6 +29,9 @@ public class Installer {
     private static String DBUSER;
     private static String DBPASSWORD;
 
+    // this must be set to true here otherwise existsDestinationDirectory does not work
+    private static boolean DESTINATION_ALREADY_EXISTS = true;
+
     /**
      * Closes the database connection
      */
@@ -286,7 +289,7 @@ public class Installer {
 
     public static void main(String[] args) {
         String source = "sql_dumps.zip";
-        String destination = "sql_dumps";
+        String destination = "tmp_sql_dumps";
 
         Options options = new Options();
         options.addOption("n", "dbname", true, "Database Name");
@@ -322,7 +325,7 @@ public class Installer {
 
         executeCompleteQuery(destination);
         //delete directory
-        deleteDirectory(new File(destination));
+        if (!DESTINATION_ALREADY_EXISTS) deleteDirectory(new File(destination));
     }
 
     /**
@@ -372,24 +375,48 @@ public class Installer {
     }
 
     /**
+     * Checks if the destination directory (where the sql_dumps.zip will extracted to) already exists or not
+     * Sets the global DESTINATION_ALREADY_EXISTS variable to true if it exists.
+     * Normally we delete the tmp_sql_dumps folder after the Installer run. But we do not want to do this if this
+     * folder has been created already (who knows what is in there).
+     *
+     * @param destination string oath to destination folder
+     */
+    private static void existsDestinationDirectory(String destination) {
+        File f = new File(destination);
+        // we use !DESTINATION_ALREADY_EXISTS because we do not want to run into this condition again
+        // unzip will be called recursively and there existsDestinationDirectory too
+        // There are four possibilities here
+        // 1. destination already exists (and is a directory) at the beginning of the Installer script
+        //  a) first call of existsDestinationDirectory -> it goes into the if
+        //  b) later call of existsDestinationDirectory -> it goes into the if
+        // 2. destination does not exist already at the beginning of the Installer script
+        //  a) first call of existsDestinationDirectory -> it goes into the else
+        //  b) later call of existsDestinationDirectory (dir is created through the attempt of zip extraction) ->
+        //      -> it goes into the else
+        if (f.exists() && f.isDirectory() && DESTINATION_ALREADY_EXISTS) {
+            System.out.println(destination + " already exists. It will not be deleted afterwards.");
+        } else {
+            DESTINATION_ALREADY_EXISTS = false;
+            System.out.println(destination + " does not exist already. Will create and delete it afterwards. ");
+        }
+    }
+
+    /**
      * Extracts zip archive into a destination folder
      *
      * @param source      zip archive
      * @param destination directory to which is archive is extracted
      */
-    public static void unzip(String source, String destination) {
+    private static void unzip(String source, String destination) {
         System.out.println("Unzip necessary sql-data archive '" + source + "' to '" + destination + "/'");
+        existsDestinationDirectory(destination);
         try {
             ZipFile zipFile = new ZipFile(source);
             zipFile.extractAll(destination);
         } catch (ZipException e) {
-            if (e.getType() == ZipException.Type.FILE_NOT_FOUND) {
-                source = System.console().readLine("Zip archive not found. Enter zip archive directory: ");
-                unzip(source, destination);
-            } else {
-                exitAndCleanUp(e, false);
-            }
-
+            source = System.console().readLine("Zip archive not found. Enter path to zip archive: ");
+            unzip(source, destination);
         }
     }
 
