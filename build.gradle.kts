@@ -21,9 +21,13 @@ plugins {
     // javafx plugin to handle javafx dependencies
     id("org.openjfx.javafxplugin") version "0.0.8"
 
+    `maven-publish`
+
     // git versioning plugin
-//    id("org.ajoberstar.reckon") version "0.12.0"
+    id("org.ajoberstar.reckon") version "0.12.0"
 }
+
+
 
 
 repositories {
@@ -65,11 +69,39 @@ javafx {
     modules("javafx.controls", "javafx.fxml", "javafx.swing")
 }
 
-// ...
-//reckon {
-//    scopeFromProp()
-//    stageFromProp("beta", "rc", "final")
-//}
+// One can change the reckoned version through
+// -Preckon.scope=TAPAS_SCOPE -Preckon.stage=TAPAS_STAGE
+// where TAPAS_COPE is one of major, minor or patch (defaults to minor)
+// and TAPAS_STAGE is one of snapshot and final (defaults to snapshot)
+// Example: ./gradlew build -Preckon.scope=major -Preckon.stage=final
+reckon {
+    scopeFromProp()
+    snapshotFromProp()
+}
+
+
+// This is for publishing a package to GitHub
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/DLR-VF/TAPAS")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USER")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "de.dlr.ivf"
+            artifactId = "TAPAS"
+            version = project.version.toString()
+            from(components["java"])
+            artifact(tasks["shadowJar"])
+        }
+    }
+}
 
 application {
     // Define the main class for the application
@@ -82,7 +114,7 @@ application {
 task("buildnumber") {
     doLast {
         val date = Date()
-        val version = 1.0
+        val version = project.version
         val versionString = "#TAPAS buildnumber properties\n" +
                 "#" + date + "\n" +
                 "version=" + version + "\n" +
