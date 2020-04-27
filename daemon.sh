@@ -2,7 +2,7 @@
 # daemon.sh
 
 JAVA_HOME=/bin/java
-TAPAS_JAR=build/libs/TAPAS-all.jar
+TAPAS_JAR=build/libs/TAPAS-all.jar #be aware of the version or rename your jar
 SIM_DIR=data/Simulations
 JAVA_ARGS=-Xmx64G
 
