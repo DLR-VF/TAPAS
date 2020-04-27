@@ -1,1 +1,9 @@
 /.gradle/
+/src/main/resources/buildnumber.properties
+/.gradle/
+/build/
+/daemon.properties
+/client.properties
+/MultilanguageSupportUsers.properties
+/data/Log/
+/.idea/
