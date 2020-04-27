@@ -6,6 +6,14 @@ for more information see https://wiki.dlr.de/display/MUD/TAPAS
  - Installed and running Postgres 11 server with the Postgis 3 extension
  - Java 11
  
+Furthermore from the Github repository you need to download: 
+- [Minimal database dump](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip)
+- [The whole data folder](https://github.com/DLR-VF/TAPAS/tree/master/data/) (with an exemplary set of scenario and
+ runtime files)
+
+ Recommendation: Place both (the still compressed zip archive and the data folder) in your current working directory
+  with your TAPAS-all.jar 
+ 
 ### Basic Postgres DB Setup:
 
 This only applies if you don't have an already running Postgres/Postgis system. 
