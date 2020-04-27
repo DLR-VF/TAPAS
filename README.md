@@ -84,6 +84,10 @@ Start SimulationDaemon:
 
     java -cp TAPAS-all.jar de.dlr.ivf.tapas.runtime.server.SimulationDaemon path/to/simulations/folder
 
+#### Using Script Files .sh and .bat
+
+ToDo
+
 ### Developer Guide with Gradle 
 
 #### Clone (or fork) the Repository from GitHub
@@ -129,3 +133,6 @@ Note: The gradle executable is called `gradlew`. On Linux one uses `./gradlew` t
  
 + SimulationDaemon:  `./gradlew SimulationDaemon --args="path/to/simulations/folder"`
  
+#### Publication to Github with Gradle
+
+ToDo
