@@ -44,7 +44,7 @@ There are several ways to execute the Installer, SimulationControl and the Simul
 The Installer creates a minimal functioning install of a TAPAS database on your Postgres server. It needs four
 parameters to work, _`dbserver`_, _`dbname`_, _`dbuser`_, and _`dbpassword`_. See 
 
-    java -cp TAPAS-all.jar de.dlr.ivf.tapas.installer.Installer --help
+    java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.installer.Installer --help
 
    
 for more information. The _`dbuser`_ must be a superuser or a user with
@@ -55,10 +55,10 @@ current active directory. If not, you will be asked for the archive through a pr
  
 Start Installer:
 
-    java -cp TAPAS-all.jar de.dlr.ivf.tapas.installer.Installer
+    java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.installer.Installer
 or
 
-    java -cp TAPAS-all.jar de.dlr.ivf.tapas.installer.Installer --dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres
+    java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.installer.Installer --dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres
 
 The commandline arguments are optional. You can omit them, but then you will be prompted during the Installer run.
 
@@ -75,11 +75,11 @@ If not already present it asks for a `runtime.csv` which contains the db server 
 
 Start SimulationControl:
 
-    `java -jar TAPAS-all.jar`
+    `java -jar TAPAS-<version>-all.jar`
     
 or
 
-    java -cp TAPAS-all.jar de.dlr.ivf.tapas.runtime.client.SimulationControl
+    java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.runtime.client.SimulationControl
 
 
 #### SimulationDaemon 
@@ -90,7 +90,7 @@ You need to specify the path to a simulations folder (in the TAPAS project is an
 
 Start SimulationDaemon: 
 
-    java -cp TAPAS-all.jar de.dlr.ivf.tapas.runtime.server.SimulationDaemon path/to/simulations/folder
+    java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.runtime.server.SimulationDaemon path/to/simulations/folder
 
 #### Using Script Files .sh and .bat
 
@@ -109,7 +109,7 @@ File -> Open... -> Either choose the cloned TAPAS folder or the build.gradle.kts
  
 In the Gradle menu in IntelliJ (either on the right side or press double shift -> type in Gradle -> Under Actions -> 
  Gradle) you find the most important tasks: 
-- Build project: `TAPAS -> Tasks -> build -> build` (the `TAPAS-all.jar` jar is located in `build/libs/`)
+- Build project: `TAPAS -> Tasks -> build -> build` (the `TAPAS-<version>-all.jar` jar is located in `build/libs/`)
 - Clean project: `TAPAS -> Tasks -> build -> clean`  
 - Run Installer script : `TAPAS -> Tasks -> runnables -> Installer` (set arguments in build.gradle.kts in the Installer section) 
 - Run SimulationControl: `TAPAS -> Tasks -> runnables -> SimulationControl` 
@@ -126,7 +126,7 @@ TODO
 Note: The gradle executable is called `gradlew`. On Linux one uses `./gradlew` to execute it in a terminal, on Windows
  it is `gradlew.bat`. Examples are given in Linux command style.  
 
-+ You can compile the project and build the `TAPAS.jar` (without dependencies)/`TAPAS-all.jar` (with deps) through
++ You can compile the project and build the `TAPAS.jar` (without dependencies)/`TAPAS-<version>-all.jar` (with deps) through
 
     `./gradlew build`
         
