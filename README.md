@@ -7,8 +7,8 @@ for more information see https://wiki.dlr.de/display/MUD/TAPAS
  - Java 11
  
 Furthermore from the Github repository you need to download from the packages section: 
-- [TAPAS-version-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073) (the main jar for TAPAS with all
- dependencies included)
+- [TAPAS-version-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073) (the main jar for TAPAS. Important is the
+ ...-_all_.jar because it includes all dependencies )
 - [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip) (Minimal database dump: leave the zip as
  is for the Installer)
 - [runtime_data.zip](https://github.com/DLR-VF/TAPAS/blob/master/runtime_data.zip) (Runtime data archive: decompress the archive
