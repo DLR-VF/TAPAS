@@ -9,9 +9,9 @@ for more information see https://wiki.dlr.de/display/MUD/TAPAS
 Furthermore from the Github repository you need to download from the packages section: 
 - [TAPAS-version-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073) (the main jar for TAPAS with all
  dependencies included)
-- [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/packages/205065) (Minimal database dump: leave the zip at is for
- the Installer)
-- [runtime_data.zip](https://github.com/DLR-VF/TAPAS/tree/master/data/) (Runtime data archive: decompress the archive
+- [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip) (Minimal database dump: leave the zip as
+ is for the Installer)
+- [runtime_data.zip](https://github.com/DLR-VF/TAPAS/blob/master/runtime_data.zip) (Runtime data archive: decompress the archive
  for an exemplary set of scenario and runtime files (needed for SimulationDaemon and SimulationControl))
 
  Recommendation: Place both, the still compressed `sql_dumps.zip` archive and the `data` folder (extracted from runtime_data
