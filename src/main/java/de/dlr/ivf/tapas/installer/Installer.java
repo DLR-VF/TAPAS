@@ -177,7 +177,7 @@ public class Installer {
         executeFile(destination + "/sql_dumps/tapas_deployment.sql");
 
         //create tapas groups if they do not exist
-        System.out.println("Create TAPAS groups if they do not exists already");
+        System.out.println("Create TAPAS groups if they do not exist yet");
         try {
             Statement stmt = DBCONNECTION.createStatement();
             stmt.execute("DO $$ begin create group tapas_user_group; exception when DUPLICATE_OBJECT then raise " +
