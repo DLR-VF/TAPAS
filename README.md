@@ -6,13 +6,16 @@ for more information see https://wiki.dlr.de/display/MUD/TAPAS
  - Installed and running Postgres 11 server with the Postgis 3 extension
  - Java 11
  
-Furthermore from the Github repository you need to download: 
-- [Minimal database dump](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip)
-- [The whole data folder](https://github.com/DLR-VF/TAPAS/tree/master/data/) (with an exemplary set of scenario and
- runtime files)
+Furthermore from the Github repository you need to download from the packages section: 
+- [TAPAS-version-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073) (the main jar for TAPAS with all
+ dependencies included)
+- [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/packages/205065) (Minimal database dump: leave the zip at is for
+ the Installer)
+- [runtime_data.zip](https://github.com/DLR-VF/TAPAS/tree/master/data/) (Runtime data archive: decompress the archive
+ for an exemplary set of scenario and runtime files (needed for SimulationDaemon and SimulationControl))
 
- Recommendation: Place both (the still compressed zip archive and the data folder) in your current working directory
-  with your TAPAS-all.jar 
+ Recommendation: Place both, the still compressed `sql_dumps.zip` archive and the `data` folder (extracted from runtime_data
+ .zip), in your current working directory with your `TAPAS-<version>-all.jar `
  
 ### Basic Postgres DB Setup:
 
@@ -58,7 +61,7 @@ Start Installer:
     java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.installer.Installer
 or
 
-    java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.installer.Installer --dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres
+    java -cp TAPAS-<version>-all.jar de.dlr.ivf.tapas.installer.Installer --dbserver=localhost --dbname=tapas --dbuser=postgres --dbpassword=postgres
 
 The commandline arguments are optional. You can omit them, but then you will be prompted during the Installer run.
 
@@ -132,7 +135,7 @@ Note: The gradle executable is called `gradlew`. On Linux one uses `./gradlew` t
         
 + Cleanup the project: `./gradlew clean`     
 
-+ Execute Installer with Gradle: `./gradlew Installer --args="--dbserver=localhost --dbname=tapas_db --dbuser=postgres --dbpassword=postgres"`
++ Execute Installer with Gradle: `./gradlew Installer --args="--dbserver=localhost --dbname=tapas --dbuser=postgres --dbpassword=postgres"`
   
   The commandline arguments must be supplied through the `--args="..."` parameter. You cannot enter
  the arguments during the Installer run because Gradle (and other IDEs) do not work with the standard input.
