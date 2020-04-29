@@ -93,22 +93,12 @@ publishing {
         }
     }
     publications {
-        create<MavenPublication>("maven") {
+        create<MavenPublication>("TAPAS") {
             groupId = "de.dlr.ivf"
             artifactId = "TAPAS"
             version = project.version.toString()
             from(components["java"])
             artifact(tasks["shadowJar"])
-        }
-        create<MavenPublication>("sql_dumps"){
-            groupId = "de.dlr.ivf"
-            artifactId = "sql_dumps"
-            artifact(File("sql_dumps.zip"))
-        }
-        create<MavenPublication>("runtime_data"){
-            groupId = "de.dlr.ivf"
-            artifactId = "runtime_data"
-            artifact(File("runtime_data.zip"))
         }
     }
 }
