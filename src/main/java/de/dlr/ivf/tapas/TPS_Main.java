@@ -10,6 +10,7 @@ import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.person.TPS_Worker;
+import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
@@ -250,6 +251,8 @@ public class TPS_Main {
             es.shutdown();
             // reset unfinished households
             //PM.resetUnfinishedHouseholds();
+            TPS_PlansExecutor planexecutor = new TPS_PlansExecutor(((TPS_DB_IOManager) getPersistenceManager()).getAllPlans(),threads,(TPS_DB_IOManager) getPersistenceManager());
+            planexecutor.runSimulation();
 
             waitForMe = false;
         } catch (Exception e) {

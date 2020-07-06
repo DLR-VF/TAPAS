@@ -15,6 +15,9 @@ import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
+import de.dlr.ivf.tapas.plan.state.TPS_PlanStateMachine;
+import de.dlr.ivf.tapas.plan.state.TPS_PlanStateMachineFactory;
+import de.dlr.ivf.tapas.plan.state.TPS_SequentialTripOutput;
 import de.dlr.ivf.tapas.runtime.util.IPInfo;
 import de.dlr.ivf.tapas.scheme.*;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
@@ -45,16 +48,22 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
     private TPS_Region region;
     private TPS_SchemeSet schemeSet;
 
+    private TPS_SequentialTripOutput sequentialTripOutput;
+
+    private final List<TPS_Plan> all_plans = new ArrayList<>(3700000); //TODO remove hard coded value and replace with person count
+
     /**
      * Constructor class: creates a new db connection, file handler, statement map and the general pattern of the trip-statement
      *
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    public TPS_DB_IOManager(TPS_ParameterClass parameterClass) throws IOException, ClassNotFoundException {
+    public TPS_DB_IOManager(TPS_ParameterClass parameterClass) throws IOException, ClassNotFoundException, SQLException {
         this.dbConnector = new TPS_DB_Connector(parameterClass.getString(ParamString.DB_USER),
                 parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
         this.dbIO = new TPS_DB_IO(this);
+      //  this.sequentialTripOutput = new TPS_SequentialTripOutput("INSERT INTO " + this.getParameters().getString(ParamString.DB_TABLE_TRIPS) +
+       //         " VALUES (?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,? ,?,?,?,?, ?)", this);
     }
 
     /**
@@ -86,6 +95,14 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         }
         sb.setCharAt(sb.length() - 1, ')');
         return sb.toString();
+    }
+
+    public void addTripToOutput(TPS_Plan plan, TPS_TourPart tp, TPS_Trip trip){
+        sequentialTripOutput.addTripOutput(plan,tp,trip);
+    }
+
+    public boolean writeTripsTpDb(){
+        return sequentialTripOutput.persistTrips();
     }
 
     private void batchStoreTrips() {
@@ -484,6 +501,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         this.storeFinishedHouseholdIDsToDB();
     }
 
+
     /**
      * Method to insert all pending Trips.
      */
@@ -728,6 +746,14 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         synchronized (this.plansToStore) {
             this.plansToStore.add(plan);
         }
+    }
+
+    public void addToAllPlans(TPS_Plan plan){
+        all_plans.add(plan);
+    }
+
+    public List<TPS_Plan> getAllPlans(){
+        return this.all_plans;
     }
 
     /**

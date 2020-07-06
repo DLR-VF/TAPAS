@@ -6,6 +6,7 @@ import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanEnvironment;
@@ -290,7 +291,8 @@ public class TPS_Worker implements Callable<Exception> {
                 TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person);
                 createPersonPlans(pe, null);
                 TPS_Plan plan = pe.getBestPlan();
-                PM.writePlan(plan);
+                ((TPS_DB_IOManager)PM).addToAllPlans(plan);
+                //PM.writePlan(plan);//todo remove later
                 // reset the age adaption of the retirees
                 person.setAgeAdaption(false, this.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
@@ -533,7 +535,8 @@ public class TPS_Worker implements Callable<Exception> {
             for (TPS_Person person : bestPlans.keySet()) {
                 TPS_Plan plan = bestPlans.get(person);
                 this.assignCarToPlan(plan); //TODO: isn't it too late here?
-                PM.writePlan(plan);
+                ((TPS_DB_IOManager)PM).addToAllPlans(plan);
+                //PM.writePlan(plan);//todo remove later
             }
         }
     }
