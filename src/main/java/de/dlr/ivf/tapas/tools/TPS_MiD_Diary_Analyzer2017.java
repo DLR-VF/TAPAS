@@ -12,7 +12,7 @@ import java.util.Map.Entry;
 public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 
     static final int ONE_DAY = 24 * 60;
-//    static final String groupCol = "TBG_23";
+    //    static final String groupCol = "TBG_23";
 //    static final String groupCol_name = "TBG_23";
     static final String groupCol = "tbg";
     static final String groupCol_name = "tbg";
@@ -40,8 +40,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         TPS_MiD_Diary_Analyzer2017 worker = new TPS_MiD_Diary_Analyzer2017();
         HashMap<String, String> times = new HashMap<>();
 //		times.put("true", "_Mo-So");
-        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
-//        times.put("st_wotag = ANY(ARRAY[2,3,4])", "_Di-Do");
+//        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
+        times.put("st_wotag = ANY(ARRAY[2,3,4])", "_Di-Do");
 //        times.put("st_wotag = ANY(ARRAY[6,7])","_Sa-So");
 //		times.put("st_wotag = 1","_Mo");
 //		times.put("st_wotag = 2","_Di");
@@ -56,16 +56,18 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 //		regions.put("rtyp = 1", "_RTYP1");
 //		regions.put("rtyp = 2", "_RTYP2");
 //		regions.put("rtyp = 3", "_RTYP3");
-		regions.put("polgk =1", "_PolGK1");
+//		regions.put("polgk =1", "_PolGK1");
 //		regions.put("polgk =2", "_PolGK2");
 //		regions.put("polgk =3", "_PolGK3");
 //		regions.put("polgk =4", "_PolGK4");
 //		regions.put("polgk =5", "_PolGK5");
-//        regions.put("polgk =6", "_PolGK6");
+        regions.put("polgk =6", "_PolGK6");
 
 
         for (Entry<String, String> t : times.entrySet()) {
             for (Entry<String, String> r : regions.entrySet()) {
+                System.out.println(t);
+                System.out.println(r);
                 worker.readMIDDiary("public.mid_2017_b1_wege", t.getKey() + " and " + r.getKey());
                 //System.out.println("Read "+worker.diaryMap.size()+" diaries");
                 //System.out.println("Found "+worker.numOfDoubleWays+" doublet ways. "+worker.numOfExactDoubleWays+" are exact doublets.");
@@ -78,8 +80,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     worker.cleanUpDB("core.global_episodes_mid17");
                     worker.cleanUpDB("core.global_schemes_mid17");
                 }
-                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17",printOnScreen);
-                worker.printDiariesSQLInserts("core.global_episodes_mid17","core.global_schemes_mid17",printOnScreen);
+                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17", printOnScreen);
+                worker.printDiariesSQLInserts("core.global_episodes_mid17", "core.global_schemes_mid17", printOnScreen);
                 worker.printDistributionVectors();
                 worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17",
                         "MID_2017_" + groupCol_name + t.getValue() + r.getValue(), printOnScreen);
@@ -206,42 +208,53 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         activityMapping.put(getMappingKey(3, 7704, 10), 411); //Bildungsweg, Student->University
 
         activityMapping.put(getMappingKey(4, 501, 0), 51);  //Shopping short term: Täglicher Bedarf->SHOPPING SHORT TERM
-        activityMapping.put(getMappingKey(4, 502, 0), 53);  //Shopping long term: sonstige Ware (Kleidung, Möbel, Hausrat)->SHOPPING LONG TERM
+        activityMapping.put(getMappingKey(4, 502, 0),
+                53);  //Shopping long term: sonstige Ware (Kleidung, Möbel, Hausrat)->SHOPPING LONG TERM
         activityMapping.put(getMappingKey(4, 503, 0), 50);  //Shopping Allgemeiner Einkaufsbummel->SHOPPING
-        activityMapping.put(getMappingKey(4, 504, 0), 52);  //Shopping mid term: Dienstleistung (Friseur Schuster)->SHOPPING MID TERM
+        activityMapping.put(getMappingKey(4, 504, 0),
+                52);  //Shopping mid term: Dienstleistung (Friseur Schuster)->SHOPPING MID TERM
         activityMapping.put(getMappingKey(4, 505, 0), 50);  //Shopping sonstiger Einkaufszweck->SHOPPING
         activityMapping.put(getMappingKey(4, 599, 0), 50);  //Shopping Einkäufe ohne Angabe zum Detail->SHOPPING
         activityMapping.put(getMappingKey(4, 2202, 0), 50);  //Shopping keine Angabe->SHOPPING
 
         activityMapping.put(getMappingKey(5, 503, 0), 50);  //private Erledigung: Allgemeiner Einkaufsbummel->SHOPPING
-        activityMapping.put(getMappingKey(5, 504, 0), 52);  //private Erledigung: Dienstleistung (Friseur Schuster)-> SHOPPING MID TERM
+        activityMapping.put(getMappingKey(5, 504, 0),
+                52);  //private Erledigung: Dienstleistung (Friseur Schuster)-> SHOPPING MID TERM
         activityMapping.put(getMappingKey(5, 601, 0), 522); //private Erledigung: Arzt->PERSONAL_MATTERS
-        activityMapping.put(getMappingKey(5, 602, 0), 522); //private Erledigung: Amt, Behörde, Post, Bank, Geldautomat->PERSONAL_MATTERS
+        activityMapping.put(getMappingKey(5, 602, 0),
+                522); //private Erledigung: Amt, Behörde, Post, Bank, Geldautomat->PERSONAL_MATTERS
         activityMapping.put(getMappingKey(5, 603, 0), 522); //private Erledigung: für andere Person->PERSONAL_MATTERS
         activityMapping.put(getMappingKey(5, 604, 0), 522); //private Erledigung: sonstiges->PERSONAL_MATTERS
         activityMapping.put(getMappingKey(5, 605, 0), 522); //private Erledigung: Betreuung->PERSONAL_MATTERS
-        activityMapping.put(getMappingKey(5, 699, 0), 522); //private Erledigung: keine Angabe des Details->PERSONAL_MATTERS
+        activityMapping.put(getMappingKey(5, 699, 0),
+                522); //private Erledigung: keine Angabe des Details->PERSONAL_MATTERS
         activityMapping.put(getMappingKey(5, 701, 0), 631); //private Erledigung: Besuch mit/bei Freunden->VISITING
         activityMapping.put(getMappingKey(5, 705, 0), 414); //private Erledigung: Weiterbildung ->Weitebrildung
         activityMapping.put(getMappingKey(5, 706, 0), 720); //private Erledigung: Restaurant->DINING_OR_GOING_OUT
         activityMapping.put(getMappingKey(5, 711, 0), 722); //private Erledigung: Hund ausführen->PROMENADING
         activityMapping.put(getMappingKey(5, 713, 0), 522); //private Erledigung: Kirche, Friedhof->PERSONAL_MATTERS
-        activityMapping.put(getMappingKey(5, 714, 0), 300); //private Erledigung: Ehrenamt, Verein, pol. Aufgaben->VOLUNTARY_WORK
-        activityMapping.put(getMappingKey(5, 715, 0), 213); //private Erledigung: Jobben in der Freizeit->WORKING PART TIME
-        activityMapping.put(getMappingKey(5, 716, 0), 881); //private Erledigung: Begleitung Kinder Spielplatz->TRANSPORTING_CHILDREN_LOCATION
+        activityMapping.put(getMappingKey(5, 714, 0),
+                300); //private Erledigung: Ehrenamt, Verein, pol. Aufgaben->VOLUNTARY_WORK
+        activityMapping.put(getMappingKey(5, 715, 0),
+                213); //private Erledigung: Jobben in der Freizeit->WORKING PART TIME
+        activityMapping.put(getMappingKey(5, 716, 0),
+                881); //private Erledigung: Begleitung Kinder Spielplatz->TRANSPORTING_CHILDREN_LOCATION
         activityMapping.put(getMappingKey(5, 717, 0), 522); //private Erledigung: Hobby->PERSONAL_MATTERS
-        activityMapping.put(getMappingKey(5, 2202, 0),522); //private Erledigung: im PAPI nicht->PERSONAL_MATTERS
+        activityMapping.put(getMappingKey(5, 2202, 0), 522); //private Erledigung: im PAPI nicht->PERSONAL_MATTERS
         // erhoben->PERSONAL_MATTERS
         // Freizeitweg?!?!?
 
         //TODO keine Aktivität fürs Bringen von allgemeinen Personen? (es gibt Bringen von Kindern in der DB aber
         // nicht in MiD)
         activityMapping.put(getMappingKey(6, 2202, 0), 740); //Bringen+Holen: keine Angabe ->FREETIME_ANY
-        activityMapping.put(getMappingKey(6, 7704, 0),799); //Bringen+Holen: kein Einkaufs-, Erledigungs- und Freizeitweg?!?!?->ACTIVITIES_ANY
+        activityMapping.put(getMappingKey(6, 7704, 0),
+                799); //Bringen+Holen: kein Einkaufs-, Erledigungs- und Freizeitweg?!?!?->ACTIVITIES_ANY
 
         activityMapping.put(getMappingKey(7, 503, 0), 50); //Freizeit: allg. Einkaufsbummel->SHOPPING
-        activityMapping.put(getMappingKey(7, 603, 0), 522); //Freizeit: priv. Erledigung für andere Person->PERSONAL_MATTERS
-        activityMapping.put(getMappingKey(7, 605, 0), 740); //Freizeit: Betreuung Familienmitglieder Bekannter->FREETIME_ANY
+        activityMapping.put(getMappingKey(7, 603, 0),
+                522); //Freizeit: priv. Erledigung für andere Person->PERSONAL_MATTERS
+        activityMapping.put(getMappingKey(7, 605, 0),
+                740); //Freizeit: Betreuung Familienmitglieder Bekannter->FREETIME_ANY
         activityMapping.put(getMappingKey(7, 701, 0), 631); //Freizeit: Besuch/Treffen von Freunden->VISITING
         activityMapping.put(getMappingKey(7, 702, 0), 640); //Freizeit: Besuch Kulturelle Einrichtung->EXCURSIONS
         activityMapping.put(getMappingKey(7, 703, 0), 724); //Freizeit: Besuch einer Veranstaltung->BEING_AT_AN_EVENT
@@ -257,7 +270,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         activityMapping.put(getMappingKey(7, 713, 0), 522); //Freizeit: Kirche und Friedhof->PERSONAL_MATTERS
         activityMapping.put(getMappingKey(7, 714, 0), 300); //Freizeit: Ehrenamt, Verein, pol. Aufgaben->VOLUNTARY_WORK
         activityMapping.put(getMappingKey(7, 715, 0), 213); //Freizeit: Jobben i.d. Freizeit->WORKING PART TIME
-        activityMapping.put(getMappingKey(7, 716, 0), 881); //Freizeit: Begleitung von Kindern (Spielplatz)->TRANSPORTING_CHILDREN_LOCATION
+        activityMapping.put(getMappingKey(7, 716, 0),
+                881); //Freizeit: Begleitung von Kindern (Spielplatz)->TRANSPORTING_CHILDREN_LOCATION
         activityMapping.put(getMappingKey(7, 717, 0), 740); //Freizeit: Hobby->FREETIME_ANY
         activityMapping.put(getMappingKey(7, 719, 0), 723); //Freizeit: Spielen (Spielplatz)->PLAYING
         activityMapping.put(getMappingKey(7, 720, 0), 740); //Freizeit: Sonstiges->FREETIME_ANY
@@ -291,8 +305,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         boolean home, workchain;
 
         PrintWriter pw = new PrintWriter(System.out); //needed to get rid of stupid german localization of doubles!
-        String tmpString = "";
-        tmpString = String.format(Locale.ENGLISH,
+        String tmpString = String.format(Locale.ENGLISH,
                 "INSERT INTO %s" + " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain) " +
                         "VALUES (?,?,?,?,?,?,?);", table_episode);
 
@@ -331,8 +344,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     tmpString = String.format(Locale.ENGLISH, "INSERT INTO %s" +
                                     " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain) " +
                                     "VALUES (%d,%d,%d,%d,%s,%d,%s); --hhid: %d, pid: %d", table_episode, tmp.schemeID, start,
-                            duration, act_code_zbe, home, tourNumber, workchain,
-                            tmp.hhID, tmp.pID);
+                            duration, act_code_zbe, home, tourNumber, workchain, tmp.hhID, tmp.pID);
                     if (print) {
                         pw.printf(tmpString + "\n");
                     } else {
@@ -442,36 +454,48 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         Map<Integer, Double> groupAvgWay = new HashMap<>();
         Map<Integer, Double> groupStdDeviation = new HashMap<>();
         Map<Integer, Double> groupWithinStdDeviation = new HashMap<>();
-        int counter, group, time, sumtime, sumways;
-        double avg, stdDev, within;
+        int counter, group, time, ways;
+        double avg, stdDev, within, sumtime, sumways;
+        //set the keys and default values
+        for (Integer i : this.diaryGroups) {
+            groupCounter.put(i,0);
+            groupSumTime.put(i,0);
+            groupSumWay.put(i,0);
+            groupAvgTime.put(i,0.0);
+            groupAvgWay.put(i,0.0);
+            groupStdDeviation.put(i,0.0);
+            groupWithinStdDeviation.put(i,0.0);
+        }
+
+
         //calc sum of times
         for (Diary e : this.diaryMap.values()) {
             group = e.group;
             //fetch old values
-            counter = groupCounter.getOrDefault(group, 0);
-            time = groupSumTime.getOrDefault(group, 0);
-            sumways = groupSumWay.getOrDefault(group, 0);
+            counter = groupCounter.get(group);
+            time = groupSumTime.get(group);
+            ways = groupSumWay.get(group);
 
             //calc new values
             counter++;
             time += e.totalTravelTime;
             for (DiaryElement d : e.activities) {
-                if (!d.stay) sumways++;
+                if (!d.stay) ways++;
             }
 
             //put new values
             groupCounter.put(group, counter);
             groupSumTime.put(group, time);
-            groupSumWay.put(group, sumways);
+            groupSumWay.put(group, ways);
         }
 
         //calc avg
         for (Integer i : this.diaryGroups) {
             counter = groupCounter.get(i);
-            sumtime = groupSumTime.get(i);
-            sumways = groupSumWay.get(i);
-            groupAvgTime.put(i, ((double) sumtime / (double) counter));
-            groupAvgWay.put(i, ((double) sumways / (double) counter));
+            sumtime = counter > 0 ? (groupSumTime.get(i) / (double) counter) : 0.0;
+            sumways = counter > 0 ? ((double) groupSumWay.get(i)/ (double) counter): 0.0;
+            groupAvgTime.put(i, sumtime);
+            groupAvgWay.put(i, sumways);
         }
         //calc standard deviation
         for (Diary e : this.diaryMap.values()) {
@@ -488,8 +512,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         //normalize stdDev
         for (Integer i : this.diaryGroups) {
             counter = groupCounter.get(i) - 1;
-            stdDev = groupStdDeviation.get(i);
-            groupStdDeviation.put(i, (stdDev / (double) counter));
+            stdDev = counter>0 ? (groupStdDeviation.get(i)/ (double) counter) : 0;
+            groupStdDeviation.put(i, stdDev);
         }
 
         //now count number of diaries within std deviation
@@ -503,9 +527,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             }
 
             //update value
-            if ((e.totalTravelTime - groupAvgTime.get(group)) * (e.totalTravelTime - groupAvgTime.get(group))
-                    //the deviation
-                    < stdDev) {
+            if ((e.totalTravelTime - groupAvgTime.get(group)) * (e.totalTravelTime - groupAvgTime.get(group))< stdDev) {
                 within += 1;
             }
             groupWithinStdDeviation.put(group, within);
@@ -514,7 +536,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         for (Integer i : this.diaryGroups) {
             counter = groupCounter.get(i);
             within = groupWithinStdDeviation.get(i);
-            groupWithinStdDeviation.put(i, (within / (double) counter));
+            stdDev = counter>0 ? (within / (double) counter) : 0;
+            groupWithinStdDeviation.put(i, stdDev);
         }
 
         // puh, now print the whole stuff
@@ -535,7 +558,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             }
             pw.flush();
         } else {
-            //there are only a few insert, so we do it directly withourt pepared Statements
+            //there are only a few insert, so we do it directly without prepared Statements
             String query;
             for (Integer i : this.diaryGroups) {
                 avg = groupAvgTime.get(i);
@@ -585,28 +608,20 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         int doubleReturnDiaries = 0;
 
         try {
-//            query = "select hhid, pid, wsid, st_dat,st_std, st_min, en_dat, en_std, en_min, " +
-//                    "w04, w04_dzw, w04_sons, w13, " + groupCol + ",pg_tapas, hp_besch, " +
-//                    "w072_1, w072_2, w072_3, w072_4, w072_5, w072_6, w072_7, w072_8 " + "from " + table +
-//                    " where st_std !=301 and pg_tapas <>-999 and " + filter + " order by hhid,pid,wsid";
-            query =
-                    "select hp_id, h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
+            query = "select hp_id, h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
                     "w_begl_1, w_begl_2, w_begl_3, w_begl_4, w_begl_5, w_begl_6, w_begl_7, w_begl_8, " +
                     "w_folgetag, w_zwd, pg_tapas, " + groupCol + " from " + table +
                     " where w_szs != 99 and w_szs != 701 and pg_tapas <>-999 and " + filter + " order by hp_id, h_id," +
-                            " p_id, w_id";
+                    " p_id, w_id";
             ResultSet rs = this.dbCon.executeQuery(query, this);
-            String description = "";
             int key, lastKey = -1;
-            int hpid, hhID, pID, wsID, start, end, purpose, purposeDetailed, group, pGroup, personStatus,
-                    tripDestination;
-            boolean clean = true, home;
+            int hpid, hhID, pID, start, end, purpose, purposeDetailed, group, pGroup, personStatus;
+            boolean clean = true, home, addTripElement;
 
             while (rs.next()) {
                 hpid = rs.getInt("hp_id");
                 hhID = rs.getInt("h_id");
                 pID = rs.getInt("p_id");
-                wsID = rs.getInt("w_id");
                 start = rs.getInt("w_szs") * 60 + rs.getInt("w_szm");
                 end = rs.getInt("w_folgetag") * ONE_DAY + rs.getInt("w_azs") * 60 + rs.getInt("w_azm");
                 purpose = rs.getInt("w_zweck");
@@ -615,9 +630,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 pGroup = rs.getInt("pg_tapas");
                 personStatus = rs.getInt("hp_taet");
                 home = purpose == 8;
-                tripDestination =  -1; //rs.getInt("w13");
-                //codiere Rückwege mit Ziel "Nach Hause" in "Rückwege nach hause"
-                if (purpose == 9 && tripDestination == 1) purpose = 8;
                 key = hpid;
                 if (key == lastKey) { //same diary?
                     actualDiary = this.diaryMap.get(key);
@@ -635,23 +647,32 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     this.diaryMap.put(key, actualDiary);
                     lastActivity = null;
                 }
-                if (actualDiary.activities.size() == 1 && (purpose == 8 || purpose == 9) && tripDestination != 5) {
+                addTripElement = true; //default value, only changed if start or end time equal to the prev trip
+                if (actualDiary.activities.size() == 1 && (purpose == 8 || purpose == 9)) {
                     numOfDiariesStartingWithATrip++;
-//					if(purposeNonHomeStartTrip.get(purpose)==null){
-//						purposeNonHomeStartTrip.put(purpose,1);
-//					}
-//					else{
-//						purposeNonHomeStartTrip.put(purpose,purposeNonHomeStartTrip.get(purpose)+1);
-//					}
-//					System.out.println(description);
                 } else if (lastActivity != null && lastActivity.home && purpose == 8) { // two consecutive "trips home"
-                    lastActivity.end_min = Math.max(lastActivity.end_min, end);
-                    System.err.println("Diary " + hhID + " pid " + pID + " has two consecutive trips home");
-                    doubleReturnDiaries++;
-                } else {
+//                    System.err.println("Diary " + hhID + " pid " + pID + " has two consecutive trips home");
+//                    doubleReturnDiaries++;
+                    if (lastActivity.start_min == start) { //take the longer trip
+                        lastActivity.end_min = Math.max(lastActivity.end_min, end);
+                        addTripElement = false; //don't add the current trip element
+                    } else if (lastActivity.end_min == end) {// take the longer trip
+                        lastActivity.start_min = Math.max(lastActivity.start_min, start);
+                        addTripElement = false; //don't add the current trip element
+                    } else {
+                        lastActivity.purpose = 10; //change prev trip purpose to "anderer Zweck"
+                        if (lastActivity.end_min >= start) {//merge the trips and take the first one
+                            if (lastActivity.end_min - lastActivity.start_min >= end - start) {//which trip is the longer one?
+                                lastActivity.end_min = start - 5; //reduce the first/prev trip duration
+                            } else {
+                                start = lastActivity.end_min + 5; //reduce the second/current trip duration
+                            }
+                        }
+                    }
+                }
+                if (addTripElement){
                     if (start != end) {
-                        clean &= actualDiary.addNextElement(wsID, start, end, purpose, purposeDetailed, description,
-                                home, tripDestination);
+                        clean &= actualDiary.addNextElement(start, end, purpose, purposeDetailed, home);
                         int diaryIndex = actualDiary.activities.size() - 1;
                         lastActivity = actualDiary.activities.get(diaryIndex);
                         //check for accompanying persons
@@ -671,7 +692,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 lastKey = key;
             }
         } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
+            System.err.println("Error in SQL statement: " + query);
             e.printStackTrace();
         }
         if (lastDiary != null) {
@@ -740,15 +761,11 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         if (doubleReturnDiaries > 0) System.err.println("Number of two consecutive trips home: " + doubleReturnDiaries);
     }
 
-    private int recodeAcompanyTrip(DiaryElement trip, DiaryElement theOtherOne) {
+
+    private void recodeAcompanyTrip(DiaryElement trip, DiaryElement theOtherOne) {
         if (theOtherOne != null) {
-//			System.out.println("This trip:");
-//			trip.printElement();
-//			System.out.println("The othewr one:");
-//			theOtherOne.printElement();
             trip.purpose = theOtherOne.purpose;
             trip.purposeDetailed = theOtherOne.purposeDetailed;
-            trip.purposeDescription = "Begleitung bei " + theOtherOne.purposeDescription;
             int purpose = theOtherOne.purpose * 100000 + theOtherOne.purposeDetailed;
 
             if (accompanyStat.containsKey(purpose)) {
@@ -757,8 +774,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 accompanyStat.put(purpose, 1);
             }
             recoded++;
-            return 1;
-
         } else {
             int purpose = trip.purpose * 100000 + trip.purposeDetailed;
             if (UncodedAccompanyStat.containsKey(purpose)) {
@@ -768,7 +783,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             }
 
             notRecoded++;
-            return 0;
         }
     }
 
@@ -781,9 +795,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         int purposeDetailed;
         boolean stay;
         boolean home;
-        int tripDestination = 0;
         boolean workchain = false; //trip with purpose work
-        String purposeDescription;
         List<Integer> accompanyingPersons = new ArrayList<>();
 
         @Override
@@ -793,10 +805,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 
         public int getDuration() {
             return end_min - start_min;
-        }
-
-        public boolean isRoundTrip() {
-            return tripDestination == 5;
         }
 
         public void printElement() {
@@ -812,9 +820,9 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         int schemeID = 0;
         int hhID;
         int pID;
-        int group = 0;
-        int pGroup = 0;
-        int personStatus = 0;
+        int group;
+        int pGroup;
+        int personStatus;
         int totalTravelTime = 0;
         boolean reported;
         List<DiaryElement> activities = new ArrayList<>();
@@ -831,7 +839,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             startElem.start_min = 0;
             startElem.purpose = 0;
             startElem.purposeDetailed = 0;
-            startElem.purposeDescription = "At home";
             startElem.home = true;
             startElem.stay = true;
             this.addDiaryElement(startElem);
@@ -842,19 +849,18 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             this.activities.add(e);
         }
 
-        public boolean addNextElement(int wsID, int start, int end, int purpose, int purposeDetailed, String description, boolean home, int tripDestination) {
+        public boolean addNextElement(int start, int end, int purpose, int purposeDetailed, boolean home) {
             if (start == end) //no duration?!?
                 return false;
             DiaryElement pre = this.activities.get(this.activities.size() - 1);
             DiaryElement stay;
             if (pre.stay) {
                 stay = pre;
-            } else {
+            } else { //if the previous DiaryElement pre was a trip -> create a stay between the pre and current trip
                 stay = new DiaryElement();
                 stay.start_min = pre.end_min;
                 stay.purpose = pre.home ? 0 : pre.purpose;
                 stay.purposeDetailed = pre.home ? 0 : pre.purposeDetailed;
-                stay.purposeDescription = pre.purposeDescription;
                 stay.home = pre.home;
                 stay.stay = true;
                 //check for funny double entries!
@@ -867,13 +873,10 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     if (pre.purposeDetailed == 7704) {
                         pre.purpose = purpose;
                         pre.purposeDetailed = purposeDetailed;
-                        pre.purposeDescription = description;
                         return false;
                     }
                 }
             }
-
-
             stay.end_min = start;
             DiaryElement trip = new DiaryElement();
             if (purpose == 9) { // rückweg vom vorherigen weg
@@ -885,7 +888,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     } else { //a trip back has the same purpose!
                         purpose = preStay.purpose;
                         purposeDetailed = preStay.purposeDetailed;
-                        description = "Back to " + preStay.purposeDescription;
 
                     }
                 } else {
@@ -897,15 +899,11 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             trip.purpose = purpose;
             trip.start_min = start;
             trip.purposeDetailed = purposeDetailed;
-            trip.purposeDescription = description;
             trip.end_min = end;
             trip.stay = false;
-            trip.tripDestination = tripDestination;
-
-
             //now something strange: we have trips "Return to home" starting and ending at home.
             // I assume these are round trips (walks etc..)
-            if (stay.home && (purpose == 8 || trip.tripDestination == 1)) {
+            if (stay.home && purpose == 8) {
                 //is the trip long enough to split? (3min= 1min trip 1min stay 1min back)
                 int middle = start + (end - start) / 2;
                 boolean splitIt = true;
@@ -920,8 +918,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     inBetweenTrip.home = false;
                     inBetweenTrip.purpose = purpose;
                     inBetweenTrip.purposeDetailed = purposeDetailed;
-                    inBetweenTrip.purposeDescription = "Nachträglich eingefügte Auftrennung des Weges";
-                    inBetweenTrip.tripDestination = 304;
                     this.addDiaryElement(inBetweenTrip);
                     //target
                     DiaryElement inBetweenStay = new DiaryElement();
@@ -931,8 +927,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     inBetweenStay.home = false;
                     inBetweenStay.purpose = purpose;
                     inBetweenStay.purposeDetailed = purposeDetailed;
-                    inBetweenStay.purposeDescription = "Nachträglich eingefügte Auftrennung des Weges";
-                    inBetweenStay.tripDestination = 304;
                     this.addDiaryElement(inBetweenStay);
 
                     //way back home
@@ -987,12 +981,10 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 stay.end_min = ONE_DAY;
                 stay.purpose = 0;
                 stay.purposeDetailed = 0;
-                stay.purposeDescription = "At home";
                 stay.home = true;
                 stay.stay = true;
                 //this.addDiaryElement(stay);
             } else {
-
                 //check if the last trip was going home!
                 DiaryElement pre = this.activities.get(this.activities.size() - 1);
                 if (!pre.home) {// && !pre.isRoundTrip()){
@@ -1010,14 +1002,13 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     auxStay.end_min = auxStay.start_min + 5;
                     auxStay.purpose = pre.purpose;
                     auxStay.purposeDetailed = pre.purposeDetailed;
-                    auxStay.purposeDescription = pre.purposeDescription;
                     auxStay.home = false;
                     auxStay.stay = true;
                     this.addDiaryElement(auxStay);
                     // now insert a trip home.
                     //Only problem: how long should it be?
                     //Assumption: look back for the last trip from home and take this time!
-                    pre = new DiaryElement(); //this will be the preceeding trip for the rest of the code!
+                    pre = new DiaryElement(); //this will be the preceding trip for the rest of the code!
                     pre.start_min = auxStay.end_min;
                     //now look for the duration of the last trip from home
                     int duration = 5; //safety value
@@ -1033,7 +1024,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     pre.end_min = pre.start_min + duration;
                     pre.purpose = 8;
                     pre.purposeDetailed = 7704;
-                    pre.purposeDescription = " Automatic trip back home";
                     pre.home = true;
                     pre.stay = false;
                     this.addDiaryElement(pre);
@@ -1046,7 +1036,6 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 stay.end_min = Math.max(ONE_DAY, pre.end_min + 1);
                 stay.purpose = pre.home ? 0 : pre.purpose;
                 stay.purposeDetailed = pre.home ? 0 : pre.purposeDetailed;
-                stay.purposeDescription = "At home";
                 stay.home = true;
                 stay.stay = true;
                 this.addDiaryElement(stay);
@@ -1056,7 +1045,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 //now update the tournumbers
                 pre = this.activities.get(0);
                 int actTourNumber;
-                DiaryElement act = null;
+                DiaryElement act;
                 List<Integer> toursWithWork = new LinkedList<>();
                 //first home stays are always tour 0 trips are 1...
                 actTourNumber = 1; // start with the first tour
