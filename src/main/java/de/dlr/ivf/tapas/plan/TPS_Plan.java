@@ -65,6 +65,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
     private int adapt = 0;
     /// variable for time adaptation differenceanalysis
     private int adaptAbsSum = 0;
+    private TPS_PlanningContext pc;
 
     /**
      * Constructor for this class
@@ -1411,6 +1412,17 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
             }
         }
         out.flush();
+    }
+
+    public void setPlanningContext(TPS_PlanningContext pc){
+        this.pc = pc;
+    }
+
+    public TPS_PlanningContext getPlanningContext(){
+        return this.pc;
+    }
+    public Map<TPS_ActivityConstant, TPS_Location> getFixLocations(){
+        return this.fixLocations;
     }
 
 }

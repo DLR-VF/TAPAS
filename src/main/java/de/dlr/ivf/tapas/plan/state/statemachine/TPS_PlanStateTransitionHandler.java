@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state;
+package de.dlr.ivf.tapas.plan.state.statemachine;
 
 import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.plan.state.guard.TPS_PlanStateGuard;

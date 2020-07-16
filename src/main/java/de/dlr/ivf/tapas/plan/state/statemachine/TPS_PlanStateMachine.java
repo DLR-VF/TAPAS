@@ -1,12 +1,10 @@
-package de.dlr.ivf.tapas.plan.state;
+package de.dlr.ivf.tapas.plan.state.statemachine;
 
 import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
-import de.dlr.ivf.tapas.plan.state.statemachine.TPS_Callback;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 
 //a bare state machine;
 // T = type of the object that is linked to this state machine (eg. a TPS_Plan)
@@ -17,10 +15,10 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
     private TPS_PlanState currentState;
     private Set<TPS_PlanState> states;
     private T representing_object;
-    private CountDownLatch countDownLatch;
+    private int sim_start_time = -1000;
 
     public TPS_PlanStateMachine(TPS_PlanState initialState, String name, T representing_object){
-        this(initialState,new HashSet<TPS_PlanState>(),name,representing_object);
+        this(initialState, new HashSet<>(),name,representing_object);
     }
 
 
@@ -34,9 +32,7 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
 
     @Override
     public void handleEvent(TPS_PlanEvent event) {
-        if(!currentState.handle(event) && countDownLatch != null){
-            countDownLatch.countDown();
-        }
+        currentState.handle(event);
     }
 
     @Override
@@ -44,20 +40,18 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
         makeTransition(handler);
     }
 
-    private void makeTransition(TPS_PlanStateTransitionHandler handler){
+    protected void makeTransition(TPS_PlanStateTransitionHandler handler){
         //first we exit the current state
         exitState();
         //then we make the transition
         executeAction(handler.getAction());
         //now we enter the new state
         enterState(handler);
-        //finally we tell the simulation that we are ready to proceed
-        if(countDownLatch != null)
-            countDownLatch.countDown();
     }
 
     private void enterState(TPS_PlanStateTransitionHandler handler){
         //if a state is supplied that is not part of this statemachine, we reset the machine
+        System.out.println("entering: "+handler.getTargetState());
         if(states.contains(handler.getTargetState()))
             currentState = handler.getTargetState();
         else
@@ -77,8 +71,12 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
     public void setStates(Set<TPS_PlanState> states){
         this.states = states;
     }
+    public void setSimStartTime(int start_time){
+        if(start_time < this.sim_start_time)
+            this.sim_start_time = start_time;
+    }
 
-    public void setCountDownLatch(CountDownLatch countDownLatch){
-        this.countDownLatch = countDownLatch;
+    public int getSimStartTime(){
+        return this.sim_start_time;
     }
 }

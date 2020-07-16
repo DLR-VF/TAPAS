@@ -9,7 +9,10 @@ import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
+import de.dlr.ivf.tapas.persistence.db.TPS_TripToDbWriter;
 import de.dlr.ivf.tapas.person.TPS_Worker;
+import de.dlr.ivf.tapas.plan.TPS_Plan;
+import de.dlr.ivf.tapas.plan.TPS_PlanGenerator;
 import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
@@ -95,6 +98,7 @@ public class TPS_Main {
             Class<?> clazz = Class.forName(this.parameterClass.getString(ParamString.CLASS_DATA_SCOURCE_ORIGIN));
             PM = (TPS_PersistenceManager) clazz.getConstructor(TPS_ParameterClass.class).newInstance(
                     this.parameterClass);
+
         } catch (Exception e) {
             TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
@@ -208,57 +212,81 @@ public class TPS_Main {
      * @param threads amount of parallel threads.
      */
     public void run(int threads) {
-        long t0, t1;
-        actStats.clear();
+//        long t0, t1;
+//        actStats.clear();
+//        try {
+//            waitForMe = true;
+//            // initialise persistence manager
+//            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+//                TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize Persistence Manager ...");
+//            }
+//            t0 = System.currentTimeMillis();
+//            PM.init();
+//            t1 = System.currentTimeMillis();
+//            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+//                TPS_Logger.log(SeverenceLogLevel.INFO, "... finished in " + (t1 - t0) * 0.001 + "s");
+//            }
+//            if (DEBUG) {
+//                threads = 1;
+//            }
+//            // now update the costs variables for the modes, which are not initialized again!
+//            this.updateCosts();
+//
+//            // start worker threads
+//            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+//                TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize " + threads + " working threads ...");
+//            }
+//
+//
+//            ExecutorService es = Executors.newFixedThreadPool(threads);
+//            List<Future<Exception>> col = new LinkedList<>();
+//            for (int activeThreads = 0; activeThreads < threads; activeThreads++) {
+//                col.add(es.submit(new TPS_Worker(this.PM)));
+//            }
+//
+//            // wait for worker threads
+//            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+//                TPS_Logger.log(SeverenceLogLevel.INFO, "... wait for all working threads ...");
+//            }
+//
+//            for (Future<Exception> future : col) {
+//                future.get();
+//            }
+//            es.shutdown();
+//            // reset unfinished households
+//            //PM.resetUnfinishedHouseholds();
+//            TPS_PlansExecutor planexecutor = new TPS_PlansExecutor(((TPS_DB_IOManager) getPersistenceManager()).getAllPlans(),threads,(TPS_DB_IOManager) getPersistenceManager());
+//            planexecutor.runSimulation();
+//
+//            waitForMe = false;
+//        } catch (Exception e) {
+//            waitForMe = false;
+//            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+//        }
+
+
+
+
+
+
+        //first we generate abstract plans for every person that only contain information about their stays
+        //todo maybe parallelize this block
+        this.PM.init();
+        TPS_PlanGenerator plan_generator = new TPS_PlanGenerator(this.PM);
         try {
-            waitForMe = true;
-            // initialise persistence manager
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize Persistence Manager ...");
-            }
-            t0 = System.currentTimeMillis();
-            PM.init();
-            t1 = System.currentTimeMillis();
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "... finished in " + (t1 - t0) * 0.001 + "s");
-            }
-            if (DEBUG) {
-                threads = 1;
-            }
-            // now update the costs variables for the modes, which are not initialized again!
-            this.updateCosts();
+            List<TPS_Plan> plans = plan_generator.call();
+            TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
+            TPS_PlansExecutor plan_executor = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 
-            // start worker threads
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize " + threads + " working threads ...");
-            }
-
-
-            ExecutorService es = Executors.newFixedThreadPool(threads);
-            List<Future<Exception>> col = new LinkedList<>();
-            for (int activeThreads = 0; activeThreads < threads; activeThreads++) {
-                col.add(es.submit(new TPS_Worker(this.PM)));
-            }
-
-            // wait for worker threads
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "... wait for all working threads ...");
-            }
-
-            for (Future<Exception> future : col) {
-                future.get();
-            }
-            es.shutdown();
-            // reset unfinished households
-            //PM.resetUnfinishedHouseholds();
-            TPS_PlansExecutor planexecutor = new TPS_PlansExecutor(((TPS_DB_IOManager) getPersistenceManager()).getAllPlans(),threads,(TPS_DB_IOManager) getPersistenceManager());
-            planexecutor.runSimulation();
-
-            waitForMe = false;
+            Thread persisting_thread = new Thread(writer);
+            persisting_thread.start();
+            plan_executor.runSimulation();
         } catch (Exception e) {
-            waitForMe = false;
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            e.printStackTrace();
         }
+
+
+
         TPS_Logger.closeLoggers();
     }
 

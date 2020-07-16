@@ -15,8 +15,6 @@ import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
-import de.dlr.ivf.tapas.plan.state.TPS_PlanStateMachine;
-import de.dlr.ivf.tapas.plan.state.TPS_PlanStateMachineFactory;
 import de.dlr.ivf.tapas.plan.state.TPS_SequentialTripOutput;
 import de.dlr.ivf.tapas.runtime.util.IPInfo;
 import de.dlr.ivf.tapas.scheme.*;
@@ -48,7 +46,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
     private TPS_Region region;
     private TPS_SchemeSet schemeSet;
 
-    private TPS_SequentialTripOutput sequentialTripOutput;
 
     private final List<TPS_Plan> all_plans = new ArrayList<>(3700000); //TODO remove hard coded value and replace with person count
 
@@ -62,8 +59,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         this.dbConnector = new TPS_DB_Connector(parameterClass.getString(ParamString.DB_USER),
                 parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
         this.dbIO = new TPS_DB_IO(this);
-      //  this.sequentialTripOutput = new TPS_SequentialTripOutput("INSERT INTO " + this.getParameters().getString(ParamString.DB_TABLE_TRIPS) +
-       //         " VALUES (?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,? ,?,?,?,?, ?)", this);
     }
 
     /**
@@ -95,14 +90,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         }
         sb.setCharAt(sb.length() - 1, ')');
         return sb.toString();
-    }
-
-    public void addTripToOutput(TPS_Plan plan, TPS_TourPart tp, TPS_Trip trip){
-        sequentialTripOutput.addTripOutput(plan,tp,trip);
-    }
-
-    public boolean writeTripsTpDb(){
-        return sequentialTripOutput.persistTrips();
     }
 
     private void batchStoreTrips() {
@@ -380,6 +367,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         try {
             long time = System.nanoTime();
             TPS_Household hh = this.dbIO.getNextHousehold(this.getRegion());
+
             time = System.nanoTime() - time;
             if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
                 TPS_Logger.log(SeverenceLogLevel.DEBUG, "Read next household in " + (time * 0.000001) + "ms");

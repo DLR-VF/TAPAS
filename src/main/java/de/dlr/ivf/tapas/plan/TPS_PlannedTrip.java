@@ -105,7 +105,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
      * @param pComingFrom location coming from
      * @param pGoingTo    location going to
      */
-    boolean setTravelTime(TPS_LocatedStay pComingFrom, TPS_LocatedStay pGoingTo) {
+    public boolean setTravelTime(TPS_LocatedStay pComingFrom, TPS_LocatedStay pGoingTo) {
         // Do not get confused with 'pComingFrom' and 'myPComingFrom'. 'pComingFrom' is needed for the hierarchy of the
         // trips in the tour.
         if (pComingFrom.getStay().isAtHome() && pGoingTo.getStay().isAtHome() && mode == null) {

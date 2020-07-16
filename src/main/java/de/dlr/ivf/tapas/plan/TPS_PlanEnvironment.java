@@ -25,6 +25,7 @@ public class TPS_PlanEnvironment {
     private final TPS_Person person;
     /// All plans which were generated for this person
     private final List<TPS_Plan> plans;
+    private TPS_Plan plan;
     ///
     private TPS_PlanAcceptance acceptance = null;
 
@@ -178,6 +179,9 @@ TODO: remove after a while
 //			}
 //		}
         return this.acceptance.isPlanAccepted(plan);
+    }
+    public TPS_Plan getFirstPlan(){
+        return this.plans.get(0);
     }
 
 }

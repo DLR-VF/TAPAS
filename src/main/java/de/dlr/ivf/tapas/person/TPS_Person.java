@@ -11,6 +11,7 @@ import de.dlr.ivf.tapas.person.TPS_Preference.PreferenceSet;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingClass;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceAccessibility;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceSupply;
+import de.dlr.ivf.tapas.plan.state.communication.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
@@ -65,6 +66,9 @@ public class TPS_Person implements ExtendedWritable {
     private int workLocationID = -1;
     private double driverScore = -1;
     private int educationLevel = 0;
+
+    // handles the communication of car resources between multiple persons
+    private TPS_HouseholdCarMediator carMediator;
 
     /**
      * This constructor just calls the init() method.

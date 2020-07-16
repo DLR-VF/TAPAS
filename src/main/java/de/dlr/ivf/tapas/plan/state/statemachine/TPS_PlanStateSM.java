@@ -1,6 +1,7 @@
-package de.dlr.ivf.tapas.plan.state;
+package de.dlr.ivf.tapas.plan.state.statemachine;
 
 
+import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
@@ -51,6 +52,26 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
     @Override
     public void removeHandler(TPS_PlanEventType event) {
 
+    }
+
+    @Override
+    public void setOnEnterAction(TPS_PlanStateAction action) {
+
+    }
+
+    @Override
+    public void setOnExitAction(TPS_PlanStateAction action) {
+
+    }
+
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public TPS_PlanStateMachine<TPS_Plan> getStateMachine() {
+        return null;
     }
 
 
