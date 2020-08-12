@@ -198,13 +198,13 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
 
         // Has to be a tour part because all home parts are at home; home parts will never reach this method
         TPS_TourPart tourpart = (TPS_TourPart) this.stay.getSchemePart();
-        TPS_Stay comingFrom = tourpart.getStayHierarchy(this.stay).getPrevStay();
-        TPS_Stay goingTo = tourpart.getStayHierarchy(this.stay).getNextStay();
-        if (!plan.isLocated(comingFrom) || !plan.isLocated(goingTo)) {
-            // this case should be impossible because we now iterate over the priorised stays,
-            // so every stay where we can come from or where we go to is located
-            throw new IllegalStateException("Found no location for a higher priorised stay");
-        }
+        TPS_Stay comingFrom = tourpart.getPreviousStay(this.stay);
+        TPS_Stay goingTo = plan.getNextHomeStay(tourpart);
+//        if (!plan.isLocated(comingFrom) || !plan.isLocated(goingTo)) {
+//            // this case should be impossible because we now iterate over the priorised stays,
+//            // so every stay where we can come from or where we go to is located
+//            throw new IllegalStateException("Found no location for a higher priorised stay");
+//        }
 
         if (currentActCode.hasAttribute(TPS_ActivityConstantAttribute.E_COMMERCE_OUT_OF_HOME)) {
             // Is this an activity that (if it not takes place at home anyway) should be executed in the very

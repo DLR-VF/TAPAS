@@ -51,8 +51,8 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
 
         TPS_Stay stay = locatedStay.getStay();
         TPS_ActivityConstant activityCode = locatedStay.getStay().getActCode();
-        TPS_Stay comingFrom = tourpart.getStayHierarchy(stay).getPrevStay();
-        TPS_Stay goingTo = tourpart.getStayHierarchy(stay).getNextStay();
+        TPS_Stay comingFrom = tourpart.getPreviousStay(stay);
+        TPS_Stay goingTo = plan.getNextHomeStay(tourpart);
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
         TravelDurations td = tourpart.getTravelDurations(stay);
@@ -123,6 +123,7 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
                         taz.isRestricted()) continue;
 
                 if (parameterClass.isTrue(ParamFlag.FLAG_FILTER_SHOPPING_CHOICE_SET) || !stay.isShopping()) {
+
                     actDistance = TPS_Mode.get(ModeType.WALK).getDistance(taz, locGoingTo, SimulationType.SCENARIO,
                             null);
                     actDistance += TPS_Mode.get(ModeType.WALK).getDistance(locComingFrom, taz, SimulationType.SCENARIO,

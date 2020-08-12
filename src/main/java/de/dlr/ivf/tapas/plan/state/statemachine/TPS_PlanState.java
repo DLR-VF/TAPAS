@@ -14,8 +14,10 @@ public interface TPS_PlanState {
     boolean handle(TPS_PlanEvent event);
     void addHandler(TPS_PlanEventType event_type, TPS_PlanState target_state, TPS_PlanStateAction action, TPS_PlanStateGuard guard);
     void removeHandler(TPS_PlanEventType event);
+    TPS_PlanStateTransitionHandler getHandler(TPS_PlanEventType event_type);
     void setOnEnterAction(TPS_PlanStateAction action);
     void setOnExitAction(TPS_PlanStateAction action);
     String getName();
     TPS_PlanStateMachine<TPS_Plan> getStateMachine();
+    void setStateMachine(TPS_PlanStateMachine<TPS_Plan> stateMachine);
 }

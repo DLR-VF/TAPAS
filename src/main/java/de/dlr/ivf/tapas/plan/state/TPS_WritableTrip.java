@@ -209,4 +209,12 @@ public class TPS_WritableTrip {
     public int getLocSelectionMotiveSupply(){
         return nextStay.locationChoiceMotiveSupply.code;
     }
+
+    public TPS_Trip getTrip(){
+        return this.trip;
+    }
+
+    public TPS_Stay getStay(){
+        return this.nextStay;
+    }
 }

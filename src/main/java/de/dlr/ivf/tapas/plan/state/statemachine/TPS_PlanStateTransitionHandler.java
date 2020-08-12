@@ -5,9 +5,9 @@ import de.dlr.ivf.tapas.plan.state.guard.TPS_PlanStateGuard;
 
 public class TPS_PlanStateTransitionHandler {
 
-    private final TPS_PlanState targetState;
-    private final TPS_PlanStateGuard guard;
-    private final TPS_PlanStateAction action;
+    private TPS_PlanState targetState;
+    private TPS_PlanStateGuard guard;
+    private TPS_PlanStateAction action;
 
 
 
@@ -23,6 +23,9 @@ public class TPS_PlanStateTransitionHandler {
 
     public TPS_PlanState getTargetState(){
         return this.targetState;
+    }
+    public void setTargetState(TPS_PlanState target_state){
+        this.targetState = target_state;
     }
 
     public TPS_PlanStateAction getAction(){

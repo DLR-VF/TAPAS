@@ -12,17 +12,17 @@ public class TPS_PlanStatePersistenceAction implements TPS_PlanStateAction {
     private TPS_TripToDbWriter writer;
     private TPS_Plan plan;
     private TPS_TourPart tp;
-    private TPS_Stay stay;
+    private TPS_Trip associated_trip;
 
-    public TPS_PlanStatePersistenceAction(TPS_TripToDbWriter writer, TPS_Plan plan, TPS_TourPart tp, TPS_Stay stay){
+    public TPS_PlanStatePersistenceAction(TPS_TripToDbWriter writer, TPS_Plan plan, TPS_TourPart tp, TPS_Trip associated_trip){
         this.writer = writer;
         this.plan = plan;
         this.tp = tp;
-        this.stay = stay;
+        this.associated_trip = associated_trip;
     }
 
     @Override
     public void run() {
-        writer.writeTrip(this.plan,this.tp, tp.getPreviousTrip(stay));
+        writer.writeTrip(this.plan,this.tp, this.associated_trip);
     }
 }

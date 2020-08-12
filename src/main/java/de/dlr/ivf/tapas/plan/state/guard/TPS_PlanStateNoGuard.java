@@ -4,6 +4,6 @@ public class TPS_PlanStateNoGuard implements TPS_PlanStateGuard {
 
     @Override
     public boolean test(Object o) {
-        return false;
+        return true;
     }
 }

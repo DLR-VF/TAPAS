@@ -55,6 +55,11 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
     }
 
     @Override
+    public TPS_PlanStateTransitionHandler getHandler(TPS_PlanEventType event_type) {
+        return null;
+    }
+
+    @Override
     public void setOnEnterAction(TPS_PlanStateAction action) {
 
     }
@@ -72,6 +77,11 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
     @Override
     public TPS_PlanStateMachine<TPS_Plan> getStateMachine() {
         return null;
+    }
+
+    @Override
+    public void setStateMachine(TPS_PlanStateMachine<TPS_Plan> stateMachine) {
+
     }
 
 

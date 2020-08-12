@@ -50,8 +50,8 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
         TPS_Stay stay = locatedStay.getStay();
         TPS_ActivityConstant actCode = stay.getActCode();
         TPS_TourPart tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
-        TPS_Stay comingFrom = tourpart.getStayHierarchy(stay).getPrevStay();
-        TPS_Stay goingTo = tourpart.getStayHierarchy(stay).getNextStay();
+        TPS_Stay comingFrom = tourpart.getPreviousStay(stay); //tourpart.getStayHierarchy(stay).getPrevStay();
+        TPS_Stay goingTo = plan.getNextHomeStay(tourpart);//tourpart.getStayHierarchy(stay).getNextStay();
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
         TPS_SettlementSystem regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();

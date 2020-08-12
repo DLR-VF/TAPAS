@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.plan.state;
 
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
 import de.dlr.ivf.tapas.plan.state.statemachine.TPS_PlanStateMachine;
 import java.util.List;
 import java.util.concurrent.BrokenBarrierException;
@@ -12,13 +13,12 @@ public class TPS_StateMachineWorker implements Runnable {
     private List<TPS_PlanStateMachine<TPS_Plan>> state_machines;
     private CyclicBarrier cb;
     private TPS_PlansExecutor executor;
-    private int end_time;
+    private boolean i_am_done = false;
 
     public TPS_StateMachineWorker(List<TPS_PlanStateMachine<TPS_Plan>> state_machines, TPS_PlansExecutor executor){
         this.state_machines = state_machines;
         this.cb = executor.getCyclicBarrier();
         this.executor = executor;
-        this.end_time = executor.getSimulationEndTime();
     }
 
 
@@ -26,16 +26,23 @@ public class TPS_StateMachineWorker implements Runnable {
         this.state_machines.add(state_machine);
     }
 
-    public List<TPS_PlanStateMachine<TPS_Plan>> getStateMachines(){
-        return this.state_machines;
-    }
-
     @Override
     public void run() {
-        while(this.executor.getSimulationTimeStamp() <= end_time+1){
-            TPS_PlanEvent event = this.executor.getNextSimulationTimeEvent();
-            for(TPS_PlanStateMachine<TPS_Plan> state_machine : state_machines){
-                state_machine.handleEvent(event);
+        while(this.executor.getNextSimulationEvent().getEventType() != TPS_PlanEventType.END_OF_SIMULATION){
+            int active_state_machines = 0;
+            TPS_PlanEvent event = this.executor.getNextSimulationEvent();
+            if(!i_am_done) {
+                for (TPS_PlanStateMachine<TPS_Plan> state_machine : state_machines) {
+                    if (!state_machine.hasFinished()) {
+                        active_state_machines++;
+                        state_machine.handleEvent(event);
+                    }
+                }
+                i_am_done = active_state_machines == 0;
+
+                //when we are done we need to tell the executor once
+                if(i_am_done)
+                    this.executor.done(this);
             }
             try {
                 cb.await();
@@ -43,6 +50,9 @@ public class TPS_StateMachineWorker implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
 
+    public List<TPS_PlanStateMachine<TPS_Plan>> getStateMachines(){
+        return this.state_machines;
     }
 }

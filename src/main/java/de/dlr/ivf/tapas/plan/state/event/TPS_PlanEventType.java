@@ -4,5 +4,6 @@ public enum TPS_PlanEventType {
 
     SIMULATION_STEP,
     WRITE_DB,
-    FIRST_TRIP
+    INIT_FIRST_STAY,
+    END_OF_SIMULATION
 }

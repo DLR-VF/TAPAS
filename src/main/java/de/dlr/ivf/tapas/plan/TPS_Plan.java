@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.IntStream;
 
 /**
  * Class for a TAPAS plan.
@@ -129,6 +130,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 } else {
                     TPS_Trip trip = (TPS_Trip) e;
                     this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip, this.getPM().getParameters()));
+
                 }
             }
         }
@@ -1423,6 +1425,44 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
     }
     public Map<TPS_ActivityConstant, TPS_Location> getFixLocations(){
         return this.fixLocations;
+    }
+
+    public Optional<TPS_TourPart> getNextTourPart(TPS_TourPart tour_part){
+
+        //what is the position of the current tour part in our scheme parts
+        int index = this.scheme.getSchemeParts().indexOf(tour_part);
+
+        //check if there actually is one more tour part after the current one
+        if(index + 2 < this.scheme.getSchemeParts().size())
+            return Optional.of((TPS_TourPart) this.scheme.getSchemeParts().get(index + 2));
+        else
+            return Optional.empty();
+
+
+
+    }
+    /*
+        returns the next home part stay after this tour part
+     */
+    public TPS_Stay getNextHomeStay(TPS_TourPart tour_part){
+        int tour_part_index = this.scheme.getSchemeParts().indexOf(tour_part);
+        TPS_SchemePart sp = null;
+
+        Optional<TPS_SchemePart> optional_home_part = IntStream.range(tour_part_index,this.scheme.getSchemeParts().size())
+                                                               .mapToObj(i -> this.scheme.getSchemeParts().get(i))
+                                                               .filter(TPS_SchemePart::isHomePart)
+                                                               .findFirst();
+        if(optional_home_part.isPresent()){
+            sp = optional_home_part.get();
+        }else { //this case should not happen but if it does we simply return the last home stay
+            for (int i = this.scheme.getSchemeParts().size() - 1; i >= 0; i--) {
+                if (this.scheme.getSchemeParts().get(i).isHomePart()) {
+                    sp = this.scheme.getSchemeParts().get(i);
+                    break;
+                }
+            }
+        }
+        return (TPS_Stay) sp.getFirstEpisode();
     }
 
 }

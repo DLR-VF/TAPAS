@@ -281,6 +281,7 @@ public class TPS_Main {
             Thread persisting_thread = new Thread(writer);
             persisting_thread.start();
             plan_executor.runSimulation();
+            persisting_thread.join();
         } catch (Exception e) {
             e.printStackTrace();
         }

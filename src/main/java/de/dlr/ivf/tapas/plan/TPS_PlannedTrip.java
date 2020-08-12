@@ -251,7 +251,6 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
 
         this.setDistance(primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip));
         if (Double.isNaN(tt)) {
-            System.err.println("Arg!");
             tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
                     pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
         }

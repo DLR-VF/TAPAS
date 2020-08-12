@@ -15,7 +15,6 @@ import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
-import de.dlr.ivf.tapas.plan.state.TPS_SequentialTripOutput;
 import de.dlr.ivf.tapas.runtime.util.IPInfo;
 import de.dlr.ivf.tapas.scheme.*;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;

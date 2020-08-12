@@ -193,7 +193,11 @@ public class TPS_ModeSet implements ExtendedWritable {
                     if (currentArrivalMode.isFix()) { // do we have to stick to the mode
                         currentDepartureMode = currentArrivalMode;
                     } else {
-                        TPS_TourPart tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
+                        TPS_TourPart tourpart;
+                        if(locatedStay.getStay().getSchemePart() instanceof TPS_TourPart)
+                            tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
+                        else
+                            tourpart = (TPS_TourPart) prevStayLocated.getStay().getSchemePart();
                         mcc.fromStayLocation = currentStayLocation;
                         mcc.toStayLocation = nextStayLocated.getLocation();
                         mcc.toStay = nextStay;

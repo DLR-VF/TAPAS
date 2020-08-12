@@ -13,7 +13,6 @@ public class TPS_SimplePlanState implements TPS_PlanState{
 
     private EnumMap<TPS_PlanEventType, TPS_PlanStateTransitionHandler> handlers;
     private String name;
-    private TPS_Callback callback; //this will be the statemachine that we want to call back
     private TPS_PlanStateAction enter_action;
     private TPS_PlanStateAction exit_action;
     private TPS_PlanStateMachine<TPS_Plan> stateMachine;
@@ -36,7 +35,10 @@ public class TPS_SimplePlanState implements TPS_PlanState{
 
     @Override
     public void enter() {
+
+
         this.enter_action.run();
+        //System.out.println("ENTERED STATE: "+this.name);
     }
 
     @Override
@@ -48,7 +50,6 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     public boolean handle(TPS_PlanEvent event) {
         if (handlers.containsKey(event.getEventType()) && handlers.get(event.getEventType()).check(event.getData())) {
             //there has an event happened that triggered a guard, inform the statemachine
-            System.out.println("Transitioning from state: " + name + " to state: " + handlers.get(event.getEventType()).getTargetState().getName());
             stateMachine.makeTransition(handlers.get(event.getEventType()));
             return true;
         }
@@ -63,6 +64,11 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     @Override
     public void removeHandler(TPS_PlanEventType event) {
         handlers.remove(event);
+    }
+
+    @Override
+    public TPS_PlanStateTransitionHandler getHandler(TPS_PlanEventType event_type) {
+        return handlers.get(event_type);
     }
 
     @Override
@@ -83,5 +89,10 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     @Override
     public TPS_PlanStateMachine<TPS_Plan> getStateMachine() {
         return this.stateMachine;
+    }
+
+    @Override
+    public void setStateMachine(TPS_PlanStateMachine<TPS_Plan> stateMachine) {
+        this.stateMachine = stateMachine;
     }
 }

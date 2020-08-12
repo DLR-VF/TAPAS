@@ -1,11 +1,13 @@
 package de.dlr.ivf.tapas.plan.state.statemachine;
 
 public enum TPS_PlanStateConstantNames {
+    INITIALIZING("initializing states"),
     EXECUTION_READY("execution ready"),
     EXECUTION_DONE("execution done successfully"),
     PLANNING_TRIP("planning trip"),
     AT_HOME("at home"),
-    ON_MOVE("on move"),
+    FINISHING_DAY("day finished"),
+    ON_TRIP("on move"),
     ON_ACTIVITY("on activity");
 
     private String s;

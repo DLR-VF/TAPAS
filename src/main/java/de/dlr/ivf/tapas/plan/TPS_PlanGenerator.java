@@ -31,8 +31,8 @@ public class TPS_PlanGenerator implements Callable<List<TPS_Plan>> {
     }
 
     @Override
-    public List<TPS_Plan> call() throws Exception {
-        TPS_Household hh = null;
+    public List<TPS_Plan> call(){
+        TPS_Household hh;
 
         while(TPS_Main.STATE.isRunning() && (hh = this.pm.getNextHousehold()) != null) {
             while (hh.getNumberOfMembers() > preferenceModels.size()) {
@@ -85,7 +85,9 @@ public class TPS_PlanGenerator implements Callable<List<TPS_Plan>> {
                 TPS_Plan the_plan = new TPS_Plan(person,pe,scheme,this.pm);
                 TPS_PlanningContext pc = new TPS_PlanningContext(pe, null, person.hasBike());
                 the_plan.setPlanningContext(pc);
-                this.plans.add(the_plan);
+                //we only take plans into account that have at least one trip
+                if(the_plan.getScheme().getSchemeParts().size() > 1)
+                    this.plans.add(the_plan);
                 person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
         }
