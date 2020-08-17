@@ -34,8 +34,9 @@ public class TPS_StateMachineWorker implements Runnable {
     public void run() {
         int simcount = 0;
         while(this.executor.getNextSimulationEvent().getEventType() != TPS_PlanEventType.END_OF_SIMULATION){
-            if( executor.getNextSimulationEvent().getEventType() == TPS_PlanEventType.SIMULATION_STEP)
-                simcount = (int)executor.getNextSimulationEvent().getData();
+            if( executor.getNextSimulationEvent().getEventType() == TPS_PlanEventType.SIMULATION_STEP){
+                simcount = (Integer)executor.getNextSimulationEvent().getData();
+            }
             int active_state_machines = 0;
             TPS_PlanEvent event = this.executor.getNextSimulationEvent();
             if(!i_am_done) {
