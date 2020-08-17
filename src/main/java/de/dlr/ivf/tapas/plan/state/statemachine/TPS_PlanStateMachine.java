@@ -82,4 +82,8 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
     public boolean hasFinished(){
         return this.current_state == this.end_state;
     }
+
+    public T getRepresenting_object(){
+        return this.representing_object;
+    }
 }

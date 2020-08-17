@@ -16,7 +16,7 @@ public class TPS_StateMachineWorker implements Runnable {
     private CyclicBarrier cb;
     private TPS_PlansExecutor executor;
     private boolean i_am_done = false;
-    private List<TPS_PlanStateMachine> unfinished_mashines = new ArrayList<>();
+    private List<TPS_PlanStateMachine<TPS_Plan>> unfinished_mashines = new ArrayList<>();
 
     public TPS_StateMachineWorker(List<TPS_PlanStateMachine<TPS_Plan>> state_machines, TPS_PlansExecutor executor){
         this.state_machines = state_machines;
@@ -63,4 +63,6 @@ public class TPS_StateMachineWorker implements Runnable {
     public List<TPS_PlanStateMachine<TPS_Plan>> getStateMachines(){
         return this.state_machines;
     }
+
+    public List<TPS_PlanStateMachine<TPS_Plan>> getUnfinishedMachines(){return this.unfinished_mashines;}
 }

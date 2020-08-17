@@ -115,6 +115,10 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
     @Override
     public void done(Runnable worker) {
         int index = active_workers.indexOf(worker);
+        ((TPS_StateMachineWorker)worker).getUnfinishedMachines().forEach(sm -> {
+            System.out.println("current: " +sm.getCurrent_state().getName()+" | initital: "+sm.getInitial_state().getName());
+            System.out.println(sm.getRepresenting_object().getPlannedTrips());
+        });
         if(index > -1) {
             this.active_workers.remove(index);
             active_worker_count.getAndDecrement();
