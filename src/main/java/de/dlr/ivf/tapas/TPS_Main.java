@@ -11,6 +11,7 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_HouseholdAndPersonLoader;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripToDbWriter;
+import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Worker;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanGenerator;
@@ -275,8 +276,9 @@ public class TPS_Main {
         this.PM.init();
         TPS_PlanGenerator plan_generator = new TPS_PlanGenerator(this.PM);
         try {
-            TPS_HouseholdAndPersonLoader hh_per_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
-            List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hh_per_loader.initAndGetHouseholds());
+            TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
+            List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
+            List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
             TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
             TPS_PlansExecutor plan_executor = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 

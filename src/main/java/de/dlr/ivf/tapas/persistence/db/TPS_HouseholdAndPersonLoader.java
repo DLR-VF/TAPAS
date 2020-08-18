@@ -43,14 +43,19 @@ public List<TPS_Household> initAndGetHouseholds(){
     String hh_pers_key = this.pm.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY);
 
     String query = "";
-    try {        //check if simulation is running
+    try {
+        //check if simulation is running
         query = "SELECT sim_started FROM " + this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
                 " WHERE sim_key = '" + this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
         ResultSet sRs = pm.executeQuery(query);
+        boolean sim_started = false;
         if (!sRs.next()) {
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "simulation key removed from db!");
+        }else {
+            sim_started = sRs.getBoolean("sim_started");
+            sRs.close();
         }
-        if (sRs.getBoolean("sim_started")) {
+        if (sim_started) {
             if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO)) {
                 TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Fetching new set of households");
             }
@@ -64,16 +69,19 @@ public List<TPS_Household> initAndGetHouseholds(){
             initCars(carMap, query, pm);
 
             //get counts of households for initial size of household array
-            query = "SELECT COUNT(*) cnt FROM "+hhtable+" WHERE hh_key = "+hh_pers_key;
+            query = "SELECT COUNT(*) cnt FROM "+hhtable+" WHERE hh_key = '"+hh_pers_key+"'";
 
             ResultSet rs = pm.executeQuery(query);
-            int size = rs.getInt(1);
-            List<TPS_Household> households = size > 0 ? new ArrayList<>(size) : new ArrayList<>();
-            rs.close();
+            int size = 0;
+            if(rs.next()) {
+                size = rs.getInt(1);
+                rs.close();
+            }
+            List<TPS_Household>households = size > 0 ? new ArrayList<>(size) : new ArrayList<>();
 
             //now our query that will fetch all households including all persons belonging to each household
             query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y, " +
-                    "p_id, p_has_bike, p_sex, p_group, p_age, p_abo, p_budget_pt, p_budget_it, p_working, p_work_id, p_driver_license, p_hh_id, p_education FROM " + hhtable +" households"+
+                    "p_id, p_has_bike, p_sex, p_group, p_age, p_abo, p_budget_pt, p_budget_it, p_working, p_work_id, p_driver_license, p_hh_id, p_education FROM " + hhtable +" households "+
                     "INNER JOIN "+ persTable +" persons ON households.hh_id = persons.p_hh_id " +
                     "WHERE households.hh_key = '"+ParamString.DB_HOUSEHOLD_AND_PERSON_KEY+"' " +
                     "AND persons.p_key = '"+ParamString.DB_HOUSEHOLD_AND_PERSON_KEY+"'" +
@@ -85,13 +93,14 @@ public List<TPS_Household> initAndGetHouseholds(){
             Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,ResultSet.FETCH_FORWARD);
             st.setFetchSize(10000);
             rs = st.executeQuery(query);
-            int last_hh_id = Integer.MIN_VALUE;
+            int last_hh_id = -2;
             int current_hh_id;
             TPS_Household hh = StateMachineUtils.EmptyHouseHold();
             while(rs.next()){
 
                 //first create the household if it does not exist
-                if((current_hh_id = rs.getInt("hh_id")) != last_hh_id){
+                current_hh_id = rs.getInt("hh_id");
+                if(current_hh_id != last_hh_id){
                     last_hh_id = current_hh_id;
                     // read cars
                     int carNum = rs.getInt("hh_cars");
@@ -145,6 +154,9 @@ public List<TPS_Household> initAndGetHouseholds(){
                 initPersonParams(person, rs);
                 hh.addMember(person);
             }
+            rs.close();
+            con.setAutoCommit(true);
+            System.out.println(households.size());
             return households;
         }
 
