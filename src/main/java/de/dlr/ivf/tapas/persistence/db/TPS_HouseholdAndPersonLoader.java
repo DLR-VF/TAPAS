@@ -9,7 +9,6 @@ import de.dlr.ivf.tapas.loc.TPS_Region;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
@@ -18,8 +17,6 @@ import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,13 +28,15 @@ public class TPS_HouseholdAndPersonLoader {
     private TPS_DB_IOManager pm;
     private TPS_Region region;
 
-public TPS_HouseholdAndPersonLoader(TPS_DB_IOManager pm, TPS_Region region){
+public TPS_HouseholdAndPersonLoader(TPS_DB_IOManager pm){
 
     this.pm = pm;
-    this.region = region;
+    this.region = pm.getRegion();
 }
 
-public void init(){
+public List<TPS_Household> initAndGetHouseholds(){
+    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "started loading all households, persons and cars");
+
     String hhtable = this.pm.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD);
     String persTable = this.pm.getParameters().getString(ParamString.DB_TABLE_PERSON);
     String carsTable = this.pm.getParameters().getString(ParamString.DB_TABLE_CARS);
@@ -56,16 +55,6 @@ public void init(){
                 TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Fetching new set of households");
             }
 
-            String master_query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
-                                        hhtable + " WHERE hh_key='" + this.pm.getParameters().getString(
-                                        ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
-
-            master_query = "SELECT COUNT(*) FROM (SELECT households.hh_id, persons.p_id FROM "+hhtable+" households " +
-                    "INNER JOIN "+persTable+" persons on households.hh_id = persons.p_hh_id " +
-                    "where households.hh_key = '"+ParamString.DB_HOUSEHOLD_AND_PERSON_KEY+"' " +
-                    "AND persons.p_key = '"+ParamString.DB_HOUSEHOLD_AND_PERSON_KEY+"') c";
-
-
 
             //fill car map
             Map<Integer, TPS_Car> carMap = new HashMap<>();
@@ -78,11 +67,8 @@ public void init(){
             query = "SELECT COUNT(*) cnt FROM "+hhtable+" WHERE hh_key = "+hh_pers_key;
 
             ResultSet rs = pm.executeQuery(query);
-            List<TPS_Household> households;
-            if(rs.next())
-                households = new ArrayList<>(rs.getInt(1));
-            else
-                households = new ArrayList<>();
+            int size = rs.getInt(1);
+            List<TPS_Household> households = size > 0 ? new ArrayList<>(size) : new ArrayList<>();
             rs.close();
 
             //now our query that will fetch all households including all persons belonging to each household
@@ -99,7 +85,6 @@ public void init(){
             Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,ResultSet.FETCH_FORWARD);
             st.setFetchSize(10000);
             rs = st.executeQuery(query);
-
             int last_hh_id = Integer.MIN_VALUE;
             int current_hh_id;
             TPS_Household hh = StateMachineUtils.EmptyHouseHold();
@@ -112,7 +97,6 @@ public void init(){
                     int carNum = rs.getInt("hh_cars");
                     TPS_Car[] cars = null;
 
-                    //todo add car from car map to households
                     if (carNum > 0) {
                         int[] carId = TPS_DB_IO.extractIntArray(rs.getArray("hh_car_ids"));
                         if (carNum != carId.length) {
@@ -138,6 +122,11 @@ public void init(){
                     loc.initCapacity(0, false);
 
                     hh = new TPS_Household(current_hh_id, income, type, loc, cars);
+
+                    //during further loops the created household will have its members filled and when we get into this part again,
+                    //we assign the cars to the previous household
+                    if(households.size() > 0)
+                        assignCarToLastHousehold(carMap, households.get(households.size()-1));
                     households.add(hh);
                 }
 
@@ -156,13 +145,16 @@ public void init(){
                 initPersonParams(person, rs);
                 hh.addMember(person);
             }
+            return households;
         }
+
     } catch (SQLException e) {
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR, "error during one of th sqls: " + query,
                 e);
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR, "next exception:", e.getNextException());
     }
-
+    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "finished loading all households, persons and cars");
+    return null;
 }
 
 
@@ -213,5 +205,22 @@ public void init(){
             carMap.put(tmp.getId(), tmp);
         }
         rs.close();
+    }
+
+    private void assignCarToLastHousehold(Map<Integer,TPS_Car> carMap, TPS_Household household){
+        if (household.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
+            //get the car values
+            for (int i = 0; i < household.getCarNumber(); ++i) {
+                TPS_Car car = household.getCar(i);
+                if (carMap.containsKey(car.getId())) {
+                    car.cloneCar(carMap.get(car.getId()));
+                } else {
+                    if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.WARN)) {
+                        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.WARN,
+                                "Unknown car id " + car.getId() + " in household " + household.getId());
+                    }
+                }
+            }
+        }
     }
 }
