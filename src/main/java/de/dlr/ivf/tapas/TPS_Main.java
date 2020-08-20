@@ -289,9 +289,6 @@ public class TPS_Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
-
         TPS_Logger.closeLoggers();
     }
 

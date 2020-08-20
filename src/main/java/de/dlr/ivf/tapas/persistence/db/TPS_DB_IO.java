@@ -121,6 +121,7 @@ public class TPS_DB_IO {
     }
 
     public static int[] extractIntArray(Object array) throws SQLException {
+
         if (array instanceof int[]) {
             return (int[]) array;
         } else if (array instanceof Integer[]) {

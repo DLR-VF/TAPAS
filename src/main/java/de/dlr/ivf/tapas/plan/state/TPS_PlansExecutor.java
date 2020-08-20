@@ -28,7 +28,7 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
     private AtomicInteger active_worker_count;
     private TPS_PlanEvent next_simulation_event;
     private List<Thread> threads;
-    private List<Runnable> active_workers;
+    private List<TPS_StateMachineWorker> active_workers;
     private TPS_TripToDbWriter writer;
     private boolean is_start_time_initialized = false;
 
@@ -39,7 +39,7 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
         this.active_worker_count = new AtomicInteger(worker_count);
         this.threads = new ArrayList<>(worker_count);
         this.workers = new ArrayList<>(worker_count);
-        this.active_workers = new ArrayList<>(worker_count);
+       // this.active_workers = Collections.synchronizedList(workers);
         this.writer = writer;
         this.plan_count = plans.size();
         cb = new CyclicBarrier(worker_count,
@@ -92,8 +92,8 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
         int index = 0;
         for(TPS_StateMachineWorker worker : workers){
             threads.add(new Thread(worker,"SequentialWorker-"+index++));
-            active_workers.add(worker);
         }
+        active_workers = Collections.synchronizedList(workers);
         for(Thread t : threads){
             t.start();
         }
@@ -114,13 +114,12 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
 
     @Override
     public void done(Runnable worker) {
-        int index = active_workers.indexOf(worker);
+
         ((TPS_StateMachineWorker)worker).getUnfinishedMachines().forEach(sm -> {
             System.out.println("current: " +sm.getCurrent_state().getName()+" | initital: "+sm.getInitial_state().getName());
             System.out.println(sm.getRepresenting_object().getPlannedTrips());
         });
-        if(index > -1) {
-            this.active_workers.remove(index);
+        if(this.active_workers.remove(worker)) {
             active_worker_count.getAndDecrement();
         }
     }

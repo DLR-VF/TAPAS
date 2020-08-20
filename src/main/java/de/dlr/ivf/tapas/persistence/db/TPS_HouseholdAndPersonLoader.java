@@ -13,10 +13,13 @@ import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.StateMachineUtils;
+import de.dlr.ivf.tapas.runtime.util.IPInfo;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
+
+import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,12 +83,13 @@ public List<TPS_Household> initAndGetHouseholds(){
             List<TPS_Household>households = size > 0 ? new ArrayList<>(size) : new ArrayList<>();
 
             //now our query that will fetch all households including all persons belonging to each household
+            //we read everything in one loop so the result set must be sorted by household ids
             query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y, " +
                     "p_id, p_has_bike, p_sex, p_group, p_age, p_abo, p_budget_pt, p_budget_it, p_working, p_work_id, p_driver_license, p_hh_id, p_education FROM " + hhtable +" households "+
                     "INNER JOIN "+ persTable +" persons ON households.hh_id = persons.p_hh_id " +
-                    "WHERE households.hh_key = '"+ParamString.DB_HOUSEHOLD_AND_PERSON_KEY+"' " +
-                    "AND persons.p_key = '"+ParamString.DB_HOUSEHOLD_AND_PERSON_KEY+"'" +
-                    "ORDER BY households.hh_key";
+                    "WHERE households.hh_key = '"+this.pm.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY)+"' " +
+                    "AND persons.p_key = '"+this.pm.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY)+"' " +
+                    "ORDER BY households.hh_id";
 
             //start fetching
             Connection con = this.pm.getDbConnector().getConnection(this);
@@ -107,7 +111,7 @@ public List<TPS_Household> initAndGetHouseholds(){
                     TPS_Car[] cars = null;
 
                     if (carNum > 0) {
-                        int[] carId = TPS_DB_IO.extractIntArray(rs.getArray("hh_car_ids"));
+                        int[] carId = TPS_DB_IO.extractIntArray(rs.getArray("hh_car_ids").getArray());
                         if (carNum != carId.length) {
                             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR,
                                     "HH_id: " + current_hh_id + " expected cars: " + carNum + " found cars: " + carId.length);
@@ -156,7 +160,13 @@ public List<TPS_Household> initAndGetHouseholds(){
             }
             rs.close();
             con.setAutoCommit(true);
-            System.out.println(households.size());
+
+            //now set the sim status to finished
+            //TODO implement a more concise technique
+            query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+households.size()+"  WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+            pm.execute(query);
+            query = "UPDATE " + this.pm.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP) + " SET hh_started = true, hh_finished = true, server_ip = inet '"+ IPInfo.getEthernetInetAddress().getHostAddress()+"'";
+            pm.execute(query);
             return households;
         }
 
@@ -164,6 +174,8 @@ public List<TPS_Household> initAndGetHouseholds(){
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR, "error during one of th sqls: " + query,
                 e);
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR, "next exception:", e.getNextException());
+    } catch (IOException e) {
+        e.printStackTrace();
     }
     TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "finished loading all households, persons and cars");
     return null;

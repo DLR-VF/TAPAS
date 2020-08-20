@@ -41,6 +41,9 @@ public class TPS_TripToDbWriter implements Runnable {
 
             if (debugging){
                 connector.getConnection(this)
+                        .prepareStatement("DROP TABLE IF EXISTS debug."+pm.getParameters().getString(ParamString.DB_TABLE_TRIPS))
+                        .execute();
+                connector.getConnection(this)
                                      .prepareStatement("CREATE TABLE debug."+pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" (p_id int, hh_id int, start_time_min int, travel_time_sec int, activity_start_min int, activity_duration_min int)")
                                      .execute();
                 this.debug_ps = connector.getConnection(this).prepareStatement(debug_statement);
