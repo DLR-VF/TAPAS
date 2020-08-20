@@ -8,7 +8,10 @@ import de.dlr.ivf.tapas.plan.state.TPS_WritableTrip;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -26,6 +29,7 @@ public class TPS_TripToDbWriter implements Runnable {
     private PreparedStatement ps;
     private PreparedStatement debug_ps;
     private int batchcount = 1;
+    private Connection con = null;
 
     public TPS_TripToDbWriter(TPS_PersistenceManager pm){
         this.pm = pm;
@@ -34,6 +38,9 @@ public class TPS_TripToDbWriter implements Runnable {
         TPS_DB_Connector connector = ((TPS_DB_IOManager) pm).getDbConnector();
         String debugString = System.getProperty("debug");
         debugging = debugString != null && debugString.equalsIgnoreCase("true");
+        //init();
+
+
 
         try {
             this.ps = connector.getConnection(this).prepareStatement(statement);
@@ -137,13 +144,9 @@ public class TPS_TripToDbWriter implements Runnable {
     }
 
 
-    public void writeTrip(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip trip){
+    public void writeTrip(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip trip) throws InterruptedException {
 
-        try {
-            this.trips_to_store.put(new TPS_WritableTrip(plan,tour_part,trip,this.pm));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+            this.trips_to_store.put(new TPS_WritableTrip(plan,tour_part,trip));
     }
 
     public void finish(){
@@ -167,5 +170,15 @@ public class TPS_TripToDbWriter implements Runnable {
         }
 
         ps.clearBatch();
+    }
+
+    private void init(){
+        try {
+            this.con = ((TPS_DB_IOManager) pm).getDbConnector().getConnection(this);
+            CopyManager cm = new CopyManager((BaseConnection) con);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -24,8 +24,8 @@ public class TPS_WritableTrip {
     private TPS_LocatedStay nextStayLocated;
     private TPS_Location nextLoc;
 
-    public TPS_WritableTrip(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip trip, TPS_PersistenceManager pm){
-        this.pm = pm;
+    public TPS_WritableTrip(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip trip){
+        this.pm = plan.getPM();
         this.plan = plan;
         this.tour_part = tour_part;
         this.trip = trip;

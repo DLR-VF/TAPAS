@@ -163,7 +163,7 @@ public List<TPS_Household> initAndGetHouseholds(){
 
             //now set the sim status to finished
             //TODO implement a more concise technique
-            query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+households.size()+"  WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+            query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+households.size()+", timestamp_finished = now()  WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
             pm.execute(query);
             query = "UPDATE " + this.pm.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP) + " SET hh_started = true, hh_finished = true, server_ip = inet '"+ IPInfo.getEthernetInetAddress().getHostAddress()+"'";
             pm.execute(query);

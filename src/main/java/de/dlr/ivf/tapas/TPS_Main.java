@@ -7,10 +7,7 @@ import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.persistence.db.TPS_HouseholdAndPersonLoader;
-import de.dlr.ivf.tapas.persistence.db.TPS_TripToDbWriter;
+import de.dlr.ivf.tapas.persistence.db.*;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Worker;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
@@ -279,10 +276,12 @@ public class TPS_Main {
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
             List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
             List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
-            TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
+            //TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
+            TPS_PipedDbWriterConsumer consumer = new TPS_PipedDbWriterConsumer((TPS_DB_IOManager)PM);
+            TPS_TripWriter writer = new TPS_PipedDbWriter(consumer.getInputStream(),PM);
             TPS_PlansExecutor plan_executor = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 
-            Thread persisting_thread = new Thread(writer);
+            Thread persisting_thread = new Thread((Runnable) writer);
             persisting_thread.start();
             plan_executor.runSimulation();
             persisting_thread.join();

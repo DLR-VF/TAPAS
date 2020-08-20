@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas.plan.state.statemachine;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.persistence.db.TPS_TripToDbWriter;
+import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
 import de.dlr.ivf.tapas.plan.StateMachineUtils;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
@@ -15,7 +15,7 @@ import java.util.*;
 
 public class TPS_PlanStateMachineFactory {
 
-    public static TPS_PlanStateMachine<TPS_Plan> createTPS_PlanStateMachineWithSimpleStates(TPS_Plan plan, TPS_TripToDbWriter writer, TPS_DB_IOManager pm, TPS_PlansExecutor executor){
+    public static TPS_PlanStateMachine<TPS_Plan> createTPS_PlanStateMachineWithSimpleStates(TPS_Plan plan, TPS_TripWriter writer, TPS_DB_IOManager pm, TPS_PlansExecutor executor){
 
         List<TPS_PlanState> all_states = new ArrayList<>();
 
