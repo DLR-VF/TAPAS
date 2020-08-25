@@ -258,7 +258,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * General person types as enum constants.
      */
     public enum TPS_PersonType {
-        ADULT, CHILD, PUPIL, RETIREE, STUDENT
+        ADULT, CHILD, PUPIL, RETIREE, STUDENT, TRAINEE
     }
 
     /**
