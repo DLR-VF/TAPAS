@@ -1996,7 +1996,7 @@ public class TPS_DB_IO {
                 while (rsOcc.next()) {
                     TPS_Location loc = region.getLocation(rsOcc.getInt("loc_id"));
                     if (loc != null) {
-                        loc.updateOccupancy(rsOcc.getInt("loc_occupancy"));
+                        loc.setOccupancy(rsOcc.getInt("loc_occupancy"));
                     } else if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
                         TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
                                 "Location " + rsOcc.getInt("loc_id") + " not found!");

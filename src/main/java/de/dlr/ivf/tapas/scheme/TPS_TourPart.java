@@ -521,6 +521,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      *
      * @param plan
      */
+    //fixme travel durations and travel distances should be switched and we need to take a deep look into the functionality
     public void updateActualTravelDurations(TPS_Plan plan) {
         this.tourPartDistance = 0;
         for (TPS_Trip trip : this.getTripIterator()) {

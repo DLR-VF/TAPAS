@@ -127,26 +127,17 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
             //Further executions: fix locations are set already, take locations from map (IF branch)
             //Non fix location, i.e. everything except home and work: also ELSE branch
             //E.g.: Provides a work location, when ActCode is working in ELSE
-
-            if (currentActCode.isFix() && plan.getFixLocations().containsKey(currentActCode)) {
+//TODO change this in the original code in the plan class at the selectlocationandmode method
+            if (currentActCode.isFix() && plan.getFixLocations().containsKey(currentActCode) &&
                 //now we check if the mode is fix and if we can reach the fix location with the fix mode!
                 //TODO: check only for restricted cars, but bike could also be fixed and no connection!
-                if (plan.getPlanningContext().carForThisPlan != null && // we have a car
+                !(plan.getPlanningContext().carForThisPlan != null && // we have a car
                         plan.getPlanningContext().carForThisPlan.isRestricted() && //we have a restricted car
                         plan.getFixLocations().get(currentActCode).getTrafficAnalysisZone()
-                                .isRestricted()) // we have a restricted car wanting to go to a restricted area! -> BAD!
+                                .isRestricted())) // we have a restricted car wanting to go to a restricted area! -> BAD!
                 {
 
-                    currentLocatedStay.selectLocation(plan, plan.getPlanningContext());
-                    TPS_Location loc = currentLocatedStay.getLocation();
-                    loc.updateOccupancy(loc.getData().getOccupancy()-1); //todo is this correct?
-
-                    if (currentActCode.isFix()) {
-                        plan.getFixLocations().put(currentActCode, plan.getLocatedStay(stay).getLocation());
-                    }
-                } else {
                     currentLocatedStay.setLocation(plan.getFixLocations().get(currentActCode));
-                }
 
                 if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.EPISODE, TPS_LoggingInterface.SeverenceLogLevel.FINE)) {
                     TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.EPISODE, TPS_LoggingInterface.SeverenceLogLevel.FINE,
@@ -154,12 +145,14 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
                 }
             } else {
                 currentLocatedStay.selectLocation(plan, plan.getPlanningContext());
-                TPS_Location loc = currentLocatedStay.getLocation();
-                loc.updateOccupancy(loc.getData().getOccupancy()-1);
                 if (currentActCode.isFix()) {
                     plan.getFixLocations().put(currentActCode, plan.getLocatedStay(stay).getLocation());
                 }
             }
+
+            // increment the occupancy of the found location by one
+            TPS_Location loc = currentLocatedStay.getLocation();
+            loc.updateOccupancy(1);
 
             if (currentLocatedStay.getLocation() == null) {
                 System.err.println("NO LOCATION FOUND!");
@@ -199,6 +192,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
                     plan.getPlanningContext().carForThisPlan = null;
                 }
 
+                //fixme the focus point is set to the next home stay which defers from the original household based execution implementation
                 pm.getModeSet().selectMode(plan, previous_stay, currentLocatedStay, next_home_stay, plan.getPlanningContext());
                 plan.getPlanningContext().carForThisPlan = tmpCar;
                 //set the mode and car (if used)

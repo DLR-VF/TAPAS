@@ -281,7 +281,7 @@ public class TPS_Main {
             //TPS_TripWriter writer = new TPS_PipedDbWriter(consumer.getInputStream(),PM);
             TPS_PlansExecutor plan_executor = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 
-            Thread persisting_thread = new Thread((Runnable) writer);
+            Thread persisting_thread = new Thread(writer);
             //Thread consumer_thread = new Thread(consumer);
             //consumer_thread.start();
 
@@ -289,7 +289,7 @@ public class TPS_Main {
             plan_executor.runSimulation();
             persisting_thread.join();
             //consumer_thread.join();
-            //Thread.sleep(15000);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

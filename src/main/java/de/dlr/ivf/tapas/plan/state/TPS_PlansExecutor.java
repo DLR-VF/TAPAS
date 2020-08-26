@@ -81,15 +81,15 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
 
         for(int i = 0; i < worker_count; i++){
             TPS_StateMachineWorker worker = new TPS_StateMachineWorker(new ArrayList<>(num_machines_per_worker+1), this);
-            plans.subList(i*num_machines_per_worker,(i+1)*num_machines_per_worker)
-                 .forEach(plan -> worker.addStateMachine(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
             workers.add(worker);
         }
-        //distribute one additional remaining state machine to some of the workers
-        if(num_remaining_machines > 0){
-            IntStream.range(0,num_remaining_machines)
-                     .forEach(i -> workers.get(i).addStateMachine(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plans.get(plans.size()-num_remaining_machines+i), writer, pm,this)));
+//todo commentary besonderheit frquenz auf dem worker count
+        int worker_id=0;
+        while(plans.size()>0){
+            workers.get(worker_id).addStateMachine(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plans.remove(0), writer, pm, this));
+            worker_id = (worker_id+1)%worker_count;
         }
+
         IntStream.range(0,worker_count).forEach(i -> System.out.println("worker "+i+" has "+workers.get(i).getStateMachines().size()+ " state machines"));
     }
 
