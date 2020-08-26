@@ -30,8 +30,7 @@ public class TPS_PipedDbWriterConsumer implements Runnable{
         try {
             this.cm = new CopyManager(pm.getDbConnector().getConnection(this).unwrap(BaseConnection.class));
             cm.copyIn(copystring,is);
-            this.wait();
-        } catch (IOException | SQLException | InterruptedException e) {
+        } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
 

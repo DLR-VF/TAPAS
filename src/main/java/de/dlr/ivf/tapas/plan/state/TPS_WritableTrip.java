@@ -13,6 +13,10 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 
+/**
+ * This class is a data structure wrapper for all trips to be written to any output writer.
+ */
+
 public class TPS_WritableTrip {
     private TPS_PersistenceManager pm;
     private TPS_Plan plan;

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 //This class is intended to handle communication between multiple members of a household that want to use one of the cars.
 //The idea:
 //- someone requests a car supplying a score (eg.: travel times / manageability with the next best mode alternative / pt ticket and so on...)
-//- in return we ask everyone eligible in using this car for their score as in how badly they need it
+//- actually we'd rather wait for all other members so request a car themselves and then we decide who gets one ....in return we ask everyone eligible in using this car for their score as in how badly they need it
 public class TPS_HouseholdCarMediator implements TPS_Mediator {
 
     private ConcurrentMap<TPS_Car, TPS_Person> car_set;

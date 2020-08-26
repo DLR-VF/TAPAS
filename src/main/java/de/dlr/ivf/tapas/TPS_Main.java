@@ -282,9 +282,13 @@ public class TPS_Main {
             TPS_PlansExecutor plan_executor = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 
             Thread persisting_thread = new Thread((Runnable) writer);
+            Thread consumer_thread = new Thread((Runnable) consumer);
+            consumer_thread.start();
+
             persisting_thread.start();
             plan_executor.runSimulation();
             persisting_thread.join();
+            consumer_thread.join();
         } catch (Exception e) {
             e.printStackTrace();
         }
