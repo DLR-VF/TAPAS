@@ -276,19 +276,20 @@ public class TPS_Main {
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
             List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
             List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
-            //TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
-            TPS_PipedDbWriterConsumer consumer = new TPS_PipedDbWriterConsumer((TPS_DB_IOManager)PM);
-            TPS_TripWriter writer = new TPS_PipedDbWriter(consumer.getInputStream(),PM);
+            TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
+            //TPS_PipedDbWriterConsumer consumer = new TPS_PipedDbWriterConsumer((TPS_DB_IOManager)PM);
+            //TPS_TripWriter writer = new TPS_PipedDbWriter(consumer.getInputStream(),PM);
             TPS_PlansExecutor plan_executor = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 
             Thread persisting_thread = new Thread((Runnable) writer);
-            Thread consumer_thread = new Thread((Runnable) consumer);
-            consumer_thread.start();
+            //Thread consumer_thread = new Thread(consumer);
+            //consumer_thread.start();
 
             persisting_thread.start();
             plan_executor.runSimulation();
             persisting_thread.join();
-            consumer_thread.join();
+            //consumer_thread.join();
+            //Thread.sleep(15000);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -136,7 +136,11 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
                         plan.getFixLocations().get(currentActCode).getTrafficAnalysisZone()
                                 .isRestricted()) // we have a restricted car wanting to go to a restricted area! -> BAD!
                 {
+
                     currentLocatedStay.selectLocation(plan, plan.getPlanningContext());
+                    TPS_Location loc = currentLocatedStay.getLocation();
+                    loc.updateOccupancy(loc.getData().getOccupancy()-1); //todo is this correct?
+
                     if (currentActCode.isFix()) {
                         plan.getFixLocations().put(currentActCode, plan.getLocatedStay(stay).getLocation());
                     }
@@ -150,6 +154,8 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
                 }
             } else {
                 currentLocatedStay.selectLocation(plan, plan.getPlanningContext());
+                TPS_Location loc = currentLocatedStay.getLocation();
+                loc.updateOccupancy(loc.getData().getOccupancy()-1);
                 if (currentActCode.isFix()) {
                     plan.getFixLocations().put(currentActCode, plan.getLocatedStay(stay).getLocation());
                 }
@@ -237,6 +243,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         //now update travel times and init guards
         TPS_LocatedStay previous_located_stay = plan.getLocatedStay(previous_stay);
         TPS_LocatedStay current_located_stay = plan.getLocatedStay(stay);
+
         if(previous_trip == null){ //the first time we get out of the house, thus no adaption to the activity start time
             planned_trip.setStart(current_located_stay.getStart() - planned_trip.getDuration());
             executor.updateSimulationStartTime((int) (planned_trip.getStart() * 1.66666666e-2 + 0.5));

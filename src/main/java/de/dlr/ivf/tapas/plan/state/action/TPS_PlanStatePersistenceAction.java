@@ -26,7 +26,7 @@ public class TPS_PlanStatePersistenceAction implements TPS_PlanStateAction {
     public void run() {
         try {
             writer.writeTrip(new TPS_WritableTrip(this.plan,this.tp, this.associated_trip));
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

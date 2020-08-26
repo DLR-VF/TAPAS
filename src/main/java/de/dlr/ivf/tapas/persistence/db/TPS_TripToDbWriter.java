@@ -11,6 +11,7 @@ import de.dlr.ivf.tapas.util.parameters.ParamString;
 import org.postgresql.copy.CopyManager;
 import org.postgresql.core.BaseConnection;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -20,7 +21,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 
 //TODO make this a singleton
-public class TPS_TripToDbWriter implements Runnable {
+public class TPS_TripToDbWriter implements Runnable, TPS_TripWriter {
     private final Object POISON_PILL = new Object();
     private LinkedBlockingQueue<Object> trips_to_store = new LinkedBlockingQueue<>();
     private boolean debugging;
@@ -147,6 +148,11 @@ public class TPS_TripToDbWriter implements Runnable {
     public void writeTrip(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip trip) throws InterruptedException {
 
             this.trips_to_store.put(new TPS_WritableTrip(plan,tour_part,trip));
+    }
+
+    @Override
+    public void writeTrip(TPS_WritableTrip trip) throws InterruptedException {
+        this.trips_to_store.put(trip);
     }
 
     public void finish(){

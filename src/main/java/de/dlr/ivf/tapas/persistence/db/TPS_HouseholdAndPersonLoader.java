@@ -157,7 +157,7 @@ public List<TPS_Household> initAndGetHouseholds(){
 
                 initPersonParams(person, rs);
                 hh.addMember(person);
-            }
+            }//asd
             rs.close();
             con.setAutoCommit(true);
 

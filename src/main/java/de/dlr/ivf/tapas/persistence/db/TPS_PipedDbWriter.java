@@ -32,8 +32,10 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
                 if (next_queue_item instanceof TPS_WritableTrip){
                     trip = (TPS_WritableTrip) next_queue_item;
                     writeTrip(trip);
-                }else
+                }else {
+                    System.out.println("closing the pipe");
                     finish();
+                }
             }
         } catch (InterruptedException | IOException e) {
             e.printStackTrace();
@@ -59,9 +61,10 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
 
     public void finish(){
         try {
+            this.trips_to_store.put(POISON_PILL);
             this.os.flush();
             this.os.close();
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
 
