@@ -2,7 +2,6 @@ package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import org.apache.commons.lang3.tuple.MutableTriple;
 
 import java.io.PrintWriter;
 import java.sql.PreparedStatement;
@@ -14,12 +13,13 @@ import java.util.Map.Entry;
 public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 
     static final int ONE_DAY = 24 * 60;
-    static final int ALL_PERSON_VAL = -1;
+    static final int ANY_DIARY_GROUP = -1;
+    static final int ANY_TRIP_PURPOSE_DETAIL = -1;
     //    static final String groupCol = "TBG_23";
 //    static final String groupCol_name = "TBG_23";
-    static final String groupCol = "tbg";
-    static final String groupCol_name = "tbg";
-    static final String pg_tapas_col = "pg_tapas34";
+    static final String diaryGroupCol = "tbg";
+    static final String diaryGroupColName = "tbg";
+    static final String pgTapasCol = "pg_tapas34";
 
     //static final int kindergartengruppe = 91;
 
@@ -44,29 +44,29 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
     public static void main(String[] args) {
         TPS_MiD_Diary_Analyzer2017 worker = new TPS_MiD_Diary_Analyzer2017();
         HashMap<String, String> times = new HashMap<>();
-//		times.put("true", "_Mo-So");
-//        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
-//        times.put("st_wotag = ANY(ARRAY[2,3,4])", "_Di-Do");
-//        times.put("st_wotag = ANY(ARRAY[6,7])","_Sa-So");
+		times.put("true", "_Mo-So");
+        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
+        times.put("st_wotag = ANY(ARRAY[2,3,4])", "_Di-Do");
+        times.put("st_wotag = ANY(ARRAY[6,7])","_Sa-So");
         times.put("st_wotag = ANY(ARRAY[5, 6,7])","_Fr-So");
-//		times.put("st_wotag = 1","_Mo");
-//		times.put("st_wotag = 2","_Di");
-//		times.put("st_wotag = 3","_Mi");
-//		times.put("st_wotag = 4","_Do");
-//		times.put("st_wotag = 5","_Fr");
-//		times.put("st_wotag = 6","_Sa");
-//		times.put("st_wotag = 7","_So");
+		times.put("st_wotag = 1","_Mo");
+		times.put("st_wotag = 2","_Di");
+		times.put("st_wotag = 3","_Mi");
+		times.put("st_wotag = 4","_Do");
+		times.put("st_wotag = 5","_Fr");
+		times.put("st_wotag = 6","_Sa");
+		times.put("st_wotag = 7","_So");
         HashMap<String, String> regions = new HashMap<>();
 
-//		regions.put("true", "");
+		regions.put("true", "");
 //		regions.put("rtyp = 1", "_RTYP1");
 //		regions.put("rtyp = 2", "_RTYP2");
 //		regions.put("rtyp = 3", "_RTYP3");
-//		regions.put("polgk =1", "_PolGK1");
-//		regions.put("polgk =2", "_PolGK2");
-//		regions.put("polgk =3", "_PolGK3");
-//		regions.put("polgk =4", "_PolGK4");
-//		regions.put("polgk =5", "_PolGK5");
+		regions.put("polgk =1", "_PolGK1");
+		regions.put("polgk =2", "_PolGK2");
+		regions.put("polgk =3", "_PolGK3");
+		regions.put("polgk =4", "_PolGK4");
+		regions.put("polgk =5", "_PolGK5");
         regions.put("polgk =6", "_PolGK6");
 
 
@@ -82,16 +82,16 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 boolean delete = false;
 
                 if (!printOnScreen && delete) {
-                    worker.cleanUpDB("core.global_scheme_classes_mid17_34_polgk6_fr_so");
-                    worker.cleanUpDB("core.global_episodes_mid17_34_polgk6_fr_so");
-                    worker.cleanUpDB("core.global_schemes_mid17_34_polgk6_fr_so");
+                    worker.cleanUpDB("core.global_scheme_classes_mid17_34");
+                    worker.cleanUpDB("core.global_episodes_mid17_34");
+                    worker.cleanUpDB("core.global_schemes_mid17_34");
                 }
-                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17_34_polgk6_fr_so", printOnScreen);
-                worker.printDiariesSQLInserts("core.global_episodes_mid17_34_polgk6_fr_so", "core.global_schemes_mid17_34_polgk6_fr_so",
-                printOnScreen);
+//                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17_34", printOnScreen);
+//                worker.printDiariesSQLInserts("core.global_episodes_mid17_34", "core.global_schemes_mid17_34",
+//                printOnScreen);
 //                worker.printDistributionVectors();
-                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17_34_polgk6_fr_so",
-                        "MID_2017_" + groupCol_name + t.getValue() + r.getValue(), printOnScreen);
+                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17_34",
+                        "MID_2017_" + diaryGroupColName + t.getValue() + r.getValue(), printOnScreen);
                 worker.clearEverything();
             }
         }
@@ -173,139 +173,125 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
     }
 
     public void printDiariesSQLInserts(String table_episode, String table_schemes, boolean print) {
+        //triple consists of trip purpose/trip purpose detail/diary group
         Map<ImmutableTriple<Integer, Integer, Integer>, Integer> activityMapping = new HashMap<>();
         //build the code mapping
-        activityMapping.put(new ImmutableTriple<>(0, 0, ALL_PERSON_VAL), 10); //stay at home
+        activityMapping.put(new ImmutableTriple<>(0, 0, ANY_DIARY_GROUP), 10); //stay at home
 
-        activityMapping.put(new ImmutableTriple<>(1, 2202, 0), 211); //unspecified workers->WORKING
-        activityMapping.put(new ImmutableTriple<>(1, 2202, 1), 212); //full time workers->WORKING FULL TIME
-        activityMapping.put(new ImmutableTriple<>(1, 2202, 2), 213); //part time workers->WORKING PART TIME
-        activityMapping.put(new ImmutableTriple<>(1, 2202, 3), 213); //part time workers->WORKING PART TIME
-        activityMapping.put(new ImmutableTriple<>(1, 2202, 4), 213); //part time workers->WORKING PART TIME
-        activityMapping.put(new ImmutableTriple<>(1, 7704, 0), 211); //unspecified workers->WORKING
-        activityMapping.put(new ImmutableTriple<>(1, 7704, 1), 212); //full time workers->WORKING FULL TIME
-        activityMapping.put(new ImmutableTriple<>(1, 7704, 2), 213); //part time workers->WORKING PART TIME
-        activityMapping.put(new ImmutableTriple<>(1, 7704, 3), 213); //part time workers->WORKING PART TIME
-        activityMapping.put(new ImmutableTriple<>(1, 7704, 4), 213); //part time workers->WORKING PART TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, ANY_DIARY_GROUP), 211); //unspecified workers->WORKING
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 1), 212); //full time workers->WORKING FULL TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 2), 212); //full time workers->WORKING FULL TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 3), 212); //full time workers->WORKING FULL TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 4), 212); //full time workers->WORKING FULL TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 5), 212); //full time workers->WORKING FULL TIME
 
-        activityMapping.put(new ImmutableTriple<>(2, 2202, 0), 211); //Business trip->WORKING
-        activityMapping.put(new ImmutableTriple<>(2, 7704, 0), 211); //Business trip->WORKING
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 6), 213); //part time workers->WORKING PART TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 7), 213); //part time workers->WORKING PART TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 8), 213); //part time workers->WORKING PART TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 9), 213); //part time workers->WORKING PART TIME
+        activityMapping.put(new ImmutableTriple<>(1, ANY_TRIP_PURPOSE_DETAIL, 10), 213); //part time workers->WORKING PART TIME
 
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 0), 413); //Bildungsweg->Kindergarden TODO WHY? Kindergarden
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 1), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 2), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 3), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 4), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 5), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 9), 412); //Azubi->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 8), 410); //Pupil ->SCHOOL
-        activityMapping.put(new ImmutableTriple<>(3, 2202, 10), 411); //Bildungsweg, Student->University
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 0), 413); //Bildungsweg->Kindergarden TODO WHY? Kindergarden
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 1), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 2), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 3), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 4), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 5), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 9), 412); //Azubi->SCHOOL TRAINEE
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 8), 410); //Pupil ->SCHOOL
-        activityMapping.put(new ImmutableTriple<>(3, 7704, 10), 411); //Bildungsweg, Student->University
 
-        activityMapping.put(new ImmutableTriple<>(4, 501, 0), 51);  //Shopping short term: Täglicher Bedarf->SHOPPING SHORT TERM
-        activityMapping.put(new ImmutableTriple<>(4, 502, 0),
-                53);  //Shopping long term: sonstige Ware (Kleidung, Möbel, Hausrat)->SHOPPING LONG TERM
-        activityMapping.put(new ImmutableTriple<>(4, 503, 0), 50);  //Shopping Allgemeiner Einkaufsbummel->SHOPPING
-        activityMapping.put(new ImmutableTriple<>(4, 504, 0),
-                52);  //Shopping mid term: Dienstleistung (Friseur Schuster)->SHOPPING MID TERM
-        activityMapping.put(new ImmutableTriple<>(4, 505, 0), 50);  //Shopping sonstiger Einkaufszweck->SHOPPING
-        activityMapping.put(new ImmutableTriple<>(4, 599, 0), 50);  //Shopping Einkäufe ohne Angabe zum Detail->SHOPPING
-        activityMapping.put(new ImmutableTriple<>(4, 2202, 0), 50);  //Shopping keine Angabe->SHOPPING
+        activityMapping.put(new ImmutableTriple<>(2, ANY_TRIP_PURPOSE_DETAIL, ANY_DIARY_GROUP), 211); //Business trip->WORKING
 
-        activityMapping.put(new ImmutableTriple<>(5, 503, 0), 50);  //private Erledigung: Allgemeiner Einkaufsbummel->SHOPPING
-        activityMapping.put(new ImmutableTriple<>(5, 504, 0),
-                52);  //private Erledigung: Dienstleistung (Friseur Schuster)-> SHOPPING MID TERM
-        activityMapping.put(new ImmutableTriple<>(5, 601, 0), 522); //private Erledigung: Arzt->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 602, 0),
-                522); //private Erledigung: Amt, Behörde, Post, Bank, Geldautomat->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 603, 0), 522); //private Erledigung: für andere Person->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 604, 0), 522); //private Erledigung: sonstiges->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 605, 0), 522); //private Erledigung: Betreuung->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 699, 0),
-                522); //private Erledigung: keine Angabe des Details->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 701, 0), 631); //private Erledigung: Besuch mit/bei Freunden->VISITING
-        activityMapping.put(new ImmutableTriple<>(5, 705, 0), 414); //private Erledigung: Weiterbildung ->Weitebrildung
-        activityMapping.put(new ImmutableTriple<>(5, 706, 0), 720); //private Erledigung: Restaurant->DINING_OR_GOING_OUT
-        activityMapping.put(new ImmutableTriple<>(5, 711, 0), 722); //private Erledigung: Hund ausführen->PROMENADING
-        activityMapping.put(new ImmutableTriple<>(5, 713, 0), 522); //private Erledigung: Kirche, Friedhof->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 714, 0),
-                300); //private Erledigung: Ehrenamt, Verein, pol. Aufgaben->VOLUNTARY_WORK
-        activityMapping.put(new ImmutableTriple<>(5, 715, 0),
-                213); //private Erledigung: Jobben in der Freizeit->WORKING PART TIME
-        activityMapping.put(new ImmutableTriple<>(5, 716, 0),
-                881); //private Erledigung: Begleitung Kinder Spielplatz->TRANSPORTING_CHILDREN_LOCATION
-        activityMapping.put(new ImmutableTriple<>(5, 717, 0), 522); //private Erledigung: Hobby->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(5, 2202, 0), 522); //private Erledigung: im PAPI nicht->PERSONAL_MATTERS
-        // erhoben->PERSONAL_MATTERS
-        // Freizeitweg?!?!?
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, ANY_DIARY_GROUP), 413); //Bildungsweg->Kindergarden TODO WHY? Kindergarden
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 1), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 2), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 3), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 4), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 5), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 6), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 7), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 8), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 9), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 10), 412); //Teilzeit berufstätig->SCHOOL TRAINEE
+
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 24), 412); //Azubi->SCHOOL TRAINEE
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 12), 410); //Pupil ->SCHOOL
+        activityMapping.put(new ImmutableTriple<>(3, ANY_TRIP_PURPOSE_DETAIL, 11), 411); //Bildungsweg, Student->University
+
+        activityMapping.put(new ImmutableTriple<>(4, 501, ANY_DIARY_GROUP), 51);  //Shopping short term: Täglicher Bedarf->SHOPPING SHORT TERM
+        activityMapping.put(new ImmutableTriple<>(4, 502, ANY_DIARY_GROUP), 53);  //Shopping long term: sonstige Ware (Kleidung, Möbel, Hausrat)->SHOPPING LONG TERM
+        activityMapping.put(new ImmutableTriple<>(4, 503, ANY_DIARY_GROUP), 50);  //Shopping Allgemeiner Einkaufsbummel->SHOPPING
+        activityMapping.put(new ImmutableTriple<>(4, 504, ANY_DIARY_GROUP), 52);  //Shopping mid term: Dienstleistung (Friseur Schuster)->SHOPPING MID TERM
+        activityMapping.put(new ImmutableTriple<>(4, 505, ANY_DIARY_GROUP), 50);  //Shopping sonstiger Einkaufszweck->SHOPPING
+        activityMapping.put(new ImmutableTriple<>(4, 599, ANY_DIARY_GROUP), 50);  //Shopping Einkäufe ohne Angabe zum Detail->SHOPPING
+        activityMapping.put(new ImmutableTriple<>(4, 2202, ANY_DIARY_GROUP), 50);  //Shopping keine Angabe->SHOPPING
+
+        activityMapping.put(new ImmutableTriple<>(5, 503, ANY_DIARY_GROUP), 50);  //private Erledigung: Allgemeiner Einkaufsbummel->SHOPPING
+        activityMapping.put(new ImmutableTriple<>(5, 504, ANY_DIARY_GROUP), 52);  //private Erledigung: Dienstleistung (Friseur Schuster)-> SHOPPING MID TERM
+        activityMapping.put(new ImmutableTriple<>(5, 601, ANY_DIARY_GROUP), 522); //private Erledigung: Arzt->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 602, ANY_DIARY_GROUP), 522); //private Erledigung: Amt, Behörde, Post, Bank, Geldautomat->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 603, ANY_DIARY_GROUP), 522); //private Erledigung: für andere Person->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 604, ANY_DIARY_GROUP), 522); //private Erledigung: sonstiges->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 605, ANY_DIARY_GROUP), 522); //private Erledigung: Betreuung->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 699, ANY_DIARY_GROUP), 522); //private Erledigung: keine Angabe des Details->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 701, ANY_DIARY_GROUP), 631); //private Erledigung: Besuch mit/bei Freunden->VISITING
+        activityMapping.put(new ImmutableTriple<>(5, 705, ANY_DIARY_GROUP), 414); //private Erledigung: Weiterbildung ->Weitebrildung
+        activityMapping.put(new ImmutableTriple<>(5, 706, ANY_DIARY_GROUP), 720); //private Erledigung: Restaurant->DINING_OR_GOING_OUT
+        activityMapping.put(new ImmutableTriple<>(5, 711, ANY_DIARY_GROUP), 722); //private Erledigung: Hund ausführen->PROMENADING
+        activityMapping.put(new ImmutableTriple<>(5, 713, ANY_DIARY_GROUP), 522); //private Erledigung: Kirche, Friedhof->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 714, ANY_DIARY_GROUP), 300); //private Erledigung: Ehrenamt, Verein, pol. Aufgaben->VOLUNTARY_WORK
+        activityMapping.put(new ImmutableTriple<>(5, 715, ANY_DIARY_GROUP), 213); //private Erledigung: Jobben in der Freizeit->WORKING PART TIME
+        activityMapping.put(new ImmutableTriple<>(5, 716, ANY_DIARY_GROUP), 881); //private Erledigung: Begleitung Kinder Spielplatz->TRANSPORTING_CHILDREN_LOCATION
+        activityMapping.put(new ImmutableTriple<>(5, 717, ANY_DIARY_GROUP), 522); //private Erledigung: Hobby->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(5, 2202, ANY_DIARY_GROUP), 522); //private Erledigung: im PAPI nicht->PERSONAL_MATTERS erhoben->PERSONAL_MATTERS Freizeitweg?!?!?
 
         //TODO keine Aktivität fürs Bringen von allgemeinen Personen? (es gibt Bringen von Kindern in der DB aber
         // nicht in MiD)
-        activityMapping.put(new ImmutableTriple<>(6, 2202, 0), 740); //Bringen+Holen: keine Angabe ->FREETIME_ANY
-        activityMapping.put(new ImmutableTriple<>(6, 7704, 0),
-                799); //Bringen+Holen: kein Einkaufs-, Erledigungs- und Freizeitweg?!?!?->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(6, 2202, ANY_DIARY_GROUP), 740); //Bringen+Holen: keine Angabe ->FREETIME_ANY
+        activityMapping.put(new ImmutableTriple<>(6, 7704, ANY_DIARY_GROUP), 799); //Bringen+Holen: kein Einkaufs-, Erledigungs- und Freizeitweg?!?!?->ACTIVITIES_ANY
 
-        activityMapping.put(new ImmutableTriple<>(7, 503, 0), 50); //Freizeit: allg. Einkaufsbummel->SHOPPING
-        activityMapping.put(new ImmutableTriple<>(7, 603, 0),
-                522); //Freizeit: priv. Erledigung für andere Person->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(7, 605, 0),
-                740); //Freizeit: Betreuung Familienmitglieder Bekannter->FREETIME_ANY
-        activityMapping.put(new ImmutableTriple<>(7, 701, 0), 631); //Freizeit: Besuch/Treffen von Freunden->VISITING
-        activityMapping.put(new ImmutableTriple<>(7, 702, 0), 640); //Freizeit: Besuch Kulturelle Einrichtung->EXCURSIONS
-        activityMapping.put(new ImmutableTriple<>(7, 703, 0), 724); //Freizeit: Besuch einer Veranstaltung->BEING_AT_AN_EVENT
-        activityMapping.put(new ImmutableTriple<>(7, 704, 0), 721); //Freizeit: Sport, Sportverein->SPORTS
-        activityMapping.put(new ImmutableTriple<>(7, 705, 0), 414); //Freizeit: Weiterbildung->Weiterbildung
-        activityMapping.put(new ImmutableTriple<>(7, 706, 0), 720); //Freizeit: Restaurant->DINING_OR_GOING_OUT
-        activityMapping.put(new ImmutableTriple<>(7, 707, 0), 740); //Freizeit: Schrebergarten/Wochenendhaus->FREETIME_ANY
-        activityMapping.put(new ImmutableTriple<>(7, 708, 0), 640); //Freizeit: Tagesausflug->EXCURSIONS
-        activityMapping.put(new ImmutableTriple<>(7, 709, 0), 640); //Freizeit: Urlaub->EXCURSIONS
-        activityMapping.put(new ImmutableTriple<>(7, 710, 0), 722); //Freizeit: Spaziergang->PROMENADING
-        activityMapping.put(new ImmutableTriple<>(7, 711, 0), 722); //Freizeit: Hund ausführen->PROMENADING
-        activityMapping.put(new ImmutableTriple<>(7, 712, 0), 721); //Freizeit: Joggen...->SPORTS
-        activityMapping.put(new ImmutableTriple<>(7, 713, 0), 522); //Freizeit: Kirche und Friedhof->PERSONAL_MATTERS
-        activityMapping.put(new ImmutableTriple<>(7, 714, 0), 300); //Freizeit: Ehrenamt, Verein, pol. Aufgaben->VOLUNTARY_WORK
-        activityMapping.put(new ImmutableTriple<>(7, 715, 0), 213); //Freizeit: Jobben i.d. Freizeit->WORKING PART TIME
-        activityMapping.put(new ImmutableTriple<>(7, 716, 0),
-                881); //Freizeit: Begleitung von Kindern (Spielplatz)->TRANSPORTING_CHILDREN_LOCATION
-        activityMapping.put(new ImmutableTriple<>(7, 717, 0), 740); //Freizeit: Hobby->FREETIME_ANY
-        activityMapping.put(new ImmutableTriple<>(7, 719, 0), 723); //Freizeit: Spielen (Spielplatz)->PLAYING
-        activityMapping.put(new ImmutableTriple<>(7, 720, 0), 740); //Freizeit: Sonstiges->FREETIME_ANY
-        activityMapping.put(new ImmutableTriple<>(7, 799, 0), 740); //Freizeit: keine Angabe zum Detail->FREETIME_ANY
-        activityMapping.put(new ImmutableTriple<>(7, 2202, 0), 740); //Freizeit: keine Angabe->FREETIME_ANY
+        activityMapping.put(new ImmutableTriple<>(7, 503, ANY_DIARY_GROUP), 50); //Freizeit: allg. Einkaufsbummel->SHOPPING
+        activityMapping.put(new ImmutableTriple<>(7, 603, ANY_DIARY_GROUP), 522); //Freizeit: priv. Erledigung für andere Person->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(7, 605, ANY_DIARY_GROUP), 740); //Freizeit: Betreuung Familienmitglieder Bekannter->FREETIME_ANY
+        activityMapping.put(new ImmutableTriple<>(7, 701, ANY_DIARY_GROUP), 631); //Freizeit: Besuch/Treffen von Freunden->VISITING
+        activityMapping.put(new ImmutableTriple<>(7, 702, ANY_DIARY_GROUP), 640); //Freizeit: Besuch Kulturelle Einrichtung->EXCURSIONS
+        activityMapping.put(new ImmutableTriple<>(7, 703, ANY_DIARY_GROUP), 724); //Freizeit: Besuch einer Veranstaltung->BEING_AT_AN_EVENT
+        activityMapping.put(new ImmutableTriple<>(7, 704, ANY_DIARY_GROUP), 721); //Freizeit: Sport, Sportverein->SPORTS
+        activityMapping.put(new ImmutableTriple<>(7, 705, ANY_DIARY_GROUP), 414); //Freizeit: Weiterbildung->Weiterbildung
+        activityMapping.put(new ImmutableTriple<>(7, 706, ANY_DIARY_GROUP), 720); //Freizeit: Restaurant->DINING_OR_GOING_OUT
+        activityMapping.put(new ImmutableTriple<>(7, 707, ANY_DIARY_GROUP), 740); //Freizeit: Schrebergarten/Wochenendhaus->FREETIME_ANY
+        activityMapping.put(new ImmutableTriple<>(7, 708, ANY_DIARY_GROUP), 640); //Freizeit: Tagesausflug->EXCURSIONS
+        activityMapping.put(new ImmutableTriple<>(7, 709, ANY_DIARY_GROUP), 640); //Freizeit: Urlaub->EXCURSIONS
+        activityMapping.put(new ImmutableTriple<>(7, 710, ANY_DIARY_GROUP), 722); //Freizeit: Spaziergang->PROMENADING
+        activityMapping.put(new ImmutableTriple<>(7, 711, ANY_DIARY_GROUP), 722); //Freizeit: Hund ausführen->PROMENADING
+        activityMapping.put(new ImmutableTriple<>(7, 712, ANY_DIARY_GROUP), 721); //Freizeit: Joggen...->SPORTS
+        activityMapping.put(new ImmutableTriple<>(7, 713, ANY_DIARY_GROUP), 522); //Freizeit: Kirche und Friedhof->PERSONAL_MATTERS
+        activityMapping.put(new ImmutableTriple<>(7, 714, ANY_DIARY_GROUP), 300); //Freizeit: Ehrenamt, Verein, pol. Aufgaben->VOLUNTARY_WORK
+        activityMapping.put(new ImmutableTriple<>(7, 715, ANY_DIARY_GROUP), 213); //Freizeit: Jobben i.d. Freizeit->WORKING PART TIME
+        activityMapping.put(new ImmutableTriple<>(7, 716, ANY_DIARY_GROUP), 881); //Freizeit: Begleitung von Kindern (Spielplatz)->TRANSPORTING_CHILDREN_LOCATION
+        activityMapping.put(new ImmutableTriple<>(7, 717, ANY_DIARY_GROUP), 740); //Freizeit: Hobby->FREETIME_ANY
+        activityMapping.put(new ImmutableTriple<>(7, 719, ANY_DIARY_GROUP), 723); //Freizeit: Spielen (Spielplatz)->PLAYING
+        activityMapping.put(new ImmutableTriple<>(7, 720, ANY_DIARY_GROUP), 740); //Freizeit: Sonstiges->FREETIME_ANY
+        activityMapping.put(new ImmutableTriple<>(7, 799, ANY_DIARY_GROUP), 740); //Freizeit: keine Angabe zum Detail->FREETIME_ANY
+        activityMapping.put(new ImmutableTriple<>(7, 2202, ANY_DIARY_GROUP), 740); //Freizeit: keine Angabe->FREETIME_ANY
 
-        activityMapping.put(new ImmutableTriple<>(8, 2202, 0), 10); //nach Hause->HOUSEWORK_AT_HOME
-        activityMapping.put(new ImmutableTriple<>(8, 7704, 0), 10); //nach Hause->HOUSEWORK_AT_HOME
-        activityMapping.put(new ImmutableTriple<>(9, 2202, 0), 799); //Rückweg vom vorherigen Weg->ACTIVITIES_ANY
-        activityMapping.put(new ImmutableTriple<>(9, 7704, 0), 799); //Rückweg vom vorherigen Weg->ACTIVITIES_ANY
-        activityMapping.put(new ImmutableTriple<>(10, 2202, 0), 799); //andere Zweck->ACTIVITIES_ANY
-        activityMapping.put(new ImmutableTriple<>(10, 7704, 0), 799); //andere Zweck->ACTIVITIES_ANY
-        activityMapping.put(new ImmutableTriple<>(11, 2202, 0), 410); //(Vor-)Schule->SCHOOL
-        activityMapping.put(new ImmutableTriple<>(11, 7704, 0), 410); //(Vor-)Schule->SCHOOL
-        activityMapping.put(new ImmutableTriple<>(12, 2202, 0), 413); //Kita/Kindergarten/Hort->KINDERGARDEN
-        activityMapping.put(new ImmutableTriple<>(12, 7704, 0), 413); //Kita/Kindergarten/Hort->KINDERGARDEN
-        activityMapping.put(new ImmutableTriple<>(13, 2202, 0), 799); //Begleitung Erwachsener->ACTIVITIES_ANY
-        activityMapping.put(new ImmutableTriple<>(13, 7704, 0), 799); //Begleitung Erwachsener->ACTIVITIES_ANY
-        activityMapping.put(new ImmutableTriple<>(14, 2202, 0), 721); //Sport/Sportverein->Sports
-        activityMapping.put(new ImmutableTriple<>(14, 7704, 0), 721); //Sport/Sportverein->Sports
-        activityMapping.put(new ImmutableTriple<>(15, 2202, 0), 631); //Freunde besuchen -> Visiting
-        activityMapping.put(new ImmutableTriple<>(15, 7704, 0), 631); //Freunde besuchen -> Visiting
-        activityMapping.put(new ImmutableTriple<>(16, 2202, 0), 414); //Unterricht(nicht Schule)->Weiterbildung
-        activityMapping.put(new ImmutableTriple<>(16, 7704, 0), 414); //Unterricht(nicht Schule)->Weiterbildung
+        activityMapping.put(new ImmutableTriple<>(8, 2202, ANY_DIARY_GROUP), 10); //nach Hause->HOUSEWORK_AT_HOME
+        activityMapping.put(new ImmutableTriple<>(8, 7704, ANY_DIARY_GROUP), 10); //nach Hause->HOUSEWORK_AT_HOME
+        activityMapping.put(new ImmutableTriple<>(9, 2202, ANY_DIARY_GROUP), 799); //Rückweg vom vorherigen Weg->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(9, 7704, ANY_DIARY_GROUP), 799); //Rückweg vom vorherigen Weg->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(10, 2202, ANY_DIARY_GROUP), 799); //andere Zweck->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(10, 7704, ANY_DIARY_GROUP), 799); //andere Zweck->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(11, 2202, ANY_DIARY_GROUP), 410); //(Vor-)Schule->SCHOOL
+        activityMapping.put(new ImmutableTriple<>(11, 7704, ANY_DIARY_GROUP), 410); //(Vor-)Schule->SCHOOL
+        activityMapping.put(new ImmutableTriple<>(12, 2202, ANY_DIARY_GROUP), 413); //Kita/Kindergarten/Hort->KINDERGARDEN
+        activityMapping.put(new ImmutableTriple<>(12, 7704, ANY_DIARY_GROUP), 413); //Kita/Kindergarten/Hort->KINDERGARDEN
+        activityMapping.put(new ImmutableTriple<>(13, 2202, ANY_DIARY_GROUP), 799); //Begleitung Erwachsener->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(13, 7704, ANY_DIARY_GROUP), 799); //Begleitung Erwachsener->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(14, 2202, ANY_DIARY_GROUP), 721); //Sport/Sportverein->Sports
+        activityMapping.put(new ImmutableTriple<>(14, 7704, ANY_DIARY_GROUP), 721); //Sport/Sportverein->Sports
+        activityMapping.put(new ImmutableTriple<>(15, 2202, ANY_DIARY_GROUP), 631); //Freunde besuchen -> Visiting
+        activityMapping.put(new ImmutableTriple<>(15, 7704, ANY_DIARY_GROUP), 631); //Freunde besuchen -> Visiting
+        activityMapping.put(new ImmutableTriple<>(16, 2202, ANY_DIARY_GROUP), 414); //Unterricht(nicht Schule)->Weiterbildung
+        activityMapping.put(new ImmutableTriple<>(16, 7704, ANY_DIARY_GROUP), 414); //Unterricht(nicht Schule)->Weiterbildung
 
-        activityMapping.put(new ImmutableTriple<>(99, 2202, 0), 799); //keine Angabe/im PAPI nicht erhoben->ACTIVITIES_ANY
-        activityMapping.put(new ImmutableTriple<>(99, 7705, 0), 799); //keine Angabe/Weg ohne Info zum Wegezweck->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(99, 2202, ANY_DIARY_GROUP), 799); //keine Angabe/im PAPI nicht erhoben->ACTIVITIES_ANY
+        activityMapping.put(new ImmutableTriple<>(99, 7705, ANY_DIARY_GROUP), 799); //keine Angabe/Weg ohne Info zum Wegezweck->ACTIVITIES_ANY
 
         //now we go through the diaries and convert the numbers:
         int schemeID = 1, start, duration, act_code_zbe, tourNumber;
-        MutableTriple<Integer, Integer, Integer> key;
+        ImmutableTriple<Integer, Integer, Integer> key;
         boolean home, workchain;
 
         PrintWriter pw = new PrintWriter(System.out); //needed to get rid of stupid german localization of doubles!
@@ -335,10 +321,14 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     diaries++;
                     start = d.start_min;
                     duration = d.getDuration();
-                    key = new MutableTriple<>(d.purpose, d.purposeDetailed, tmp.pGroup);
+                    key = new ImmutableTriple<>(d.purpose, d.purposeDetailed, tmp.group);
                     if (!activityMapping.containsKey(key)) {
-                        key = new MutableTriple<>(d.purpose, d.purposeDetailed, ALL_PERSON_VAL);
+                        key = new ImmutableTriple<>(d.purpose, d.purposeDetailed, ANY_DIARY_GROUP);
+                        if (!activityMapping.containsKey(key)) {
+                            key = new ImmutableTriple<>(d.purpose, ANY_TRIP_PURPOSE_DETAIL, ANY_DIARY_GROUP);
+                        }
                     }
+
                     act_code_zbe = activityMapping.get(key);
                     tourNumber = d.tourNumber;
                     home = d.home && d.stay;
@@ -614,8 +604,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         try {
             query = "select hp_id, h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
                     "w_begl_1, w_begl_2, w_begl_3, w_begl_4, w_begl_5, w_begl_6, w_begl_7, w_begl_8, " +
-                    "w_folgetag, w_zwd, "+ pg_tapas_col +", " + groupCol + " from " + table +
-                    " where w_szs != 99 and w_szs != 701 and " + pg_tapas_col + " <>-1 and " + filter +
+                    "w_folgetag, w_zwd, "+ pgTapasCol +", " + diaryGroupCol + " from " + table +
+                    " where w_szs != 99 and w_szs != 701 and " + pgTapasCol + " <>-1 and " + filter +
                     " order by hp_id,h_id, p_id, w_id";
             ResultSet rs = this.dbCon.executeQuery(query, this);
             int key, lastKey = -1;
@@ -630,8 +620,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 end = rs.getInt("w_folgetag") * ONE_DAY + rs.getInt("w_azs") * 60 + rs.getInt("w_azm");
                 purpose = rs.getInt("w_zweck");
                 purposeDetailed = rs.getInt("w_zwd");
-                group = rs.getInt(groupCol);
-                pGroup = rs.getInt(pg_tapas_col);
+                group = rs.getInt(diaryGroupCol);
+                pGroup = rs.getInt(pgTapasCol);
                 personStatus = rs.getInt("hp_taet");
                 home = purpose == 8;
                 key = hpid;
