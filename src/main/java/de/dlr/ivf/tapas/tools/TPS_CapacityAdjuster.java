@@ -30,12 +30,12 @@ public class TPS_CapacityAdjuster extends TPS_BasicConnectionClass {
         worker.keyVal = "WISTA_scen2030a";
         worker.scheme_class_distribution = "MID_2008_TBG_7_Mo-So";
         worker.region = "berlin";
-        worker.locationTable = "berlin_locations2";
-//        worker.loadDBEntries();
-//        worker.calcLocDemand();
-//        worker.printNewDemand();
-        //worker.updateNewDemand();
-        worker.createNewMinimalLocationTable();
+        worker.locationTable = "berlin_locations_baz";
+        worker.loadDBEntries();
+        worker.calcLocDemand();
+        worker.printNewDemand();
+        worker.updateNewDemand();
+//        worker.createNewMinimalLocationTable();
     }
 
     public void calcLocDemand() {

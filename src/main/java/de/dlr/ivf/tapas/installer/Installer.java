@@ -398,7 +398,7 @@ public class Installer {
             System.out.println(destination + " already exists. It will not be deleted afterwards.");
         } else {
             DESTINATION_ALREADY_EXISTS = false;
-            System.out.println(destination + " does not exist already. Will create and delete it afterwards. ");
+            System.out.println(destination + " does not exist already. It will be created and deleted afterwards. ");
         }
     }
 
