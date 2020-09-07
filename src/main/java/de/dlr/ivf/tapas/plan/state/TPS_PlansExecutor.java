@@ -35,6 +35,7 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
     private List<TPS_StateMachineWorker> active_workers;
     private TPS_TripWriter writer;
     private boolean is_start_time_initialized = false;
+    private long start;
 
     public TPS_PlansExecutor(List<TPS_Plan> plans, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer){
         this.plans = plans;
@@ -49,11 +50,6 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
         cb = new CyclicBarrier(worker_count,
                 () -> {
 
-                        if(!is_start_time_initialized) { //the first time we hit the barrier we set the simulation start time because all state machines have their first trip states initialized
-                            simulation_time_stamp.set(simulation_start_time.get());
-                            is_start_time_initialized = true;
-                        }
-
                         if(active_worker_count.get() > 0) {
                             next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP, simulation_time_stamp.getAndIncrement());
                         }else {
@@ -61,16 +57,23 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
                             next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.END_OF_SIMULATION, StateMachineUtils.NoEventData());
                             //tell the trip writer that it can finish
                             writer.finish();
+                            System.out.println("finishing in: "+((System.currentTimeMillis()-start)/1000));
 
                         }
                       });
-        createStateMachines();
         preInitialize();
+        createStateMachines();
+
+    }
+
+    public TPS_PlansExecutor() {
+
     }
 
     private void preInitialize(){
         //the first event of the simulation that will be requested by the workers before the first barrier hit.
-        next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.INIT_FIRST_STAY, StateMachineUtils.NoEventData());
+        simulation_time_stamp.set((int) (plans.stream().mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration()).min().getAsInt()* 1.66666666e-2 + 0.5));
+        next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP, simulation_time_stamp.getAndIncrement());
     }
 
     private void createStateMachines(){
@@ -99,6 +102,7 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
             threads.add(new Thread(worker,"SequentialWorker-"+index++));
         }
         active_workers = Collections.synchronizedList(workers);
+        start = System.currentTimeMillis();
         for(Thread t : threads){
             t.start();
         }

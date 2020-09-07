@@ -54,6 +54,7 @@ dependencies {
     implementation("com.miglayout:miglayout-swing:5.2")
     implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
     implementation("net.lingala.zip4j:zip4j:2.5.1")
+    implementation("com.lmax:disruptor:3.4.2")
 
     //local dependency
     implementation("simon_w:simon_w:")

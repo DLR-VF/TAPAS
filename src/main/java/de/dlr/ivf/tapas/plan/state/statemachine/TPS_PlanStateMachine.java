@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.plan.state.statemachine;
 
+import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
 
@@ -13,10 +14,8 @@ import java.util.Objects;
  * down to its current state and lets the state decide whether it needs to transition by checking for an appropriate handler.
  * When the state has a handler for the event, it will pass its handler back to the state machine which will then invoke
  * the transition
- * @param <T>
- *     Type of the object being encapsulated
  */
-public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler {
+public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler {
 
     /**
      * the name of the machine
@@ -52,9 +51,14 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
     /**
      * the object wrapped into the machine
      */
-    private T representing_object;
+    private TPS_Plan representing_object;
 
-    public TPS_PlanStateMachine(TPS_PlanState initialState, List<TPS_PlanState> states, TPS_PlanState end_state, String name, T representing_object){
+    public TPS_PlanStateMachine(String name, TPS_Plan plan){
+        this.name = name;
+        this.representing_object = plan;
+    }
+
+    public TPS_PlanStateMachine(TPS_PlanState initialState, List<TPS_PlanState> states, TPS_PlanState end_state, String name, TPS_Plan representing_object){
         Objects.requireNonNull(initialState);
         Objects.requireNonNull(states);
         Objects.requireNonNull(end_state);
@@ -79,6 +83,11 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
         current_state.handle(event);
     }
 
+    @Override
+    public boolean willHandleEvent(TPS_PlanEvent event) {
+        return current_state.willHandleEvent(event);
+    }
+
 
     /**
      * this method should be called from a {@link TPS_PlanState} and let this state machine to make the transition
@@ -87,6 +96,7 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
      * the handler managing the transition
      */
     protected void makeTransition(TPS_PlanStateTransitionHandler handler){
+        //System.out.println("Making Transition: "+name);
         //first we exit the current state
         exitState();
         //then we make the transition
@@ -127,7 +137,20 @@ public class TPS_PlanStateMachine<T> implements TPS_PlanStatemachineEventHandler
         return this.current_state == this.end_state;
     }
 
-    public T getRepresenting_object(){
+    public TPS_Plan getRepresenting_object(){
         return this.representing_object;
+    }
+
+    public void setInitialStateAndReset(TPS_PlanState initial_state){
+        this.initial_state = initial_state;
+        this.current_state = initial_state;
+    }
+
+    public void setEndState(TPS_PlanState end_state){
+        this.end_state = end_state;
+    }
+
+    public void setAllStates(List<TPS_PlanState> states){
+        this.states = states;
     }
 }

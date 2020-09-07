@@ -12,13 +12,13 @@ import java.util.concurrent.CyclicBarrier;
 
 public class TPS_StateMachineWorker implements Runnable {
 
-    private List<TPS_PlanStateMachine<TPS_Plan>> state_machines;
+    private List<TPS_PlanStateMachine> state_machines;
     private CyclicBarrier cb;
     private TPS_PlansExecutor executor;
     private boolean i_am_done = false;
-    private List<TPS_PlanStateMachine<TPS_Plan>> unfinished_mashines = new ArrayList<>();
+    private List<TPS_PlanStateMachine> unfinished_mashines = new ArrayList<>();
 
-    public TPS_StateMachineWorker(List<TPS_PlanStateMachine<TPS_Plan>> state_machines, TPS_PlansExecutor executor){
+    public TPS_StateMachineWorker(List<TPS_PlanStateMachine> state_machines, TPS_PlansExecutor executor){
         this.state_machines = state_machines;
         this.cb = executor.getCyclicBarrier();
         this.executor = executor;
@@ -26,7 +26,7 @@ public class TPS_StateMachineWorker implements Runnable {
     }
 
 
-    public void addStateMachine(TPS_PlanStateMachine<TPS_Plan> state_machine){
+    public void addStateMachine(TPS_PlanStateMachine state_machine){
         this.state_machines.add(state_machine);
     }
 
@@ -40,7 +40,7 @@ public class TPS_StateMachineWorker implements Runnable {
             int active_state_machines = 0;
             TPS_PlanEvent event = this.executor.getNextSimulationEvent();
             if(!i_am_done) {
-                for (TPS_PlanStateMachine<TPS_Plan> state_machine : state_machines) {
+                for (TPS_PlanStateMachine state_machine : state_machines) {
                     if (!state_machine.hasFinished()) {
                         if(simcount > 5000)
                             unfinished_mashines.add(state_machine);
@@ -63,9 +63,9 @@ public class TPS_StateMachineWorker implements Runnable {
         }
     }
 
-    public List<TPS_PlanStateMachine<TPS_Plan>> getStateMachines(){
+    public List<TPS_PlanStateMachine> getStateMachines(){
         return this.state_machines;
     }
 
-    public List<TPS_PlanStateMachine<TPS_Plan>> getUnfinishedMachines(){return this.unfinished_mashines;}
+    public List<TPS_PlanStateMachine> getUnfinishedMachines(){return this.unfinished_mashines;}
 }

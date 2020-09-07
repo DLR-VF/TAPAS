@@ -36,10 +36,13 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      */
     private TPS_PlanStateAction exit_action;
 
+    private TPS_PlanStateAction[] entry_actions;
+    private TPS_PlanStateAction[] exit_actions;
+
     /**
      * a Reference to the parent state machine
      */
-    private TPS_PlanStateMachine<TPS_Plan> stateMachine;
+    private TPS_PlanStateMachine stateMachine;
 
     /**
      *
@@ -57,7 +60,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param stateMachine
      * reference to the state machine
      */
-    public TPS_SimplePlanState(String name, TPS_PlanStateMachine<TPS_Plan> stateMachine){
+    public TPS_SimplePlanState(String name, TPS_PlanStateMachine stateMachine){
         this(name,stateMachine, new TPS_PlanStateNoAction(), new TPS_PlanStateNoAction());
     }
 
@@ -72,7 +75,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param exit_action
      * the exit action to perform
      */
-    public TPS_SimplePlanState(String name, TPS_PlanStateMachine<TPS_Plan> stateMachine, TPS_PlanStateAction enter_action, TPS_PlanStateAction exit_action){
+    public TPS_SimplePlanState(String name, TPS_PlanStateMachine stateMachine, TPS_PlanStateAction enter_action, TPS_PlanStateAction exit_action){
 
         this.handlers = new EnumMap<>(TPS_PlanEventType.class);
         this.name = name;
@@ -108,12 +111,17 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      */
     @Override
     public boolean handle(TPS_PlanEvent event) {
-        if (handlers.containsKey(event.getEventType()) && handlers.get(event.getEventType()).check(event.getData())) {
+        if (willHandleEvent(event)) {
             //there has an event happened that triggered a guard, inform the state machine
             stateMachine.makeTransition(handlers.get(event.getEventType()));
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean willHandleEvent(TPS_PlanEvent event) {
+        return handlers.containsKey(event.getEventType()) && handlers.get(event.getEventType()).check(event.getData());
     }
 
     /**
@@ -171,6 +179,16 @@ public class TPS_SimplePlanState implements TPS_PlanState{
         this.exit_action = action;
     }
 
+    @Override
+    public void setOnEnterActions(TPS_PlanStateAction... actions) {
+        this.entry_actions = actions;
+    }
+
+    @Override
+    public void setOnExitActions(TPS_PlanStateAction... actions) {
+        this.exit_actions = actions;
+    }
+
     /**
      * returns name
      * @return
@@ -185,7 +203,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @return
      */
     @Override
-    public TPS_PlanStateMachine<TPS_Plan> getStateMachine() {
+    public TPS_PlanStateMachine getStateMachine() {
         return this.stateMachine;
     }
 
@@ -194,7 +212,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param stateMachine
      */
     @Override
-    public void setStateMachine(TPS_PlanStateMachine<TPS_Plan> stateMachine) {
+    public void setStateMachine(TPS_PlanStateMachine stateMachine) {
         this.stateMachine = stateMachine;
     }
 }

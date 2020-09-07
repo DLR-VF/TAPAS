@@ -12,6 +12,7 @@ import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Worker;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanGenerator;
+import de.dlr.ivf.tapas.plan.state.TPS_PlanExecutorWithDisruptor;
 import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
@@ -274,19 +275,23 @@ public class TPS_Main {
         TPS_PlanGenerator plan_generator = new TPS_PlanGenerator(this.PM);
         try {
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
+
             List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
             List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
             TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
             //TPS_PipedDbWriterConsumer consumer = new TPS_PipedDbWriterConsumer((TPS_DB_IOManager)PM);
             //TPS_TripWriter writer = new TPS_PipedDbWriter(consumer.getInputStream(),PM);
-            TPS_PlansExecutor plan_executor = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
+            //TPS_PlansExecutor exec = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
+            //exec.runSimulation();
+            TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 
             Thread persisting_thread = new Thread(writer);
             //Thread consumer_thread = new Thread(consumer);
             //consumer_thread.start();
 
             persisting_thread.start();
-            plan_executor.runSimulation();
+            Thread t = new Thread(plan_executor);
+            t.start();
             persisting_thread.join();
             //consumer_thread.join();
 

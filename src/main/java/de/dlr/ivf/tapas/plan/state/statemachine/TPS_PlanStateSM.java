@@ -45,6 +45,11 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
     }
 
     @Override
+    public boolean willHandleEvent(TPS_PlanEvent event) {
+        return false;
+    }
+
+    @Override
     public void addHandler(TPS_PlanEventType event, TPS_PlanState target, TPS_PlanStateAction action, TPS_PlanStateGuard guard) {
 
     }
@@ -70,17 +75,27 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
     }
 
     @Override
+    public void setOnEnterActions(TPS_PlanStateAction... action) {
+
+    }
+
+    @Override
+    public void setOnExitActions(TPS_PlanStateAction... action) {
+
+    }
+
+    @Override
     public String getName() {
         return null;
     }
 
     @Override
-    public TPS_PlanStateMachine<TPS_Plan> getStateMachine() {
+    public TPS_PlanStateMachine getStateMachine() {
         return null;
     }
 
     @Override
-    public void setStateMachine(TPS_PlanStateMachine<TPS_Plan> stateMachine) {
+    public void setStateMachine(TPS_PlanStateMachine stateMachine) {
 
     }
 
