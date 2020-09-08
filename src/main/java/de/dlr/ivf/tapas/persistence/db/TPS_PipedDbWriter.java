@@ -23,21 +23,30 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
     private PipedOutputStream output_stream;
     private PipedInputStream input_stream;
     private PrintWriter pw;
+    private final int batch_size = 100000;
+    private int batch_count;
+    private int total_trip_count;
 
     private AtomicInteger written_trips = new AtomicInteger(0);
+    private int count = 0;
 
     private Connection connection;
     private CopyManager copy_manager;
+    private TPS_DB_IOManager pm;
 
     private String copy_string;
 
-    public TPS_PipedDbWriter(TPS_PersistenceManager pm){
+    public TPS_PipedDbWriter(TPS_PersistenceManager pm, int total_trip_count){
+
+        this.pm = (TPS_DB_IOManager) pm;
         try {
-            this.connection = ((TPS_DB_IOManager)pm).getDbConnector().getConnection(this);
+            this.connection = this.pm.getDbConnector().getConnection(this);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         this.copy_string = String.format("COPY %s FROM STDIN (FORMAT TEXT, ENCODING 'UTF-8', DELIMITER '"+this.csv_delimiter+"', HEADER false)",pm.getParameters().getString(ParamString.DB_TABLE_TRIPS));
+
+        this.total_trip_count = total_trip_count;
         init();
     }
 
@@ -64,8 +73,15 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
         }
     }
     public void writeTrip(TPS_WritableTrip trip) throws IOException {
-        if(written_trips.incrementAndGet() % 10000 == 0)
-            System.out.println("written a 10k batch of trips");
+        count = written_trips.getAndIncrement();
+        if(count % 10000 == 0){
+            String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_started= true, sim_progress = "+count+", sim_total = "+ total_trip_count +" WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+            pm.execute(query);
+        }
+        if(count % batch_size == 0 && count > 0) {
+            batch_count++;
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, batch_count+": "+count+" trips have been persisted in the database...");
+        }
         String csv_string =  ""+trip.getPersonId()+csv_delimiter+trip.getHouseholdId()+csv_delimiter+trip.getSchemeId()+csv_delimiter+trip.getScoreCombined()+csv_delimiter+trip.getScoreFinance()+csv_delimiter+trip.getScoreTime()+csv_delimiter+trip.getTazIdStart()+
                 csv_delimiter+trip.getTazHasTollStart()+csv_delimiter+trip.getBlockIdStart()+csv_delimiter+trip.getLocIdStart()+csv_delimiter+trip.getLonStart()+csv_delimiter+trip.getLatStart()+csv_delimiter+trip.getTazIdEnd()+csv_delimiter+trip.getTazHasTollEnd()+
                 csv_delimiter+trip.getBlockIdEnd()+csv_delimiter+trip.getLocIdEnd()+csv_delimiter+trip.getLonEnd()+csv_delimiter+trip.getLatEnd()+csv_delimiter+trip.getStartTimeMin()+csv_delimiter+trip.getTravelTimeSec()+csv_delimiter+trip.getMode()+
@@ -73,13 +89,14 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
                 csv_delimiter+trip.getActivityDurationMin()+csv_delimiter+trip.getCarIndex()+csv_delimiter+trip.getIsRestrictedCar()+csv_delimiter+trip.getPersonGroup()+csv_delimiter+trip.getTazBbrTypeStart()+csv_delimiter+trip.getBbrTypeHome()+
                 csv_delimiter+trip.getLocSelectionMotive()+csv_delimiter+trip.getLocSelectionMotiveSupply();
         pw.println(csv_string);
-
     }
 
     public void finish(){
         try {
             this.output_stream.flush();
             this.output_stream.close();
+            String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+            pm.execute(query);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -82,9 +82,11 @@ public List<TPS_Household> initAndGetHouseholds(){
 
             //now our query that will fetch all households including all persons belonging to each household
             //we read everything in one loop so the result set must be sorted by household ids
-            query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y, " +
+            query = "SELECT households.hh_id, households.hh_cars, households.hh_car_ids, households.hh_income, households.hh_taz_id, households.hh_type, ST_X(households.hh_coordinate) as x, ST_Y(households.hh_coordinate) as y, " +
                     "p_id, p_has_bike, p_sex, p_group, p_age, p_abo, p_budget_pt, p_budget_it, p_working, p_work_id, p_driver_license, p_hh_id, p_education FROM " + hhtable +" households "+
-                    "INNER JOIN "+ persTable +" persons ON households.hh_id = persons.p_hh_id " +
+                    "INNER JOIN " + this.pm.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP) +" temp_households "+
+                    "ON households.hh_id = temp_households.hh_id " +
+                    "INNER JOIN "+ persTable +" persons ON temp_households.hh_id = persons.p_hh_id " +
                     "WHERE households.hh_key = '"+this.pm.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY)+"' " +
                     "AND persons.p_key = '"+this.pm.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY)+"' " +
                     "ORDER BY households.hh_id";
@@ -159,12 +161,6 @@ public List<TPS_Household> initAndGetHouseholds(){
             rs.close();
             con.setAutoCommit(true);
 
-            //now set the sim status to finished
-            //TODO implement a more concise technique
-            query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+households.size()+", timestamp_finished = now()  WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
-            pm.execute(query);
-            query = "UPDATE " + this.pm.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP) + " SET hh_started = true, hh_finished = true, server_ip = inet '"+ IPInfo.getEthernetInetAddress().getHostAddress()+"'";
-            pm.execute(query);
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
             return households;
         }
@@ -173,8 +169,6 @@ public List<TPS_Household> initAndGetHouseholds(){
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR, "error during one of th sqls: " + query,
                 e);
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR, "next exception:", e.getNextException());
-    } catch (IOException e) {
-        e.printStackTrace();
     }
     return null;
 }

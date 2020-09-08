@@ -79,20 +79,22 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
         worker_pool.start(executor);
 
         boolean all_finished = false;
-
-        long start = System.currentTimeMillis();
+        long total_count = 0;
+        long sim_start = System.currentTimeMillis();
         while(!all_finished && simulation_time_stamp.get() < 2000){
 
             all_finished = true;
             int unfinished = 0;
             int event_count = 0;
-
+            long start = System.currentTimeMillis();
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Publishing events for simulation time: "+simulation_time_stamp.get());
             for(TPS_PlanStateMachine state_machine: state_machines){
                 all_finished = all_finished && state_machine.hasFinished();
                 if(!state_machine.hasFinished())
                     unfinished++;
                 if (state_machine.willHandleEvent(next_simulation_event)) {
                     event_count++;
+                    total_count++;
                     long sequenceId = ring_buffer.next();
                     TPS_StateMachineEvent event = ring_buffer.get(sequenceId);
                     event.setStateMachine(state_machine);
@@ -108,12 +110,13 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
             while(Arrays.stream(worker_pool.getWorkerSequences()).filter(sequence -> sequence.get() < cursor).findAny().isPresent()){
                 Thread.onSpinWait();
             };
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events handled in "+(start-System.currentTimeMillis())/1000+" seconds for simulation time: "+simulation_time_stamp.get());
             //System.out.println("spinning at simtime: "+simulation_time_stamp.get()+" with event count: "+event_count+" for: "+(System.currentTimeMillis()-start_spin)+"ms");
             next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP,  simulation_time_stamp.incrementAndGet());
         }
         worker_pool.drainAndHalt();
         writer.finish();
 
-        System.out.println("finishing in: "+((System.currentTimeMillis()-start)/1000));
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Simulation finished! "+total_count+" events handled in "+(sim_start-System.currentTimeMillis())/60000+" minutes");
     }
 }

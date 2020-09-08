@@ -14,6 +14,8 @@ import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanGenerator;
 import de.dlr.ivf.tapas.plan.state.TPS_PlanExecutorWithDisruptor;
 import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
+import de.dlr.ivf.tapas.scheme.TPS_Episode;
+import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
@@ -278,9 +280,21 @@ public class TPS_Main {
 
             List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
             List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
+
+            int trip_count = (int)plans.stream()
+                                     .parallel()
+                                     .map(plan -> plan.getScheme().getSchemeParts())
+                                     .flatMap(Collection::stream)
+                                     .filter(TPS_SchemePart::isTourPart)
+                                     .map(TPS_SchemePart::getEpisodes)
+                                     .flatMap(Collection::stream)
+                                     .filter(TPS_Episode::isTrip)
+                                     .count();
+
+           // plans.stream().mapToObj(plan -> plan.getScheme().getSchemeParts()).count();
             //TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
             //TPS_PipedDbWriterConsumer consumer = new TPS_PipedDbWriterConsumer((TPS_DB_IOManager)PM);
-            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM);
+            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM,trip_count);
             //TPS_PlansExecutor exec = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
             //exec.runSimulation();
             TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
