@@ -45,6 +45,11 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
     }
 
     @Override
+    public boolean handleSafely(TPS_PlanEvent event) {
+        return false;
+    }
+
+    @Override
     public boolean willHandleEvent(TPS_PlanEvent event) {
         return false;
     }
@@ -102,6 +107,11 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
 
     @Override
     public void handleEvent(TPS_PlanEvent event) {
+
+    }
+
+    @Override
+    public void handleEventSafely(TPS_PlanEvent event) {
 
     }
 }

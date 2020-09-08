@@ -111,6 +111,13 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      */
     @Override
     public boolean handle(TPS_PlanEvent event) {
+
+            stateMachine.makeTransition(handlers.get(event.getEventType()));
+            return true;
+    }
+
+    @Override
+    public boolean handleSafely(TPS_PlanEvent event) {
         if (willHandleEvent(event)) {
             //there has an event happened that triggered a guard, inform the state machine
             stateMachine.makeTransition(handlers.get(event.getEventType()));

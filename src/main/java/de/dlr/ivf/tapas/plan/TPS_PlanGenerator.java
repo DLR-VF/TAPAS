@@ -28,7 +28,7 @@ public class TPS_PlanGenerator{
     }
 
     public List<TPS_Plan> generatePlansAndGet(List<TPS_Household> households){
-
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating all plans.");
         int plans_size = households.stream()
                                    .map(household -> household.getMembers(TPS_Household.Sorting.NONE))
                                    .mapToInt(Collection::size)
@@ -86,12 +86,13 @@ public class TPS_PlanGenerator{
                 TPS_Plan the_plan = new TPS_Plan(person,pe,scheme,this.pm);
                 TPS_PlanningContext pc = new TPS_PlanningContext(pe, null, person.hasBike());
                 the_plan.setPlanningContext(pc);
-                //we only take plans into account that have at least one trip
+                //we only take plans into account that have at least one trip //todo fixme?
                 if(the_plan.getScheme().getSchemeParts().size() > 1)
                     this.plans.add(the_plan);
                 person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
         }
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished generating plans.");
         return plans;
     }
 }

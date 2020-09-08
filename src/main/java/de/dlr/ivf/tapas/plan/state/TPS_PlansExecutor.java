@@ -1,16 +1,12 @@
 package de.dlr.ivf.tapas.plan.state;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.persistence.db.TPS_PipedDbWriter;
-import de.dlr.ivf.tapas.persistence.db.TPS_TripToDbWriter;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
 import de.dlr.ivf.tapas.plan.StateMachineUtils;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
 import de.dlr.ivf.tapas.plan.state.statemachine.TPS_PlanStateMachineFactory;
-
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -34,7 +30,6 @@ public class TPS_PlansExecutor implements TPS_FinishingWorkerCallback{
     private List<Thread> threads;
     private List<TPS_StateMachineWorker> active_workers;
     private TPS_TripWriter writer;
-    private boolean is_start_time_initialized = false;
     private long start;
 
     public TPS_PlansExecutor(List<TPS_Plan> plans, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer){

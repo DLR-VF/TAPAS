@@ -38,7 +38,6 @@ public TPS_HouseholdAndPersonLoader(TPS_DB_IOManager pm){
 }
 
 public List<TPS_Household> initAndGetHouseholds(){
-    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "started loading all households, persons and cars");
 
     String hhtable = this.pm.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD);
     String persTable = this.pm.getParameters().getString(ParamString.DB_TABLE_PERSON);
@@ -47,6 +46,7 @@ public List<TPS_Household> initAndGetHouseholds(){
 
     String query = "";
     try {
+
         //check if simulation is running
         query = "SELECT sim_started FROM " + this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
                 " WHERE sim_key = '" + this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
@@ -59,10 +59,8 @@ public List<TPS_Household> initAndGetHouseholds(){
             sRs.close();
         }
         if (sim_started) {
-            if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Fetching new set of households");
-            }
-
+            if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO))
+                TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loading all households, persons and cars");
 
             //fill car map
             Map<Integer, TPS_Car> carMap = new HashMap<>();
@@ -167,6 +165,7 @@ public List<TPS_Household> initAndGetHouseholds(){
             pm.execute(query);
             query = "UPDATE " + this.pm.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP) + " SET hh_started = true, hh_finished = true, server_ip = inet '"+ IPInfo.getEthernetInetAddress().getHostAddress()+"'";
             pm.execute(query);
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
             return households;
         }
 
@@ -177,7 +176,6 @@ public List<TPS_Household> initAndGetHouseholds(){
     } catch (IOException e) {
         e.printStackTrace();
     }
-    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "finished loading all households, persons and cars");
     return null;
 }
 

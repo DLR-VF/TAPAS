@@ -278,23 +278,19 @@ public class TPS_Main {
 
             List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
             List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
-            TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
+            //TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
             //TPS_PipedDbWriterConsumer consumer = new TPS_PipedDbWriterConsumer((TPS_DB_IOManager)PM);
-            //TPS_TripWriter writer = new TPS_PipedDbWriter(consumer.getInputStream(),PM);
+            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM);
             //TPS_PlansExecutor exec = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
             //exec.runSimulation();
             TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
 
             Thread persisting_thread = new Thread(writer);
-            //Thread consumer_thread = new Thread(consumer);
-            //consumer_thread.start();
 
             persisting_thread.start();
-            Thread t = new Thread(plan_executor);
-            t.start();
+            Thread simulation_thread = new Thread(plan_executor);
+            simulation_thread.start();
             persisting_thread.join();
-            //consumer_thread.join();
-
         } catch (Exception e) {
             e.printStackTrace();
         }

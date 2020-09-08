@@ -148,7 +148,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
             // increment the occupancy of the found location by one
             TPS_Location loc = currentLocatedStay.getLocation();
-            loc.updateOccupancy(1);
+            //loc.updateOccupancy(1);//fixme reverse this and todo check out the occupancy
 
             if (currentLocatedStay.getLocation() == null) {
                 TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.ERROR, "No Location found!");

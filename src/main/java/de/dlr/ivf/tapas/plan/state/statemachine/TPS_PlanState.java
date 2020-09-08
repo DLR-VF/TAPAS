@@ -12,6 +12,7 @@ public interface TPS_PlanState {
     void enter();
     void exit();
     boolean handle(TPS_PlanEvent event);
+    boolean handleSafely(TPS_PlanEvent event);
     boolean willHandleEvent(TPS_PlanEvent event);
     void addHandler(TPS_PlanEventType event_type, TPS_PlanState target_state, TPS_PlanStateAction action, TPS_PlanStateGuard guard);
     void removeHandler(TPS_PlanEventType event);

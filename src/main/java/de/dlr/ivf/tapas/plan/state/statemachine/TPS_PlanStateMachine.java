@@ -84,6 +84,11 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler {
     }
 
     @Override
+    public void handleEventSafely(TPS_PlanEvent event) {
+        current_state.handleSafely(event);
+    }
+
+    @Override
     public boolean willHandleEvent(TPS_PlanEvent event) {
         return current_state.willHandleEvent(event);
     }

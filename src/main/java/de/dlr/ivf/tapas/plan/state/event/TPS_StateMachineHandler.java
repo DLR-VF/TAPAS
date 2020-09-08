@@ -1,21 +1,24 @@
 package de.dlr.ivf.tapas.plan.state.event;
 
 import com.lmax.disruptor.EventHandler;
+import com.lmax.disruptor.WorkHandler;
 
-public class TPS_StateMachineHandler implements EventHandler<TPS_StateMachineEvent> {
-    private int id;
-    private int worker_count;
-    public TPS_StateMachineHandler(int id, int worker_count){
-        this.id = id;
-        this.worker_count = worker_count;
+import java.util.concurrent.CyclicBarrier;
+
+public class TPS_StateMachineHandler implements WorkHandler<TPS_StateMachineEvent> {
+
+    private String name;
+    public TPS_StateMachineHandler(String worker_name){
+        this.name = worker_name;
     }
 
 
     @Override
-    public void onEvent(TPS_StateMachineEvent event, long sequence, boolean endOfBatch) throws Exception {
-        if(sequence % worker_count == id){
-            //System.out.println("handling event: "+sequence+" with worker: "+id);
+    public void onEvent(TPS_StateMachineEvent event) throws Exception {
             event.getStateMachine().handleEvent(event.getEvent());
-        }
+    }
+
+    public String getName(){
+        return this.name;
     }
 }

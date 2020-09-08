@@ -11,10 +11,6 @@ public class TPS_PlanEvent {
         this.type = type;
     }
 
-    public TPS_PlanEvent() {
-
-    }
-
     public Object getData(){
         return this.data;
     }
