@@ -110,13 +110,13 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
             while(Arrays.stream(worker_pool.getWorkerSequences()).filter(sequence -> sequence.get() < cursor).findAny().isPresent()){
                 Thread.onSpinWait();
             };
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events handled in "+(start-System.currentTimeMillis())/1000+" seconds for simulation time: "+simulation_time_stamp.get());
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events handled in "+(System.currentTimeMillis()-start)/1000+" seconds for simulation time: "+simulation_time_stamp.get());
             //System.out.println("spinning at simtime: "+simulation_time_stamp.get()+" with event count: "+event_count+" for: "+(System.currentTimeMillis()-start_spin)+"ms");
             next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP,  simulation_time_stamp.incrementAndGet());
         }
         worker_pool.drainAndHalt();
         writer.finish();
 
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Simulation finished! "+total_count+" events handled in "+(sim_start-System.currentTimeMillis())/60000+" minutes");
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Simulation finished! "+total_count+" events handled in "+(System.currentTimeMillis()-sim_start)/60000+" minutes");
     }
 }
