@@ -292,7 +292,7 @@ public class TPS_Main {
                                      .filter(TPS_Episode::isTrip)
                                      .count();
 
-            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM,trip_count);
+            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM,trip_count, 1 << 19);
 
             TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer,  1 << 20);
 

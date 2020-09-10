@@ -31,6 +31,7 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
 
     private AtomicInteger registered_trips = new AtomicInteger(0);
     private AtomicInteger written_trips = new AtomicInteger(0);
+    private int buffer_size;
 
     private Connection connection;
     private CopyManager copy_manager;
@@ -43,9 +44,10 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
 
     private String copy_string;
 
-    public TPS_PipedDbWriter(TPS_PersistenceManager pm, int total_trip_count){
+    public TPS_PipedDbWriter(TPS_PersistenceManager pm, int total_trip_count, int buffer_size){
 
         this.pm = (TPS_DB_IOManager) pm;
+        this.buffer_size = buffer_size;
         try {
             this.connection = this.pm.getDbConnector().getConnection(this);
         } catch (SQLException e) {
@@ -74,14 +76,14 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
             this.output_stream = new PipedOutputStream();
             this.input_stream = new PipedInputStream(output_stream);
 
-            int buffer_size = 1 << 18;
             EventFactory<TPS_WritableTripEvent> ef = TPS_WritableTripEvent::new;
-            this.disruptor = new Disruptor<>(ef, buffer_size, DaemonThreadFactory.INSTANCE, ProducerType.MULTI, new BusySpinWaitStrategy());
+            this.disruptor = new Disruptor<>(ef, this.buffer_size, DaemonThreadFactory.INSTANCE, ProducerType.MULTI, new BusySpinWaitStrategy());
 
             this.ring_buffer = disruptor.getRingBuffer();
 
             EventHandler<TPS_WritableTripEvent> handler = (event, sequence, endOffBatch) -> {
                 this.output_stream.write(event.getTripAsByteArray());
+                event.clear();
                 this.written_trips.getAndIncrement();
             };
 
@@ -105,17 +107,18 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
     public void finish(){
         try {
             this.update_task.shutdownNow();
+            disruptor.shutdown();
             this.output_stream.flush();
             this.output_stream.close();
             String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
             pm.execute(query);
-            disruptor.shutdown();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
     public int getRegisteredTripCount(){
-        return this.registered_trips.get();
+        return (int) (this.buffer_size - this.ring_buffer.remainingCapacity());
     }
 
     public int getWrittenTripCount(){ return this.written_trips.get();}

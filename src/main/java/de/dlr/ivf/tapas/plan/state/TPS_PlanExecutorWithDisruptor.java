@@ -134,7 +134,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
             }
 
             int written_trip_count = writer.getWrittenTripCount();
-            int trips_in_pipeline = writer.getRegisteredTripCount() - written_trip_count;
+            int trips_in_pipeline = writer.getRegisteredTripCount();
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events handled, "+( written_trip_count - last_written_trip_count)+
                     " trips written  in "+(System.currentTimeMillis()-start)/1000+" seconds for simulation time: "+simulation_time_stamp.get()+

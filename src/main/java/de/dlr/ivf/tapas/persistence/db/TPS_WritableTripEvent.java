@@ -20,4 +20,8 @@ public class TPS_WritableTripEvent {
                 csv_delimiter +trip.getActivityDurationMin()+ csv_delimiter +trip.getCarIndex()+ csv_delimiter +trip.getIsRestrictedCar()+ csv_delimiter +trip.getPersonGroup()+ csv_delimiter +trip.getTazBbrTypeStart()+ csv_delimiter +trip.getBbrTypeHome()+
                 csv_delimiter +trip.getLocSelectionMotive()+ csv_delimiter +trip.getLocSelectionMotiveSupply()+"\n").getBytes();
     }
+
+    public void clear(){
+        this.trip_byte_array = null;
+    }
 }
