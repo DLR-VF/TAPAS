@@ -1,9 +1,6 @@
 package de.dlr.ivf.tapas.plan.state.event;
 
-import com.lmax.disruptor.EventHandler;
 import com.lmax.disruptor.WorkHandler;
-
-import java.util.concurrent.CyclicBarrier;
 
 public class TPS_StateMachineHandler implements WorkHandler<TPS_StateMachineEvent> {
 
@@ -14,8 +11,11 @@ public class TPS_StateMachineHandler implements WorkHandler<TPS_StateMachineEven
 
 
     @Override
-    public void onEvent(TPS_StateMachineEvent event) throws Exception {
-            event.getStateMachine().handleEvent(event.getEvent());
+    public void onEvent(TPS_StateMachineEvent event) {
+        event.getStateMachine().handleEvent(event.getEvent());
+
+        //clear the event
+        event.clear();
     }
 
     public String getName(){

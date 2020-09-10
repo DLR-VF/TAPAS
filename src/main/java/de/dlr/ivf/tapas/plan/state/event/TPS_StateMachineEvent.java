@@ -24,4 +24,10 @@ public class TPS_StateMachineEvent {
     public void setEvent(TPS_PlanEvent event){
         this.event = event;
     }
+
+    public void clear(){
+
+        this.state_machine = null;
+        this.event = null;
+    }
 }

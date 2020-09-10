@@ -1,6 +1,5 @@
 package de.dlr.ivf.tapas.plan.state;
 
-import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
 import de.dlr.ivf.tapas.plan.state.statemachine.TPS_PlanStateMachine;
@@ -49,7 +48,7 @@ public class TPS_StateMachineWorker implements Runnable {
                         state_machine.handleEvent(event);
                     }
                 }
-                i_am_done = simcount > 5000 ? true : active_state_machines == 0;
+                i_am_done = simcount > 5000 || active_state_machines == 0;
 
                 //when we are done we need to tell the executor once
                 if(i_am_done)

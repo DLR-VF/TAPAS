@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * This class is the main entry point into a TAPAS simulation. It provides a main method which can start in different
@@ -291,13 +292,9 @@ public class TPS_Main {
                                      .filter(TPS_Episode::isTrip)
                                      .count();
 
-           // plans.stream().mapToObj(plan -> plan.getScheme().getSchemeParts()).count();
-            //TPS_TripToDbWriter writer = new TPS_TripToDbWriter(this.PM);
-            //TPS_PipedDbWriterConsumer consumer = new TPS_PipedDbWriterConsumer((TPS_DB_IOManager)PM);
             TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM,trip_count);
-            //TPS_PlansExecutor exec = new TPS_PlansExecutor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
-            //exec.runSimulation();
-            TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer);
+
+            TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer,  1 << 20);
 
             Thread persisting_thread = new Thread(writer);
 

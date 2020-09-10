@@ -6,8 +6,6 @@ import de.dlr.ivf.tapas.plan.state.TPS_WritableTrip;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 
-import java.io.IOException;
-
 public class TPS_PlanStatePersistenceAction implements TPS_PlanStateAction {
 
     private TPS_TripWriter writer;
