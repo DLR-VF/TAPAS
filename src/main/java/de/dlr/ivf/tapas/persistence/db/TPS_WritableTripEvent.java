@@ -21,6 +21,10 @@ public class TPS_WritableTripEvent {
                 csv_delimiter +trip.getLocSelectionMotive()+ csv_delimiter +trip.getLocSelectionMotiveSupply()+"\n").getBytes();
     }
 
+    public void setEmptyTripArray(){
+        this.trip_byte_array = new byte[0];
+    }
+
     public void clear(){
         this.trip_byte_array = null;
     }

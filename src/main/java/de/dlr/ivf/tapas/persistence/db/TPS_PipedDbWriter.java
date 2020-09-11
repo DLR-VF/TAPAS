@@ -1,20 +1,12 @@
 package de.dlr.ivf.tapas.persistence.db;
 
 import com.lmax.disruptor.*;
-import com.lmax.disruptor.dsl.Disruptor;
-import com.lmax.disruptor.dsl.ProducerType;
-import com.lmax.disruptor.util.DaemonThreadFactory;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.plan.state.TPS_WritableTrip;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
-import org.postgresql.PGConnection;
-import org.postgresql.copy.CopyManager;
-
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import org.postgresql.core.BaseConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.Executors;
@@ -22,10 +14,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
-
-    private PipedOutputStream output_stream;
-    private PipedInputStream input_stream;
+public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
     private int total_trip_count;
 
@@ -34,11 +23,10 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
     private int buffer_size;
 
     private Connection connection;
-    private CopyManager copy_manager;
+    private TPS_CopyManager copy_manager;
     private TPS_DB_IOManager pm;
 
     private RingBuffer<TPS_WritableTripEvent> ring_buffer;
-    private Disruptor<TPS_WritableTripEvent> disruptor;
 
     private ScheduledExecutorService update_task;
 
@@ -64,33 +52,21 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
     public void run() {
         try {
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Opening database pipeline");
-            copy_manager.copyIn(copy_string,input_stream);
+            copy_manager.copyIn(copy_string,this.ring_buffer,written_trips);
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Closing database pipeline with "+ registered_trips.get()+" written trips.");
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
     private void init(){
         try {
-            this.copy_manager = this.connection.unwrap(PGConnection.class).getCopyAPI();
-            this.output_stream = new PipedOutputStream();
-            this.input_stream = new PipedInputStream(output_stream);
+            this.copy_manager = new TPS_CopyManager((BaseConnection) this.connection);
 
             EventFactory<TPS_WritableTripEvent> ef = TPS_WritableTripEvent::new;
-            this.disruptor = new Disruptor<>(ef, this.buffer_size, DaemonThreadFactory.INSTANCE, ProducerType.MULTI, new BusySpinWaitStrategy());
 
-            this.ring_buffer = disruptor.getRingBuffer();
+            this.ring_buffer = RingBuffer.createMultiProducer(ef,buffer_size,new BusySpinWaitStrategy());
 
-            EventHandler<TPS_WritableTripEvent> handler = (event, sequence, endOffBatch) -> {
-                this.output_stream.write(event.getTripAsByteArray());
-                event.clear();
-                this.written_trips.getAndIncrement();
-            };
-
-            disruptor.handleEventsWith(handler);
-            disruptor.start();
-
-        } catch (SQLException | IOException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
@@ -105,17 +81,16 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter{
     }
 
     public void finish(){
-        try {
-            this.update_task.shutdownNow();
-            disruptor.shutdown();
-            this.output_stream.flush();
-            this.output_stream.close();
-            String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
-            pm.execute(query);
+        this.update_task.shutdownNow();
+        //put an empty byte array onto the ring to signal the copy manager that the transaction is over
+        long sequenceId = ring_buffer.next();
+        TPS_WritableTripEvent event = ring_buffer.get(sequenceId);
+        event.setEmptyTripArray();
+        ring_buffer.publish(sequenceId);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+        pm.execute(query);
+
     }
     public int getRegisteredTripCount(){
         return (int) (this.buffer_size - this.ring_buffer.remainingCapacity());
