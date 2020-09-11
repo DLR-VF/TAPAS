@@ -39,6 +39,8 @@ public class TPS_Location implements Locatable {
     /// The id of the location
     private final int id;
     private final TPS_ParameterClass parameterClass;
+
+    public boolean feederService =false;    
     /**
      * Group Id of the location, which associates this location to a group, e.g.
      * shopping mall, where you can shop, eat and work. Should be set to -1, if

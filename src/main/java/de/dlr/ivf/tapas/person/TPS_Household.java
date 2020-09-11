@@ -37,6 +37,7 @@ public class TPS_Household implements ExtendedWritable {
 
     private TPS_Car leastRestrictedCar = null;
 
+    public boolean feederService =false;
 
     /**
      * Constructor
