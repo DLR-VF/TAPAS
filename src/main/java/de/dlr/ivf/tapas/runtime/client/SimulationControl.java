@@ -361,7 +361,7 @@ public class SimulationControl {
         switch (state) { // the state represents the PAST state!
             case INSERTED:
                 // make simulation ready and start it
-                query = "select core.prepare_simulation_for_start('" + sim_key + "')";
+                query = "select core.prepare_simulation_for_start('" + sim_key + "', false)";
                 SimulationControl.this.dbConnection.execute(query, this);
                 break;
             case STOPPED:

@@ -276,17 +276,18 @@ public class TPS_Main {
         //first we generate abstract plans for every person that only contain information about their stays
         //todo maybe parallelize this block
         this.PM.init();
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating all plans.");
-        TPS_PlanGenerator plan_generator = new TPS_PlanGenerator(this.PM);
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished generating plans.");
 
         try {
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loading all households, persons and cars");
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
+            List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
 
-            List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating all plans.");
+            TPS_PlanGenerator plan_generator = new TPS_PlanGenerator(this.PM);
             List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished generating plans.");
+
 
             int trip_count = (int)plans.stream()
                                      .parallel()
