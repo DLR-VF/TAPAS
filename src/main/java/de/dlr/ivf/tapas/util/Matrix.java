@@ -14,7 +14,7 @@ public class Matrix {
     /**
      * The matrix is stored in this value distribution.
      */
-    double[][] vals;
+    public double[][] vals;
     /**
      * Flag if the matrix is a diagonal matrix
      */

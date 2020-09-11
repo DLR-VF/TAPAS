@@ -547,7 +547,7 @@ public class TPS_DB_IO {
         try {
             if (houseHoldMap.isEmpty()) {
                 if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
+                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, feeder_area, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
                             hhtable + " WHERE hh_key='" + this.PM.getParameters().getString(
                             ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
                 } else {
@@ -557,7 +557,7 @@ public class TPS_DB_IO {
                         sb.append(hID + ",");
                     }
                     sb.setCharAt(sb.length() - 1, ']');
-                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
+                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, feeder_area, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
                             hhtable + " WHERE hh_id = ANY(" + sb.toString() + ") AND hh_key='" +
                             this.PM.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
                 }
@@ -591,6 +591,7 @@ public class TPS_DB_IO {
                             hRs.getDouble("y"), taz, null, this.PM.getParameters());
                     loc.initCapacity(0, false);
                     TPS_Household hh = new TPS_Household(id, income, type, loc, cars);
+                    hh.feederService = hRs.getBoolean("feeder_area");
                     houseHoldMap.put(id, hh);
                 }
                 hRs.close();
@@ -1639,7 +1640,7 @@ public class TPS_DB_IO {
         }
 
         // read locations
-        query = "SELECT loc_id, loc_group_id, loc_code, loc_taz_id, loc_blk_id, loc_has_fix_capacity, loc_capacity, ST_X(loc_coordinate) as x,ST_Y(loc_coordinate) as y FROM " +
+        query = "SELECT loc_id, loc_group_id, loc_code, loc_taz_id, loc_blk_id, loc_has_fix_capacity, loc_capacity, feeder_area, ST_X(loc_coordinate) as x,ST_Y(loc_coordinate) as y FROM " +
                 this.PM.getParameters().getString(ParamString.DB_TABLE_LOCATION) +
                 " WHERE loc_capacity >0";  // do not add zero capacity locations
         ResultSet rsLoc = PM.executeQuery(query);
@@ -1670,6 +1671,7 @@ public class TPS_DB_IO {
                 // build location
                 TPS_Location location = new TPS_Location(locId, groupId, locCode, x, y, taz, block,
                         this.PM.getParameters());
+                location.feederService = rsLoc.getBoolean("feeder_area");
                 // now adapt the capacity to the sample size
                 cap = (int) ((cap * this.PM.getParameters().getDoubleValue(ParamValue.DB_HH_SAMPLE_SIZE)) +
                         0.5); // including round
