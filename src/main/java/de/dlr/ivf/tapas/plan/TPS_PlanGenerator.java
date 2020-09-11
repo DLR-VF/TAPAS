@@ -28,7 +28,7 @@ public class TPS_PlanGenerator{
     }
 
     public List<TPS_Plan> generatePlansAndGet(List<TPS_Household> households){
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating all plans.");
+
         int plans_size = households.stream()
                                    .map(household -> household.getMembers(TPS_Household.Sorting.NONE))
                                    .mapToInt(Collection::size)
@@ -92,7 +92,7 @@ public class TPS_PlanGenerator{
                 person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
         }
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished generating plans.");
+
         return plans;
     }
 }

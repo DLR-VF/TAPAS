@@ -280,7 +280,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                 " loc_id_end integer, lon_end double precision, lat_end double precision, start_time_min integer, travel_time_sec double precision, mode integer," +
                 " car_type integer, distance_bl_m double precision, distance_real_m double precision, activity integer," +
                 " is_home boolean, activity_start_min integer, activity_duration_min integer, emission_type integer, is_restricted boolean," +
-                " p_group integer, taz_bbr_type_start integer, bbr_type_home integer, PRIMARY KEY (p_id, hh_id, start_time_min))";
+                " p_group integer, taz_bbr_type_start integer, bbr_type_home integer)";
         this.execute(query);
     }
 

@@ -56,8 +56,6 @@ public List<TPS_Household> initAndGetHouseholds(){
             sRs.close();
         }
         if (sim_started) {
-            if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO))
-                TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loading all households, persons and cars");
 
             //fill car map
             Map<Integer, TPS_Car> carMap = new HashMap<>();
@@ -158,7 +156,6 @@ public List<TPS_Household> initAndGetHouseholds(){
             rs.close();
             con.setAutoCommit(true);
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
             return households;
         }
 
