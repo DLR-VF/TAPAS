@@ -87,23 +87,24 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
 
         //launch the simulation progress update thread
         writer.startSimulationProgressUpdateTask();
-
+        int unfinished = plan_count;
         while(!all_finished && simulation_time_stamp.get() < 2000){
 
             all_finished = true;
-            int unfinished = 0;
+
             int event_count = 0;
             long start = System.currentTimeMillis();
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Publishing and consuming events for simulation time: "+simulation_time_stamp.get());
 
-            for(TPS_PlanStateMachine state_machine: state_machines){
-
+            for(int i = 0; i < unfinished; i++){
+                TPS_PlanStateMachine state_machine = state_machines.get(i);
                 all_finished = all_finished && state_machine.hasFinished();
 
-                if(!state_machine.hasFinished())
-                    unfinished++;
-
+                if(state_machine.hasFinished()) {
+                    unfinished--;
+                    state_machines.remove(i);
+                }
                 if (state_machine.willHandleEvent(next_simulation_event)) {
                     event_count++;
                     total_count++;

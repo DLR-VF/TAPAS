@@ -83,7 +83,7 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
             EventFactory<TPS_WritableTripEvent> ef = TPS_WritableTripEvent::new;
 
-            this.ring_buffer = RingBuffer.createMultiProducer(ef,buffer_size,new BusySpinWaitStrategy());
+            this.ring_buffer = RingBuffer.createMultiProducer(ef, buffer_size, new BlockingWaitStrategy());
 
         } catch (SQLException e) {
             e.printStackTrace();
