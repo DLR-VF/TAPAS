@@ -51,7 +51,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Initializing first simulation event...");
 
         //set simulation start time
-        plans.stream().mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration()).min().ifPresentOrElse( i -> simulation_time_stamp.set((int) (i* 1.66666666e-2 + 0.5)), () -> simulation_time_stamp.set(0));
+        plans.stream().parallel().mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration()).min().ifPresentOrElse( i -> simulation_time_stamp.set((int) (i* 1.66666666e-2 + 0.5)), () -> simulation_time_stamp.set(0));
 
         next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP,  simulation_time_stamp.get());
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "First simulation event is of type: "+next_simulation_event.getEventType()+" at time: "+next_simulation_event.getData());
@@ -59,7 +59,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
 
     private void createStateMachines() {
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+this.plan_count+" state machines...");
-        plans.forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
+        plans.stream().parallel().forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "All state machines ready...");
     }
 
@@ -87,23 +87,20 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
 
         //launch the simulation progress update thread
         writer.startSimulationProgressUpdateTask();
-        int unfinished = plan_count;
         while(!all_finished && simulation_time_stamp.get() < 2000){
 
             all_finished = true;
-
+            int unfinished = 0;
             int event_count = 0;
             long start = System.currentTimeMillis();
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Publishing and consuming events for simulation time: "+simulation_time_stamp.get());
 
-            for(int i = 0; i < unfinished; i++){
-                TPS_PlanStateMachine state_machine = state_machines.get(i);
+            for(TPS_PlanStateMachine state_machine : state_machines){
                 all_finished = all_finished && state_machine.hasFinished();
 
                 if(state_machine.hasFinished()) {
-                    unfinished--;
-                    state_machines.remove(i);
+                    unfinished++;
                 }
                 if (state_machine.willHandleEvent(next_simulation_event)) {
                     event_count++;
