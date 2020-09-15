@@ -248,7 +248,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, StateMachineUtils.NoAction(), i -> (int) i == (int) ((arrival_located_stay.getStart() + arrival_located_stay.getDuration()) * 1.66666666e-2 + 0.5));
 
         //check out the occupancy
-        post_trip_activity_state.setOnExitAction(() -> currentLocatedStay.getLocation().updateOccupancy(-1));
+        post_trip_activity_state.setOnExitAction(new TPS_PlanStateReleaseOccupancyAction(currentLocatedStay.getLocation()));
 
         if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
             TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "on move state handler at time: " + (int) (planned_trip.getStart() * 1.66666666e-2 + 0.5));

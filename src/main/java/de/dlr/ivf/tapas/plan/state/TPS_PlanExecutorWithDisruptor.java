@@ -99,7 +99,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
             for(TPS_PlanStateMachine state_machine : state_machines){
                 all_finished = all_finished && state_machine.hasFinished();
 
-                if(state_machine.hasFinished()) {
+                if(!state_machine.hasFinished()) {
                     unfinished++;
                 }
                 if (state_machine.willHandleEvent(next_simulation_event)) {
