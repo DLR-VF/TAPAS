@@ -59,7 +59,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
 
     private void createStateMachines() {
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+this.plan_count+" state machines...");
-        plans.stream().parallel().forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
+        plans.stream().forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "All state machines ready...");
     }
 
