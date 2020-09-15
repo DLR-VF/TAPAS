@@ -67,7 +67,6 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
     @Override
     public void run() {
 
-
         // check mobility options
         TPS_PlanningContext pc = plan.getPlanningContext();
         if (tour_part.isCarUsed()) {
@@ -120,6 +119,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
             }
 
             //First execution: fix locations will be set (ELSE branch)
+
             //Further executions: fix locations are set already, take locations from map (IF branch)
             //Non fix location, i.e. everything except home and work: also ELSE branch
             //E.g.: Provides a work location, when ActCode is working in ELSE
@@ -147,8 +147,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
             }
 
             // increment the occupancy of the found location by one
-            TPS_Location loc = currentLocatedStay.getLocation();
-            //loc.updateOccupancy(1);//fixme reverse this and todo check out the occupancy
+            currentLocatedStay.getLocation().updateOccupancy(1);
 
             if (currentLocatedStay.getLocation() == null) {
                 TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.ERROR, "No Location found!");
@@ -247,6 +246,9 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         trip_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_trip_activity_state, StateMachineUtils.NoAction(), i -> (int ) i == (int) (arrival_located_stay.getStart() * 1.66666666e-2 + 0.5));
 
         post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, StateMachineUtils.NoAction(), i -> (int) i == (int) ((arrival_located_stay.getStart() + arrival_located_stay.getDuration()) * 1.66666666e-2 + 0.5));
+
+        //check out the occupancy
+        post_trip_activity_state.setOnExitAction(() -> currentLocatedStay.getLocation().updateOccupancy(-1));
 
         if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
             TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "on move state handler at time: " + (int) (planned_trip.getStart() * 1.66666666e-2 + 0.5));
