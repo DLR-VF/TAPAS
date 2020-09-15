@@ -1779,11 +1779,10 @@ public class TPS_DB_IO {
 
 
         // read the mapping from person group to scheme classes
-        rs = PM.executeQuery(
-                "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION) +
-                        " WHERE name='" +
-                        this.PM.getParameters().getString(ParamString.DB_NAME_SCHEME_CLASS_DISTRIBUTION) +
-                        "' ORDER BY person_group, scheme_class_id");
+        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION) +
+                " WHERE name='" + this.PM.getParameters().getString(ParamString.DB_NAME_SCHEME_CLASS_DISTRIBUTION) +
+                "' ORDER BY person_group, scheme_class_id";
+        rs = PM.executeQuery(query);
 
 
         HashMap<Integer, HashMap<Integer, Double>> personGroupSchemeProbabilityMap = new HashMap<>();

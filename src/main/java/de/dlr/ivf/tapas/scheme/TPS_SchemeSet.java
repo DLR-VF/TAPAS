@@ -141,7 +141,8 @@ public class TPS_SchemeSet implements Iterable<TPS_Scheme>, ExtendedWritable {
      */
     public TPS_Scheme selectScheme(TPS_Person person) {
         TPS_DiscreteDistribution<Integer> scDis = this.distributionMap.get(person.getPersGroup());
-        TPS_SchemeClass sc = this.schemeClasses.get(scDis.drawKey());
+        Integer key = scDis.drawKey();
+        TPS_SchemeClass sc = this.schemeClasses.get(key);
         return sc.draw();
     }
 

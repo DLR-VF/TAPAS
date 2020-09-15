@@ -1,13 +1,13 @@
 package de.dlr.ivf.tapas.tools;
 
+import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class TPS_CapacityAdjuster extends TPS_BasicConnectionClass {
@@ -23,17 +23,19 @@ public class TPS_CapacityAdjuster extends TPS_BasicConnectionClass {
     Map<Integer, Integer> personGroupCount = new HashMap<>();
     Map<Integer, ValueDistribution> schemeClassDistribution = new HashMap<>();
     Map<Integer, ValueDistribution> schemeClassActivityDistribution = new HashMap<>();
+    Map<Integer, List<Triple<Integer, Double, Double>>> locCodeToTazIdAndXYGeoList = new HashMap<>();
 
     public static void main(String[] args) {
         TPS_CapacityAdjuster worker = new TPS_CapacityAdjuster();
-        worker.keyVal = "MID2008_Y2010_NEW_REF";
-        worker.scheme_class_distribution = "idspsg_shdg_14159_ward_PG32_BBR_RegTyp1_Di_Do";
+        worker.keyVal = "WISTA_scen2030a";
+        worker.scheme_class_distribution = "MID_2008_TBG_7_Mo-So";
         worker.region = "berlin";
-        worker.locationTable = "berlin_locations";
+        worker.locationTable = "berlin_locations_baz";
         worker.loadDBEntries();
         worker.calcLocDemand();
         worker.printNewDemand();
-        //worker.updateNewDemand();
+        worker.updateNewDemand();
+//        worker.createNewMinimalLocationTable();
     }
 
     public void calcLocDemand() {
@@ -259,6 +261,67 @@ public class TPS_CapacityAdjuster extends TPS_BasicConnectionClass {
         }
     }
 
+    public void createNewMinimalLocationTable(){
+        String adressenBkgTable = "public.adressen_bkg_2018";
+        String tazTable = "core.berlin_taz_1223_multiline";
+        String locCodeTable = "core.global_location_codes";
+        String locTable = "core.berlin_locations_baz";
+        int tazNumId;
+        double x;
+        double y;
+        String query="";
+        ResultSet rs;
+        try {
+            //get all location codes and write into a set
+            query = "select code_tapas from " + locCodeTable + ";";
+            rs = dbCon.executeQuery(query, this);
+            HashSet<Integer> locCodeSet = new HashSet<>();
+            while (rs.next()) {
+                locCodeSet.add(rs.getInt("code_tapas"));
+            }
+
+            //now get 10 locations for each location codes and fill with random addresses in tazes
+            query = "with p as (select st_transform(geom,4326) as loc_coordinate from " + adressenBkgTable +
+                    " where land_id=11 order by random() limit 10) " +
+                    "select btm.taz_num_id, st_x(p.loc_coordinate), st_y(p.loc_coordinate) " + "from " + tazTable +
+                    " btm join p on st_within(p.loc_coordinate, btm.the_geom)";
+            for (Integer locCode : locCodeSet) {
+                rs = dbCon.executeQuery(query, this);
+                locCodeToTazIdAndXYGeoList.put(locCode, new ArrayList<>());
+                while (rs.next()) {
+                    tazNumId = rs.getInt("taz_num_id");
+                    x = rs.getInt("st_x");
+                    y = rs.getInt("st_y");
+                    locCodeToTazIdAndXYGeoList.get(locCode).add(new ImmutableTriple<>(tazNumId, x, y));
+                }
+            }
+            rs.close();
+
+            //write loc Table
+            int locId = 0;
+            for (Integer locCode : locCodeSet){
+                for (Triple<Integer, Double, Double> e : locCodeToTazIdAndXYGeoList.get(locCode)) {
+                    locId++;
+                    tazNumId = e.getLeft();
+                    x = e.getMiddle();
+                    y = e.getRight();
+                    if (tazNumId == 0) continue;
+                    query = "Insert into "+ locTable
+                            + " (loc_id, loc_blk_id, loc_taz_id, loc_code, loc_capacity, loc_coordinate)"
+                            + "values ("
+                            + locId + ", 0, " + tazNumId + ", " + locCode + ", 1, st_setsrid(st_makepoint("
+                            + x + ", " + y + "), 4326));";
+                    dbCon.execute(query, this);
+                }
+
+            }
+        }
+        catch (SQLException e) {
+            System.err.println(this.getClass().getCanonicalName() + " loadDB: SQL-Error during statement: " + query);
+            e.printStackTrace();
+        }
+    }
+
     public void loadDBEntries() {
         String query = "";
         ResultSet rs;
@@ -322,7 +385,7 @@ public class TPS_CapacityAdjuster extends TPS_BasicConnectionClass {
             }
             rs.close();
 
-            //schemeClassActivityFreqency
+            //schemeClassActivityFrequency
             this.calculateGenerationRates();
 
             this.fillOverloadFactors();
