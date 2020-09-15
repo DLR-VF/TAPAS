@@ -19,7 +19,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 //    static final String groupCol_name = "TBG_23";
     static final String diaryGroupCol = "tbg";
     static final String diaryGroupColName = "tbg";
-    static final String pgTapasCol = "pg_tapas34";
+    static final String pgTapasCol = "pg_tapas66";
 
     //static final int kindergartengruppe = 91;
 
@@ -72,6 +72,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 
         for (Entry<String, String> t : times.entrySet()) {
             for (Entry<String, String> r : regions.entrySet()) {
+                System.out.println(pgTapasCol);
                 System.out.println(t);
                 System.out.println(r);
                 worker.readMIDDiary("public.mid_2017_b1_wege", t.getKey() + " and " + r.getKey());
@@ -82,15 +83,15 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 boolean delete = false;
 
                 if (!printOnScreen && delete) {
-                    worker.cleanUpDB("core.global_scheme_classes_mid17_34");
-                    worker.cleanUpDB("core.global_episodes_mid17_34");
-                    worker.cleanUpDB("core.global_schemes_mid17_34");
+                    worker.cleanUpDB("core.global_scheme_classes_mid17_66");
+                    worker.cleanUpDB("core.global_episodes_mid17_66");
+                    worker.cleanUpDB("core.global_schemes_mid17_66");
                 }
-//                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17_34", printOnScreen);
-//                worker.printDiariesSQLInserts("core.global_episodes_mid17_34", "core.global_schemes_mid17_34",
+//                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17_66", printOnScreen);
+//                worker.printDiariesSQLInserts("core.global_episodes_mid17_66", "core.global_schemes_mid17_66",
 //                printOnScreen);
 //                worker.printDistributionVectors();
-                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17_34",
+                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17_66",
                         "MID_2017_" + diaryGroupColName + t.getValue() + r.getValue(), printOnScreen);
                 worker.clearEverything();
             }
@@ -325,7 +326,10 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     if (!activityMapping.containsKey(key)) {
                         key = new ImmutableTriple<>(d.purpose, d.purposeDetailed, ANY_DIARY_GROUP);
                         if (!activityMapping.containsKey(key)) {
-                            key = new ImmutableTriple<>(d.purpose, ANY_TRIP_PURPOSE_DETAIL, ANY_DIARY_GROUP);
+                            key = new ImmutableTriple<>(d.purpose, ANY_TRIP_PURPOSE_DETAIL, tmp.group);
+                            if (!activityMapping.containsKey(key)) {
+                                key = new ImmutableTriple<>(d.purpose, ANY_TRIP_PURPOSE_DETAIL, ANY_DIARY_GROUP);
+                            }
                         }
                     }
 
@@ -389,7 +393,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         }
 
         PrintWriter pw = new PrintWriter(System.out); //needed to get rid of stupid german localization of doubles!
-        String query = "";
+        String query;
         //clean up
         if (!print) {
             query = "DELETE FROM " + tablename + " where name ='" + name + "'";
