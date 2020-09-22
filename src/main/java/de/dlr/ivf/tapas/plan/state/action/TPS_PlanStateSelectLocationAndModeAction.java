@@ -239,16 +239,14 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         //update the travel durations for this plan
         tour_part.updateActualTravelDurations(plan);
 
-        //now we set a guard to the calling_state in order to transition into the ON_MOVE state when the trip starts
-        //the ON_MOVE state will have a handler added that will transition into the ON_ACTIVITY state when the activity starts
-        //the ON_ACTIVITY state will have a handler to trigger the next trip state
+        var trip_to_activity_transition_minute = (int) (arrival_located_stay.getStart() * 1.66666666e-2 + 0.5);
+        trip_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_trip_activity_state, StateMachineUtils.NoAction(), i -> (int) i == trip_to_activity_transition_minute);
 
-        trip_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_trip_activity_state, StateMachineUtils.NoAction(), i -> (int ) i == (int) (arrival_located_stay.getStart() * 1.66666666e-2 + 0.5));
-
-        post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, StateMachineUtils.NoAction(), i -> (int) i == (int) ((arrival_located_stay.getStart() + arrival_located_stay.getDuration()) * 1.66666666e-2 + 0.5));
+        var activity_to_next_trip_transition_minute = (int) ((arrival_located_stay.getStart() + arrival_located_stay.getDuration()) * 1.66666666e-2 + 0.5);
+        post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, StateMachineUtils.NoAction(), i -> (int) i == activity_to_next_trip_transition_minute);
 
         //check out the occupancy
-        post_trip_activity_state.setOnExitAction(new TPS_PlanStateReleaseOccupancyAction(currentLocatedStay.getLocation()));
+        post_trip_activity_state.setOnExitAction(new TPS_PlanStateUpdateOccupancyAction(currentLocatedStay.getLocation()));
 
         if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
             TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "on move state handler at time: " + (int) (planned_trip.getStart() * 1.66666666e-2 + 0.5));
