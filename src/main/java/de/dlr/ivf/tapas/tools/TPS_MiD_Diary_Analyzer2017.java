@@ -19,7 +19,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 //    static final String groupCol_name = "TBG_23";
     static final String diaryGroupCol = "tbg";
     static final String diaryGroupColName = "tbg";
-    static final String pgTapasCol = "pg_tapas66";
+    static final String pgTapasCol = "pg_tapas34";
 
     //static final int kindergartengruppe = 91;
 
@@ -83,15 +83,15 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 boolean delete = false;
 
                 if (!printOnScreen && delete) {
-                    worker.cleanUpDB("core.global_scheme_classes_mid17_66");
-                    worker.cleanUpDB("core.global_episodes_mid17_66");
-                    worker.cleanUpDB("core.global_schemes_mid17_66");
+                    worker.cleanUpDB("core.global_scheme_classes_mid17_34");
+                    worker.cleanUpDB("core.global_episodes_mid17_34");
+                    worker.cleanUpDB("core.global_schemes_mid17_34");
                 }
-//                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17_66", printOnScreen);
-//                worker.printDiariesSQLInserts("core.global_episodes_mid17_66", "core.global_schemes_mid17_66",
+//                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17_34", printOnScreen);
+//                worker.printDiariesSQLInserts("core.global_episodes_mid17_34", "core.global_schemes_mid17_34",
 //                printOnScreen);
 //                worker.printDistributionVectors();
-                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17_66",
+                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17_34",
                         "MID_2017_" + diaryGroupColName + t.getValue() + r.getValue(), printOnScreen);
                 worker.clearEverything();
             }
@@ -608,8 +608,9 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         try {
             query = "select hp_id, h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
                     "w_begl_1, w_begl_2, w_begl_3, w_begl_4, w_begl_5, w_begl_6, w_begl_7, w_begl_8, " +
-                    "w_folgetag, w_zwd, "+ pgTapasCol +", " + diaryGroupCol + " from " + table +
-                    " where w_szs != 99 and w_szs != 701 and " + pgTapasCol + " <>-1 and " + filter +
+                    "w_folgetag, w_zwd, wegmin, "+ pgTapasCol +", " + diaryGroupCol + " from " + table +
+                    " where w_szs != 99 and w_szs != 701 and w_azs != 99 and w_azs != 701 and wegmin != 9994 and " +
+                    "wegmin != 9995 and wegmin != 70701 and " + pgTapasCol + " <>-1 and " + filter +
                     " order by hp_id,h_id, p_id, w_id";
             ResultSet rs = this.dbCon.executeQuery(query, this);
             int key, lastKey = -1;

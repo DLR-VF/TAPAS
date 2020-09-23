@@ -3,20 +3,13 @@
 for more information see https://wiki.dlr.de/display/MUD/TAPAS
 
 ## Requirements: 
- - Installed and running Postgres 11 server with the Postgis 3 extension
- - Java 11
+ - Installed and running Postgres 11+ server with 
+    - Postgis 3 extension
+    - Database Drivers: pgJDBC and pgODBC (32 and/or 64 bit depending on your build target) 
+ - Java 11+ (for development options you need the JDK of course)
+ - Git if you want to clone this repository
  
-Furthermore from the Github repository you need to download from the packages section: 
-- [TAPAS-version-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073) (the main jar for TAPAS. Important is the
- ...-_all_.jar because it includes all dependencies )
-- [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip) (Minimal database dump: leave the zip as it
- is for the Installer)
-- [runtime_data.zip](https://github.com/DLR-VF/TAPAS/blob/master/runtime_data.zip) (Runtime data archive: decompress the archive
- for an exemplary set of scenario and runtime files (needed for SimulationDaemon and SimulationControl))
 
- Recommendation: Place both, the still compressed `sql_dumps.zip` archive and the `data` folder (extracted from runtime_data
- .zip), in your current working directory with your `TAPAS-<version>-all.jar `
- 
 ### Basic Postgres DB Setup:
 
 This only applies if you don't have an already running Postgres/Postgis system. 
@@ -35,9 +28,26 @@ Start DB server:
 
     pg_ctl[.exe] -D path/to/data/dir -l /path/to/log/file start
     
+## Development Guide
 
+Some basics about import files or the repository:  
+- [TAPAS-version-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073): the main jar for TAPAS. Important is the
+ ...-_all_.jar because it includes all dependencies
+- [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip): Minimal database dump: leave the zip as is
+ for the Installer
+- [data/Simulations](https://github.com/DLR-VF/TAPAS/tree/master/data/Simulations): Runtime data archive: exemplary set 
+of scenario and runtime files (needed for SimulationDaemon and SimulationControl); these files contain the login and 
+database parameter settings
+- [src](https://github.com/DLR-VF/TAPAS/tree/master/src): Source folder
+- [gradle/wrapper](https://github.com/DLR-VF/TAPAS/tree/master/gradle/wrapper): Gradle wrapper folder for executing task
+ through gradle; should not be changed 
+- [build.gradle.kts](https://github.com/DLR-VF/TAPAS/blob/master/build.gradle.kts): Main Gradle file for defining the 
+gradle tasks and more
+
+ Recommendation: Place both, the still compressed `sql_dumps.zip` archive and , in your current working directory with your `TAPAS-<version>-all.jar `
  
-##Execution  
+ 
+## Execution  
 
 There are several ways to execute the Installer, SimulationControl and the SimulationDaemon
  

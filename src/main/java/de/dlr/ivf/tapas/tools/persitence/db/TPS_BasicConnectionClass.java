@@ -140,7 +140,7 @@ public class TPS_BasicConnectionClass {
         } else {
             JFileChooser choose = new JFileChooser();
             choose.setDialogTitle("Select login info file");
-            int val = choose.showOpenDialog(null);
+            int val = choose.showOpenDialog(choose); // choose as a parameter is necessary to put the dialog in the front
             String baseDirectory;
             File tmpFile;
             // did they click on open
