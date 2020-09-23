@@ -160,7 +160,7 @@ task("Installer", JavaExec::class) {
     // Define the main class for the application
     main = "de.dlr.ivf.tapas.installer.Installer"
 //    set arguments like in the line below
-//    args = mutableListOf("-s localhost","-n my_tapas_db_name","-u my_already_existing_tapas_db_user","-p my_db_password")
+//    args = mutableListOf("--dbserver=localhost","--dbname=my_tapas_db_name","--dbuser=my_already_existing_tapas_db_user","--dbpassword=my_db_password")
 }
 
 tasks {
