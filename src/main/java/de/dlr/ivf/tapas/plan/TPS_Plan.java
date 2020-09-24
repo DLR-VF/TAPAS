@@ -1465,4 +1465,23 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         return (TPS_Stay) sp.getFirstEpisode();
     }
 
+    public TPS_Stay getNextFixStay(TPS_Stay stay){
+
+        var potential_next_fix_stay = this.scheme.getSchemeParts()
+                .stream()
+                .map(plan -> plan.getScheme().getSchemeParts())
+                .flatMap(Collection::stream)
+                .map(TPS_SchemePart::getEpisodes)
+                .flatMap(Collection::stream)
+                .filter(episode -> episode.isStay() && stay.getOriginalStart() < episode.getOriginalStart() && fixLocations.containsKey(episode.getActCode()))
+                .findFirst();
+
+        if(potential_next_fix_stay.isPresent())
+            return (TPS_Stay) potential_next_fix_stay.get();
+        else { //return the last home stay as fix location
+            var scheme_part_count = this.scheme.getSchemeParts().size();
+            return (TPS_Stay) this.scheme.getSchemeParts().get(scheme_part_count-1).getFirstEpisode();
+        }
+    }
+
 }

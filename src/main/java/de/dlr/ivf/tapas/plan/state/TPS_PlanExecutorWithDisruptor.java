@@ -36,7 +36,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
         this.plans = plans;
         this.plan_count = plans.size();
         this.state_machines = new ArrayList<>(plan_count);
-        this.worker_count = worker_count/2;
+        this.worker_count = Math.max(1,worker_count / 2 -2);
         this.buffer_size = buffer_size;
         this.workers = new TPS_StateMachineHandler[this.worker_count];
         this.pm = pm;
@@ -51,7 +51,10 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Initializing first simulation event...");
 
         //set simulation start time
-        plans.stream().parallel().mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration()).min().ifPresentOrElse( i -> simulation_time_stamp.set((int) (i* 1.66666666e-2 + 0.5)), () -> simulation_time_stamp.set(0));
+        plans.stream().parallel()
+                .mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration())
+                .min()
+                .ifPresentOrElse( i -> simulation_time_stamp.set((int) (i* 1.66666666e-2 + 0.5)), () -> simulation_time_stamp.set(0));
 
         next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP,  simulation_time_stamp.get());
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "First simulation event is of type: "+next_simulation_event.getEventType()+" at time: "+next_simulation_event.getData());
@@ -59,7 +62,8 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
 
     private void createStateMachines() {
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+this.plan_count+" state machines...");
-        plans.stream().forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
+        plans.stream()
+                .forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "All state machines ready...");
     }
 
@@ -80,19 +84,21 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
         Executor executor = Executors.newCachedThreadPool(DaemonThreadFactory.INSTANCE);
         worker_pool.start(executor);
 
-        boolean all_finished = false;
-        long total_count = 0;
-        long sim_start = System.currentTimeMillis();
-        int last_written_trip_count = 0;
+        var all_finished = false;
+        var total_count = 0;
+        var sim_start = System.currentTimeMillis();
+        var last_written_trip_count = 0;
 
         //launch the simulation progress update thread
         writer.startSimulationProgressUpdateTask();
+
+        //start the simulation
         while(!all_finished && simulation_time_stamp.get() < 2000){
 
             all_finished = true;
-            int unfinished = 0;
-            int event_count = 0;
-            long start = System.currentTimeMillis();
+            var unfinished = 0;
+            var event_count = 0;
+            var current_iteration_start_time = System.currentTimeMillis();
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Publishing and consuming events for simulation time: "+simulation_time_stamp.get());
 
@@ -102,6 +108,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
                 if(!state_machine.hasFinished()) {
                     unfinished++;
                 }
+
                 if (state_machine.willHandleEvent(next_simulation_event)) {
                     event_count++;
                     total_count++;
@@ -121,7 +128,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
                 }
             }
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events published for "+unfinished+" unfinished state machines in "+(System.currentTimeMillis()-start)+" ms");
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events published for "+unfinished+" unfinished state machines in "+(System.currentTimeMillis()-current_iteration_start_time)+" ms");
 
             //the position of the last published event
             long cursor = ring_buffer.getCursor();
@@ -131,11 +138,11 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
                 Thread.onSpinWait();
             }
 
-            int written_trip_count = writer.getWrittenTripCount();
-            int trips_in_pipeline = writer.getRegisteredTripCount();
+            var written_trip_count = writer.getWrittenTripCount();
+            var trips_in_pipeline = writer.getRegisteredTripCount();
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events handled, "+( written_trip_count - last_written_trip_count)+
-                    " trips written  in "+(System.currentTimeMillis()-start)/1000+" seconds for simulation time: "+simulation_time_stamp.get()+
+                    " trips written  in "+(System.currentTimeMillis()-current_iteration_start_time)/1000+" seconds for simulation time: "+simulation_time_stamp.get()+
                     " ( "+trips_in_pipeline+" trips in writer pipeline )");
 
             last_written_trip_count = written_trip_count;
@@ -147,7 +154,5 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
 
         worker_pool.drainAndHalt();
         writer.finish();
-
-
     }
 }

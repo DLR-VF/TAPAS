@@ -55,9 +55,9 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
         try {
 
             //drop the primary key if it exists //todo don'T put it on the tabke in the first place
-            PreparedStatement remove_key_statement = connection.prepareStatement("ALTER TABLE "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" DROP CONSTRAINT IF EXISTS "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+"_pkey;");
-            remove_key_statement.execute();
-            remove_key_statement.close();
+            //PreparedStatement remove_key_statement = connection.prepareStatement("ALTER TABLE "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" DROP CONSTRAINT IF EXISTS "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+"_pkey;");
+            //remove_key_statement.execute();
+            //remove_key_statement.close();
 
             //start the pipe and block
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Opening database pipeline");
@@ -68,10 +68,10 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
             pm.execute(query);
 
             //now add the primary key
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Adding Primary Key to "+ this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" to check data consistency...");
-            PreparedStatement add_key_statement = connection.prepareStatement("ALTER TABLE "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" ADD PRIMARY KEY (p_id, hh_id, start_time_min);");
-            add_key_statement.execute();
-            add_key_statement.close();
+            //TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Adding Primary Key to "+ this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" to check data consistency...");
+            //PreparedStatement add_key_statement = connection.prepareStatement("ALTER TABLE "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" ADD PRIMARY KEY (p_id, hh_id, start_time_min);");
+            //add_key_statement.execute();
+            //add_key_statement.close();
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Closing the writer...");
         } catch (SQLException e) {
             e.printStackTrace();

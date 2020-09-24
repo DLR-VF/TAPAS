@@ -26,18 +26,17 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
     TPS_Plan plan;
     TPS_Stay departure_stay;
     TPS_Stay arrival_stay;
-    TPS_Stay next_fix_stay;
     TPS_PersistenceManager pm;
     TPS_PlanState trip_state;
     TPS_PlanState post_activity_trip_state;
     TPS_PlanState post_trip_activity_state;
-    TPS_Trip previous_trip;
+
     TPS_Trip associated_trip;
 
     TPS_PlansExecutor executor;
 
 
-    public TPS_PlanStateSelectLocationAndModeAction(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip associated_trip, TPS_Stay departure_stay, TPS_Stay arrival_stay, TPS_Stay next_fix_stay, TPS_PersistenceManager pm, TPS_PlanState trip_state, TPS_PlanState post_trip_activity_state, TPS_PlanState post_activity_trip_state, TPS_PlansExecutor executor){
+    public TPS_PlanStateSelectLocationAndModeAction(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip associated_trip, TPS_Stay departure_stay, TPS_Stay arrival_stay, TPS_PersistenceManager pm, TPS_PlanState trip_state, TPS_PlanState post_trip_activity_state, TPS_PlanState post_activity_trip_state, TPS_PlansExecutor executor){
         Objects.requireNonNull(tour_part);
         Objects.requireNonNull(plan);
         Objects.requireNonNull(arrival_stay);
@@ -46,7 +45,6 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         Objects.requireNonNull(post_activity_trip_state);
         Objects.requireNonNull(post_trip_activity_state);
         Objects.requireNonNull(departure_stay);
-        Objects.requireNonNull(next_fix_stay);
         Objects.requireNonNull(associated_trip);
         Objects.requireNonNull(executor);
 
@@ -59,7 +57,6 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         this.post_trip_activity_state = post_trip_activity_state;
         this.departure_stay = departure_stay;
         this.associated_trip = associated_trip;
-        this.next_fix_stay = next_fix_stay;
         this.executor = executor;
     }
 
@@ -99,10 +96,12 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         plan.getPlanningContext().pe.getPerson().estimateAccessibilityPreference(arrival_stay,
                 pm.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
 
-        TPS_LocatedStay currentLocatedStay = plan.getLocatedStay(arrival_stay);
-        if (!currentLocatedStay.isLocated()) {
-            plan.setCurrentAdaptedEpisode(currentLocatedStay);
+        TPS_LocatedStay arrival_located_stay = plan.getLocatedStay(arrival_stay);
+        if (!arrival_located_stay.isLocated()) {
+
+            plan.setCurrentAdaptedEpisode(arrival_located_stay);
             TPS_ActivityConstant currentActCode = arrival_stay.getActCode();
+
             // Register locations for activities where the location will be used again.
             // Flag for the case of a activity with unique location.
             plan.getPlanningContext().fixLocationAtBase = currentActCode.isFix() && pm.getParameters().isTrue(
@@ -133,64 +132,62 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
                                 .isRestricted())) // we have a restricted car wanting to go to a restricted area! -> BAD!
                 {
 
-                    currentLocatedStay.setLocation(plan.getFixLocations().get(currentActCode));
+                    arrival_located_stay.setLocation(plan.getFixLocations().get(currentActCode));
 
                 if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.EPISODE, TPS_LoggingInterface.SeverenceLogLevel.FINE)) {
                     TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.EPISODE, TPS_LoggingInterface.SeverenceLogLevel.FINE,
                             "Set location from fix locations");
                 }
             } else {
-                currentLocatedStay.selectLocation(plan, plan.getPlanningContext());
+                arrival_located_stay.selectLocation(plan, plan.getPlanningContext());
                 if (currentActCode.isFix()) {
                     plan.getFixLocations().put(currentActCode, plan.getLocatedStay(arrival_stay).getLocation());
                 }
             }
 
-            // increment the occupancy of the found location by one
-            currentLocatedStay.getLocation().updateOccupancy(1);
-
-            if (currentLocatedStay.getLocation() == null) {
+            if (arrival_located_stay.getLocation() == null) {
                 TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.ERROR, "No Location found!");
             }
 
             if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
                 TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG,
-                        "Selected location (id=" + currentLocatedStay.getLocation().getId() +
-                                ") for stay (id=" + currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
-                                currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
+                        "Selected location (id=" + arrival_located_stay.getLocation().getId() +
+                                ") for stay (id=" + arrival_located_stay.getEpisode().getId() + " in TAZ (id=" +
+                                arrival_located_stay.getLocation().getTrafficAnalysisZone().getTAZId() +
                                 ") in block (id= " +
-                                (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
+                                (arrival_located_stay.getLocation().hasBlock() ? arrival_located_stay.getLocation()
                                         .getBlock()
                                         .getId() : -1) +
-                                ") via modes " + currentLocatedStay.getModeArr().getName() + "/" +
-                                currentLocatedStay.getModeDep().getName());
+                                ") via modes " + arrival_located_stay.getModeArr().getName() + "/" +
+                                arrival_located_stay.getModeDep().getName());
             }
         }
 
-        // fetch previous and next stay
-        if (currentLocatedStay.getModeArr() == null || currentLocatedStay.getModeDep() == null) {
+        if (arrival_located_stay.getModeArr() == null) {
             if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.FINE)) {
                 TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FINE,
                         "Start select mode for stay in tour part (id=" + tour_part.getId() + ")");
             }
             //do we have a fixed mode from the previous trip?
             if (tour_part.isFixedModeUsed()) {
-                currentLocatedStay.setModeArr(tour_part.getUsedMode());
-                currentLocatedStay.setModeDep(tour_part.getUsedMode());
+                arrival_located_stay.setModeArr(tour_part.getUsedMode());
+                arrival_located_stay.setModeDep(tour_part.getUsedMode());
             } else {
-                TPS_Location home_location = plan.getLocatedStay(next_fix_stay).getLocation();
+                TPS_Stay next_fix_stay = plan.getNextHomeStay(tour_part);
+                //TPS_Stay next_fix_stay = plan.getNextFixStay(arrival_stay); //fixme check getNextStay method for a npe bug
+                TPS_Location next_fix_location = plan.getLocatedStay(next_fix_stay).getLocation();
                 TPS_Car tmpCar = plan.getPlanningContext().carForThisPlan;
                 if (tmpCar != null && tmpCar.isRestricted() &&
-                        (currentLocatedStay.getLocation().getTrafficAnalysisZone().isRestricted() ||
-                                home_location.getTrafficAnalysisZone().isRestricted())) {
+                        (arrival_located_stay.getLocation().getTrafficAnalysisZone().isRestricted() ||
+                                next_fix_location.getTrafficAnalysisZone().isRestricted())) {
                     plan.getPlanningContext().carForThisPlan = null;
                 }
 
                 //fixme the focus point is set to the next home stay which defers from the original household based execution implementation
-                pm.getModeSet().selectMode(plan, departure_stay, currentLocatedStay, next_fix_stay, plan.getPlanningContext());
+                pm.getModeSet().selectMode(plan, departure_stay, arrival_located_stay, next_fix_stay, plan.getPlanningContext());
                 plan.getPlanningContext().carForThisPlan = tmpCar;
                 //set the mode and car (if used)
-                tour_part.setUsedMode(currentLocatedStay.getModeDep(), plan.getPlanningContext().carForThisPlan);
+                tour_part.setUsedMode(arrival_located_stay.getModeDep(), plan.getPlanningContext().carForThisPlan);
 
                 //set some variables for the fixed modes
                 TPS_ExtMode em = tour_part.getUsedMode();
@@ -214,15 +211,15 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
         if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
             TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG,
-                    "Selected mode (id=" + currentLocatedStay.getModeArr() == null ? "NULL" :
-                            currentLocatedStay.getModeArr().getName() + ") for stay (id=" +
-                                    currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
-                                    currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
+                    "Selected mode (id=" + arrival_located_stay.getModeArr() == null ? "NULL" :
+                            arrival_located_stay.getModeArr().getName() + ") for stay (id=" +
+                                    arrival_located_stay.getEpisode().getId() + " in TAZ (id=" +
+                                    arrival_located_stay.getLocation().getTrafficAnalysisZone().getTAZId() +
                                     ") in block (id= " +
-                                    (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay
+                                    (arrival_located_stay.getLocation().hasBlock() ? arrival_located_stay
                                             .getLocation().getBlock().getId() : -1) + ") via modes " +
-                                    currentLocatedStay.getModeArr().getName() + "/" +
-                                    currentLocatedStay.getModeDep().getName());
+                                    arrival_located_stay.getModeArr().getName() + "/" +
+                                    arrival_located_stay.getModeDep().getName());
         }
 
         TPS_PlannedTrip planned_trip = plan.getPlannedTrip(associated_trip);
@@ -230,32 +227,31 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
         //now update travel times and init guards
         TPS_LocatedStay departure_located_stay = plan.getLocatedStay(departure_stay);
-        TPS_LocatedStay arrival_located_stay = plan.getLocatedStay(arrival_stay);
 
-        planned_trip.setStart(departure_located_stay.getStart()+departure_located_stay.getDuration());
-        arrival_located_stay.setStart(departure_located_stay.getStart()+departure_located_stay.getDuration()+planned_trip.getDuration());
+        planned_trip.setStart(departure_located_stay.getStart() + departure_located_stay.getDuration());
+
+        arrival_located_stay.setStart(departure_located_stay.getStart() + departure_located_stay.getDuration() + planned_trip.getDuration());
 
 
         //update the travel durations for this plan
         tour_part.updateActualTravelDurations(plan);
 
+        //add transition handlers
         var trip_to_activity_transition_minute = (int) (arrival_located_stay.getStart() * 1.66666666e-2 + 0.5);
         trip_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_trip_activity_state, StateMachineUtils.NoAction(), i -> (int) i == trip_to_activity_transition_minute);
 
         var activity_to_next_trip_transition_minute = (int) ((arrival_located_stay.getStart() + arrival_located_stay.getDuration()) * 1.66666666e-2 + 0.5);
         post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, StateMachineUtils.NoAction(), i -> (int) i == activity_to_next_trip_transition_minute);
 
-        //check out the occupancy
-        post_trip_activity_state.setOnExitAction(new TPS_PlanStateUpdateOccupancyAction(currentLocatedStay.getLocation()));
 
-        if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "on move state handler at time: " + (int) (planned_trip.getStart() * 1.66666666e-2 + 0.5));
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "on activity state handler at time: "+(int) (plan.getLocatedStay(arrival_stay).getStart() * 1.66666666e-2 + 0.5));
-                    TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG,"activity end handler at time: "+(int) ((arrival_located_stay.getStart() +arrival_located_stay.getDuration())* 1.66666666e-2 + 0.5));
-        }
+        post_trip_activity_state.setOnEnterAction(new TPS_PlanStateUpdateOccupancyAction(arrival_located_stay.getLocation(), -1));
+        //check out the occupancy
+        post_trip_activity_state.setOnExitAction(new TPS_PlanStateUpdateOccupancyAction(arrival_located_stay.getLocation(),1));
+
+
 
         plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.CURRENT_TAZ_SETTLEMENT_CODE_TAPAS,
-                currentLocatedStay.getLocation().getTrafficAnalysisZone().getBbrType()
+                arrival_located_stay.getLocation().getTrafficAnalysisZone().getBbrType()
                         .getCode(TPS_SettlementSystem.TPS_SettlementSystemType.TAPAS));
 
     }

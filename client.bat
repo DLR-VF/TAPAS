@@ -4,4 +4,4 @@ set JAVA_EXE=%JAVA_HOME%/bin/java.exe
 
 echo %JAVA_EXE% -Dfile.encoding=UTF-8 -cp "%JAR%" %MAIN%
 
-%JAVA_EXE% -Dfile.encoding=UTF-8 -cp "%JAR%" %MAIN%
+D:\java\java\jdk-12.0.2\bin\java -Dfile.encoding=UTF-8 -cp "%JAR%" %MAIN%

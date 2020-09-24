@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.plan.state.statemachine;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
 
 import java.util.List;
 import java.util.Objects;
@@ -15,7 +16,8 @@ import java.util.Objects;
  * When the state has a handler for the event, it will pass its handler back to the state machine which will then invoke
  * the transition
  */
-public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler {
+public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
+
 
     /**
      * the name of the machine
@@ -158,4 +160,5 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler {
     public void setAllStates(List<TPS_PlanState> states){
         this.states = states;
     }
+
 }

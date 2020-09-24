@@ -273,23 +273,23 @@ public class TPS_Main {
 
 
 
-        //first we generate abstract plans for every person that only contain information about their stays
-        //todo maybe parallelize this block
         this.PM.init();
 
         try {
+
+            //load households, persons and assign cars
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loading all households, persons and cars");
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
             List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
 
+            //generate all plans
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating all plans.");
             TPS_PlanGenerator plan_generator = new TPS_PlanGenerator(this.PM);
             List<TPS_Plan> plans = plan_generator.generatePlansAndGet(hhs);
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished generating plans.");
 
-
-            int trip_count = (int)plans.stream()
+            var trip_count = (int)plans.stream()
                                      .parallel()
                                      .map(plan -> plan.getScheme().getSchemeParts())
                                      .flatMap(Collection::stream)
@@ -299,16 +299,22 @@ public class TPS_Main {
                                      .filter(TPS_Episode::isTrip)
                                      .count();
 
-            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM,trip_count, 1 << 19);
 
-            TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer,  1 << 20);
 
+
+            //initialize the database pipeline
+            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(PM, trip_count, 1 << 19);
             Thread persisting_thread = new Thread(writer);
-
             persisting_thread.start();
+
+            //set up the simulation thread
+            TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer,  1 << 20);
             Thread simulation_thread = new Thread(plan_executor);
             simulation_thread.start();
+
+            //block this thread until the writer is shut down
             persisting_thread.join();
+
         } catch (Exception e) {
             e.printStackTrace();
         }
