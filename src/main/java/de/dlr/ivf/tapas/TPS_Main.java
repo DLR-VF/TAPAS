@@ -10,11 +10,9 @@ import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.*;
 import de.dlr.ivf.tapas.person.TPS_Household;
-import de.dlr.ivf.tapas.person.TPS_Worker;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanGenerator;
 import de.dlr.ivf.tapas.plan.state.TPS_PlanExecutorWithDisruptor;
-import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
 import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.TPS_Argument;
@@ -27,10 +25,6 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * This class is the main entry point into a TAPAS simulation. It provides a main method which can start in different
@@ -280,7 +274,7 @@ public class TPS_Main {
             //load households, persons and assign cars
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loading all households, persons and cars");
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.PM);
-            List<TPS_Household> hhs = hh_pers_loader.initAndGetHouseholds();
+            List<TPS_Household> hhs = hh_pers_loader.initAndGetAllHouseholds();
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
 
             //generate all plans

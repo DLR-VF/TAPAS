@@ -244,7 +244,9 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, StateMachineUtils.NoAction(), i -> (int) i == activity_to_next_trip_transition_minute);
 
 
+        //check in the occupancy
         post_trip_activity_state.setOnEnterAction(new TPS_PlanStateUpdateOccupancyAction(arrival_located_stay.getLocation(), -1));
+        
         //check out the occupancy
         post_trip_activity_state.setOnExitAction(new TPS_PlanStateUpdateOccupancyAction(arrival_located_stay.getLocation(),1));
 
