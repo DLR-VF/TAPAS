@@ -9,7 +9,6 @@ import de.dlr.ivf.tapas.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.*;
-import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
 import de.dlr.ivf.tapas.plan.state.statemachine.TPS_PlanState;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
@@ -33,10 +32,8 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
     TPS_Trip associated_trip;
 
-    TPS_PlansExecutor executor;
 
-
-    public TPS_PlanStateSelectLocationAndModeAction(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip associated_trip, TPS_Stay departure_stay, TPS_Stay arrival_stay, TPS_PersistenceManager pm, TPS_PlanState trip_state, TPS_PlanState post_trip_activity_state, TPS_PlanState post_activity_trip_state, TPS_PlansExecutor executor){
+    public TPS_PlanStateSelectLocationAndModeAction(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip associated_trip, TPS_Stay departure_stay, TPS_Stay arrival_stay, TPS_PersistenceManager pm, TPS_PlanState trip_state, TPS_PlanState post_trip_activity_state, TPS_PlanState post_activity_trip_state){
         Objects.requireNonNull(tour_part);
         Objects.requireNonNull(plan);
         Objects.requireNonNull(arrival_stay);
@@ -46,7 +43,6 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         Objects.requireNonNull(post_trip_activity_state);
         Objects.requireNonNull(departure_stay);
         Objects.requireNonNull(associated_trip);
-        Objects.requireNonNull(executor);
 
         this.tour_part = tour_part;
         this.plan = plan;
@@ -57,7 +53,6 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         this.post_trip_activity_state = post_trip_activity_state;
         this.departure_stay = departure_stay;
         this.associated_trip = associated_trip;
-        this.executor = executor;
     }
 
 
@@ -66,16 +61,12 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
         // check mobility options
         TPS_PlanningContext pc = plan.getPlanningContext();
-        if (tour_part.isCarUsed()) {
-            pc.carForThisPlan = tour_part.getCar();
-        } else if (!pc.influenceCarUsageInPlan) {
-            //check if a car could be used
-            if (plan.getPerson().mayDriveACar()) {
-                pc.carForThisPlan = TPS_Car.selectCar(plan, tour_part);
-            } else {
+        if (plan.getPerson().mayDriveACar()) {
+            pc.carForThisPlan = TPS_Car.selectCar(plan, tour_part);
+        } else {
                 pc.carForThisPlan = null;
-            }
         }
+
 
         if (tour_part.isBikeUsed()) { //was the bike used before?
             pc.isBikeAvailable = true;

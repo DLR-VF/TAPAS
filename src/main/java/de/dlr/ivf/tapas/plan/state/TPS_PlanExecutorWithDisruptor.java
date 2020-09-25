@@ -16,7 +16,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements Runnable{
+public class TPS_PlanExecutorWithDisruptor implements Runnable{
     private List<TPS_Plan> plans;
     private int worker_count;
     private int buffer_size;
@@ -63,7 +63,7 @@ public class TPS_PlanExecutorWithDisruptor extends TPS_PlansExecutor implements 
     private void createStateMachines() {
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+this.plan_count+" state machines...");
         plans.stream()
-                .forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, this)));
+                .forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm)));
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "All state machines ready...");
     }
 

@@ -6,7 +6,6 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
 import de.dlr.ivf.tapas.plan.StateMachineUtils;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.state.TPS_PlansExecutor;
 import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStatePersistenceAction;
 import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateSelectLocationAndModeAction;
 import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
@@ -15,7 +14,7 @@ import java.util.*;
 
 public class TPS_PlanStateMachineFactory {
 
-    public static TPS_PlanStateMachine createTPS_PlanStateMachineWithSimpleStates(TPS_Plan plan, TPS_TripWriter writer, TPS_DB_IOManager pm, TPS_PlansExecutor executor){
+    public static TPS_PlanStateMachine createTPS_PlanStateMachineWithSimpleStates(TPS_Plan plan, TPS_TripWriter writer, TPS_DB_IOManager pm){
 
         List<TPS_PlanState> all_states = new ArrayList<>();
 
@@ -88,7 +87,7 @@ public class TPS_PlanStateMachineFactory {
             TPS_PlanState post_trip_activity_state = all_states.get(i*2+2);
             TPS_PlanState post_activity_trip_state = all_states.get(i*2+3); // in case of the last stay this is the *magic* end_state
 
-            trip_state.setOnEnterAction(new TPS_PlanStateSelectLocationAndModeAction(plan, (TPS_TourPart) associated_trip.getSchemePart(), associated_trip, departure_stay, arrival_stay, pm, trip_state, post_trip_activity_state, post_activity_trip_state, executor));
+            trip_state.setOnEnterAction(new TPS_PlanStateSelectLocationAndModeAction(plan, (TPS_TourPart) associated_trip.getSchemePart(), associated_trip, departure_stay, arrival_stay, pm, trip_state, post_trip_activity_state, post_activity_trip_state));
 
         }// day finished
 

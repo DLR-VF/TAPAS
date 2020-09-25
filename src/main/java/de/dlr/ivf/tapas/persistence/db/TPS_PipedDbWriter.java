@@ -54,11 +54,6 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
     public void run() {
         try {
 
-            //drop the primary key if it exists //todo don'T put it on the tabke in the first place
-            //PreparedStatement remove_key_statement = connection.prepareStatement("ALTER TABLE "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" DROP CONSTRAINT IF EXISTS "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+"_pkey;");
-            //remove_key_statement.execute();
-            //remove_key_statement.close();
-
             //start the pipe and block
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Opening database pipeline");
             copy_manager.copyIn(copy_string,this.ring_buffer,written_trips);
@@ -67,11 +62,6 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
             String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
             pm.execute(query);
 
-            //now add the primary key
-            //TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Adding Primary Key to "+ this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" to check data consistency...");
-            //PreparedStatement add_key_statement = connection.prepareStatement("ALTER TABLE "+this.pm.getParameters().getString(ParamString.DB_TABLE_TRIPS)+" ADD PRIMARY KEY (p_id, hh_id, start_time_min);");
-            //add_key_statement.execute();
-            //add_key_statement.close();
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Closing the writer...");
         } catch (SQLException e) {
             e.printStackTrace();
