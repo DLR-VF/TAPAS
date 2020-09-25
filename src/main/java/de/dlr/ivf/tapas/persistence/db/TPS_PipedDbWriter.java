@@ -8,13 +8,20 @@ import de.dlr.ivf.tapas.plan.state.TPS_WritableTrip;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import org.postgresql.core.BaseConnection;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * This writer should run in a separate thread. It uses a modified version of "copy from stdin"
+ * of the {@link org.postgresql.copy.CopyManager} by reading byte arrays directly from a {@link RingBuffer}.
+ * It is set up for a multiple producer scenario. (eg. the workers that are handling state machine transitions and need to write trips)
+ *
+ * A simulation progress update task is also implemented which updates the written trip count inside the database.*
+ *
+ */
 
 public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
@@ -33,6 +40,13 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
     private ScheduledExecutorService update_task;
 
     private String copy_string;
+
+    /**
+     *
+     * @param pm the persistence manager
+     * @param total_trip_count expected trip to be written
+     * @param buffer_size original size of the {@link RingBuffer}. Must be a power of 2!
+     */
 
     public TPS_PipedDbWriter(TPS_PersistenceManager pm, int total_trip_count, int buffer_size){
 
@@ -67,18 +81,29 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Initializes the {@link TPS_CopyManager} and sets up the {@link RingBuffer}
+     */
     private void init(){
         try {
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Setting up the copy manager...");
             this.copy_manager = new TPS_CopyManager((BaseConnection) this.connection);
 
-            EventFactory<TPS_WritableTripEvent> ef = TPS_WritableTripEvent::new;
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Setting up the persistence disruptor...");
 
+            EventFactory<TPS_WritableTripEvent> ef = TPS_WritableTripEvent::new;
             this.ring_buffer = RingBuffer.createMultiProducer(ef, buffer_size, new BlockingWaitStrategy());
 
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Puts a {@link TPS_WritableTrip} onto the {@link RingBuffer}. This method will block when the {@link RingBuffer} is at full capacity
+     * @param trip the trip to write
+     */
     public void writeTrip(TPS_WritableTrip trip) {
 
         long sequenceId = ring_buffer.next();
@@ -86,29 +111,48 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
         event.setTripByteArray(trip);
         ring_buffer.publish(sequenceId);
         registered_trips.getAndIncrement();
-
     }
 
+    /**
+     * Shuts down the simulation update task and puts an empty byte array onto the {@link RingBuffer} which will when consumed close the database pipeline
+     */
     public void finish(){
         this.update_task.shutdownNow();
+
         //put an empty byte array onto the ring to signal the copy manager that the transaction is over
         long sequenceId = ring_buffer.next();
         TPS_WritableTripEvent event = ring_buffer.get(sequenceId);
         event.setEmptyTripArray();
         ring_buffer.publish(sequenceId);
     }
+
+    /**
+     *
+     * @return remaining capacity of the {@link RingBuffer}
+     */
     public int getRegisteredTripCount(){
         return (int) (this.buffer_size - this.ring_buffer.remainingCapacity());
     }
 
+    /**
+     *
+     * @return the total amount of written trips
+     */
     public int getWrittenTripCount(){ return this.written_trips.get();}
 
+
+    /**
+     * Starts the simulation progress update task. The first call of this method will start the task.
+     * Consecutive calls will be ignored.
+     */
     public void startSimulationProgressUpdateTask(){
-        Runnable task = () -> {
-            String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_started= true, sim_progress = "+written_trips.get()+", sim_total = "+ total_trip_count +" WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
-            pm.execute(query);
-        };
-        this.update_task = Executors.newSingleThreadScheduledExecutor();
-        this.update_task.scheduleAtFixedRate(task,10,10, TimeUnit.SECONDS);
+        if(this.update_task == null) {
+            Runnable task = () -> {
+                String query = "UPDATE " + this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) + " SET sim_started= true, sim_progress = " + written_trips.get() + ", sim_total = " + total_trip_count + " WHERE sim_key = '" + this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+                pm.execute(query);
+            };
+            this.update_task = Executors.newSingleThreadScheduledExecutor();
+            this.update_task.scheduleAtFixedRate(task, 10, 10, TimeUnit.SECONDS);
+        }
     }
 }
