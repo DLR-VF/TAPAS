@@ -12,7 +12,7 @@ import de.dlr.ivf.tapas.persistence.db.*;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanGenerator;
-import de.dlr.ivf.tapas.plan.state.TPS_PlanExecutorWithDisruptor;
+import de.dlr.ivf.tapas.plan.state.TPS_SequentialSimulator;
 import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.TPS_Argument;
@@ -302,7 +302,7 @@ public class TPS_Main {
             persisting_thread.start();
 
             //set up the simulation thread
-            TPS_PlanExecutorWithDisruptor plan_executor = new TPS_PlanExecutorWithDisruptor(plans, threads, (TPS_DB_IOManager) this.PM, writer,  1 << 20);
+            TPS_SequentialSimulator plan_executor = new TPS_SequentialSimulator(plans, Math.max(1, threads / 2 -2), (TPS_DB_IOManager) this.PM, writer,  1 << 20);
             Thread simulation_thread = new Thread(plan_executor);
             simulation_thread.start();
 

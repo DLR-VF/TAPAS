@@ -16,13 +16,31 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-public class TPS_PlanExecutorWithDisruptor implements Runnable{
-    private List<TPS_Plan> plans;
+/**
+ * This should run inside its own thread. Upon construction the simulator will set up a {@link TPS_PlanStateMachine}
+ * for each plan passed to the constructor and determines the first {@link TPS_PlanEvent}.
+ *
+ * When the {@link TPS_SequentialSimulator} is started, a single producer of {@link TPS_StateMachineEvent}s
+ * and a {@link WorkerPool} of {@link TPS_StateMachineHandler}s as consumers are set up around a {@link RingBuffer}.
+ * It is recommended that the count of {@link TPS_StateMachineHandler} does not exceed the count of PHYSICAL cpu cores.
+ * Best results in performance have been achieved with "physical core count" - 2.
+ *
+ * During iteration, every simulation time step is wrapped into a {@link TPS_PlanEvent} of type {@link TPS_PlanEventType#SIMULATION_STEP}
+ * and passed to every {@link TPS_PlanStateMachine}. If a state machine will handle the event, it is wrapped into a
+ * {@link TPS_StateMachineEvent} and put onto the {@link RingBuffer} for transition.
+ *
+ * After each iteration (simulation time stamp), the {@link TPS_SequentialSimulator} will wait until all {@link TPS_StateMachineHandler}s
+ * have finished working on their dedicated events. When all handlers are done, a new {@link TPS_PlanEvent} with an incremented
+ * simulation time stamp is generated.
+ *
+ * When an exception occurs during computations it will be handled by the {@link StateMachineEventExceptionHandler}.
+ *
+ */
+
+public class TPS_SequentialSimulator implements Runnable{
     private int worker_count;
     private int buffer_size;
     private TPS_DB_IOManager pm;
-
-    private int plan_count;
 
     private AtomicInteger simulation_time_stamp = new AtomicInteger(0);
     private TPS_PlanEvent next_simulation_event;
@@ -30,41 +48,73 @@ public class TPS_PlanExecutorWithDisruptor implements Runnable{
     private List<TPS_PlanStateMachine> state_machines;
     private TPS_StateMachineHandler[] workers;
 
-    public TPS_PlanExecutorWithDisruptor(List<TPS_Plan> plans, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer, int buffer_size){
-        super();
+    /**
+     * Initializes all {@link TPS_PlanStateMachine}s and the first simulation time event.
+     * @param plans will form the foundation of the state machines.
+     * @param worker_count the number of {@link TPS_StateMachineHandler}s. It is recommended that the worker count does
+     *                     not exceed the number of PHYSICAL cores in the cpu.
+     * @param pm the persistence manager
+     * @param writer that handles persisting the data
+     * @param buffer_size of the {@link RingBuffer}. Must be a power of 2.
+     */
+    public TPS_SequentialSimulator(List<TPS_Plan> plans, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer, int buffer_size){
 
-        this.plans = plans;
-        this.plan_count = plans.size();
-        this.state_machines = new ArrayList<>(plan_count);
-        this.worker_count = Math.max(1,worker_count / 2 -2);
+        this.worker_count = worker_count;
         this.buffer_size = buffer_size;
         this.workers = new TPS_StateMachineHandler[this.worker_count];
         this.pm = pm;
         this.writer = (TPS_PipedDbWriter) writer;
 
-        createStateMachines();
-        preInitialize();
-
+        this.state_machines = createAndGetStateMachines(plans, writer);
+        this.next_simulation_event = initAndGetFirstSimulationTimeEvent(plans);
+        this.simulation_time_stamp.set((int) next_simulation_event.getData());
     }
-    private void preInitialize(){
+
+    /**
+     * Extracts the start time for the simulation and generates the first {@link TPS_PlanEvent}.
+     * @param plans containing all {@link de.dlr.ivf.tapas.scheme.TPS_SchemePart}s and their {@link de.dlr.ivf.tapas.scheme.TPS_Episode}s
+     * @return a {@link TPS_PlanEvent} of type {@link TPS_PlanEventType#SIMULATION_STEP} where its payload is equal to the time
+     *         the first person is leaving the house.
+     */
+
+    private TPS_PlanEvent initAndGetFirstSimulationTimeEvent(List<TPS_Plan> plans){
 
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Initializing first simulation event...");
 
-        //set simulation start time
+        AtomicInteger simulation_start_time = new AtomicInteger(0);
+
         plans.stream().parallel()
                 .mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration())
                 .min()
-                .ifPresentOrElse( i -> simulation_time_stamp.set((int) (i* 1.66666666e-2 + 0.5)), () -> simulation_time_stamp.set(0));
+                .ifPresent( i -> simulation_start_time.set((int) (i * 1.66666666e-2 + 0.5)));
 
-        next_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP,  simulation_time_stamp.get());
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "First simulation event is of type: "+next_simulation_event.getEventType()+" at time: "+next_simulation_event.getData());
+        TPS_PlanEvent first_simulation_event = new TPS_PlanEvent(TPS_PlanEventType.SIMULATION_STEP,  simulation_start_time.get());
+
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "First simulation event is of type: "+first_simulation_event.getEventType()+" at time: "+first_simulation_event.getData());
+
+        return first_simulation_event;
     }
 
-    private void createStateMachines() {
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+this.plan_count+" state machines...");
-        plans.stream()
-                .forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm)));
+    /**
+     * Creates a {@link TPS_PlanStateMachine} with a set of states representing the behaviour for every {@link de.dlr.ivf.tapas.scheme.TPS_Episode}
+     * inside a {@link TPS_Plan}.
+     * @param plans that need to be represented as a {@link TPS_PlanStateMachine}
+     * @param writer for the {@link de.dlr.ivf.tapas.plan.state.action.TPS_PlanStatePersistenceAction}s
+     * @return a list of {@link TPS_PlanStateMachine}s
+     */
+
+    private List<TPS_PlanStateMachine> createAndGetStateMachines(List<TPS_Plan> plans, TPS_TripWriter writer) {
+
+        var plan_count = plans.size();
+        var state_machines = new ArrayList<TPS_PlanStateMachine>(plan_count);
+
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+plan_count+" state machines...");
+
+        plans.forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm)));
+
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "All state machines ready...");
+
+        return state_machines;
     }
 
     public void run(){
@@ -139,11 +189,11 @@ public class TPS_PlanExecutorWithDisruptor implements Runnable{
             }
 
             var written_trip_count = writer.getWrittenTripCount();
-            var trips_in_pipeline = writer.getRegisteredTripCount();
+            var trips_in_pipeline_count = writer.getRegisteredTripCount();
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events handled, "+( written_trip_count - last_written_trip_count)+
                     " trips written  in "+(System.currentTimeMillis()-current_iteration_start_time)/1000+" seconds for simulation time: "+simulation_time_stamp.get()+
-                    " ( "+trips_in_pipeline+" trips in writer pipeline )");
+                    " ( "+trips_in_pipeline_count+" trips in writer pipeline )");
 
             last_written_trip_count = written_trip_count;
 
