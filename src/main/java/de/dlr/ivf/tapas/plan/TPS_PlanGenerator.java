@@ -10,8 +10,12 @@ import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.IntStream;
+
+/**
+ *
+ */
 
 public class TPS_PlanGenerator{
 
@@ -29,16 +33,23 @@ public class TPS_PlanGenerator{
 
     public List<TPS_Plan> generatePlansAndGet(List<TPS_Household> households){
 
-        int plans_size = households.stream()
-                                   .map(household -> household.getMembers(TPS_Household.Sorting.NONE))
-                                   .mapToInt(Collection::size)
-                                   .sum();
-        this.plans = new ArrayList<>(plans_size);
+        int plan_count = 0;
+        int max_household_size = 0;
+
+        //determine the total plan count and the biggest household with highest member count
+        for(TPS_Household household : households){
+            int household_member_count = household.getNumberOfMembers();
+            plan_count += household_member_count;
+            max_household_size = Math.max(max_household_size, household_member_count);
+        }
+
+        //allocate preference instances (lightweight pattern)
+        IntStream.range(0,max_household_size).forEach(i -> preferenceModels.add(new TPS_Preference()));
+
+
+        this.plans = new ArrayList<>(plan_count);
 
         for(TPS_Household hh : households){
-            while (hh.getNumberOfMembers() > preferenceModels.size()) {
-                preferenceModels.add(new TPS_Preference());
-            }
 
             //calculate the shopping motives or set the default values
             int number = 0;

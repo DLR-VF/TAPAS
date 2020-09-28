@@ -29,7 +29,7 @@ public class TPS_Car {
      * indicates if this car is available (standing in front of the home)
      */
     private Timeline availability;
-    /**
+    /**N
      * this fuel type
      */
     private FuelType type;
@@ -682,7 +682,6 @@ public class TPS_Car {
         } else {
             return false;
         }
-
     }
 
     /**
