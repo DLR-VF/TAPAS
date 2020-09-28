@@ -591,7 +591,7 @@ public class TPS_DB_IO {
                             hRs.getDouble("y"), taz, null, this.PM.getParameters());
                     loc.initCapacity(0, false);
                     TPS_Household hh = new TPS_Household(id, income, type, loc, cars);
-                    hh.feederService = hRs.getBoolean("feeder_area");
+                    hh.setFeederService(hRs.getBoolean("feeder_area"));
                     houseHoldMap.put(id, hh);
                 }
                 hRs.close();

@@ -105,10 +105,7 @@ public class SimulationControl {
      * SimulationDataUpdateTask has to be skipped
      */
     private boolean skipUpdate;
-    /**
-     * Complete local path to the TAPAS directory
-     */
-    private final File tapasNetworkDirectory;
+
     /**
      * Timer for all internal tasks
      */
@@ -127,16 +124,19 @@ public class SimulationControl {
      * 1. initialising member variables<br>
      * <br>
      * 2. loading runtime file<br>
-     * The constructor loads the 'runtime.csv' file from the given parameter
-     * 'tapasNetworkDirectory'. The file can look like this:<br>
+     * The constructor loads the 'client.properties' file from the working directory.
+     * The file can look like this:<br>
      * <br>
+     * LAST_SIMULATION_DIR=T\:\\Simulationen\\DB_DebugProg\\Berlin<br>
+     * LAST_SIMULATION=run_Run-Ref2010.csv<br>
+     * LOGIN_CONFIG=T\:\\Simulationen\\runtime_argos_tapas.csv<br>
+     * TAPAS_DIR_LINUX=/mnt<br>
+     * LAST_TUM_EXPORT=C\:\\Temp<br>
+     * TAPAS_DIR_WIN=T\:\\<br>
      * name,value,comment<br>
-     * FILE_PARENT_PROPERTIES,db_connect_1_achilles.csv,<br>
-     * FILE_PARENT_PROPERTIES,db_user_0_admin.csv,<br>
-     * FILE_PARENT_PROPERTIES,db_schema_table_0.csv,<br>
      * <br>
      * 3. connecting to database<br>
-     * With the information of the runtime file there is a connection to the
+     * With the information of the LOGIN_CONFIG from the config file there is a connection to the
      * database built.<br>
      * <br>
      * 4. setting up the GUI<br>
@@ -145,12 +145,11 @@ public class SimulationControl {
      *
      * @param tapasNetworkDirectory absolute path to the tapas network directory
      */
-    public SimulationControl(File tapasNetworkDirectory) {
+    public SimulationControl() {
 
 
         //System.out.println(System.getProperties().getProperty("sun.rmi.transport.proxy.connectTimeout"));
         // Part 1: initialising member variables
-        this.tapasNetworkDirectory = tapasNetworkDirectory;
         this.simulationServerDataMap = new HashMap<>();
         this.simulationDataMap = new HashMap<>();
 
@@ -234,6 +233,7 @@ public class SimulationControl {
         } catch (Exception e) {
         }
 
+        //set the current working dir in the proprties file
         File file = null;
         File propFile = new File("client.properties");
         ClientControlProperties prop = new ClientControlProperties(propFile);
@@ -248,7 +248,7 @@ public class SimulationControl {
             prop.updateFile();
         }
         // Constructs the client
-        control = new SimulationControl(file);
+        control = new SimulationControl();
     }
 
     /**

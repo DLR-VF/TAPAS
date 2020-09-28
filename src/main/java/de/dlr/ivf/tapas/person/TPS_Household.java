@@ -37,7 +37,6 @@ public class TPS_Household implements ExtendedWritable {
 
     private TPS_Car leastRestrictedCar = null;
 
-    public boolean feederService =false;
 
     /**
      * Constructor
@@ -73,6 +72,15 @@ public class TPS_Household implements ExtendedWritable {
 
 
     /**
+	 * @param feederService the feederService to set
+	 */
+	public void setFeederService(boolean feederService) {
+		this.location.feederService = feederService;
+		
+	}
+
+
+	/**
      * Adds this person to the household
      *
      * @param p person to be added

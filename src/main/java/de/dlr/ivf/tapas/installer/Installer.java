@@ -138,7 +138,8 @@ public class Installer {
      *
      * @param command sql command to execute
      */
-    private static void executeCommand(String command) {
+    @SuppressWarnings("unused")
+	private static void executeCommand(String command) {
         try {
             Statement stmt = DBCONNECTION.createStatement();
             stmt.execute(command);
