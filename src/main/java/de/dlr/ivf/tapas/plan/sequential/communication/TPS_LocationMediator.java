@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state.communication;
+package de.dlr.ivf.tapas.plan.sequential.communication;
 
 import de.dlr.ivf.tapas.loc.TPS_Location;
 
@@ -10,8 +10,8 @@ public class TPS_LocationMediator implements TPS_Mediator {
 
     }
     @Override
-    public void request(double score) {
-
+    public TPS_Location request() {
+        return null;
     }
 
     @Override

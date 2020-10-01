@@ -1,14 +1,13 @@
-package de.dlr.ivf.tapas.plan.state.statemachine;
+package de.dlr.ivf.tapas.plan.sequential.statemachine;
 
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
-import de.dlr.ivf.tapas.plan.StateMachineUtils;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStatePersistenceAction;
-import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateSelectLocationAndModeAction;
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
+import de.dlr.ivf.tapas.plan.sequential.action.TPS_PlanStatePersistenceAction;
+import de.dlr.ivf.tapas.plan.sequential.action.TPS_PlanStateSelectLocationAndModeAction;
+import de.dlr.ivf.tapas.plan.sequential.event.TPS_PlanEventType;
 import de.dlr.ivf.tapas.scheme.*;
 import java.util.*;
 
@@ -56,7 +55,7 @@ public class TPS_PlanStateMachineFactory {
                         TPS_PlanState trip_state = new TPS_SimplePlanState(TPS_PlanStateConstantNames.ON_TRIP.getName() + "_" + index, stateMachine);
                         all_states.add(trip_state);
                         //when we exit an activity state, the trip has been fulfilled and can be written to the database
-                        trip_state.setOnExitAction(new TPS_PlanStatePersistenceAction(writer, plan, (TPS_TourPart) sp, (TPS_Trip) episode));
+                        trip_state.addOnExitAction(new TPS_PlanStatePersistenceAction(writer, plan, (TPS_TourPart) sp, (TPS_Trip) episode));
                     } else {
                         all_stays.add((TPS_Stay) episode);
                         all_states.add(new TPS_SimplePlanState(TPS_PlanStateConstantNames.ON_ACTIVITY.getName() + "_" +  index, stateMachine));
@@ -83,11 +82,15 @@ public class TPS_PlanStateMachineFactory {
             TPS_Stay arrival_stay = all_stays.get(i+1);
 
             //odd indexes are trip states and even indexes are activity states.
+            TPS_PlanState activity_state = all_states.get(i*2);
             TPS_PlanState trip_state = all_states.get(i*2+1);
             TPS_PlanState post_trip_activity_state = all_states.get(i*2+2);
             TPS_PlanState post_activity_trip_state = all_states.get(i*2+3); // in case of the last stay this is the *magic* end_state
 
-            trip_state.setOnEnterAction(new TPS_PlanStateSelectLocationAndModeAction(plan, (TPS_TourPart) associated_trip.getSchemePart(), associated_trip, departure_stay, arrival_stay, pm, trip_state, post_trip_activity_state, post_activity_trip_state));
+
+
+            activity_state.addOnExitAction(new TPS_PlanStateSelectLocationAndModeAction(plan, (TPS_TourPart) associated_trip.getSchemePart(), associated_trip, departure_stay, arrival_stay, pm, trip_state, post_trip_activity_state, post_activity_trip_state, plan.getPerson().getHousehold().getCarMediator()));
+
 
         }// day finished
 
@@ -95,7 +98,7 @@ public class TPS_PlanStateMachineFactory {
         stateMachine.setAllStates(all_states);
         stateMachine.setInitialStateAndReset(all_states.get(0));
         stateMachine.setEndState(end_state);
-        all_states.get(0).addHandler(TPS_PlanEventType.SIMULATION_STEP, all_states.get(1), StateMachineUtils.NoAction(), input -> (int) input == simulation_entry_time);
+        all_states.get(0).addHandler(TPS_PlanEventType.SIMULATION_STEP, all_states.get(1), null, input -> (int) input == simulation_entry_time);
 
         return stateMachine;
     }

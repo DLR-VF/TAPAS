@@ -1,9 +1,8 @@
-package de.dlr.ivf.tapas.plan.state.statemachine;
+package de.dlr.ivf.tapas.plan.sequential.statemachine;
 
 import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
+import de.dlr.ivf.tapas.plan.sequential.action.TPS_PlanStateAction;
+import de.dlr.ivf.tapas.plan.sequential.event.TPS_PlanEvent;
 
 import java.util.List;
 import java.util.Objects;
@@ -103,11 +102,14 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
      * the handler managing the transition
      */
     protected void makeTransition(TPS_PlanStateTransitionHandler handler){
-        //System.out.println("Making Transition: "+name);
+
         //first we exit the current state
         exitState();
+
         //then we make the transition
-        executeAction(handler.getAction());
+        if(handler.getAction() != null)
+            executeAction(handler.getAction());
+
         //now we enter the new state
         enterState(handler);
     }

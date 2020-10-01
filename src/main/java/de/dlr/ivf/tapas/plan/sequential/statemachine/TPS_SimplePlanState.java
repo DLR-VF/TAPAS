@@ -1,13 +1,14 @@
-package de.dlr.ivf.tapas.plan.state.statemachine;
+package de.dlr.ivf.tapas.plan.sequential.statemachine;
 
-import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
-import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateNoAction;
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
-import de.dlr.ivf.tapas.plan.state.guard.TPS_PlanStateGuard;
+import de.dlr.ivf.tapas.plan.sequential.action.TPS_PlanStateAction;
+import de.dlr.ivf.tapas.plan.sequential.action.TPS_PlanStateNoAction;
+import de.dlr.ivf.tapas.plan.sequential.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.plan.sequential.event.TPS_PlanEventType;
+import de.dlr.ivf.tapas.plan.sequential.guard.TPS_PlanStateGuard;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 
 /**
 
@@ -29,15 +30,13 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     /**
      * The enter action that will run when this state is being entered
      */
-    private TPS_PlanStateAction enter_action;
+    private List<TPS_PlanStateAction> enter_actions;
 
     /**
      * The exit action that will run when this state is being exited
      */
-    private TPS_PlanStateAction exit_action;
 
-    private TPS_PlanStateAction[] entry_actions;
-    private TPS_PlanStateAction[] exit_actions;
+    private List<TPS_PlanStateAction> exit_actions;
 
     /**
      * a Reference to the parent state machine
@@ -61,7 +60,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * reference to the state machine
      */
     public TPS_SimplePlanState(String name, TPS_PlanStateMachine stateMachine){
-        this(name,stateMachine, new TPS_PlanStateNoAction(), new TPS_PlanStateNoAction());
+        this(name,stateMachine, new ArrayList<TPS_PlanStateAction>(), new ArrayList<TPS_PlanStateAction>());
     }
 
     /**
@@ -70,18 +69,18 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * simple name to the identify the state
      * @param stateMachine
      * reference to the state machine
-     * @param enter_action
+     * @param enter_actions
      * the enter action to perform
-     * @param exit_action
+     * @param exit_actions
      * the exit action to perform
      */
-    public TPS_SimplePlanState(String name, TPS_PlanStateMachine stateMachine, TPS_PlanStateAction enter_action, TPS_PlanStateAction exit_action){
+    public TPS_SimplePlanState(String name, TPS_PlanStateMachine stateMachine, List<TPS_PlanStateAction> enter_actions, List<TPS_PlanStateAction> exit_actions){
 
         this.handlers = new EnumMap<>(TPS_PlanEventType.class);
         this.name = name;
         this.stateMachine = stateMachine;
-        this.enter_action = enter_action;
-        this.exit_action = exit_action;
+        this.enter_actions = enter_actions;
+        this.exit_actions = exit_actions;
     }
 
     /**
@@ -89,8 +88,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      */
     @Override
     public void enter() {
-
-        this.enter_action.run();
+        this.enter_actions.forEach(TPS_PlanStateAction::run);
     }
 
     /**
@@ -98,8 +96,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      */
     @Override
     public void exit() {
-
-        this.exit_action.run();
+        this.exit_actions.forEach(TPS_PlanStateAction::run);
     }
 
     /**
@@ -173,8 +170,8 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param action
      */
     @Override
-    public void setOnEnterAction(TPS_PlanStateAction action) {
-        this.enter_action = action;
+    public void addOnEnterAction(TPS_PlanStateAction action) {
+        this.enter_actions.add(action);
     }
 
     /**
@@ -182,18 +179,18 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param action
      */
     @Override
-    public void setOnExitAction(TPS_PlanStateAction action) {
-        this.exit_action = action;
+    public void addOnExitAction(TPS_PlanStateAction action) {
+        this.exit_actions.add(action);
     }
 
     @Override
-    public void setOnEnterActions(TPS_PlanStateAction... actions) {
-        this.entry_actions = actions;
+    public void removeOnEnterAction(TPS_PlanStateAction action) {
+        this.enter_actions.remove(action);
     }
 
     @Override
-    public void setOnExitActions(TPS_PlanStateAction... actions) {
-        this.exit_actions = actions;
+    public void removeOnExitAction(TPS_PlanStateAction action) {
+        this.exit_actions.remove(action);
     }
 
     /**
@@ -205,14 +202,6 @@ public class TPS_SimplePlanState implements TPS_PlanState{
         return this.name;
     }
 
-    /**
-     * returns the state machine that is handling this state
-     * @return
-     */
-    @Override
-    public TPS_PlanStateMachine getStateMachine() {
-        return this.stateMachine;
-    }
 
     /**
      * set the state machine manually

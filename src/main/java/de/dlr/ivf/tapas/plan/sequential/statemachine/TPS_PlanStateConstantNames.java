@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state.statemachine;
+package de.dlr.ivf.tapas.plan.sequential.statemachine;
 
 public enum TPS_PlanStateConstantNames {
     INITIALIZING("initializing states"),

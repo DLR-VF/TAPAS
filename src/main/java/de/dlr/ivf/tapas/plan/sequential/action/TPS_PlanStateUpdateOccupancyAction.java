@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state.action;
+package de.dlr.ivf.tapas.plan.sequential.action;
 
 import de.dlr.ivf.tapas.loc.TPS_Location;
 

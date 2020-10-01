@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state;
+package de.dlr.ivf.tapas.plan.sequential;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;

@@ -51,6 +51,8 @@ public class TPS_PlanGenerator{
 
         for(TPS_Household hh : households){
 
+            List<TPS_Plan> household_plans = new ArrayList<>();
+
             //calculate the shopping motives or set the default values
             int number = 0;
             for (TPS_Person person : hh.getMembers(TPS_Household.Sorting.AGE)) {
@@ -99,9 +101,12 @@ public class TPS_PlanGenerator{
                 the_plan.setPlanningContext(pc);
                 //we only take plans into account that have at least one trip //todo fixme?
                 if(the_plan.getScheme().getSchemeParts().size() > 1)
-                    this.plans.add(the_plan);
+                    household_plans.add(the_plan);
                 person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
+            this.plans.addAll(household_plans);
+            //now initialize the household car mediator
+            hh.initializeCarMediator(hh, household_plans);
         }
 
         return plans;

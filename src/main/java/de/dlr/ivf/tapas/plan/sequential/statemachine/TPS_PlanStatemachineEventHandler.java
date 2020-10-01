@@ -1,6 +1,6 @@
-package de.dlr.ivf.tapas.plan.state.statemachine;
+package de.dlr.ivf.tapas.plan.sequential.statemachine;
 
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.plan.sequential.event.TPS_PlanEvent;
 
 public interface TPS_PlanStatemachineEventHandler {
 

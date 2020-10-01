@@ -13,6 +13,7 @@ import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.StateMachineUtils;
+import de.dlr.ivf.tapas.plan.sequential.communication.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
@@ -57,7 +58,10 @@ public class TPS_HouseholdAndPersonLoader {
         List<TPS_Household> households = loadAndGetAllHouseholds(pm);
 
         //assign cars to households
-        households.stream().parallel().forEach(household -> assignCarsToHousehold(car_map, household));
+        households.stream().parallel().forEach(household -> {
+            assignCarsToHousehold(car_map, household);
+            initializeCarMediator(household);
+        });
 
         return households;
     }
@@ -291,5 +295,12 @@ public class TPS_HouseholdAndPersonLoader {
                 }
             }
         }
+    }
+
+    private void initializeCarMediator(TPS_Household household){
+
+        TPS_HouseholdCarMediator car_mediator = new TPS_HouseholdCarMediator(household);
+        household.setCarMediator(car_mediator);
+
     }
 }

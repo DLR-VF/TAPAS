@@ -12,7 +12,7 @@ import de.dlr.ivf.tapas.persistence.db.*;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanGenerator;
-import de.dlr.ivf.tapas.plan.state.TPS_SequentialSimulator;
+import de.dlr.ivf.tapas.plan.sequential.TPS_SequentialSimulator;
 import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.TPS_Argument;

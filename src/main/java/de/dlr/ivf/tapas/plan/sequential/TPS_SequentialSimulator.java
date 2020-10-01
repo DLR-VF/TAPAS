@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state;
+package de.dlr.ivf.tapas.plan.sequential;
 
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.util.DaemonThreadFactory;
@@ -8,9 +8,9 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_PipedDbWriter;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.state.event.*;
-import de.dlr.ivf.tapas.plan.state.statemachine.TPS_PlanStateMachine;
-import de.dlr.ivf.tapas.plan.state.statemachine.TPS_PlanStateMachineFactory;
+import de.dlr.ivf.tapas.plan.sequential.event.*;
+import de.dlr.ivf.tapas.plan.sequential.statemachine.TPS_PlanStateMachine;
+import de.dlr.ivf.tapas.plan.sequential.statemachine.TPS_PlanStateMachineFactory;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,7 +99,7 @@ public class TPS_SequentialSimulator implements Runnable{
      * Creates a {@link TPS_PlanStateMachine} with a set of states representing the behaviour for every {@link de.dlr.ivf.tapas.scheme.TPS_Episode}
      * inside a {@link TPS_Plan}.
      * @param plans that need to be represented as a {@link TPS_PlanStateMachine}
-     * @param writer for the {@link de.dlr.ivf.tapas.plan.state.action.TPS_PlanStatePersistenceAction}s
+     * @param writer for the {@link de.dlr.ivf.tapas.plan.sequential.action.TPS_PlanStatePersistenceAction}s
      * @return a list of {@link TPS_PlanStateMachine}s
      */
 

@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.persistence.db;
 
-import de.dlr.ivf.tapas.plan.state.TPS_WritableTrip;
+import de.dlr.ivf.tapas.plan.sequential.TPS_WritableTrip;
 
 public class TPS_WritableTripEvent {
     private byte[] trip_byte_array;

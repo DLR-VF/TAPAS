@@ -1484,4 +1484,9 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         }
     }
 
+    public int getFirstTourPartStart(){
+
+        return this.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration();
+    }
+
 }

@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state.action;
+package de.dlr.ivf.tapas.plan.sequential.action;
 
 //this class represents no action so we should not check for null actions
 public class TPS_PlanStateNoAction implements TPS_PlanStateAction {

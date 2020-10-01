@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state.event;
+package de.dlr.ivf.tapas.plan.sequential.event;
 
 public class TPS_PlanEvent {
 

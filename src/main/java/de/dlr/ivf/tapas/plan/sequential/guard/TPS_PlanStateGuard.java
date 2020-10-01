@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.plan.state.guard;
+package de.dlr.ivf.tapas.plan.sequential.guard;
 
 import java.util.function.Predicate;
 //marker interface

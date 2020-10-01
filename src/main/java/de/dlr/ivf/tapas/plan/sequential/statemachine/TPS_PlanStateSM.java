@@ -1,11 +1,10 @@
-package de.dlr.ivf.tapas.plan.state.statemachine;
+package de.dlr.ivf.tapas.plan.sequential.statemachine;
 
 
-import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.state.action.TPS_PlanStateAction;
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEvent;
-import de.dlr.ivf.tapas.plan.state.event.TPS_PlanEventType;
-import de.dlr.ivf.tapas.plan.state.guard.TPS_PlanStateGuard;
+import de.dlr.ivf.tapas.plan.sequential.action.TPS_PlanStateAction;
+import de.dlr.ivf.tapas.plan.sequential.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.plan.sequential.event.TPS_PlanEventType;
+import de.dlr.ivf.tapas.plan.sequential.guard.TPS_PlanStateGuard;
 
 import java.util.List;
 
@@ -70,34 +69,31 @@ public class TPS_PlanStateSM<S> implements TPS_PlanState, TPS_PlanStatemachineEv
     }
 
     @Override
-    public void setOnEnterAction(TPS_PlanStateAction action) {
+    public void addOnEnterAction(TPS_PlanStateAction action) {
 
     }
 
     @Override
-    public void setOnExitAction(TPS_PlanStateAction action) {
+    public void addOnExitAction(TPS_PlanStateAction action) {
 
     }
 
     @Override
-    public void setOnEnterActions(TPS_PlanStateAction... action) {
+    public void removeOnEnterAction(TPS_PlanStateAction action) {
 
     }
 
     @Override
-    public void setOnExitActions(TPS_PlanStateAction... action) {
+    public void removeOnExitAction(TPS_PlanStateAction action) {
 
     }
+
 
     @Override
     public String getName() {
         return null;
     }
 
-    @Override
-    public TPS_PlanStateMachine getStateMachine() {
-        return null;
-    }
 
     @Override
     public void setStateMachine(TPS_PlanStateMachine stateMachine) {

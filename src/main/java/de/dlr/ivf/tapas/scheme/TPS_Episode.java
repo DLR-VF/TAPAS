@@ -240,8 +240,8 @@ public abstract class TPS_Episode implements ExtendedWritable {
     /**
      * @return Get the original end in minutes after midnight
      */
-    public double getOriginalEnd() {
-        return (originalStart + originalDuration);
+    public int getOriginalEnd() {
+        return (originalStart + originalDuration );
     }
 
     /**

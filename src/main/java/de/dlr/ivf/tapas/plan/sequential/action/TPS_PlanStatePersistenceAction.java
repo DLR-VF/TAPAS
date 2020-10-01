@@ -1,8 +1,8 @@
-package de.dlr.ivf.tapas.plan.state.action;
+package de.dlr.ivf.tapas.plan.sequential.action;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.state.TPS_WritableTrip;
+import de.dlr.ivf.tapas.plan.sequential.TPS_WritableTrip;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 

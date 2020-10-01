@@ -4,7 +4,7 @@ import com.lmax.disruptor.*;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.plan.state.TPS_WritableTrip;
+import de.dlr.ivf.tapas.plan.sequential.TPS_WritableTrip;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import org.postgresql.core.BaseConnection;
 import java.sql.Connection;

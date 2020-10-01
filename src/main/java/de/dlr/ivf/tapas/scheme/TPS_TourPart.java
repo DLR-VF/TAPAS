@@ -208,6 +208,12 @@ public class TPS_TourPart extends TPS_SchemePart {
         return sum;
     }
 
+
+    public int getTotalTourPartDurationSeconds(){
+
+        return getLastEpisode().getOriginalEnd() - getFirstEpisode().getOriginalStart();
+    }
+
     /**
      * Returns the previous trip to the episode provided
      *
