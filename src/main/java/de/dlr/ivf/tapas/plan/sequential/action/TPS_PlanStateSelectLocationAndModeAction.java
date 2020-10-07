@@ -67,17 +67,19 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
         TPS_LocatedStay departure_located_stay = plan.getLocatedStay(departure_stay);
 
-        if(departure_stay.isAtHome() && plan.getPerson().mayDriveACar())
-            pc.carForThisPlan = car_mediator.request(plan.getPerson(), tour_part.getTotalTourPartDurationSeconds() + departure_located_stay.getStart() + departure_located_stay.getDuration());
-        if(departure_located_stay.getStart() > 0)
-        System.out.println("duration: "+tour_part.getTotalTourPartDurationSeconds() + "departure start: "+ departure_located_stay.getStart());
-
-
-        if (tour_part.isBikeUsed()) { //was the bike used before?
-            pc.isBikeAvailable = true;
-        } else if (!pc.influenceBikeUsageInPlan) { // is the bike availability modded outside?
+        if(departure_stay.isAtHome()) {
             pc.isBikeAvailable = plan.getPerson().hasBike();
+
+            if(plan.getPerson().mayDriveACar())
+                pc.carForThisPlan = car_mediator.request(plan.getPerson(), tour_part.getTotalTourPartDurationSeconds() + departure_located_stay.getStart() + departure_located_stay.getDuration());
         }
+
+
+//        if (tour_part.isBikeUsed()) { //was the bike used before?
+//            pc.isBikeAvailable = true;
+//        } else if (!pc.influenceBikeUsageInPlan) { // is the bike availability modded outside?
+//            pc.isBikeAvailable = plan.getPerson().hasBike();
+//        }
 
         plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
 
@@ -132,57 +134,34 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
             }
         }
 
-        if (arrival_located_stay.getModeArr() == null) {
-
-            //do we have a fixed mode from the previous trip?
-            if (tour_part.isFixedModeUsed()) {
-                arrival_located_stay.setModeArr(tour_part.getUsedMode());
-                arrival_located_stay.setModeDep(tour_part.getUsedMode());
-            } else {
-                TPS_Stay next_fix_stay = plan.getNextHomeStay(tour_part);
-                //TPS_Stay next_fix_stay = plan.getNextFixStay(arrival_stay); //fixme check getNextStay method for a npe bug
-                TPS_Location next_fix_location = plan.getLocatedStay(next_fix_stay).getLocation();
-
-                if (pc.carForThisPlan != null && pc.carForThisPlan.isRestricted() &&
-                        (arrival_located_stay.getLocation().getTrafficAnalysisZone().isRestricted() ||
-                                next_fix_location.getTrafficAnalysisZone().isRestricted())) {
-                    plan.getPlanningContext().carForThisPlan = null;
-                }
-
-                //fixme the focus point is set to the next home stay which defers from the original household based execution implementation
-                pm.getModeSet().selectMode(plan, departure_stay, arrival_located_stay, next_fix_stay, pc);
-
-                //set the mode and car (if used)
-                if(arrival_located_stay.getModeDep().isCarUsed() && pc.carForThisPlan == null){
-                    System.out.println("zack");
-                }
-                tour_part.setUsedMode(arrival_located_stay.getModeDep(), pc.carForThisPlan);
-
-                //set some variables for the fixed modes
-                TPS_ExtMode em = tour_part.getUsedMode();
-                plan.usesBike = em.isBikeUsed();
-
-//                if (em.isCarUsed() && departure_stay.isAtHome()) {
+        //do we have a fixed mode from the previous trip?
+        if (departure_located_stay.getModeArr() != null && departure_located_stay.getModeArr().isFix()) {
+            departure_located_stay.setModeDep(departure_located_stay.getModeArr());
+        } //else {
+//            TPS_Stay next_fix_stay = plan.getNextHomeStay(tour_part);
+//            //TPS_Stay next_fix_stay = plan.getNextFixStay(arrival_stay); //fixme check getNextStay method for a npe bug
+//            TPS_Location next_fix_location = plan.getLocatedStay(next_fix_stay).getLocation();
 //
-//                    car_mediator.checkoutCar(pc.carForThisPlan, plan.getPerson());
-//                    plan.usedCars.add(pc.carForThisPlan);
-//                }else{
-//                    pc.carForThisPlan = null;
-//                }
+//            if (pc.carForThisPlan != null && pc.carForThisPlan.isRestricted() &&
+//                    (arrival_located_stay.getLocation().getTrafficAnalysisZone().isRestricted() ||
+//                            next_fix_location.getTrafficAnalysisZone().isRestricted())) {
+//                plan.getPlanningContext().carForThisPlan = null;
+//            }
 
-                //set variables for fixed modes:
-               // pc.carForThisPlan = tour_part.getCar();
-                pc.isBikeAvailable = tour_part.isBikeUsed();
+        TPS_ExtMode departure_mode = pm.getModeSet().selectDepartureMode(plan, departure_located_stay, arrival_located_stay, pc);
 
-                if (pc.carForThisPlan == null) {
-                    plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.HOUSEHOLD_CARS, 0);
-                } else {
-                    plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.HOUSEHOLD_CARS,
-                            plan.getPerson().getHousehold().getCarNumber());
-                }
-                plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
-            }
-        }
+        //after mode selection, set arrival mode to the destination and update the planning context for next mode selection
+
+        //todo needed?
+//        if (pc.carForThisPlan == null) {
+//            plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.HOUSEHOLD_CARS, 0);
+//        } else {
+//            plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.HOUSEHOLD_CARS,
+//                    plan.getPerson().getHousehold().getCarNumber());
+//        }
+//        plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
+
+
 
         if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
             TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG,
@@ -204,7 +183,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
         planned_trip.setStart(departure_located_stay.getStart() + departure_located_stay.getDuration());
 
-        arrival_located_stay.setStart(departure_located_stay.getStart() + departure_located_stay.getDuration() + planned_trip.getDuration());
+        arrival_located_stay.setStart(planned_trip.getStart() + planned_trip.getDuration());
 
 
         //update the travel durations for this plan
@@ -214,16 +193,28 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         var trip_to_activity_transition_minute = (int) (arrival_located_stay.getStart() * 1.66666666e-2 + 0.5);
         trip_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_trip_activity_state, null, i -> (int) i == trip_to_activity_transition_minute);
 
-        //if we took a car, check it out
-        if(departure_stay.isAtHome() && pc.carForThisPlan != null)
-            trip_state.addOnEnterAction(new TPS_CarCheckOutAction(this.car_mediator,this.plan.getPerson(),pc.carForThisPlan));
+
+        if(departure_stay.isAtHome()){
+            if(departure_mode.isCarUsed()) {
+                trip_state.addOnEnterAction(new TPS_CarCheckOutAction(this.car_mediator,this.plan.getPerson(),pc.carForThisPlan));
+                //plan.usedCars.add(pc.carForThisPlan); //todo is this really needed?
+                pc.isBikeAvailable = false; // reset the bike for the next mode selection in this tour
+            }
+            else
+                pc.carForThisPlan = null;  // reset the requested car for next mode selection in this tour
+        }else{
+            int time_diff_to_original_stay = arrival_located_stay.getStart() - arrival_stay.getOriginalStart();
+            this.car_mediator.updateNextRequest(plan.getPerson(), (int)tour_part.getOriginalSchemePartEnd() + time_diff_to_original_stay);
+        }
+
+
 
 
         var activity_to_next_trip_transition_minute = (int) ((arrival_located_stay.getStart() + arrival_located_stay.getDuration()) * 1.66666666e-2 + 0.5);
 
         //tour part is over and we check in the car (null if we didn't use one)
         if(arrival_stay.isAtHome() && plan.getPerson().mayDriveACar())
-            trip_state.addOnExitAction(new TPS_CarCheckInAction(this.car_mediator, pc.carForThisPlan, activity_to_next_trip_transition_minute * 60, plan.getPerson()));
+            trip_state.addOnExitAction(new TPS_CarCheckInAction(this.car_mediator, pc.carForThisPlan));
 
         post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, null, i -> (int) i == activity_to_next_trip_transition_minute);
 
@@ -241,4 +232,6 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
                         .getCode(TPS_SettlementSystem.TPS_SettlementSystemType.TAPAS));
 
     }
+
+    private void selectLocation(){}
 }

@@ -8,16 +8,10 @@ import de.dlr.ivf.tapas.plan.TPS_Plan;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
-//This class is intended to handle communication between multiple members of a household that want to use one of the cars.
-//The idea:
-//- someone requests a car supplying a score (eg.: travel times / manageability with the next best mode alternative / pt ticket and so on...)
-//- actually we'd rather wait for all other members so request a car themselves and then we decide who gets one ....in return we ask everyone eligible in using this car for their score as in how badly they need it
 public class TPS_HouseholdCarMediator{
 
     private SortedMap<TPS_Car, TPS_Person> car_set = new TreeMap<>(Comparator.comparing(TPS_Car::isRestricted));
     private List<TPS_Person> persons;
-    private TPS_Car previous_requested_car;
 
     private SortedMap<TPS_Person,Integer> potential_car_requests = new TreeMap<>(Comparator.comparingDouble(TPS_Person::primaryDriver));
 
@@ -29,23 +23,23 @@ public class TPS_HouseholdCarMediator{
         Arrays.stream(hh.getAllCars()).forEach(car -> car_set.put(car,null));
 
         //now get all the persons that are allowed to drive any of the cars car.
-        this.persons = new ArrayList<>();
-
-        for(TPS_Person person : hh.getMembers(TPS_Household.Sorting.PRIMARY_DRIVER)){
-
-            if(person.mayDriveACar()){
-                persons.add(person);
-            }
-
-        }
-
+        this.persons = hh.getMembers(TPS_Household.Sorting.PRIMARY_DRIVER)
+                         .stream()
+                         .filter(TPS_Person::mayDriveACar)
+                         .collect(Collectors.toList());
     }
 
     public TPS_Car request(TPS_Person requesting_person, int planned_tourpart_end) {
 
         SortedMap<TPS_Person, Integer> higher_ranked_car_requests = this.potential_car_requests.tailMap(requesting_person);
 
-        long overlapping_request_count = higher_ranked_car_requests.entrySet().stream().skip(1).filter(request_entry -> request_entry.getValue() < planned_tourpart_end && !car_set.containsValue(request_entry.getKey())).count();
+        long overlapping_request_count = higher_ranked_car_requests
+                                            .entrySet()
+                                            .stream()
+                                            .skip(1)
+                                            .filter(request_entry -> request_entry.getValue() < planned_tourpart_end  //remove higher ranked persons that might need the car before our estimated end of tour
+                                                    && !car_set.containsValue(request_entry.getKey())) //remove higher ranked persons that currently are on tour with a car
+                                            .count();
 
         List<TPS_Car> available_cars = availableCars();
 
@@ -70,10 +64,12 @@ public class TPS_HouseholdCarMediator{
 
     }
 
-    public void checkinCarAndUpdateNextRequest(TPS_Car car, int time, TPS_Person person){
+    public void checkinCar(TPS_Car car){
         if(car != null && this.car_set.containsKey(car))
             this.car_set.replace(car,null);
+    }
 
+    public void updateNextRequest(TPS_Person person, int time){
         potential_car_requests.put(person ,time);
 
     }

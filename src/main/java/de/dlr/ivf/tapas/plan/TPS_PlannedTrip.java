@@ -132,17 +132,17 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
         TPS_TrafficAnalysisZone comingFromTVZ = pLocComingFrom.getTrafficAnalysisZone();
         double tt = -1;
 
-        TPS_Car carForTrip = null;
+        TPS_Car carForTrip = this.plan.getPlanningContext().carForThisPlan;       //null;
         //pick cars used for this plan
-        for (TPS_SchemePart schemePart : this.plan.getScheme()) {
-            if (!schemePart.isHomePart()) {
-                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
-                if (tourpart.getCar() != null) {
-                    carForTrip = tourpart.getCar();
-                    break;
-                }
-            }
-        }
+//        for (TPS_SchemePart schemePart : this.plan.getScheme()) {
+//            if (!schemePart.isHomePart()) {
+//                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
+//                if (tourpart.getCar() != null) {
+//                    carForTrip = tourpart.getCar();
+//                    break;
+//                }
+//            }
+//        }
 
 
         /*
@@ -150,7 +150,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
          * pGoingTo hinzukommen (getPModeCome)
          */
         TPS_ExtMode pModeComingFrom = pComingFrom.getModeDep();
-        TPS_ExtMode pModeGoingTo = pGoingTo.getModeArr();
+        //TPS_ExtMode pModeGoingTo = pGoingTo.getModeArr();
 
         // If the person comes from home or is going home, then pModeGoingTo or pModeComingFrom are 0. Usually at least
         // one
@@ -160,21 +160,22 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
 
         // If different modes are used for leave and to get to the locations of these episodes then the priority of the
         // episodes determines the mode choice.
+//fixme needed?
+//        if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
+//            if (pComingFrom.getStay().isAtHome()) {
+//                setMode(pModeGoingTo);
+//            } else {
+//                setMode(pModeComingFrom);
+//            }
+//        } else {
+//            if (pGoingTo.getStay().isAtHome()) {
+//                setMode(pModeComingFrom);
+//            } else {
+//                setMode(pModeGoingTo);
+//            }
+//        }
 
-        if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
-            if (pComingFrom.getStay().isAtHome()) {
-                setMode(pModeGoingTo);
-            } else {
-                setMode(pModeComingFrom);
-            }
-        } else {
-            if (pGoingTo.getStay().isAtHome()) {
-                setMode(pModeComingFrom);
-            } else {
-                setMode(pModeGoingTo);
-            }
-        }
-
+        setMode(pModeComingFrom);
         this.setDistanceEmptyNet(
                 TPS_Mode.get(ModeType.WALK).getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, null));
 

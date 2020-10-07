@@ -1,10 +1,13 @@
 package de.dlr.ivf.tapas.plan;
 
+import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.*;
+import de.dlr.ivf.tapas.scheme.TPS_HomePart;
 import de.dlr.ivf.tapas.scheme.TPS_Scheme;
+import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
@@ -104,11 +107,43 @@ public class TPS_PlanGenerator{
                     household_plans.add(the_plan);
                 person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
+
+            //fixme: we add the home stays with their activity code to fix locations
+            addHomeLocationToFixLocations(household_plans, hh.getLocation());
+        //    setHomeStaysToFixActivityCodes(household_plans);
+
             this.plans.addAll(household_plans);
             //now initialize the household car mediator
             hh.initializeCarMediator(hh, household_plans);
         }
 
+        //fixme: we hack the activity code for home stays to be fix
+//        plans.get(0).getScheme().getSchemeParts().stream().filter(TPS_SchemePart::isHomePart).findAny().ifPresent(scheme_part -> {
+//            scheme_part.getFirstEpisode().getActCode().
+//        });
+
         return plans;
     }
+
+    private void addHomeLocationToFixLocations(List<TPS_Plan> household_plans, TPS_Location home_location) {
+        household_plans.stream().forEach(plan -> {
+            plan.getScheme().getSchemeParts()
+                    .stream()
+                    .filter(TPS_SchemePart::isHomePart)
+                    .findFirst()
+                    .ifPresent(home_part -> plan.getFixLocations().put(home_part.getFirstEpisode().getActCode(),home_location));
+
+
+        });
+
+    }
+
+//    private void setHomeStaysToFixActivityCodes(List<TPS_Plan> household_plans){
+//        household_plans.stream()
+//                .map(plan -> plan.getScheme()
+//                        .getSchemeParts())
+//                .filter(TPS_SchemePart::isHomePart)
+//                .forEach(r -> System.out.println());
+//
+//    }
 }

@@ -246,107 +246,39 @@ public class TPS_ModeSet implements ExtendedWritable {
         }
     }
 
-    public void selectModeSequentially(TPS_Plan plan, TPS_Stay prevStay, TPS_LocatedStay locatedStay, TPS_Stay nextStay, TPS_PlanningContext pc) {
-        // log.debug("\t\t\t\t\t\t '--> In tpsSelectLocation.selectMode");
-//asd
+    public TPS_ExtMode selectDepartureMode(TPS_Plan plan, TPS_LocatedStay departure_stay, TPS_LocatedStay arrival_stay, TPS_PlanningContext pc) {
 
-        TPS_ExtMode currentArrivalMode = locatedStay.getModeArr();
-        TPS_ExtMode currentDepartureMode = locatedStay.getModeDep();
+        TPS_ExtMode departure_mode_departure_stay = departure_stay.getModeDep();
 
-        if (currentArrivalMode == null || currentDepartureMode == null) {
-            // The episodes for activities out of home receive this call in a hierarchical order. That means that either
-            // 'comingFrom' or 'goingTo' point to an episode at home or they point to superior episodes. In the latter case
-            // the mode eventually has to be adopted.
-            TPS_LocatedStay prevStayLocated = plan.getLocatedStay(prevStay);
-            TPS_LocatedStay nextStayLocated = plan.getLocatedStay(nextStay);
-            TPS_ExtMode previousStayDepartureMode = prevStayLocated.getModeDep();
-            TPS_ExtMode nextStayArrivalMode = nextStayLocated.getModeArr();
-            TPS_Location previousStayLocation = prevStayLocated.getLocation();
-            TPS_Location currentStayLocation = locatedStay.getLocation();
+        TPS_ExtMode chosen_mode = null;
+
+        if (departure_mode_departure_stay == null) { //we are free to chose a mode to get to our arrival location
+
+            TPS_Location departure_location = departure_stay.getLocation();
+            TPS_Location arrival_location = arrival_stay.getLocation();
 
             // The mode "walking" is used to get distances on the net.
             double distanceNet = Math.max(this.parameterClass.getDoubleValue(ParamValue.MIN_DIST),
                     TPS_Mode.get(ModeType.WALK)
-                            .getDistance(previousStayLocation, currentStayLocation, SimulationType.SCENARIO, null) -
+                            .getDistance(departure_location, arrival_location, SimulationType.SCENARIO, null) -
                             obscureDistanceCorrectionNumber);
+
             TPS_ModeChoiceContext mcc = new TPS_ModeChoiceContext();
 
+             mcc.fromStayLocation = departure_location;
+             mcc.toStayLocation = arrival_location;
+             mcc.toStay = arrival_stay.getStay();
+             mcc.duration = mcc.toStay.getOriginalDuration();
+             mcc.startTime = mcc.toStay.getOriginalStart();
+             mcc.isBikeAvailable = pc.isBikeAvailable;
+             mcc.carForThisPlan = pc.carForThisPlan;
 
-            if (nextStayArrivalMode == null) { //does the next stay allow unrestricted mode choice
-                if (previousStayDepartureMode == null) { //does the previous stay allow unrestricted mode choice
-                    mcc.fromStayLocation = previousStayLocation;
-                    mcc.toStayLocation = currentStayLocation;
-                    mcc.toStay = locatedStay.getStay();
-                    mcc.duration = mcc.toStay.getOriginalDuration();
-                    mcc.startTime = mcc.toStay.getOriginalStart();
-                    mcc.isBikeAvailable = pc.isBikeAvailable;
-                    mcc.carForThisPlan = pc.carForThisPlan;
-                    currentArrivalMode = selectMode0(plan, distanceNet, mcc);
-                } else { // adopt arrival mode according to departure mode
-                    currentArrivalMode = previousStayDepartureMode;
-                }
-                if (currentArrivalMode == null) {
-                    TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
-                            "Error: no possible mode found!");
-                }
-                locatedStay.setModeArr(currentArrivalMode);
-
-                //now we have an arrival mode
-                if (currentDepartureMode == null) {
-                    if (currentArrivalMode.isFix()) { // do we have to stick to the mode
-                        currentDepartureMode = currentArrivalMode;
-                    } else {
-                        TPS_TourPart tourpart;
-                        if(locatedStay.getStay().getSchemePart() instanceof TPS_TourPart)
-                            tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
-                        else
-                            tourpart = (TPS_TourPart) prevStayLocated.getStay().getSchemePart();
-                        mcc.fromStayLocation = currentStayLocation;
-                        mcc.toStayLocation = nextStayLocated.getLocation();
-                        mcc.toStay = nextStay;
-                        mcc.duration = mcc.toStay.getOriginalDuration();
-                        mcc.startTime = mcc.toStay.getOriginalStart();
-                        mcc.isBikeAvailable = tourpart.isBikeUsed();
-                        mcc.carForThisPlan = tourpart.getCar();
-                        currentDepartureMode = selectMode0(plan, distanceNet, mcc);
-                    }
-                    locatedStay.setModeDep(currentDepartureMode);
-                    if (currentDepartureMode == null) {
-                        TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
-                                "Error: no possible mode found!");
-                    }
-                }
-            } else { //adopt departure mode to the next stay arrival mode
-                currentDepartureMode = nextStayArrivalMode;
-                locatedStay.setModeDep(currentDepartureMode);
-                if (currentArrivalMode == null) { // is the arrival mode set?
-                    if (previousStayDepartureMode == null) { //does the previous stay allow unrestricted mode choice
-                        if (currentDepartureMode.isFix()) { // do we have to stick to the mode
-                            currentArrivalMode = currentDepartureMode;
-                        } else {
-                            TPS_TourPart tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
-                            mcc.fromStayLocation = previousStayLocation;
-                            mcc.toStayLocation = currentStayLocation;
-                            mcc.toStay = locatedStay.getStay();
-                            mcc.duration = mcc.toStay.getOriginalDuration();
-                            mcc.startTime = mcc.toStay.getOriginalStart();
-                            mcc.isBikeAvailable = tourpart
-                                    .isBikeUsed(); // pc.isBikeAvailable; !!! why this - it should be same as before (pc.isBikeAvailable)
-                            mcc.carForThisPlan = tourpart
-                                    .getCar(); // pc.carForThisPlan; !!! why this - it should be same as before (pc.carForThisPlan)
-                            currentArrivalMode = selectMode0(plan, distanceNet, mcc);
-                        }
-                    } else {// adopt arrival mode according to departure mode
-                        currentArrivalMode = previousStayDepartureMode;
-                    }
-                    if (currentArrivalMode == null) {
-                        TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
-                                "Error: no possible mode found!");
-                    }
-                    locatedStay.setModeArr(currentArrivalMode);
-                }
-            }
+             chosen_mode = selectMode0(plan, distanceNet, mcc);
+        }else{
+            chosen_mode = departure_mode_departure_stay;
         }
+
+        return chosen_mode;
     }
 
     /**
