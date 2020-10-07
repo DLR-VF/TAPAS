@@ -135,20 +135,14 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         }
 
         //do we have a fixed mode from the previous trip?
+        TPS_ExtMode departure_mode;
         if (departure_located_stay.getModeArr() != null && departure_located_stay.getModeArr().isFix()) {
-            departure_located_stay.setModeDep(departure_located_stay.getModeArr());
-        } //else {
-//            TPS_Stay next_fix_stay = plan.getNextHomeStay(tour_part);
-//            //TPS_Stay next_fix_stay = plan.getNextFixStay(arrival_stay); //fixme check getNextStay method for a npe bug
-//            TPS_Location next_fix_location = plan.getLocatedStay(next_fix_stay).getLocation();
-//
-//            if (pc.carForThisPlan != null && pc.carForThisPlan.isRestricted() &&
-//                    (arrival_located_stay.getLocation().getTrafficAnalysisZone().isRestricted() ||
-//                            next_fix_location.getTrafficAnalysisZone().isRestricted())) {
-//                plan.getPlanningContext().carForThisPlan = null;
-//            }
+            departure_mode = departure_located_stay.getModeArr();
+        } else
+            departure_mode = pm.getModeSet().selectDepartureMode(plan, departure_located_stay, arrival_located_stay, pc);
 
-        TPS_ExtMode departure_mode = pm.getModeSet().selectDepartureMode(plan, departure_located_stay, arrival_located_stay, pc);
+        departure_located_stay.setModeDep(departure_mode);
+
 
         //after mode selection, set arrival mode to the destination and update the planning context for next mode selection
 
@@ -176,12 +170,15 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
                                     arrival_located_stay.getModeDep().getName());
         }
 
+
+        departure_located_stay.setModeDep(departure_mode);
         TPS_PlannedTrip planned_trip = plan.getPlannedTrip(associated_trip);
         planned_trip.setTravelTime(plan.getLocatedStay(departure_stay), plan.getLocatedStay(arrival_stay));
 
         //now update travel times and init guards
 
         planned_trip.setStart(departure_located_stay.getStart() + departure_located_stay.getDuration());
+
 
         arrival_located_stay.setStart(planned_trip.getStart() + planned_trip.getDuration());
 
