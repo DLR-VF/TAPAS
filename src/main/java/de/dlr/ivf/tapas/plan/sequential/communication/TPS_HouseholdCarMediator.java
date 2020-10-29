@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 public class TPS_HouseholdCarMediator{
 
     private SortedMap<TPS_Car, TPS_Person> car_set = new TreeMap<>(Comparator.comparing(TPS_Car::isRestricted));
-    private List<TPS_Person> persons;
 
     private SortedMap<TPS_Person,Integer> potential_car_requests = new TreeMap<>(Comparator.comparingDouble(TPS_Person::primaryDriver));
 
@@ -22,11 +21,6 @@ public class TPS_HouseholdCarMediator{
         //null just means that no person has taken this car and it is free to use
         Arrays.stream(hh.getAllCars()).forEach(car -> car_set.put(car,null));
 
-        //now get all the persons that are allowed to drive any of the cars car.
-        this.persons = hh.getMembers(TPS_Household.Sorting.PRIMARY_DRIVER)
-                         .stream()
-                         .filter(TPS_Person::mayDriveACar)
-                         .collect(Collectors.toList());
     }
 
     public TPS_Car request(TPS_Person requesting_person, int planned_tourpart_end) {
@@ -83,5 +77,9 @@ public class TPS_HouseholdCarMediator{
     public void initializeFirstRequests(List<TPS_Plan> plans){
 
         plans.stream().filter(plan -> plan.getPerson().mayDriveACar()).forEach(plan -> potential_car_requests.put(plan.getPerson(), plan.getFirstTourPartStart()));
+    }
+
+    public boolean isHouseholdCar(TPS_Car car) {
+        return car_set.containsKey(car);
     }
 }

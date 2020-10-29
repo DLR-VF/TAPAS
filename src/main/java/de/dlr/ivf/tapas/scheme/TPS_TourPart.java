@@ -465,6 +465,16 @@ public class TPS_TourPart extends TPS_SchemePart {
         }
     }
 
+    public TPS_Stay getNextFixStay(TPS_Stay stay){
+
+        return (TPS_Stay) this.getEpisodes()
+                              .stream()
+                              .filter(episode -> episode.isStay() && stay.getOriginalStart() < episode.getOriginalStart() && episode.getActCode().isFix())
+                              .findFirst()
+                              .orElseGet(() -> this.getLastEpisode());
+
+    }
+
     /*
      * (non-Javadoc)
      *

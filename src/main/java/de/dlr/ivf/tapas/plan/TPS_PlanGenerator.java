@@ -108,42 +108,13 @@ public class TPS_PlanGenerator{
                 person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
 
-            //fixme: we add the home stays with their activity code to fix locations
-            addHomeLocationToFixLocations(household_plans, hh.getLocation());
-        //    setHomeStaysToFixActivityCodes(household_plans);
-
             this.plans.addAll(household_plans);
             //now initialize the household car mediator
             hh.initializeCarMediator(hh, household_plans);
         }
 
-        //fixme: we hack the activity code for home stays to be fix
-//        plans.get(0).getScheme().getSchemeParts().stream().filter(TPS_SchemePart::isHomePart).findAny().ifPresent(scheme_part -> {
-//            scheme_part.getFirstEpisode().getActCode().
-//        });
+
 
         return plans;
     }
-
-    private void addHomeLocationToFixLocations(List<TPS_Plan> household_plans, TPS_Location home_location) {
-        household_plans.stream().forEach(plan -> {
-            plan.getScheme().getSchemeParts()
-                    .stream()
-                    .filter(TPS_SchemePart::isHomePart)
-                    .findFirst()
-                    .ifPresent(home_part -> plan.getFixLocations().put(home_part.getFirstEpisode().getActCode(),home_location));
-
-
-        });
-
-    }
-
-//    private void setHomeStaysToFixActivityCodes(List<TPS_Plan> household_plans){
-//        household_plans.stream()
-//                .map(plan -> plan.getScheme()
-//                        .getSchemeParts())
-//                .filter(TPS_SchemePart::isHomePart)
-//                .forEach(r -> System.out.println());
-//
-//    }
 }

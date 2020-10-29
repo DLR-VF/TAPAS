@@ -4,9 +4,12 @@ import com.lmax.disruptor.*;
 import com.lmax.disruptor.util.DaemonThreadFactory;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.mode.TPS_CarSharingMediator;
+import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_PipedDbWriter;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
+import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.sequential.event.*;
 import de.dlr.ivf.tapas.plan.sequential.statemachine.TPS_PlanStateMachine;
@@ -47,6 +50,7 @@ public class TPS_SequentialSimulator implements Runnable{
     private TPS_PipedDbWriter writer;
     private List<TPS_PlanStateMachine> state_machines;
     private TPS_StateMachineHandler[] workers;
+    private Map<Integer,TPS_CarSharingMediator> carsharing_mediators;
 
     /**
      * Initializes all {@link TPS_PlanStateMachine}s and the first simulation time event.
@@ -64,7 +68,8 @@ public class TPS_SequentialSimulator implements Runnable{
         this.workers = new TPS_StateMachineHandler[this.worker_count];
         this.pm = pm;
         this.writer = (TPS_PipedDbWriter) writer;
-
+        TPS_Car random_car = plans.stream().map(plan -> plan.getPerson().getHousehold().getAllCars()).filter(all_cars -> all_cars.length > 0).findFirst().get()[0];
+        this.carsharing_mediators = createCarSharingMediators(pm.getRegion().getTrafficAnalysisZoneKeys(),random_car);
         this.state_machines = createAndGetStateMachines(plans, writer);
         this.next_simulation_event = initAndGetFirstSimulationTimeEvent(plans);
         this.simulation_time_stamp.set((int) next_simulation_event.getData());
@@ -110,7 +115,7 @@ public class TPS_SequentialSimulator implements Runnable{
 
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+plan_count+" state machines...");
 
-        plans.forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm)));
+        plans.forEach(plan -> state_machines.add(TPS_PlanStateMachineFactory.createTPS_PlanStateMachineWithSimpleStates(plan, writer, pm, carsharing_mediators)));
 
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "All state machines ready...");
 
@@ -204,5 +209,13 @@ public class TPS_SequentialSimulator implements Runnable{
 
         worker_pool.drainAndHalt();
         writer.finish();
+    }
+
+    private Map<Integer, TPS_CarSharingMediator> createCarSharingMediators(Collection<Integer> taz_ids, TPS_Car random_car){
+        Map<Integer,TPS_CarSharingMediator> result_sharing_mediators = new HashMap<>(taz_ids.size());
+
+        taz_ids.forEach(taz_id -> result_sharing_mediators.put(taz_id, new TPS_CarSharingMediator(100,taz_ids, random_car)));
+
+        return result_sharing_mediators;
     }
 }

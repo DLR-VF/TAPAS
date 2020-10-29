@@ -5,8 +5,11 @@ import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.mode.TPS_CarSharingMediator;
 import de.dlr.ivf.tapas.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
+import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.*;
 import de.dlr.ivf.tapas.plan.sequential.communication.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.plan.sequential.statemachine.TPS_PlanState;
@@ -15,7 +18,12 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader;
+import de.dlr.ivf.tapas.util.TPS_Geometrics;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
+import de.dlr.ivf.tapas.util.parameters.SimulationType;
+
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -30,11 +38,12 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
     TPS_PlanState post_activity_trip_state;
     TPS_PlanState post_trip_activity_state;
     TPS_HouseholdCarMediator car_mediator;
+    Map<Integer, TPS_CarSharingMediator> car_sharing_mediators;
 
     TPS_Trip associated_trip;
 
 
-    public TPS_PlanStateSelectLocationAndModeAction(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip associated_trip, TPS_Stay departure_stay, TPS_Stay arrival_stay, TPS_PersistenceManager pm, TPS_PlanState trip_state, TPS_PlanState post_trip_activity_state, TPS_PlanState post_activity_trip_state, TPS_HouseholdCarMediator car_mediator){
+    public TPS_PlanStateSelectLocationAndModeAction(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip associated_trip, TPS_Stay departure_stay, TPS_Stay arrival_stay, TPS_PersistenceManager pm, TPS_PlanState trip_state, TPS_PlanState post_trip_activity_state, TPS_PlanState post_activity_trip_state, TPS_HouseholdCarMediator car_mediator, Map<Integer,TPS_CarSharingMediator> car_sharing_mediators){
         Objects.requireNonNull(tour_part);
         Objects.requireNonNull(plan);
         Objects.requireNonNull(arrival_stay);
@@ -55,6 +64,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         this.departure_stay = departure_stay;
         this.associated_trip = associated_trip;
         this.car_mediator = car_mediator;
+        this.car_sharing_mediators = car_sharing_mediators;
     }
 
 
@@ -73,6 +83,9 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
             if(plan.getPerson().mayDriveACar())
                 pc.carForThisPlan = car_mediator.request(plan.getPerson(), tour_part.getTotalTourPartDurationSeconds() + departure_located_stay.getStart() + departure_located_stay.getDuration());
         }
+
+        if(pc.carForThisPlan == null && plan.getPerson().isCarPooler())
+            pc.carForThisPlan = car_sharing_mediators.get(departure_located_stay.getLocation().getTAZId()).getRandomCar(); //dummy car
 
 
 //        if (tour_part.isBikeUsed()) { //was the bike used before?
@@ -141,6 +154,9 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         } else
             departure_mode = pm.getModeSet().selectDepartureMode(plan, departure_located_stay, arrival_located_stay, pc);
 
+        double travel_distance = TPS_Geometrics.getDistance(departure_located_stay.getLocation(),arrival_located_stay.getLocation(), departure_mode.primary, SimulationType.SCENARIO);
+        checkIfValidModeOrSelectAlternative(departure_mode, pc, departure_located_stay, arrival_located_stay,travel_distance);
+
         departure_located_stay.setModeDep(departure_mode);
 
 
@@ -173,7 +189,7 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
         departure_located_stay.setModeDep(departure_mode);
         TPS_PlannedTrip planned_trip = plan.getPlannedTrip(associated_trip);
-        planned_trip.setTravelTime(plan.getLocatedStay(departure_stay), plan.getLocatedStay(arrival_stay));
+        planned_trip.setTravelTime(departure_located_stay, arrival_located_stay);
 
         //now update travel times and init guards
 
@@ -210,9 +226,15 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
         var activity_to_next_trip_transition_minute = (int) ((arrival_located_stay.getStart() + arrival_located_stay.getDuration()) * 1.66666666e-2 + 0.5);
 
         //tour part is over and we check in the car (null if we didn't use one)
-        if(arrival_stay.isAtHome() && plan.getPerson().mayDriveACar())
-            trip_state.addOnExitAction(new TPS_CarCheckInAction(this.car_mediator, pc.carForThisPlan));
+        if(pc.carForThisPlan != null) {
 
+            //check if car is part of household
+            if(this.car_mediator.isHouseholdCar(pc.carForThisPlan))
+                if(arrival_stay.isAtHome())
+                    trip_state.addOnExitAction(new TPS_CarCheckInAction(this.car_mediator, pc));
+            else
+                trip_state.addOnExitAction(new TPS_CarSharingCheckInAndUpdateRangeAction(pc.carForThisPlan, travel_distance, car_sharing_mediators.get(arrival_located_stay.getLocation().getTAZId()),departure_located_stay.getLocation().getTAZId()));
+        }
         post_trip_activity_state.addHandler(TPS_PlanEventType.SIMULATION_STEP, post_activity_trip_state, null, i -> (int) i == activity_to_next_trip_transition_minute);
 
 
@@ -230,5 +252,29 @@ public class TPS_PlanStateSelectLocationAndModeAction implements TPS_PlanStateAc
 
     }
 
-    private void selectLocation(){}
+    private void checkIfValidModeOrSelectAlternative(TPS_ExtMode selected_mode, TPS_PlanningContext pc, TPS_LocatedStay departure, TPS_LocatedStay destination, double travel_distance){
+        if (selected_mode.primary.isType(TPS_Mode.ModeType.MIT) && pc.carForThisPlan == null) {
+            selectCarAlternative(pc, departure.getLocation(), destination.getLocation(), travel_distance);
+            if(pc.carForThisPlan == null)
+                selected_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT);
+            else {
+                //car sharing car has been taken and we need to add the checkin in the target TAZ
+                System.out.println("Carsharing taken");
+
+
+            }
+        }
+
+        if(selected_mode.primary.isType(TPS_Mode.ModeType.MIT_PASS) && !departure.getStay().isAtHome())
+            selected_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT);
+        if (selected_mode.primary.isType(TPS_Mode.ModeType.BIKE) && !pc.isBikeAvailable) {
+            selected_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.WALK);
+        }
+    }
+
+    private void selectCarAlternative(TPS_PlanningContext pc, TPS_Location departure_location, TPS_Location destination_location, double travel_distance){
+        if(this.plan.getPerson().isCarPooler()){
+            pc.carForThisPlan = car_sharing_mediators.get(departure_location.getTAZId()).request(travel_distance, destination_location.getTAZId());
+        }
+    }
 }

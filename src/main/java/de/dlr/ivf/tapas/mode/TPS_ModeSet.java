@@ -355,12 +355,13 @@ public class TPS_ModeSet implements ExtendedWritable {
             primary = dstDis.drawKey();
         }
 
+        TPS_TrafficAnalysisZone comingFromTVZ;
+        TPS_TrafficAnalysisZone goingToTVZ;
+        comingFromTVZ = mcc.fromStayLocation.getTrafficAnalysisZone();
+        goingToTVZ = mcc.toStayLocation.getTrafficAnalysisZone();
+
         //check if toll must be charged
         if (primary.isType(ModeType.MIT) && !plan.mustPayToll) {
-            TPS_TrafficAnalysisZone comingFromTVZ;
-            TPS_TrafficAnalysisZone goingToTVZ;
-            comingFromTVZ = mcc.fromStayLocation.getTrafficAnalysisZone();
-            goingToTVZ = mcc.toStayLocation.getTrafficAnalysisZone();
             boolean carMustPayToll = true;
             if (mcc.carForThisPlan != null && mcc.carForThisPlan.hasPaidToll) carMustPayToll = false;
             // set "must pay toll flag"
@@ -401,12 +402,14 @@ public class TPS_ModeSet implements ExtendedWritable {
 
         //TODO: should a forbidden bike be set to PT?
         //correct forbidden modes MIT->PT and BIKE-> WALK
-        if (primary.isType(ModeType.MIT) && mcc.carForThisPlan == null) {
+
+        //fixme correct modes outside of this
+/*        if (primary.isType(ModeType.MIT) && mcc.carForThisPlan == null) {
             primary = TPS_Mode.get(ModeType.PT);
         }
         if (primary.isType(ModeType.BIKE) && !mcc.isBikeAvailable) {
             primary = TPS_Mode.get(ModeType.PT);
-        }
+        }*/
 //		if(mode.equals(TPS_Mode.get(ModeType.WALK)) && distanceNet>TPS_UtilityFunction.walkDistanceBarrier){
 //			TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.WARN,
 //					"Unusual long walk! Probability: "+dstDis.getIndexedValue(TPS_Mode.get(ModeType.WALK))+"ranom value: "+random);

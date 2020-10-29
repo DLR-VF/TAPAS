@@ -57,7 +57,6 @@ public class TPS_Stay extends TPS_Episode implements Comparable<TPS_Stay> {
             if (deltaDuration == 0) return deltaStart;
             else return deltaDuration;
         }
-
         return deltaPriority;
     }
 

@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.plan.sequential.statemachine;
 
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.mode.TPS_CarSharingMediator;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
@@ -13,7 +14,7 @@ import java.util.*;
 
 public class TPS_PlanStateMachineFactory {
 
-    public static TPS_PlanStateMachine createTPS_PlanStateMachineWithSimpleStates(TPS_Plan plan, TPS_TripWriter writer, TPS_DB_IOManager pm){
+    public static TPS_PlanStateMachine createTPS_PlanStateMachineWithSimpleStates(TPS_Plan plan, TPS_TripWriter writer, TPS_DB_IOManager pm, Map<Integer, TPS_CarSharingMediator> car_sharing_mediators){
 
         List<TPS_PlanState> all_states = new ArrayList<>();
 
@@ -48,7 +49,11 @@ public class TPS_PlanStateMachineFactory {
                 all_stays.add((TPS_Stay) sp.getFirstEpisode());
                 all_states.add(new TPS_SimplePlanState(TPS_PlanStateConstantNames.AT_HOME.getName() + "_" + index, stateMachine));
             }else{
+
+
+
                 List<TPS_Episode> episodes = sp.getEpisodes();
+
                 for (TPS_Episode episode : episodes) {
                     if (episode instanceof TPS_Trip) {
                         all_trips.add((TPS_Trip) episode);
@@ -89,7 +94,7 @@ public class TPS_PlanStateMachineFactory {
 
 
 
-            activity_state.addOnExitAction(new TPS_PlanStateSelectLocationAndModeAction(plan, (TPS_TourPart) associated_trip.getSchemePart(), associated_trip, departure_stay, arrival_stay, pm, trip_state, post_trip_activity_state, post_activity_trip_state, plan.getPerson().getHousehold().getCarMediator()));
+            activity_state.addOnExitAction(new TPS_PlanStateSelectLocationAndModeAction(plan, (TPS_TourPart) associated_trip.getSchemePart(), associated_trip, departure_stay, arrival_stay, pm, trip_state, post_trip_activity_state, post_activity_trip_state, plan.getPerson().getHousehold().getCarMediator(),car_sharing_mediators));
 
 
         }// day finished

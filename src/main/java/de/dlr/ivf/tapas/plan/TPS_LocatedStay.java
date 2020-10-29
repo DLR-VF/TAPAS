@@ -216,7 +216,7 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
             this.setLocation(plan.getPerson().getHousehold().getLocation());
         } else {
             TPS_Region region = PM.getRegion();
-            this.setLocation(region.selectLocation(plan, pc, this));
+            this.setLocation(region. selectLocation(plan, pc, this));
             if (this.getLocation() == null) {
                 TPS_Logger.log(SeverenceLogLevel.ERROR,
                         "End select procedure for stay (id=" + this.getStay().getId() + ") with no location");
