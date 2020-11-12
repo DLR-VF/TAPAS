@@ -19,7 +19,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 //    static final String groupCol_name = "TBG_23";
     static final String diaryGroupCol = "tbg";
     static final String diaryGroupColName = "tbg";
-    static final String pgTapasCol = "pg_tapas34";
+    static final String pgTapasCol = "pg_tapas33";
+    static final String tableKey = "MID17_33";
 
     //static final int kindergartengruppe = 91;
 
@@ -83,15 +84,15 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 boolean delete = false;
 
                 if (!printOnScreen && delete) {
-                    worker.cleanUpDB("core.global_scheme_classes_mid17_34");
-                    worker.cleanUpDB("core.global_episodes_mid17_34");
-                    worker.cleanUpDB("core.global_schemes_mid17_34");
+                    worker.cleanUpDB("core.global_scheme_classes");
+                    worker.cleanUpDB("core.global_episodes");
+                    worker.cleanUpDB("core.global_schemes");
                 }
-//                worker.printSchemeClassSQLInserts("core.global_scheme_classes_mid17_34", printOnScreen);
-//                worker.printDiariesSQLInserts("core.global_episodes_mid17_34", "core.global_schemes_mid17_34",
-//                printOnScreen);
+                worker.printSchemeClassSQLInserts("core.global_scheme_classes", printOnScreen);
+                worker.printDiariesSQLInserts("core.global_episodes", "core.global_schemes",
+                printOnScreen);
 //                worker.printDistributionVectors();
-                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions_mid17_34",
+                worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions",
                         "MID_2017_" + diaryGroupColName + t.getValue() + r.getValue(), printOnScreen);
                 worker.clearEverything();
             }
@@ -149,7 +150,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
     }
 
     public void cleanUpDB(String table) {
-        String query = "DELETE FROM " + table;
+        String query = "DELETE FROM " + table + "WHERE key = '" + tableKey + "';";
         this.dbCon.execute(query, this);
     }
 
@@ -297,8 +298,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
 
         PrintWriter pw = new PrintWriter(System.out); //needed to get rid of stupid german localization of doubles!
         String tmpString = String.format(Locale.ENGLISH,
-                "INSERT INTO %s" + " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain) " +
-                        "VALUES (?,?,?,?,?,?,?);", table_episode);
+                "INSERT INTO %s" + " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain, key) " +
+                        "VALUES (?,?,?,?,?,?,?,'%s');", table_episode, tableKey);
 
         try {
             PreparedStatement pS = this.dbCon.getConnection(this).prepareStatement(tmpString);
@@ -309,8 +310,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 Diary tmp = e.getValue();
                 tmp.schemeID = schemeID;
                 tmpString = String.format(Locale.ENGLISH,
-                        "INSERT INTO %s (scheme_id, scheme_class_id, homework) VALUES (%d,%d,false);", table_schemes,
-                        tmp.schemeID, tmp.group);
+                        "INSERT INTO %s (scheme_id, scheme_class_id, homework, key) VALUES (%d,%d,false,'%s');", table_schemes,
+                        tmp.schemeID, tmp.group, tableKey);
                 if (print) {
                     pw.printf(tmpString + "\n");
                 } else {
@@ -340,9 +341,9 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                     if (!d.stay) act_code_zbe = 80;
                     //System.out.printf("Scheme %6d Start %4d Duration %4d Act %3d tour %2d home %s workchain %s\n", schemeID, start, duration, act_code_zbe, tourNumber, (home?"T":"F"), (workchain?"T":"F"));
                     tmpString = String.format(Locale.ENGLISH, "INSERT INTO %s" +
-                                    " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain) " +
-                                    "VALUES (%d,%d,%d,%d,%s,%d,%s); --hhid: %d, pid: %d", table_episode, tmp.schemeID, start,
-                            duration, act_code_zbe, home, tourNumber, workchain, tmp.hhID, tmp.pID);
+                                    " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain, key) " +
+                                    "VALUES (%d,%d,%d,%d,%s,%d,%s,'%s'); --hhid: %d, pid: %d", table_episode, tmp.schemeID, start,
+                            duration, act_code_zbe, home, tourNumber, workchain, tableKey, tmp.hhID, tmp.pID);
                     if (print) {
                         pw.printf(tmpString + "\n");
                     } else {
@@ -396,7 +397,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         String query;
         //clean up
         if (!print) {
-            query = "DELETE FROM " + tablename + " where name ='" + name + "'";
+            query = "DELETE FROM " + tablename + " where name ='" + name + "' AND key = '" + tableKey + "';";
             this.dbCon.execute(query, this);
         }
 
@@ -405,8 +406,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             norm = 1.0 / groupSumCount.get(pgroup);
             for (Integer dgroup : this.diaryGroups) {
                 query = String.format(Locale.ENGLISH,
-                        "INSERT INTO %s (name, scheme_class_id, person_group, probability) VALUES ('%s',%d,%d,%f);",
-                        tablename, name, dgroup, pgroup, groupDistribution.get(dgroup) * norm);
+                        "INSERT INTO %s (name, scheme_class_id, person_group, probability, key) VALUES ('%s',%d,%d,%f,'%s');",
+                        tablename, name, dgroup, pgroup, groupDistribution.get(dgroup) * norm, tableKey);
                 if (print) {
                     pw.printf(query + "\n");
                 } else {
@@ -550,8 +551,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 //double ways = groupAvgWay.get(i);
                 //pw.printf(Locale.ENGLISH,"%d;%f;%f;%f\n",i,avg,within, ways);
                 pw.printf(Locale.ENGLISH,
-                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev) VALUES (%d,%f,%f);\n", table,
-                        i, avg, within);
+                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev, key) VALUES (%d,%f,%f,'%s');\n", table,
+                        i, avg, within, tableKey);
 
             }
             pw.flush();
@@ -562,8 +563,8 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 avg = groupAvgTime.get(i);
                 within = groupWithinStdDeviation.get(i);
                 query = String.format(Locale.ENGLISH,
-                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev) VALUES (%d,%f,%f);", table, i,
-                        avg, within);
+                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev, key) VALUES (%d,%f,%f,'%s');", table,
+                        i, avg, within, tableKey);
                 this.dbCon.execute(query, this);
 
             }
@@ -609,7 +610,9 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
             query = "select hp_id, h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
                     "w_begl_1, w_begl_2, w_begl_3, w_begl_4, w_begl_5, w_begl_6, w_begl_7, w_begl_8, " +
                     "w_folgetag, w_zwd, wegmin, "+ pgTapasCol +", " + diaryGroupCol + " from " + table +
-                    " where w_szs != 99 and w_szs != 701 and w_azs != 99 and w_azs != 701 and wegmin != 9994 and " +
+                    " where w_szs != 99 and w_szs != 701 and w_azs != 99 and w_azs != 701 and " +
+                    " w_szm != 99 and w_szm != 701 and w_azm != 99 and w_azm != 701 and " +
+                    "wegmin != 9994 and " +
                     "wegmin != 9995 and wegmin != 70701 and " + pgTapasCol + " <>-1 and " + filter +
                     " order by hp_id,h_id, p_id, w_id";
             ResultSet rs = this.dbCon.executeQuery(query, this);

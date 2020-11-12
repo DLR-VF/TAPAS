@@ -325,65 +325,65 @@ public enum ParamString {
     DB_TABLE_CFNX,
 
     /**
-     * Tablenames which holds the codes for constant activity
+     * Table names which holds the codes for constant activity
      */
     DB_TABLE_CONSTANT_ACTIVITY,
     /**
-     * Tablenames which holds the codes for constant activity to location
+     * Table names which holds the codes for constant activity to location
      * mapping
      */
     DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION,
     /**
-     * Tablenames which holds the codes for constant age class
+     * Table names which holds the codes for constant age class
      */
     DB_TABLE_CONSTANT_AGE,
     /**
-     * Tablenames which holds the codes for constant car class
+     * Table names which holds the codes for constant car class
      */
     DB_TABLE_CONSTANT_CARS,
     /**
-     * Tablenames which holds the codes for constant distance class
+     * Table names which holds the codes for constant distance class
      */
     DB_TABLE_CONSTANT_DISTANCE,
     /**
-     * Tablenames which holds the codes for constant driving license
+     * Table names which holds the codes for constant driving license
      */
     DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION,
     /**
-     * Tablenames which holds the codes for constant income class
+     * Table names which holds the codes for constant income class
      */
     DB_TABLE_CONSTANT_INCOME,
     /**
-     * Tablenames which holds the codes for constant household type
+     * Table names which holds the codes for constant household type
      */
     DB_TABLE_CONSTANT_HOUSEHOLD,
     /**
-     * Tablenames which holds the codes for constant location type
+     * Table names which holds the codes for constant location type
      */
     DB_TABLE_CONSTANT_LOCATION,
     /**
-     * Tablenames which holds the codes for constant mode
+     * Table names which holds the codes for constant mode
      */
 
     DB_TABLE_CONSTANT_MODE,
     /**
-     * Tablenames which holds the codes for constant persongroup
+     * Table names which holds the codes for constant persongroup
      */
 
     DB_TABLE_CONSTANT_PERSON,
     /**
-     * Tablenames which holds the codes for constant settlement (region
+     * Table names which holds the codes for constant settlement (region
      * code)
      */
 
     DB_TABLE_CONSTANT_SETTLEMENT,
     /**
-     * Tablenames which holds the codes for constant sex
+     * Table names which holds the codes for constant sex
      */
     DB_TABLE_CONSTANT_SEX,
 
     /**
-     * Tablename of the global episodes table
+     * Table name of the global episodes table
      */
     DB_TABLE_EPISODE,
 
@@ -627,11 +627,47 @@ public enum ParamString {
      */
     UTILITY_FUNCTION_KEY,
     /**
-     * The key-name for the population e.g. MID2008_Y2030
+     * The key-name for the activity to location mapping e.g. MID2008_Y2030, default value is 'default'
+     * used in conjunction with the DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION table
+     */
+    DB_ACTIVITY_2_LOCATION_KEY,
+    /**
+     * The key-name for the additional traffic e.g. 'MID2008_Y2030', default value is 'default'
+     * used in conjunction with the DB_TABLE_ADDITIONAL_TRAFFIC table
+     */
+    DB_ADDITIONAL_TRAFFIC_KEY,
+    /**
+     * The key-name for the population e.g. 'MID2008_Y2030', default value is 'default'
+     * used in conjunction with the DB_TABLE_HOUSEHOLD and DB_TABLE_PERSON
      */
     DB_HOUSEHOLD_AND_PERSON_KEY,
     /**
-     * The key-name for the population e.g. MID2008_Y2030
+     * The key-name for the locations e.g. 'MID2008_Y2030', default value is 'default'
+     * used in conjunction with the DB_TABLE_LOCATION table
+     */
+    DB_LOCATION_KEY,
+    /**
+     * The key-name for the episodes table e.g. 'MID2008_Y2030', default value is 'default'
+     * used in conjunction with the DB_TABLE_EPISODE table
+     */
+    DB_EPISODE_KEY,
+    /**
+     * The key-name for the schemes table e.g. 'MID17', default value is 'default'
+     * used in conjunction with the DB_TABLE_SCHEME table
+     */
+    DB_SCHEME_KEY,
+    /**
+     * The key-name for the scheme class distribution table table e.g. 'MID17', default value is 'default'
+     * used in conjunction with the DB_TABLE_SCHEME_CLASS_DISTRIBUTION table and DB_NAME_SCHEME_CLASS_DISTRIBUTION name
+     */
+    DB_SCHEME_CLASS_DISTRIBUTION_KEY,
+    /**
+     * The key-name for the scheme classes table e.g. 'MID17', default value is 'default'
+     * used in conjunction with the DB_TABLE_SCHEME_CLASS table
+     */
+    DB_SCHEME_CLASS_KEY,
+    /**
+     * The key-name for the car fleet e.g. MID2008_Y2030
      */
     DB_CAR_FLEET_KEY,
     /**
