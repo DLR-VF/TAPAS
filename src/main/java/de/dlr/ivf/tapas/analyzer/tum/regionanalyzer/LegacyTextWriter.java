@@ -1,8 +1,9 @@
 /*
- * $Id$
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
  *
- * (c) Copyright 2009 DLR-VFBA
- * Erstellt: 27.01.2009
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package de.dlr.ivf.tapas.analyzer.tum.regionanalyzer;
 
