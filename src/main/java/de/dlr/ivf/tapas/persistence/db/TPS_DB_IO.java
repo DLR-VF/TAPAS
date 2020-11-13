@@ -757,7 +757,8 @@ public class TPS_DB_IO {
      */
     private void readActivity2LocationCodes() {
         String query = "SELECT * FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION);
+                ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) +  " where key='" +
+                this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY)+ "'";
         TPS_ActivityConstant actCode;
         int ac;
         TPS_LocationConstant locCode;
@@ -775,9 +776,11 @@ public class TPS_DB_IO {
             }
         } catch (SQLException e) {
             TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readConstant! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION), e);
+                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " or " +
+                    this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY), e);
             throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION));
+                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " or " +
+                    this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY));
         }
     }
 
