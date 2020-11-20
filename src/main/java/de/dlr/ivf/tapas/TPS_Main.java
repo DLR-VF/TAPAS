@@ -25,6 +25,8 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.io.File;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -76,12 +78,14 @@ public class TPS_Main {
             this.parameterClass.loadRuntimeParameters(file);
             TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
 
+            /*
             File tmpFile = new File(file.getPath());
             while (!tmpFile.getPath().endsWith(
                     this.parameterClass.SIM_DIR.substring(0, this.parameterClass.SIM_DIR.length() - 1))) {
                 tmpFile = tmpFile.getParentFile();
             }
             this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getParent());
+             */
 
             //try to load parameters from db
             dbConnector.readRuntimeParametersFromDB(simKey);
@@ -201,13 +205,47 @@ public class TPS_Main {
      * This method initialises all temporary tables in the database if necessary.
      * This method sets the
      */
-    public void init() {
-        if (PM instanceof TPS_DB_IOManager) {
-            TPS_DB_IOManager dbManager = (TPS_DB_IOManager) PM;
-            dbManager.createTemporaryAndOutputTables();
-        }
-    }
-
+	public void init() {
+		if (PM instanceof TPS_DB_IOManager) {
+			TPS_DB_IOManager dbManager = (TPS_DB_IOManager) PM;			
+			try {
+			    String runIdentifier = this.parameterClass.getString(ParamString.RUN_IDENTIFIER);
+				dbManager.execute("DROP TABLE IF EXISTS " + this.parameterClass.getString(ParamString.DB_TABLE_TRIPS) + ";");
+				dbManager.execute("DROP TABLE IF EXISTS temp.households_" + runIdentifier + ";");
+				dbManager.execute("DROP TABLE IF EXISTS temp.locations_" + runIdentifier + ";");
+				dbManager.createTemporaryAndOutputTables();
+				// check whether the simulation was already started once
+				ResultSet rs = dbManager.executeQuery("SELECT * FROM simulations WHERE sim_key='" + runIdentifier + "';");
+				if(rs.next()) {
+					// was already added
+					/* TODO: cannot remove a simulation, cause this triggers the drop of tables!
+					dbManager.execute("DELETE FROM simulations WHERE sim_key='"+ParamString.RUN_IDENTIFIER.getString()+"';");
+					*/
+					String query = "UPDATE simulations SET sim_ready = true, "
+							+ "sim_started = true, sim_finished = false, timestamp_started = now() WHERE sim_key = '"
+							+ runIdentifier + "'";
+					dbManager.execute(query);
+				} else {
+					String array = this.parameterClass.getString(ParamString.DB_REGION) + ","
+							+ this.parameterClass.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + ","
+							+ 0 + ","
+							+ this.parameterClass.getDoubleValue(ParamValue.DB_HH_SAMPLE_SIZE) + ", FALSE, 0";
+					String query = ("INSERT INTO simulations (sim_key, sim_file, sim_par, sim_description, timestamp_started) "
+							+ " VALUES('"
+							+ runIdentifier
+							+ "', '"
+							+ "D:/scenarios/aim_braunschweig/Simulationen/configs/run_Run_full_new.csv" // !!!
+							+ "', '{"+array+"}'::character varying[],'lokaler_test',now())");
+					dbManager.execute(query);
+				}
+				String query = "select core.prepare_simulation_for_start('" + runIdentifier + "')";
+				dbManager.execute(query);
+			} catch (SQLException e) {
+				TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception");
+				throw new RuntimeException(e.toString());
+			}
+		}
+	}
     /**
      * This method initialises the persistence manager and builds all worker threads. The method blocks until all
      * workers have finished the simulation.

@@ -152,6 +152,14 @@ task("SimulationControl", JavaExec::class) {
     classpath = sourceSets["main"].runtimeClasspath
 }
 
+task("LocalSimulation", JavaExec::class) {
+    group = "runnables"
+    description = "Starts a local simulation"
+    // Define the main class for the application
+    main = "de.dlr.ivf.tapas.runtime.TPS_Launch"
+    classpath = sourceSets["main"].runtimeClasspath
+}
+
 
 task("Installer", JavaExec::class) {
     group = "runnables"
