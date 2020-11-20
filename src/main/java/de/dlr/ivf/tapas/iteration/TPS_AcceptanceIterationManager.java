@@ -80,7 +80,8 @@ public class TPS_AcceptanceIterationManager extends TPS_IterationManagement {
                 //get scheme-travel time
                 origTT = 0;
                 query = "SELECT duration FROM " + this.parameterClass.getString(ParamString.DB_TABLE_EPISODE) +
-                        " WHERE scheme_id =" + schemeID + " AND act_code_zbe = ANY(ARRAY[])";
+                        " WHERE scheme_id =" + schemeID + " AND act_code_zbe = ANY(ARRAY[]) AND key = '" +
+                        this.parameterClass.getString(ParamString.DB_EPISODE_KEY)+ "'";
                 rs = dbManager.executeQuery(query, this);
                 while (rs.next()) {
                     origTT += rs.getInt("duration");

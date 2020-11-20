@@ -99,7 +99,7 @@ public class ParamMatrixMapClass {
         }
         int index = type.getIndex();
         if (this.paramMatrixMaps.get(param).getRight()[index] == null) throw new RuntimeException(
-                "MatrixMap for index " + index + " is not defined: " + this);
+                "MatrixMap for index " + index + " and param " + param + " is not defined: " + this);
         return this.paramMatrixMaps.get(param).getRight()[index].getMatrix(time);
     }
 
