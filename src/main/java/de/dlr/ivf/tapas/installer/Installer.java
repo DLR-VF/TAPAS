@@ -102,6 +102,7 @@ public class Installer {
             Statement statement = DBCONNECTION.createStatement();
             statement.executeUpdate("CREATE DATABASE " + dbname);
         } catch (SQLException e) {
+            System.err.println("DB already exists? Abort and leave the DB alone");
             exitAndCleanUp(e, false);
         }
     }
