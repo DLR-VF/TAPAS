@@ -112,7 +112,6 @@ public final class TPS_Launch {
         parameterClass.setValue(ParamString.DB_HOST.name(), parameters.get("DB_HOST"));
         parameterClass.setValue(ParamValue.DB_PORT.name(), parameters.get("DB_PORT"));
         parameterClass.setValue(ParamString.DB_DBNAME.name(), parameters.get("DB_DBNAME"));
-        TPS_DB_Connector dbConnection = new TPS_DB_Connector("dkrajzew", "dead.1", parameterClass);
         String query = ("INSERT INTO simulations (sim_key, sim_file, sim_par, sim_description) " + " VALUES('" +
                 sim_key + "', '"
 //				+ this.getParameters().SIM_DIR
