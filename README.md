@@ -146,7 +146,8 @@ ToDo
 ### Developer Guide with Gradle 
 
 There is a tutorial video, which explains the installation process via gradle. Watch it oor read on, it's your choice!
-[![TAPAS via gradle tutorial](https://youtu.be/_XbN65E6oN0/0.jpg)](https://youtu.be/_XbN65E6oN0)
+
+[![TAPAS via gradle tutorial](http://img.youtube.com/vi/_XbN65E6oN0/0.jpg)](https://youtu.be/_XbN65E6oN0)
 
 Clone (or fork) the whole repository from GitHub
 
@@ -176,7 +177,8 @@ Note: The gradle executable is called `gradlew`. On Linux one uses `./gradlew` t
 #### Import Project via IntelliJ
 
 There is a tutorial video, which explains the installation process via gradle. Watch it oor read on, it's your choice!
-[![TAPAS via IntelliJ tutorial](https://youtu.be/GBqY1UFvsck/0.jpg)](https://youtu.be/GBqY1UFvsck)
+
+[![TAPAS via IntelliJ tutorial](http://img.youtube.com/vi/GBqY1UFvsck/0.jpg)](https://youtu.be/GBqY1UFvsck)
 
 File -> Open... -> Either choose the cloned TAPAS folder or the build.gradle.kts file to import the project. The
  dependencies should be downloaded automatically.
