@@ -24,7 +24,7 @@ plugins {
     `maven-publish`
 
     // git versioning plugin
-    id("org.ajoberstar.reckon") version "0.12.0"
+    id("org.ajoberstar.reckon") version "0.13.0"
 }
 
 
