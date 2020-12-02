@@ -64,7 +64,7 @@ Clone (or fork) the repository from GitHub
 or download the specific files you want.  
 
 Some basic information about important files of the repository:  
-- [TAPAS-\<version\>-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073): the main jar for TAPAS. Important is the
+- [TAPAS-\<version\>-all.jar](https://github.com/DLR-VF/TAPAS/packages/526317): the main jar for TAPAS. Important is the
  ...-_all_.jar because it includes all dependencies
 - [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip): Minimal database dump: leave the zip as is
  for the Installer
