@@ -1,4 +1,4 @@
-#TAPAS (Travel Activity Pattern Simulation)
+# TAPAS (Travel Activity Pattern Simulation)
 
 
 for more information see https://wiki.dlr.de/display/MUD/TAPAS
@@ -145,7 +145,7 @@ ToDo
 
 ### Developer Guide with Gradle 
 
-There is a tutorial video, which explains the installation process via gradle. Watch it oor read on, it's your choice!
+There is a tutorial video, which explains the installation process via gradle. Watch it or read on, it's your choice!
 
 [![TAPAS via gradle tutorial](http://img.youtube.com/vi/_XbN65E6oN0/0.jpg)](https://youtu.be/_XbN65E6oN0)
 
