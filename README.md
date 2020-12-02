@@ -176,7 +176,7 @@ Note: The gradle executable is called `gradlew`. On Linux one uses `./gradlew` t
 
 #### Import Project via IntelliJ
 
-There is a tutorial video, which explains the installation process via gradle. Watch it oor read on, it's your choice!
+There is a tutorial video, which explains the installation process via gradle. Watch it or read on, it's your choice!
 
 [![TAPAS via IntelliJ tutorial](http://img.youtube.com/vi/GBqY1UFvsck/0.jpg)](https://youtu.be/GBqY1UFvsck)
 
