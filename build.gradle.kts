@@ -79,6 +79,15 @@ reckon {
     snapshotFromProp()
 }
 
+// task for checking the git status
+// useful for reckoning a "final" release
+// necessary because of differences between c git and jgit
+task("gitstatus") {
+    doLast {
+        println(grgit.status())
+    }
+}
+
 
 // This is for publishing a package to GitHub
 publishing {
