@@ -104,7 +104,7 @@ publishing {
     publications {
         create<MavenPublication>("TAPAS") {
             groupId = "de.dlr.ivf"
-            artifactId = "TAPAS"
+            artifactId = "tapas"
             version = project.version.toString()
             from(components["java"])
             artifact(tasks["shadowJar"])
