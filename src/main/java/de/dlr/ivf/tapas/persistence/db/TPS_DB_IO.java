@@ -592,7 +592,14 @@ public class TPS_DB_IO {
                         }
                     }
                     // read other attributes
-                    TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(hRs.getInt("hh_taz_id"));
+                    int tazID= hRs.getInt("hh_taz_id");
+                    TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(tazID);
+                    if(taz==null){
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
+                                "No taz found for household " +id+" hh_taz_id "+ tazID);
+                        throw new RuntimeException(); //we cannot proceed with such faulty data!
+                    }
+
                     int income = hRs.getInt("hh_income"); // TODO: why int?
                     int type = hRs.getInt("hh_type");
                     TPS_Location loc = new TPS_Location(-1 * id, -1, TPS_LocationConstant.HOME, hRs.getDouble("x"),

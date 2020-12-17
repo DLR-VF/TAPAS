@@ -444,8 +444,18 @@ public class SumoDaemon extends Thread {
         List<String> possibleSims = new LinkedList<>();
         try {
             if (this.checkAndReestablishCon()) {
-                query = "SELECT t.sim_key from core.global_sumo_status as t join simulations as s on s.sim_key=t.sim_key where msg_type='finished' and sim_finished=TRUE";
+                String sumoStatusTable ="";
+                //this table should be the same for all simulations!
+                query = "SELECT param_value from simulation_parameters where param_key = 'DB_TABLE_SUMO_STATUS'";
                 ResultSet rs = this.manager.executeQuery(query, this);
+                if (rs.next()) {
+                    sumoStatusTable = rs.getString("param_value");
+                }
+                rs.close();
+
+
+                query = "SELECT t.sim_key from "+sumoStatusTable+" as t join simulations as s on s.sim_key=t.sim_key where msg_type='finished' and sim_finished=TRUE";
+                rs = this.manager.executeQuery(query, this);
                 while (rs.next()) {
                     possibleSims.add(rs.getString("sim_key"));
                 }

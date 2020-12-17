@@ -375,6 +375,7 @@ public class TPS_ParameterClass {
                     case DB_TABLE_SIMULATION_PARAMETERS:
                     case DB_TABLE_SERVERS:
                     case DB_TABLE_PROCESSES:
+                    case DB_TABLE_SUMO_STATUS:
                         break;
                     default:
                         this.paramStringClass.add(param, ParamString.DB_SCHEMA_CORE, "");
