@@ -1,12 +1,11 @@
 package de.dlr.ivf.scripts;
 
-import com.sun.prism.shader.Solid_TextureYV12_AlphaTest_Loader;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.sql.*;
 import java.util.*;
 
-public class RamonaResultPreparator extends TPS_BasicConnectionClass {
+public class GridResultsPreparator extends TPS_BasicConnectionClass {
 
     class RamonaTrip{
         int mode=-1,
@@ -253,7 +252,7 @@ public class RamonaResultPreparator extends TPS_BasicConnectionClass {
      * @param args
      */
     public static void main(String[] args) {
-        RamonaResultPreparator worker = new RamonaResultPreparator();
+        GridResultsPreparator worker = new GridResultsPreparator();
         String[] results={"ramona_s3_trips_georeferenced_autogen","ramona_s3a_trips_georeferenced_autogen"};
         String[] sims={"berlin_trips_2020y_11m_18d_10h_11m_18s_042ms","berlin_trips_2020y_11m_18d_17h_07m_19s_860ms"};
 
