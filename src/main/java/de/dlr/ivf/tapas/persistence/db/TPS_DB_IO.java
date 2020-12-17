@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.persistence.db;
 
 import de.dlr.ivf.tapas.constants.*;
@@ -757,7 +765,8 @@ public class TPS_DB_IO {
      */
     private void readActivity2LocationCodes() {
         String query = "SELECT * FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION);
+                ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) +  " where key='" +
+                this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY)+ "'";
         TPS_ActivityConstant actCode;
         int ac;
         TPS_LocationConstant locCode;
@@ -775,9 +784,11 @@ public class TPS_DB_IO {
             }
         } catch (SQLException e) {
             TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readConstant! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION), e);
+                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " or " +
+                    this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY), e);
             throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION));
+                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " or " +
+                    this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY));
         }
     }
 
@@ -1641,7 +1652,7 @@ public class TPS_DB_IO {
         // read locations
         query = "SELECT loc_id, loc_group_id, loc_code, loc_taz_id, loc_blk_id, loc_has_fix_capacity, loc_capacity, ST_X(loc_coordinate) as x,ST_Y(loc_coordinate) as y FROM " +
                 this.PM.getParameters().getString(ParamString.DB_TABLE_LOCATION) +
-                " WHERE loc_capacity >0";  // do not add zero capacity locations
+                " WHERE loc_capacity >0 and key = '" + this.PM.getParameters().getString(ParamString.DB_LOCATION_KEY) + "'";  // do not add zero capacity locations
         ResultSet rsLoc = PM.executeQuery(query);
 
         double totalCapacity = 0;
@@ -1686,7 +1697,7 @@ public class TPS_DB_IO {
                 }
             }
         }
-        //now update the occupancy vaules from the temporary table
+        //now update the occupancy values from the temporary table
         this.updateOccupancyTable(region);
         if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
@@ -1708,7 +1719,8 @@ public class TPS_DB_IO {
 
         // build scheme classes (with time distributions)
         TPS_SchemeSet schemeSet = new TPS_SchemeSet();
-        rs = PM.executeQuery("SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME_CLASS));
+        rs = PM.executeQuery("SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME_CLASS) +
+                " where key = '" + this.PM.getParameters().getString(ParamString.DB_SCHEME_CLASS_KEY) + "'");
         while (rs.next()) {
             TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(rs.getInt("scheme_class_id"));
             double mean = rs.getDouble("avg_travel_time") * 60;
@@ -1717,7 +1729,8 @@ public class TPS_DB_IO {
 
         // build the schemes, assigning them to the right scheme classes
         Map<Integer, TPS_Scheme> schemeMap = new HashMap<>();
-        rs = PM.executeQuery("SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME));
+        rs = PM.executeQuery("SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME) +
+                " where key = '" + this.PM.getParameters().getString(ParamString.DB_SCHEME_KEY) + "'");
         while (rs.next()) {
             TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(rs.getInt("scheme_class_id"));
             TPS_Scheme scheme = schemeClass.getScheme(rs.getInt("scheme_id"), this.PM.getParameters());
@@ -1727,7 +1740,8 @@ public class TPS_DB_IO {
         // read the episodes the schemes are made of and add them to the respective schemes
         // we read them into a temporary storage first
         rs = PM.executeQuery("SELECT scheme_id, act_code_zbe, home, start, duration, tournumber FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_EPISODE) + " ORDER BY scheme_id, start");
+                this.PM.getParameters().getString(ParamString.DB_TABLE_EPISODE) + " where key = '"
+                + this.PM.getParameters().getString(ParamString.DB_EPISODE_KEY) + "' ORDER BY scheme_id, start");
         int counter = 1;
         HashMap<Integer, Vector<TPS_Episode>> episodesMap = new HashMap<>();
         TPS_Episode lastEpisode = null;
@@ -1781,6 +1795,7 @@ public class TPS_DB_IO {
         // read the mapping from person group to scheme classes
         String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION) +
                 " WHERE name='" + this.PM.getParameters().getString(ParamString.DB_NAME_SCHEME_CLASS_DISTRIBUTION) +
+                "' and key = '" + this.PM.getParameters().getString(ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY) +
                 "' ORDER BY person_group, scheme_class_id";
         rs = PM.executeQuery(query);
 

@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.tools;
 
 import java.sql.ResultSet;
@@ -37,6 +45,7 @@ public class TPS_MainDiagonalLengthEstimator extends TPS_BasicConnectionClass {
 			"	group by hh_coordinate, hh_taz_id union "+
 			"select sum(bl.loc_capacity) as cappa, loc_coordinate  as geom, loc_taz_id as taz_id"+
 			"	from "+this.parameterClass.getString(ParamString.DB_TABLE_LOCATION)+" bl "+
+			" where key = '" + this.parameterClass.getString(ParamString.DB_LOCATION_KEY) + "' " +
 			"	group by loc_coordinate, loc_taz_id) "+
 		"select sum(cappa)::integer as cappa, st_x(geom) as lon, st_y(geom) as lat, taz_id "+
 			"from cappa "+

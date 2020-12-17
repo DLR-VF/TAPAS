@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.persistence.db;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
@@ -277,7 +285,8 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                 " loc_id_end integer, lon_end double precision, lat_end double precision, start_time_min integer, travel_time_sec double precision, mode integer," +
                 " car_type integer, distance_bl_m double precision, distance_real_m double precision, activity integer," +
                 " is_home boolean, activity_start_min integer, activity_duration_min integer, emission_type integer, is_restricted boolean," +
-                " p_group integer, taz_bbr_type_start integer, bbr_type_home integer, PRIMARY KEY (p_id, hh_id, start_time_min))";
+                " p_group integer, taz_bbr_type_start integer, bbr_type_home integer, loc_selection_motive integer, " +
+                "loc_selection_motive_supply integer, PRIMARY KEY (p_id, hh_id, start_time_min))";
         this.execute(query);
     }
 
