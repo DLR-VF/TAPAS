@@ -136,6 +136,7 @@ public class Installer {
             System.out.println("Try to drop newly created database " + DBNAME);
             stmt = DBCONNECTION.createStatement();
             stmt.execute("DROP DATABASE IF EXISTS " + DBNAME);
+            System.out.println(DBNAME + " successfully dropped");
         } catch (SQLException e) {
             System.err.println("Could not delete database " + DBNAME);
             exitAndCleanUp(e, false);
@@ -347,19 +348,19 @@ public class Installer {
      */
     private static List<String> parseFunctionFile(String functionString) {
         //            String functionString = Files.readString(Paths.get(file));
-        String[] bar = functionString.split("CREATE OR REPLACE FUNCTION");
+        String[] functionStringArray = functionString.split("CREATE OR REPLACE FUNCTION");
         //first basic sql statements which are not a function
-        ArrayList<String> stringlist = Arrays.stream(bar[0].split(";")).collect(
+        ArrayList<String> stringlist = Arrays.stream(functionStringArray[0].split(";")).collect(
                 Collectors.toCollection(ArrayList::new));
-        for (int i = 0; i < bar.length - 1; i++) {
-            String[] baz = bar[i].split("COST 100;");
+        for (int i = 0; i <= functionStringArray.length - 1; i++) {
+            String[] baz = functionStringArray[i].split("COST 100;");
             if (baz.length > 1) {
                 stringlist.add("CREATE OR REPLACE FUNCTION" + baz[0] + "COST 100;");
                 stringlist.addAll(Arrays.stream(baz[1].split(";")).collect(Collectors.toList()));
             } else stringlist.addAll(Arrays.stream(baz[0].split(";")).collect(Collectors.toList()));
         }
         //last basic sql statements
-        stringlist.addAll(Arrays.stream(bar[0].split(";")).collect(Collectors.toList()));
+//        stringlist.addAll(Arrays.stream(functionStringArray[functionStringArray.length - 1].split(";")).collect(Collectors.toList()));
         return stringlist;
     }
 
