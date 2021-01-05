@@ -11,7 +11,7 @@ import de.dlr.ivf.tapas.person.TPS_Preference.PreferenceSet;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingClass;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceAccessibility;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceSupply;
-import de.dlr.ivf.tapas.plan.sequential.communication.TPS_HouseholdCarMediator;
+import de.dlr.ivf.tapas.execution.sequential.communication.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
