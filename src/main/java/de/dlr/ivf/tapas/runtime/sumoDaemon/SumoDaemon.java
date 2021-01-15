@@ -314,8 +314,7 @@ public class SumoDaemon extends Thread {
         String query = "";
         try {
             if (this.checkAndReestablishCon()) {
-                String sumoStatusTable = this.manager.readSingleParameter(sim_key, "DB_SCHEMA_CORE") +
-                        this.manager.readSingleParameter(sim_key, "DB_TABLE_SUMO_STATUS");
+                String sumoStatusTable = this.manager.readSingleParameter(sim_key, "DB_TABLE_SUMO_STATUS");
                 if (!sumoStatusTable.equals("")) {
                     query = "SELECT max(iteration) as iter, count(*)::integer as num FROM " + sumoStatusTable +
                             " WHERE msg_type = 'finished' and sim_key ='" + sim_key + "'";
