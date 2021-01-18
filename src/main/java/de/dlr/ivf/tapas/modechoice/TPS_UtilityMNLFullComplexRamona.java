@@ -289,7 +289,7 @@ public class TPS_UtilityMNLFullComplexRamona extends TPS_UtilityMNL {
                 (shopping ? parameters[11] : 0) + //tourpart mit Einkauf
                 (errant ? parameters[12] : 0) + //tourpart mit Erledigung
                 (leisure ? parameters[13] : 0) +
-                (feederArea ? 1 : 0); //RAMONA constant for feederArea  
+                (feederArea ? 0.5 : 0); //RAMONA constant for feederArea
     }
 
 
