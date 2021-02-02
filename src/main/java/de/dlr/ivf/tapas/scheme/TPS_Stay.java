@@ -56,7 +56,7 @@ public class TPS_Stay extends TPS_Episode implements Comparable<TPS_Stay> {
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     public int compareTo(TPS_Stay stay) {
-        int deltaPriority = this.getPriority() - stay.getPriority(); // higher priority -> first in list
+        int deltaPriority = stay.getPriority() - this.getPriority(); // higher priority -> first in list
         if (deltaPriority == 0) {
             int deltaDuration = this.getOriginalDuration() -
                     stay.getOriginalDuration(); // same priority: longer duration -> first in list

@@ -1,4 +1,4 @@
-#TAPAS (Travel Activity Pattern Simulation)
+# TAPAS (Travel Activity Pattern Simulation)
 
 
 for more information see https://wiki.dlr.de/display/MUD/TAPAS
@@ -64,7 +64,7 @@ Clone (or fork) the repository from GitHub
 or download the specific files you want.  
 
 Some basic information about important files of the repository:  
-- [TAPAS-\<version\>-all.jar](https://github.com/DLR-VF/TAPAS/packages/202073): the main jar for TAPAS. Important is the
+- [TAPAS-\<version\>-all.jar](https://github.com/DLR-VF/TAPAS/packages/526317): the main jar for TAPAS. Important is the
  ...-_all_.jar because it includes all dependencies
 - [sql_dumps.zip](https://github.com/DLR-VF/TAPAS/blob/master/sql_dumps.zip): Minimal database dump: leave the zip as is
  for the Installer
@@ -145,6 +145,10 @@ ToDo
 
 ### Developer Guide with Gradle 
 
+There is a tutorial video, which explains the installation process via gradle. Watch it or read on, it's your choice!
+
+[![TAPAS via gradle tutorial](http://img.youtube.com/vi/_XbN65E6oN0/0.jpg)](https://youtu.be/_XbN65E6oN0)
+
 Clone (or fork) the whole repository from GitHub
 
     git clone https://github.com/DLR-VF/TAPAS.git
@@ -171,6 +175,10 @@ Note: The gradle executable is called `gradlew`. On Linux one uses `./gradlew` t
  
 
 #### Import Project via IntelliJ
+
+There is a tutorial video, which explains the installation process via gradle. Watch it or read on, it's your choice!
+
+[![TAPAS via IntelliJ tutorial](http://img.youtube.com/vi/GBqY1UFvsck/0.jpg)](https://youtu.be/GBqY1UFvsck)
 
 File -> Open... -> Either choose the cloned TAPAS folder or the build.gradle.kts file to import the project. The
  dependencies should be downloaded automatically.

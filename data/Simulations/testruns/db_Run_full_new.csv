@@ -1,7 +1,5 @@
 name,value,comment
 FLAG_DELETE_TEMPORARY_TABLES,false,
-DB_DBNAME,tapas,the tapas db name
-DB_DRIVER,org.postgresql.Driver,
 DB_REGION,berlin,
 DB_NAME_BLOCK_NEXT_PT_STOP,Block_OEVNearest_Berlin_2008,
 DB_NAME_BLOCK_SCORES,pt-2008,
