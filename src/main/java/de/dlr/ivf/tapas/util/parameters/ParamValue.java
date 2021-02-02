@@ -264,7 +264,6 @@ public enum ParamValue {
      */
     MAX_TRIES_SCHEME,
 
-    MAX_TRIES_PLANS,
 
     /**
      * maximum number of iterations for finding locations: the system speed

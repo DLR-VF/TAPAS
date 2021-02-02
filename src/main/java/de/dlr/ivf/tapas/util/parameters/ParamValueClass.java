@@ -67,7 +67,6 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.MAX_TIME_DIFFERENCE, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.MAX_TRIES_PERSON, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.MAX_TRIES_SCHEME, new MutablePair<>(ParamType.DEFAULT, null));
-        this.paramValues.put(ParamValue.MAX_TRIES_PLANS, new MutablePair<>(ParamType.OPTIONAL, 1));
         this.paramValues.put(ParamValue.MAX_TRIES_LOCATION_SELECTION, new MutablePair<>(ParamType.DEFAULT, 6));
         this.paramValues.put(ParamValue.MAX_VISUM_ITERATION, new MutablePair<>(ParamType.DEFAULT, 0));
         this.paramValues.put(ParamValue.MAX_SUMO_ITERATION, new MutablePair<>(ParamType.DEFAULT, 0));
