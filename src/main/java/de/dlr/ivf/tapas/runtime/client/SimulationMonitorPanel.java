@@ -110,7 +110,6 @@ public class SimulationMonitorPanel extends JPanel {
         columnNames[SIM_INDEX.DATE_STARTED.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_DATE_STARTED");
         columnNames[SIM_INDEX.DATE_FINISHED.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_DATE_FINISHED");
         columnNames[SIM_INDEX.ACTION.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_ACTION");
-        columnNames[SIM_INDEX.PARAMS.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_PARAMETERS");
 
         return columnNames;
     }
@@ -131,7 +130,6 @@ public class SimulationMonitorPanel extends JPanel {
         data[SIM_INDEX.ELAPSED.ordinal()] = 0;
         data[SIM_INDEX.ESTIMATED.ordinal()] = 0;
         data[SIM_INDEX.ACTION.ordinal()] = "";
-        data[SIM_INDEX.PARAMS.ordinal()] = simulation.getSimParams();
 
         return data;
     }
@@ -186,7 +184,6 @@ public class SimulationMonitorPanel extends JPanel {
         table.initTableColumn(SIM_INDEX.DATE_FINISHED.ordinal(), 111, new AlignmentRenderer(JLabel.RIGHT, true), null);
         table.initTableColumn(SIM_INDEX.DATE_STARTED.ordinal(), 111, new AlignmentRenderer(JLabel.RIGHT, true), null);
         table.initTableColumn(SIM_INDEX.ACTION.ordinal(), 75, new ButtonRenderer(true), new SimTableButtonEditor());
-        table.initTableColumn(SIM_INDEX.PARAMS.ordinal(), 0, new StringArrayRenderer(true), null);
 
 
     }
@@ -244,7 +241,7 @@ public class SimulationMonitorPanel extends JPanel {
     }
 
     private enum SIM_INDEX {
-        KEY, FILE, STOPPED, STARTED, FINISHED, PROGRESS, COUNT, ELAPSED, ESTIMATED, DATE_STARTED, DATE_FINISHED, ACTION, PARAMS
+        KEY, FILE, STOPPED, STARTED, FINISHED, PROGRESS, COUNT, ELAPSED, ESTIMATED, DATE_STARTED, DATE_FINISHED, ACTION
     }
 
     /**
@@ -677,7 +674,6 @@ public class SimulationMonitorPanel extends JPanel {
             columNames.put(SIM_INDEX.DATE_STARTED, MultilanguageSupport.getString("SIM_HEADER_DATE_STARTED"));
             columNames.put(SIM_INDEX.DATE_FINISHED, MultilanguageSupport.getString("SIM_HEADER_DATE_FINISHED"));
             columNames.put(SIM_INDEX.ACTION, MultilanguageSupport.getString("SIM_HEADER_ACTION"));
-            columNames.put(SIM_INDEX.PARAMS, MultilanguageSupport.getString("SIM_HEADER_PARAMETERS"));
         }
 
         public String getColumName(SIM_INDEX idx) {
@@ -787,9 +783,6 @@ public class SimulationMonitorPanel extends JPanel {
                             return simulation.getTimestampFinished();
                         case ACTION:
                             return simulation.getState().getAction();
-                        case PARAMS:
-                            simulation.getSimParams();
-
                         default:
                             return null;
                     }

@@ -303,23 +303,10 @@ public class SimulationControl {
         double randomSeed = generator.nextDouble(); // postgres needs a double
         // value as seed ranging
         // from 0 to 1
-        String array = parameters.get("DB_REGION") + "," + parameters.get("DB_HOUSEHOLD_AND_PERSON_KEY") + "," +
-                randomSeed + "," + Double.parseDouble(parameters.get("DB_HH_SAMPLE_SIZE")) + ", ";
-        if (Behaviour.FAT.equals(TPS_DB_IOManager.BEHAVIOUR)) array = array.concat("FALSE");
-        else array = array.concat("TRUE");
-        // new parameter: iteration
-        array = array.concat(",0");
-        // String query =
-        // ("INSERT INTO simulations (sim_key, sim_file, sim_par) "
-        // + " VALUES('" + sim_key + "', '"
-        // + simulation.getRelativeFileName() + "', '{" + array +
-        // "}'::character varying[])");
 
-        String query = ("INSERT INTO simulations (sim_key, sim_file, sim_par, sim_description) " + " VALUES('" +
-                sim_key + "', '"
-//				+ this.getParameters().SIM_DIR
-//				+ new File(this.props.get(ClientControlPropKey.LOGIN_CONFIG)).getName()
-                + "', '{" + array + "}'::character varying[],'" + filename + "')");
+
+        String query = ("INSERT INTO simulations (sim_key, sim_file, sim_description) VALUES('" +
+                sim_key + "', '', '" + filename + "')");
 
         SimulationControl.this.dbConnection.execute(query, this);
         if (addConfigToDB) {

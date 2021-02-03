@@ -820,7 +820,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         data[SIM_INDEX.ELAPSED.ordinal()] = 0;
         data[SIM_INDEX.ESTIMATED.ordinal()] = 0;
         data[SIM_INDEX.ACTION.ordinal()] = "";
-        data[SIM_INDEX.PARAMS.ordinal()] = simulation.getSimParams();
         ((DefaultTableModel) this.simTable.getModel()).addRow(data);
         //((DefaultTableModel) this.simTable.getModel()).fireTableDataChanged();
 
@@ -1125,7 +1124,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                 "SIM_HEADER_ESTIMATED"), MultilanguageSupport.getString(
                 "SIM_HEADER_DATE_STARTED"), MultilanguageSupport.getString(
                 "SIM_HEADER_DATE_FINISHED"), MultilanguageSupport.getString(
-                "SIM_HEADER_ACTION"), MultilanguageSupport.getString("SIM_HEADER_PARAMETERS")};
+                "SIM_HEADER_ACTION")};
         // MultilanguageSupport
         ((DefaultTableModel) this.simTable.getModel()).setColumnIdentifiers(simHeader);
 
@@ -1164,7 +1163,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                 null);
         this.simTable.initTableColumn(SIM_INDEX.ACTION.ordinal(), 75, new ButtonRenderer(true),
                 new SimTableButtonEditor());
-        this.simTable.initTableColumn(SIM_INDEX.PARAMS.ordinal(), 0, new StringArrayRenderer(true), null);
 
         this.simTable.setDragEnabled(true);
         this.simTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -1580,7 +1578,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
             simTable.setValueAt(simulation.getEstimatedTime(control.getCurrentDatabaseTimestamp()), row,
                     SIM_INDEX.ESTIMATED.ordinal());
             simTable.setValueAt(simulation.getState().getAction(), row, SIM_INDEX.ACTION.ordinal());
-            simTable.setValueAt(simulation.getSimParams(), row, SIM_INDEX.PARAMS.ordinal());
         }
 
     }
