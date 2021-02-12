@@ -152,7 +152,7 @@ public class SimulationData {
      * @param sim_finished finished flag
      */
     private SimulationData(String sim_key, String fileName, String description, long sim_progress, long sim_total, boolean sim_ready, boolean sim_started, boolean sim_finished) {
-        this.fileName = fileName.replace('\\', '/');
+        this.fileName = fileName;
         this.description = description;
         this.sim_finished = sim_finished;
         this.sim_key = sim_key;

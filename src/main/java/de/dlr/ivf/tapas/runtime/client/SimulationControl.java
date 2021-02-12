@@ -275,12 +275,7 @@ public class SimulationControl {
      *                      inserting the simulation into the database
      */
     public void addSimulation(String sim_key, String filename, boolean addConfigToDB) throws IOException, SQLException {
-//        filename = filename.replace('\\', '/').substring(tapasNetworkDirectory.getAbsolutePath().length());
-
-        String fullFileName;
-
-//        fullFileName = tapasNetworkDirectory.getAbsolutePath() + filename;
-        fullFileName = filename;
+        String fullFileName = filename;
         // now read the parameters and store them into the db
         HashMap<String, String> parameters = new HashMap<>();
         this.parameterFiles.push(new File(fullFileName));
@@ -291,7 +286,6 @@ public class SimulationControl {
         String paramVal = parameters.get("SUMO_DESTINATION_FOLDER");
         paramVal += "_" + sim_key;
         parameters.put("SUMO_DESTINATION_FOLDER", paramVal);
-
 
         Random generator;
         if (parameters.get("RANDOM_SEED_NUMBER") != null && Boolean.parseBoolean(
@@ -304,9 +298,9 @@ public class SimulationControl {
         // value as seed ranging
         // from 0 to 1
 
-
-        String query = ("INSERT INTO simulations (sim_key, sim_file, sim_description) VALUES('" +
-                sim_key + "', '', '" + filename + "')");
+        String projectName = parameters.getOrDefault("PROJECT_NAME", "");
+        String query = String.format("INSERT INTO simulations (sim_key, sim_file, sim_description) VALUES('%s', '%s', '%s')",
+                sim_key, filename, projectName);
 
         SimulationControl.this.dbConnection.execute(query, this);
         if (addConfigToDB) {

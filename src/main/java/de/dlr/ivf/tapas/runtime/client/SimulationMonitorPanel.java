@@ -19,6 +19,7 @@ import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKe
 import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.runtime.client.SimulationMonitor.SIM_INDEX;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -99,6 +100,7 @@ public class SimulationMonitorPanel extends JPanel {
 
         String[] columnNames = new String[SIM_INDEX.values().length];
         columnNames[SIM_INDEX.KEY.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_KEY");
+        columnNames[SIM_INDEX.DESCRIPTION.ordinal()]= MultilanguageSupport.getString("SIM_HEADER_DESCRIPTION");
         columnNames[SIM_INDEX.FILE.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_FILE");
         columnNames[SIM_INDEX.STOPPED.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_READY");
         columnNames[SIM_INDEX.STARTED.ordinal()] = MultilanguageSupport.getString("SIM_HEADER_STARTED");
@@ -118,8 +120,8 @@ public class SimulationMonitorPanel extends JPanel {
         Object[] data = new Object[SIM_INDEX.values().length];
 
         data[SIM_INDEX.KEY.ordinal()] = simulation.getKey();
-        data[SIM_INDEX.FILE.ordinal()] =
-                simulation.getDescription() == null ? simulation.getRelativeFileName() : simulation.getDescription();
+        data[SIM_INDEX.DESCRIPTION.ordinal()] = simulation.getDescription() == null ? simulation.getRelativeFileName() : simulation.getDescription();
+        data[SIM_INDEX.FILE.ordinal()] =simulation.getRelativeFileName();
         data[SIM_INDEX.PROGRESS.ordinal()] = 0;
         data[SIM_INDEX.COUNT.ordinal()] = simulation.getProgress() + "/" + simulation.getTotal();
         data[SIM_INDEX.STOPPED.ordinal()] = simulation.minimumState(TPS_SimulationState.STOPPED);
@@ -238,10 +240,6 @@ public class SimulationMonitorPanel extends JPanel {
                 removeSimulation(s);
             }
         }
-    }
-
-    private enum SIM_INDEX {
-        KEY, FILE, STOPPED, STARTED, FINISHED, PROGRESS, COUNT, ELAPSED, ESTIMATED, DATE_STARTED, DATE_FINISHED, ACTION
     }
 
     /**
@@ -651,7 +649,7 @@ public class SimulationMonitorPanel extends JPanel {
          *
          */
         private static final long serialVersionUID = 480350486132112132L;
-        private final EnumMap<SIM_INDEX, String> columNames;
+        private final EnumMap<SIM_INDEX, String> columnNames;
         private final SimulationList data = new SimulationList();
         private final TPS_ParameterClass parameterClass;
 
@@ -661,27 +659,28 @@ public class SimulationMonitorPanel extends JPanel {
 
             MultilanguageSupport.init(SimulationMonitor.class);
 
-            columNames = new EnumMap<>(SIM_INDEX.class);
-            columNames.put(SIM_INDEX.KEY, MultilanguageSupport.getString("SIM_HEADER_KEY"));
-            columNames.put(SIM_INDEX.FILE, MultilanguageSupport.getString("SIM_HEADER_FILE"));
-            columNames.put(SIM_INDEX.STOPPED, MultilanguageSupport.getString("SIM_HEADER_READY"));
-            columNames.put(SIM_INDEX.STARTED, MultilanguageSupport.getString("SIM_HEADER_STARTED"));
-            columNames.put(SIM_INDEX.FINISHED, MultilanguageSupport.getString("SIM_HEADER_FINISHED"));
-            columNames.put(SIM_INDEX.PROGRESS, MultilanguageSupport.getString("SIM_HEADER_PROGRESS"));
-            columNames.put(SIM_INDEX.COUNT, MultilanguageSupport.getString("SIM_HEADER_COUNT"));
-            columNames.put(SIM_INDEX.ELAPSED, MultilanguageSupport.getString("SIM_HEADER_ELAPSED"));
-            columNames.put(SIM_INDEX.ESTIMATED, MultilanguageSupport.getString("SIM_HEADER_ESTIMATED"));
-            columNames.put(SIM_INDEX.DATE_STARTED, MultilanguageSupport.getString("SIM_HEADER_DATE_STARTED"));
-            columNames.put(SIM_INDEX.DATE_FINISHED, MultilanguageSupport.getString("SIM_HEADER_DATE_FINISHED"));
-            columNames.put(SIM_INDEX.ACTION, MultilanguageSupport.getString("SIM_HEADER_ACTION"));
+            columnNames = new EnumMap<>(SIM_INDEX.class);
+            columnNames.put(SIM_INDEX.KEY, MultilanguageSupport.getString("SIM_HEADER_KEY"));
+            columnNames.put(SIM_INDEX.DESCRIPTION, MultilanguageSupport.getString("SIM_HEADER_DESCRIPTION"));
+            columnNames.put(SIM_INDEX.FILE, MultilanguageSupport.getString("SIM_HEADER_FILE"));
+            columnNames.put(SIM_INDEX.STOPPED, MultilanguageSupport.getString("SIM_HEADER_READY"));
+            columnNames.put(SIM_INDEX.STARTED, MultilanguageSupport.getString("SIM_HEADER_STARTED"));
+            columnNames.put(SIM_INDEX.FINISHED, MultilanguageSupport.getString("SIM_HEADER_FINISHED"));
+            columnNames.put(SIM_INDEX.PROGRESS, MultilanguageSupport.getString("SIM_HEADER_PROGRESS"));
+            columnNames.put(SIM_INDEX.COUNT, MultilanguageSupport.getString("SIM_HEADER_COUNT"));
+            columnNames.put(SIM_INDEX.ELAPSED, MultilanguageSupport.getString("SIM_HEADER_ELAPSED"));
+            columnNames.put(SIM_INDEX.ESTIMATED, MultilanguageSupport.getString("SIM_HEADER_ESTIMATED"));
+            columnNames.put(SIM_INDEX.DATE_STARTED, MultilanguageSupport.getString("SIM_HEADER_DATE_STARTED"));
+            columnNames.put(SIM_INDEX.DATE_FINISHED, MultilanguageSupport.getString("SIM_HEADER_DATE_FINISHED"));
+            columnNames.put(SIM_INDEX.ACTION, MultilanguageSupport.getString("SIM_HEADER_ACTION"));
         }
 
         public String getColumName(SIM_INDEX idx) {
-            return columNames.get(idx);
+            return columnNames.get(idx);
         }
 
-        public String[] getColumNames() {
-            return columNames.values().toArray(new String[0]);
+        public String[] getColumnNames() {
+            return columnNames.values().toArray(new String[0]);
         }
 
         @Override
