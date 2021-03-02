@@ -263,8 +263,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO, "Create temporary location table");
         }
-        functionExecute("create_temp_locations", ParamString.DB_TABLE_LOCATION, ParamString.DB_TABLE_LOCATION_TMP,
-                !Behaviour.FAT.equals(TPS_DB_IOManager.BEHAVIOUR));
+        functionExecute("create_temp_locations", ParamString.DB_TABLE_LOCATION, ParamString.DB_TABLE_LOCATION_TMP);
 
 
         if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {

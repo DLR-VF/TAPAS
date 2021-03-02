@@ -40,6 +40,11 @@ public class Installer {
     // this must be set to true here otherwise existsDestinationDirectory does not work
     private static boolean DESTINATION_ALREADY_EXISTS = true;
 
+    // source sql files archive
+    private static String source = "sql_dumps.zip";
+    // directory to which the source is going to be extracted
+    private static String destination = "tmp_sql_dumps";
+
     /**
      * Closes the database connection
      */
@@ -268,6 +273,7 @@ public class Installer {
     /**
      * Method to exit the program as cleanly as possible when an exception occurred,
      * i.e. it prints the stack trace and drops the newly created database if necessary
+     * additionally it deletes the destination folder (if it did not exist at the beginning)
      *
      * @param e       exception whose stack trace is printed
      * @param cleanUp if true it drops the newly created database
@@ -275,6 +281,7 @@ public class Installer {
     private static void exitAndCleanUp(Exception e, boolean cleanUp) {
         e.printStackTrace();
         if (cleanUp) dropDBIfFailed();
+        if (cleanUp & !DESTINATION_ALREADY_EXISTS) deleteDirectory(new File(destination));
         System.exit(1);
     }
 
@@ -298,9 +305,6 @@ public class Installer {
     }
 
     public static void main(String[] args) {
-        String source = "sql_dumps.zip";
-        String destination = "tmp_sql_dumps";
-
         Options options = new Options();
         options.addOption("n", "dbname", true, "Database Name");
         options.addOption("u", "dbuser", true, "Database User with sufficient rights");

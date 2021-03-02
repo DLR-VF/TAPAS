@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
-    /// The number of representats to choose
+    /// The number of representants to choose
     int numOfTazRepresentants = 3;
 
     public List<TPS_Location> generateLocationRepr(TPS_ActivityConstant actCode, TPS_TrafficAnalysisZone taz) {

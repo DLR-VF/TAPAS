@@ -23,7 +23,7 @@ public abstract class TPS_LocationSelectModel {
     /**
      * The interface method to select a location from the given choice set
      *
-     * @param choiceSet the choiceset to scan
+     * @param choiceSet the choice set to scan
      * @return the picked location.
      */
 
