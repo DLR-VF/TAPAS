@@ -875,7 +875,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
             }
 
             if (rows.length > 0 && JOptionPane.showConfirmDialog(frame,
-                    "Folgende Simulationen lï¿½schen:\n\n" + toDelete + "?") == JOptionPane.YES_OPTION) {
+                    "Folgende Simulationen löschen:\n\n" + toDelete + "?") == JOptionPane.YES_OPTION) {
                 for (Object[] row : rows) {
                     final String simKey = (String) row[SIM_INDEX.KEY.ordinal()];
                     new Thread(() -> {
