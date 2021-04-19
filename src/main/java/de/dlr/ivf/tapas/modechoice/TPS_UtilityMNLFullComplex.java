@@ -173,7 +173,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                                 mcc.toStayLocation.getTAZId(), mcc.startTime) * TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
-            case TRAIN: //car sharing-faker
+            case CAR_SHARING: //car sharing-faker
                 if ((mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) && mode.getParameters().isTrue(
                         ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler()) //cs user?
                         || (mode.getParameters().isDefined(ParamFlag.FLAG_USE_ROBOTAXI) && mode.getParameters().isTrue(

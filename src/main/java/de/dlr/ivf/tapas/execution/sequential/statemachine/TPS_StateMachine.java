@@ -4,6 +4,7 @@ import de.dlr.ivf.tapas.execution.sequential.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_PlanEvent;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -13,8 +14,9 @@ import java.util.Objects;
  * down to its current state and lets the state decide whether it needs to transition by checking for an appropriate handler.
  * When the state has a handler for the event, it will pass its handler back to the state machine which will then invoke
  * the transition
+ *
  */
-public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
+public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler{
 
 
     /**
@@ -34,7 +36,7 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
 
     //TODO implement this for exception handling
     /**
-     * this state machine will get into this state whenever an error of any other problems occur
+     * this state machine will get into this state whenever an error or any other problems occur
      */
     private TPS_PlanState error_state;
 
@@ -48,11 +50,20 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
      */
     private List<TPS_PlanState> states;
 
-    public TPS_PlanStateMachine(String name){
+    private Map<EpisodeType, TPS_PlanState> statemappings;
+
+    public TPS_StateMachine(String name){
         this.name = name;
     }
 
-    public TPS_PlanStateMachine(TPS_PlanState initialState, List<TPS_PlanState> states, TPS_PlanState end_state, String name){
+    public TPS_StateMachine(Map<EpisodeType,TPS_PlanState> state_mappings, String name){
+
+        this.statemappings = state_mappings;
+
+        this.name = name;
+    }
+
+    public TPS_StateMachine(TPS_PlanState initialState, List<TPS_PlanState> states, TPS_PlanState end_state, String name){
         Objects.requireNonNull(initialState);
         Objects.requireNonNull(states);
         Objects.requireNonNull(end_state);
@@ -97,8 +108,8 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
         exitState();
 
         //then we make the transition
-        if(handler.getAction() != null)
-            executeAction(handler.getAction());
+        if(handler.getActions() != null)
+            executeActions(handler.getActions());
 
         //now we enter the new state
         enterState(handler);
@@ -116,8 +127,8 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
         current_state.enter();
     }
 
-    private void executeAction(TPS_PlanStateAction action){
-        action.run();
+    private void executeActions(List<TPS_PlanStateAction> actions){
+        actions.forEach(TPS_PlanStateAction::run);
     }
 
     private void exitState(){
@@ -142,4 +153,15 @@ public class TPS_PlanStateMachine implements TPS_PlanStatemachineEventHandler{
         this.states = states;
     }
 
+    public TPS_PlanState getCurrentState(){
+        return this.current_state;
+    }
+
+    public TPS_PlanState getEndState(){
+        return this.end_state;
+    }
+
+    public void transitionToEndState() {
+        this.current_state = end_state;
+    }
 }

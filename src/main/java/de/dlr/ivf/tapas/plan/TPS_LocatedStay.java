@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.plan;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
@@ -19,6 +27,8 @@ import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
+
+import java.util.function.Supplier;
 
 /**
  * @author cyga_ri
@@ -173,7 +183,7 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
      * @param plan day plan to be executed
      * @param pc
      */
-    public void selectLocation(TPS_Plan plan, TPS_PlanningContext pc) {
+    public void selectLocation(TPS_Plan plan, TPS_PlanningContext pc, Supplier<TPS_Stay> next_stay) {
         if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
             TPS_Logger.log(SeverenceLogLevel.DEBUG,
                     "Start select procedure for stay (id=" + this.getStay().getId() + ")");
@@ -198,13 +208,13 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
 
         // Has to be a tour part because all home parts are at home; home parts will never reach this method
         TPS_TourPart tourpart = (TPS_TourPart) this.stay.getSchemePart();
-        TPS_Stay comingFrom = tourpart.getPreviousStay(this.stay);
-        TPS_Stay goingTo = plan.getNextHomeStay(tourpart);
-//        if (!plan.isLocated(comingFrom) || !plan.isLocated(goingTo)) {
-//            // this case should be impossible because we now iterate over the priorised stays,
-//            // so every stay where we can come from or where we go to is located
-//            throw new IllegalStateException("Found no location for a higher priorised stay");
-//        }
+        TPS_Stay comingFrom = tourpart.getStayHierarchy(this.stay).getPrevStay();
+        TPS_Stay goingTo = next_stay.get();
+        if (!plan.isLocated(comingFrom) || !plan.isLocated(goingTo)) {
+            // this case should be impossible because we now iterate over the priorised stays,
+            // so every stay where we can come from or where we go to is located
+            throw new IllegalStateException("Found no location for a higher priorised stay");
+        }
 
         if (currentActCode.hasAttribute(TPS_ActivityConstantAttribute.E_COMMERCE_OUT_OF_HOME)) {
             // Is this an activity that (if it not takes place at home anyway) should be executed in the very
@@ -216,7 +226,7 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
             this.setLocation(plan.getPerson().getHousehold().getLocation());
         } else {
             TPS_Region region = PM.getRegion();
-            this.setLocation(region. selectLocation(plan, pc, this));
+            this.setLocation(region.selectLocation(plan, pc, this));
             if (this.getLocation() == null) {
                 TPS_Logger.log(SeverenceLogLevel.ERROR,
                         "End select procedure for stay (id=" + this.getStay().getId() + ") with no location");
@@ -232,8 +242,8 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
 
         // Get distance from home The MIV-mode is used to get distances on the net.
         this.setDistance(TPS_Mode.get(ModeType.MIT)
-                                 .getDistance(plan.getLocatedStay(comingFrom).getLocation(), this.getLocation(),
-                                         SimulationType.SCENARIO, null));
+                .getDistance(plan.getLocatedStay(comingFrom).getLocation(), this.getLocation(),
+                        SimulationType.SCENARIO, null));
     }
 
     /**

@@ -2,12 +2,13 @@ package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
 import de.dlr.ivf.tapas.execution.sequential.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_PlanEvent;
-import de.dlr.ivf.tapas.execution.sequential.event.TPS_PlanEventType;
-import de.dlr.ivf.tapas.execution.sequential.guard.TPS_StateGuard;
+import de.dlr.ivf.tapas.execution.sequential.event.TPS_EventType;
+import de.dlr.ivf.tapas.execution.sequential.guard.Guard;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
 
@@ -19,52 +20,45 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     /**
      * Will hold any handler
      */
-    private EnumMap<TPS_PlanEventType, TPS_PlanStateTransitionHandler> handlers;
+    private EnumMap<TPS_EventType, TPS_PlanStateTransitionHandler> handlers;
 
     /**
      * The name
      */
     private String name;
 
+    private EpisodeType type;
+
     /**
      * The enter action that will run when this state is being entered
      */
-    private List<TPS_PlanStateAction> enter_actions;
+    private List<Supplier<TPS_PlanStateAction>> enter_actions;
 
     /**
      * The exit action that will run when this state is being exited
      */
 
-    private List<TPS_PlanStateAction> exit_actions;
+    private List<Supplier<TPS_PlanStateAction>> exit_actions;
 
     /**
      * a Reference to the parent state machine
      */
-    private TPS_PlanStateMachine stateMachine;
+    private TPS_StateMachine stateMachine;
 
     /**
      *
-     * @param name
-     * simple name to identify the state
-     */
-    public TPS_SimplePlanState(String name){
-        this(name, null);
-    }
 
-    /**
-     *
-     * @param name
      * simple name to identify the state
      * @param stateMachine
      * reference to the state machine
      */
-    public TPS_SimplePlanState(String name, TPS_PlanStateMachine stateMachine){
-        this(name,stateMachine, new ArrayList<TPS_PlanStateAction>(), new ArrayList<TPS_PlanStateAction>());
+    public TPS_SimplePlanState(String name, TPS_StateMachine stateMachine){
+        this(name,stateMachine, new ArrayList<>(), new ArrayList<>());
     }
 
     /**
      *
-     * @param name
+
      * simple name to the identify the state
      * @param stateMachine
      * reference to the state machine
@@ -73,10 +67,11 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param exit_actions
      * the exit action to perform
      */
-    public TPS_SimplePlanState(String name, TPS_PlanStateMachine stateMachine, List<TPS_PlanStateAction> enter_actions, List<TPS_PlanStateAction> exit_actions){
+    public TPS_SimplePlanState(String name, TPS_StateMachine stateMachine, List<Supplier<TPS_PlanStateAction>> enter_actions, List<Supplier<TPS_PlanStateAction>> exit_actions){
 
-        this.handlers = new EnumMap<>(TPS_PlanEventType.class);
-        this.name = name;
+        this.handlers = new EnumMap<>(TPS_EventType.class);
+        this.type = type;
+
         this.stateMachine = stateMachine;
         this.enter_actions = enter_actions;
         this.exit_actions = exit_actions;
@@ -87,7 +82,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      */
     @Override
     public void enter() {
-        this.enter_actions.forEach(TPS_PlanStateAction::run);
+        this.enter_actions.stream().map(Supplier::get).forEach(TPS_PlanStateAction::run);
     }
 
     /**
@@ -95,16 +90,10 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      */
     @Override
     public void exit() {
-        this.exit_actions.forEach(TPS_PlanStateAction::run);
+        this.exit_actions.stream().map(Supplier::get).forEach(TPS_PlanStateAction::run);
     }
 
-    /**
-     *
-     * @param event
-     * the event to handle
-     * @return
-     * true if it will be handles, false otherwise
-     */
+
     @Override
     public boolean handle(TPS_PlanEvent event) {
 
@@ -112,6 +101,13 @@ public class TPS_SimplePlanState implements TPS_PlanState{
             return true;
     }
 
+    /**
+     *
+     * @param event
+     * the event to handle
+     * @return
+     * true if it will be handled, false otherwise
+     */
     @Override
     public boolean handleSafely(TPS_PlanEvent event) {
         if (willHandleEvent(event)) {
@@ -127,20 +123,26 @@ public class TPS_SimplePlanState implements TPS_PlanState{
         return handlers.containsKey(event.getEventType()) && handlers.get(event.getEventType()).check(event.getData());
     }
 
+
     /**
      *
      * @param event_type
      * the type of event that needs to be handled
      * @param target_state
      * the target state to transition to when the event occurs
-     * @param action
+     * @param actions
      * the transition action to invoke
      * @param guard
      * the guard that evaluates the condition to transition
      */
     @Override
-    public void addHandler(TPS_PlanEventType event_type, TPS_PlanState target_state, TPS_PlanStateAction action, TPS_StateGuard guard) {
-        this.handlers.put(event_type, new TPS_PlanStateTransitionHandler(target_state,guard,action));
+    public void addHandler(TPS_EventType event_type, TPS_PlanState target_state, Supplier<List<TPS_PlanStateAction>> actions, Guard guard) {
+        this.handlers.put(event_type, new TPS_PlanStateTransitionHandler(target_state,guard,actions));
+    }
+
+    @Override
+    public void addHandler(TPS_EventType event_type, TPS_PlanStateTransitionHandler handler) {
+        this.handlers.put(event_type,handler);
     }
 
     /**
@@ -150,7 +152,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * the event type to be removed from handling
      */
     @Override
-    public void removeHandler(TPS_PlanEventType event) {
+    public void removeHandler(TPS_EventType event) {
         handlers.remove(event);
     }
 
@@ -160,7 +162,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @return
      */
     @Override
-    public TPS_PlanStateTransitionHandler getHandler(TPS_PlanEventType event_type) {
+    public TPS_PlanStateTransitionHandler getHandler(TPS_EventType event_type) {
         return handlers.get(event_type);
     }
 
@@ -169,7 +171,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param action
      */
     @Override
-    public void addOnEnterAction(TPS_PlanStateAction action) {
+    public void addOnEnterAction(Supplier<TPS_PlanStateAction> action) {
         this.enter_actions.add(action);
     }
 
@@ -178,7 +180,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param action
      */
     @Override
-    public void addOnExitAction(TPS_PlanStateAction action) {
+    public void addOnExitAction(Supplier<TPS_PlanStateAction> action) {
         this.exit_actions.add(action);
     }
 
@@ -207,7 +209,11 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * @param stateMachine
      */
     @Override
-    public void setStateMachine(TPS_PlanStateMachine stateMachine) {
+    public void setStateMachine(TPS_StateMachine stateMachine) {
         this.stateMachine = stateMachine;
+    }
+
+    public EpisodeType getStateType(){
+        return this.type;
     }
 }

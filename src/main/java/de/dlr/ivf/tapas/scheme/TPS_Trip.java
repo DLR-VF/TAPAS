@@ -1,6 +1,7 @@
 package de.dlr.ivf.tapas.scheme;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.EpisodeType;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
@@ -39,6 +40,11 @@ public class TPS_Trip extends TPS_Episode {
     @Override
     public boolean isStay() {
         return false;
+    }
+
+    @Override
+    public EpisodeType getEpisodeType() {
+        return EpisodeType.TRIP;
     }
 
 }

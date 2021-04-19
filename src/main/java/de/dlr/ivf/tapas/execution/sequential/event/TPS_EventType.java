@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.event;
 
-public enum TPS_PlanEventType {
+public enum TPS_EventType {
 
     SIMULATION_STEP,
     WRITE_DB,

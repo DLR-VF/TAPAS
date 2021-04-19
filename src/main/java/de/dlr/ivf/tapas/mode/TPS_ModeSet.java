@@ -25,6 +25,8 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
+import java.util.function.Supplier;
+
 /**
  * Class for the organisation of the modes available for choice as well as the choice of a mode considering the existing
  * alternatives
@@ -143,7 +145,7 @@ public class TPS_ModeSet implements ExtendedWritable {
      * @param nextStay
      * @param pc
      */
-    public void selectMode(TPS_Plan plan, TPS_Stay prevStay, TPS_LocatedStay locatedStay, TPS_Stay nextStay, TPS_PlanningContext pc) {
+    public void selectMode(TPS_Plan plan, Supplier<TPS_Stay> prevStay, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> nextStay, TPS_PlanningContext pc) {
         // log.debug("\t\t\t\t\t\t '--> In tpsSelectLocation.selectMode");
 
 
@@ -154,8 +156,8 @@ public class TPS_ModeSet implements ExtendedWritable {
             // The episodes for activities out of home receive this call in a hierarchical order. That means that either
             // 'comingFrom' or 'goingTo' point to an episode at home or they point to superior episodes. In the latter case
             // the mode eventually has to be adopted.
-            TPS_LocatedStay prevStayLocated = plan.getLocatedStay(prevStay);
-            TPS_LocatedStay nextStayLocated = plan.getLocatedStay(nextStay);
+            TPS_LocatedStay prevStayLocated = plan.getLocatedStay(prevStay.get());
+            TPS_LocatedStay nextStayLocated = plan.getLocatedStay(nextStay.get());
             TPS_ExtMode previousStayDepartureMode = prevStayLocated.getModeDep();
             TPS_ExtMode nextStayArrivalMode = nextStayLocated.getModeArr();
             TPS_Location previousStayLocation = prevStayLocated.getLocation();
@@ -193,14 +195,10 @@ public class TPS_ModeSet implements ExtendedWritable {
                     if (currentArrivalMode.isFix()) { // do we have to stick to the mode
                         currentDepartureMode = currentArrivalMode;
                     } else {
-                        TPS_TourPart tourpart;
-                        if(locatedStay.getStay().getSchemePart() instanceof TPS_TourPart)
-                            tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
-                        else
-                            tourpart = (TPS_TourPart) prevStayLocated.getStay().getSchemePart();
+                        TPS_TourPart tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
                         mcc.fromStayLocation = currentStayLocation;
                         mcc.toStayLocation = nextStayLocated.getLocation();
-                        mcc.toStay = nextStay;
+                        mcc.toStay = nextStay.get();
                         mcc.duration = mcc.toStay.getOriginalDuration();
                         mcc.startTime = mcc.toStay.getOriginalStart();
                         mcc.isBikeAvailable = tourpart.isBikeUsed();
@@ -248,11 +246,11 @@ public class TPS_ModeSet implements ExtendedWritable {
 
     public TPS_ExtMode selectDepartureMode(TPS_Plan plan, TPS_LocatedStay departure_stay, TPS_LocatedStay arrival_stay, TPS_PlanningContext pc) {
 
-        TPS_ExtMode departure_mode_departure_stay = departure_stay.getModeDep();
+        TPS_ExtMode departure_stay_arrival_mode = departure_stay.getModeArr();
 
-        TPS_ExtMode chosen_mode = null;
+        TPS_ExtMode chosen_mode;
 
-        if (departure_mode_departure_stay == null) { //we are free to chose a mode to get to our arrival location
+        if (departure_stay_arrival_mode == null || !departure_stay_arrival_mode.isFix()) { //we are free to chose a mode to get to our arrival location
 
             TPS_Location departure_location = departure_stay.getLocation();
             TPS_Location arrival_location = arrival_stay.getLocation();
@@ -273,9 +271,11 @@ public class TPS_ModeSet implements ExtendedWritable {
              mcc.isBikeAvailable = pc.isBikeAvailable;
              mcc.carForThisPlan = pc.carForThisPlan;
 
-             chosen_mode = selectMode0(plan, distanceNet, mcc);
+            chosen_mode = selectMode0(plan, distanceNet, mcc);
+
+
         }else{
-            chosen_mode = departure_mode_departure_stay;
+            chosen_mode = departure_stay_arrival_mode;
         }
 
         return chosen_mode;
@@ -401,19 +401,17 @@ public class TPS_ModeSet implements ExtendedWritable {
 //		}
 
         //TODO: should a forbidden bike be set to PT?
-        //correct forbidden modes MIT->PT and BIKE-> WALK
 
-        //fixme correct modes outside of this
-/*        if (primary.isType(ModeType.MIT) && mcc.carForThisPlan == null) {
-            primary = TPS_Mode.get(ModeType.PT);
+        //TODO: this does not belong here and should be extracted
+        //correct forbidden modes MIT->PT and BIKE-> WALK
+        if (primary.isType(ModeType.MIT) && mcc.carForThisPlan == null) {
+                primary = TPS_Mode.get(ModeType.PT);
         }
+
         if (primary.isType(ModeType.BIKE) && !mcc.isBikeAvailable) {
             primary = TPS_Mode.get(ModeType.PT);
-        }*/
-//		if(mode.equals(TPS_Mode.get(ModeType.WALK)) && distanceNet>TPS_UtilityFunction.walkDistanceBarrier){
-//			TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.WARN,
-//					"Unusual long walk! Probability: "+dstDis.getIndexedValue(TPS_Mode.get(ModeType.WALK))+"ranom value: "+random);
-//		}
+        }
+
         TPS_Mode secondary = null;
         if (primary.isType(ModeType.PT)) {
             secondary = mcc.combinedMode;

@@ -25,9 +25,11 @@ import de.dlr.ivf.tapas.util.Timeline;
 import de.dlr.ivf.tapas.util.parameters.*;
 
 import java.io.IOException;
+import java.io.PipedInputStream;
 import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 /**
@@ -789,6 +791,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         }
     }
 
+
     /**
      * Determines whether a stay has been located
      *
@@ -960,7 +963,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                 this.fixLocations.get(currentActCode).getTrafficAnalysisZone()
                                                  .isRestricted()) // we have a restricted car wanting to go to a restricted area! -> BAD!
                         {
-                            currentLocatedStay.selectLocation(this, pc);
+                            currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getNextStay());
                             if (currentActCode.isFix()) {
                                 this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
                             }
@@ -973,7 +976,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                     "Set location from fix locations");
                         }
                     } else {
-                        currentLocatedStay.selectLocation(this, pc);
+                        currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getNextStay());
                         if (currentActCode.isFix()) {
                             this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
                         }
@@ -1012,7 +1015,9 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 }
                 // fetch previous and next stay
                 TPS_Stay prevStay = tourpart.getStayHierarchy(stay).getPrevStay();
+                Supplier<TPS_Stay> prevStaySupplier = () -> tourpart.getStayHierarchy(stay).getPrevStay();
                 TPS_Stay goingTo = tourpart.getStayHierarchy(stay).getNextStay();
+                Supplier<TPS_Stay> goingToSupplier = () -> tourpart.getStayHierarchy(stay).getNextStay();
                 if (currentLocatedStay.getModeArr() == null || currentLocatedStay.getModeDep() == null) {
                     if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
                         TPS_Logger.log(SeverenceLogLevel.FINE,
@@ -1030,7 +1035,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                         pLocGoingTo.getTrafficAnalysisZone().isRestricted())) {
                             pc.carForThisPlan = null;
                         }
-                        PM.getModeSet().selectMode(this, prevStay, currentLocatedStay, goingTo, pc);
+                        PM.getModeSet().selectMode(this, prevStaySupplier, currentLocatedStay, goingToSupplier, pc);
                         pc.carForThisPlan = tmpCar;
                         //set the mode and car (if used)
                         tourpart.setUsedMode(currentLocatedStay.getModeDep(), pc.carForThisPlan);
@@ -1466,9 +1471,17 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
     }
 
 
-    public int getFirstTourPartStart(){
+    public TPS_HomePart getHomePartPriorToTourPart(TPS_TourPart tour_part){
 
-        return this.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration();
+        int tour_part_index = this.getScheme().getSchemeParts().indexOf(tour_part);
+        return (TPS_HomePart) this.getScheme().getSchemeParts().get(tour_part_index-1);
     }
+
+    public TPS_HomePart getHomePartAfterTourPart(TPS_TourPart tour_part){
+
+        int tour_part_index = this.getScheme().getSchemeParts().indexOf(tour_part);
+        return (TPS_HomePart) this.getScheme().getSchemeParts().get(tour_part_index+1);
+    }
+
 
 }

@@ -1,22 +1,24 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
+import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
+import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.execution.sequential.io.TPS_WritableTrip;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 
-public class TPS_PlanStatePersistenceAction implements TPS_PlanStateAction {
+public class TripPersistenceAction implements TPS_PlanStateAction {
 
     private TPS_TripWriter writer;
     private TPS_Plan plan;
     private TPS_TourPart tp;
     private TPS_Trip associated_trip;
 
-    public TPS_PlanStatePersistenceAction(TPS_TripWriter writer, TPS_Plan plan, TPS_TourPart tp, TPS_Trip associated_trip){
+    public TripPersistenceAction(TPS_TripWriter writer, PlanContext plan_context, TourContext tour_context){
         this.writer = writer;
-        this.plan = plan;
-        this.tp = tp;
+        this.plan = plan_context.getPlan();
+        this.tp = tour_context.getTourPart();
         this.associated_trip = associated_trip;
     }
 

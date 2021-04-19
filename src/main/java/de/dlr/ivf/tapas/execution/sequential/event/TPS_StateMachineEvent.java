@@ -1,20 +1,21 @@
 package de.dlr.ivf.tapas.execution.sequential.event;
 
-import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_PlanStateMachine;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
 
 public class TPS_StateMachineEvent {
 
-    private TPS_PlanStateMachine state_machine;
+    private HouseholdBasedStateMachineController state_machine_controller;
     private TPS_PlanEvent event;
 
     public TPS_StateMachineEvent(){}
 
-    public TPS_PlanStateMachine getStateMachine(){
-        return this.state_machine;
+    public HouseholdBasedStateMachineController getStateMachineController(){
+        return this.state_machine_controller;
     }
 
-    public void setStateMachine(TPS_PlanStateMachine state_machine){
-        this.state_machine = state_machine;
+    public void setStateMachineController(HouseholdBasedStateMachineController state_machine){
+        this.state_machine_controller = state_machine;
     }
 
     public TPS_PlanEvent getEvent(){
@@ -27,7 +28,7 @@ public class TPS_StateMachineEvent {
 
     public void clear(){
 
-        this.state_machine = null;
+        this.state_machine_controller = null;
         this.event = null;
     }
 }

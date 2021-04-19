@@ -367,10 +367,7 @@ public class TPS_DB_IO {
         synchronized (prefetchedHouseholds) {
             if (prefetchedHouseholds.isEmpty()) { //household pool is empty
                 if (this.numberOfFetchedHouseholds != 0) {//last fetch returned something
-                    //this.PM.insertTrips(); //todo remove later
-
-
-
+                    this.PM.insertTrips();
                     this.updateOccupancyTable(region);
                     this.vacuumTempTables();
                     if (this.fetchNextSetOfHouseholds(region) == 0) {

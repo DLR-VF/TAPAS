@@ -493,7 +493,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                     }
                 }
                 break;
-            case TRAIN: //car sharing-faker
+            case CAR_SHARING:
                 if (mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) && mode.getParameters().isTrue(
                         ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler()) { //no cs user!
                     //service area in scenario?

@@ -10,6 +10,7 @@ import de.dlr.ivf.tapas.util.Checksum;
 import de.dlr.ivf.tapas.util.Checksum.HashType;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
+import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import org.apache.commons.lang3.SystemUtils;
@@ -22,9 +23,11 @@ import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -51,7 +54,7 @@ public class SimulationServer extends Thread {
     /**
      * the hostname extracted by {@link IPInfo#getHostname()}
      */
-    private static String hostname;
+    private String hostname;
 
     /**
      * contains the generated sha512 hash of the servers jar file
@@ -60,13 +63,13 @@ public class SimulationServer extends Thread {
     /**
      * this will block the {@link #main} method to finish before the shutdown procedure is fully executed
      */
-    private static volatile boolean shuttingDown = false;
+    private boolean shuttingDown = false;
     /**
      * Prevent {@link RunWhenShuttingDown#run()} from being executed twice when shutting down a server from the GUI.
      * {\@link #killServer()} invokes the {@link RunWhenShuttingDown#run()} procedure, which, when it returns, lets the {@link #main(String[])} finish.
      * As {@link RunWhenShuttingDown} also being a ShutDownHook it will be invoked when {@link #main(String[])} finishes.
      */
-    private static volatile boolean shutdown = false;
+    private boolean shutdown = false;
     /**
      * The reference to the connection manager, needed to reestablish the connection, if necessary
      */
@@ -85,6 +88,8 @@ public class SimulationServer extends Thread {
     private final Timer timer;
     private volatile boolean keepOn = true;
 
+    TPS_Main current_simulation_run = null;
+
     /**
      * The constructor setup the remote server, binds the remote object and starts the update task
      *
@@ -93,7 +98,8 @@ public class SimulationServer extends Thread {
      * @throws SQLException           This exception is thrown if a connection to the database could not be established.
      * @throws ClassNotFoundException This exception is thrown if the driver for the database was not found.
      */
-    private SimulationServer(InetAddress simulationServerIPAddress, File tapasNetworkDirectory) throws SQLException, IOException, ClassNotFoundException {
+    private SimulationServer(InetAddress simulationServerIPAddress, File tapasNetworkDirectory, String hostname) throws SQLException, IOException, ClassNotFoundException {
+        this.hostname = hostname;
 
         File propFile = new File("daemon.properties");
         DaemonControlProperties prop = new DaemonControlProperties(propFile);
@@ -112,7 +118,7 @@ public class SimulationServer extends Thread {
         this.dbConnector = new TPS_DB_Connector(parameterClass);
         //check if there is a SimulationServer zombie process currently running
         String query = "SELECT * FROM " + parameterClass.getString(ParamString.DB_TABLE_PROCESSES) + " WHERE host = '" +
-                SimulationServer.hostname + "' AND end_time IS NULL";
+                hostname + "' AND end_time IS NULL";
         ResultSet rs = this.dbConnector.executeQuery(query, this);
 
         while (rs.next()) {
@@ -143,7 +149,7 @@ public class SimulationServer extends Thread {
 
         // initialise timer and server table update task
         this.timer = new Timer();
-        SimulationServerUpdateTask stuTask = new SimulationServerUpdateTask();
+        SimulationServerUpdateTask stuTask = new SimulationServerUpdateTask(this, this.dbConnector);
         this.timer.schedule(stuTask, 10, 750);
 
         // insert SimulationServer JVM information into DB
@@ -153,13 +159,13 @@ public class SimulationServer extends Thread {
         String starttime = LocalDateTime.now().toString();
         query = "INSERT INTO " + parameterClass.getString(ParamString.DB_TABLE_PROCESSES) +
                 " (identifier, server_ip, p_id, start_time, host, sim_key, sha512) VALUES ('" + processidentifier +
-                "', " + ip + ", " + processid + ", '" + starttime + "', '" + SimulationServer.hostname +
+                "', " + ip + ", " + processid + ", '" + starttime + "', '" + hostname +
                 "', 'IDLE', '" + SimulationServer.hashcode + "')";
 
         this.dbConnector.execute(query, SimulationServer.this);
 
         query = "UPDATE " + parameterClass.getString(ParamString.DB_TABLE_SERVERS) +
-                " SET server_boot_flag = false WHERE server_name = '" + SimulationServer.hostname + "'";
+                " SET server_boot_flag = false WHERE server_name = '" + hostname + "'";
         this.dbConnector.execute(query, SimulationServer.this);
     }
 
@@ -171,14 +177,12 @@ public class SimulationServer extends Thread {
      */
     public static void main(String[] args) throws Exception {
 
-        SimulationServer.hostname = IPInfo.getHostname();
-
         System.out.println(sysoutPrefix + "Starting Tapas. Press Control-c to finish it.");
 
         Object[] parameters = TPS_Argument.checkArguments(args, PARAMETERS);
 
         File tapasNetworkDirectory = ((File) parameters[0]).getParentFile();
-        SimulationServer simServer = new SimulationServer(IPInfo.getEthernetInetAddress(), tapasNetworkDirectory);
+        SimulationServer simServer = new SimulationServer(IPInfo.getEthernetInetAddress(), tapasNetworkDirectory, IPInfo.getHostname());
 
         //simServer.initRMIService();
         simServer.start();
@@ -186,6 +190,10 @@ public class SimulationServer extends Thread {
         simServer.join();
 
 
+    }
+
+    public String getHostname(){
+        return this.hostname;
     }
 
     private boolean checkAndReestablishCon(Object caller) throws SQLException {
@@ -220,19 +228,19 @@ public class SimulationServer extends Thread {
      * @see java.lang.Thread#run()
      */
     public void run() {
-        Runtime.getRuntime().addShutdownHook(new RunWhenShuttingDown());
+        Runtime.getRuntime().addShutdownHook(new RunWhenShuttingDown(this.dbConnector, this));
         try {
-            String sim_key = null;
             String iAddr = IPInfo.getEthernetInetAddress().getHostAddress();
             ResultSet rsGet, rs;
             boolean printMessage = true;
 
-            //clean up broken households from simulations
-            String query = "SELECT sim_key FROM " + this.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
-                    " " + "WHERE sim_finished = false";
+            //clean up broken households from simulations that are computed classically. The latter are those that do not have
+            //an associated server in the "simulation_server" column
+            String query = "SELECT * FROM " + this.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
+                    " " + "WHERE sim_finished = false AND sim_ready = true AND sim_started = true AND simulation_server IS NULL";
             rs = this.dbConnector.executeQuery(query, this);
             while (rs.next()) {
-                sim_key = rs.getString("sim_key");
+                String sim_key = rs.getString("sim_key");
                 query = "SELECT core.reset_unfinished_households('" + sim_key + "','" + iAddr + "')";
                 rsGet = this.dbConnector.executeQuery(query, this);
                 if (rsGet.next()) {
@@ -246,50 +254,32 @@ public class SimulationServer extends Thread {
 
             while (keepOn) {
 
-                query = "SELECT core.get_next_simulation() as sim_key";
-                rsGet = this.dbConnector.executeQuery(query, this);
+                Optional<TPS_Simulation> next_simulation = getNextSimulationToProcess(dbConnector, runtimeFile, hostname);
 
-                if (rsGet.next()) sim_key = rsGet.getString("sim_key");
+                if (next_simulation.isPresent()) {
 
-                rsGet.close();
+                    TPS_Simulation simulation = next_simulation.get();
 
-
-                if (sim_key != null) {
                     printMessage = true;
-                    System.out.println("Simulation to start: " + sim_key);
-                    File file = this.runtimeFile;
-//					query = "SELECT sim_file FROM " + this.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) + " WHERE sim_key= '"+sim_key+"'";
-//					rs = this.dbConnector.executeQuery(query,this);
-//					File file = null;
-//
-//					if (rs.next())
-//						file = new File(tapasNetworkDirectory, rs.getString("sim_file"));
-//					rs.close();
-//
-                    if (file != null) {
-                        //insert the simkey into server_processes table
-                        query = "UPDATE server_processes SET sim_key = '" + sim_key + "' WHERE host = '" +
-                                SimulationServer.hostname + "'";
-                        this.dbConnector.execute(query, this);
-                        TPS_Main main = new TPS_Main(file, sim_key);
-                        main.run(Runtime.getRuntime().availableProcessors());
 
-                        if (main.getPersistenceManager().finish()) while (SimulationServer.shuttingDown) {
-                            System.out.println(sysoutPrefix + "Waiting for Shutdown procedure to finish...");
-                            Thread.sleep(1000);
-                        }
-                        main.getPersistenceManager().close();
+                    String simulation_key = simulation.getSimulationKey();
+                    System.out.println("Simulation to start: " + simulation_key);
 
+                    //insert the simkey into server_processes table
+                    query = "UPDATE server_processes SET sim_key = '" + simulation_key + "' WHERE host = '" + hostname + "'";
+                    this.dbConnector.execute(query, this);
 
-                        TPS_Main.STATE.setFinished();
-                    } else System.out.println("file is null");
+                    this.current_simulation_run = new TPS_Main(simulation);
+
+                    //starting a simulation blocks this thread
+                    this.current_simulation_run.run(Runtime.getRuntime().availableProcessors());
                 } else {
+
                     if (printMessage) {
                         System.out.println(sysoutPrefix + "Waiting for new Simulation");
                         //set sim_key in server_processes table to IDLE
-                        query = "UPDATE server_processes SET sim_key = 'IDLE' WHERE host = '" +
-                                SimulationServer.hostname + "'";
-                        SimulationServer.this.dbConnector.execute(query, this);
+                        query = "UPDATE server_processes SET sim_key = 'IDLE' WHERE host = '" + hostname + "'";
+                        this.dbConnector.execute(query, this);
                         printMessage = false;
                     }
                     try {
@@ -297,8 +287,12 @@ public class SimulationServer extends Thread {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+
                 }
             }
+
+            //the server has been shut down
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -323,32 +317,38 @@ public class SimulationServer extends Thread {
         private final int procs;
         private final String sTable;
 
+        private final SimulationServer server;
+        private final TPS_DB_Connector dbConnector;
+
         /**
          * Inserts the server if necessary and prepares the update statement.
          *
          * @throws SQLException This exception is thrown if there occurs an error inserting the server into the database
          */
-        public SimulationServerUpdateTask() throws SQLException {
+        public SimulationServerUpdateTask(SimulationServer server, TPS_DB_Connector dbConnector) throws SQLException {
 
-            TPS_ParameterClass parameterClass = SimulationServer.this.getParameters();
+            this.server = server;
+            this.dbConnector = dbConnector;
+
+            TPS_ParameterClass parameterClass = server.getParameters();
             this.sTable = parameterClass.getString(ParamString.DB_TABLE_SERVERS);
 
             this.usage = new CPUUsage();
-            SimulationServer.this.checkAndReestablishCon(SimulationServer.this);
+            checkAndReestablishCon(server);
 
             this.iAddr = "inet '" + simulationServerIPAddress.getHostAddress() + "'";
 
             this.procs = Runtime.getRuntime().availableProcessors();
 
             // insert server into table if necessary
-            String query = "SELECT * FROM " + sTable + " WHERE server_name = '" + SimulationServer.hostname + "'";
-            ResultSet rs = SimulationServer.this.dbConnector.executeQuery(query, SimulationServer.this);
+            String query = "SELECT * FROM " + sTable + " WHERE server_name = '" + server.getHostname() + "'";
+            ResultSet rs = dbConnector.executeQuery(query, server);
             if (!rs.next()) {
                 query = "INSERT INTO " + sTable + " (server_ip, server_online, server_cores, server_name) VALUES(" +
-                        this.iAddr + ", TRUE, " + this.procs + ", '" + SimulationServer.hostname + "')";
+                        this.iAddr + ", TRUE, " + this.procs + ", '" + server.getHostname() + "')";
 
                 rs.close();
-                SimulationServer.this.dbConnector.execute(query, this);
+                dbConnector.execute(query, this);
             }
 
         }
@@ -360,96 +360,164 @@ public class SimulationServer extends Thread {
          */
         @Override
         public void run() {
-            try {
-                ResultSet rset = dbConnector.executeQuery("SELECT * FROM " +
-                        SimulationServer.this.getParameters().getString(ParamString.DB_TABLE_PROCESSES) +
-                        " WHERE host = '" + hostname + "' AND end_time IS NULL", this);
 
-                if (rset.next()) SimulationServer.shuttingDown = rset.getBoolean("shutdown");
-                rset.close();
+                boolean external_shutdown = false;
 
-                if (!SimulationServer.shuttingDown && !SimulationServer.shutdown) {
-                    String query = "SELECT server_name FROM " + this.sTable + " WHERE server_name = '" +
-                            SimulationServer.hostname + "'";
-                    ResultSet rs = SimulationServer.this.dbConnector.executeQuery(query, this);
-                    if (rs != null) { //sometimes the connection times out. It will be restablished on the next try...
-                        if (rs.next()) {
-                            query = "UPDATE " + this.sTable + " SET server_online = TRUE, server_usage = " +
-                                    usage.getCPUUsage() + ", server_ip = " + this.iAddr + " WHERE server_name = '" +
-                                    SimulationServer.hostname + "'";
-                        } else {
-                            query = "INSERT INTO " + this.sTable +
-                                    " (server_ip, server_online, server_cores, server_name) VALUES(" + this.iAddr +
-                                    ", TRUE, " + this.procs + ", '" + SimulationServer.hostname + "')";
-                        }
-                        SimulationServer.this.dbConnector.execute(query, this);
-                        rs.close();
-                    }
+                try(ResultSet rset = dbConnector.executeQuery("SELECT * FROM " +
+                        server.getParameters().getString(ParamString.DB_TABLE_PROCESSES) +
+                        " WHERE host = '" + hostname + "' AND end_time IS NULL", this))
+                {
+                    if (rset.next())
+                        external_shutdown = rset.getBoolean("shutdown");
+
+
+                }catch(Exception e){
+                    e.printStackTrace();
                 }
-                if (SimulationServer.shuttingDown) {
-                    this.cancel();
-                    Thread shutdown = new RunWhenShuttingDown();
-                    shutdown.start();
+
+                if(!external_shutdown){
+                    updateServerInDatabase();
+                }else{
+                    cancel(); //cancel the timer
+                    initiateServerShutdown();
                 }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-                if (ex.getNextException() != null) {
-                    ex.getNextException().printStackTrace();
+
+        }
+
+        private void initiateServerShutdown() {
+            this.server.initiateShutdown();
+        }
+
+        private void updateServerInDatabase() {
+
+            String hostname = server.getHostname();
+            String query = "SELECT server_name FROM " + this.sTable + " WHERE server_name = '"+ hostname +"'";
+            try(ResultSet rs = dbConnector.executeQuery(query, this)) {
+
+                if (rs.next()) {
+                    query = "UPDATE " + this.sTable + " SET server_online = TRUE, server_usage = " +
+                            usage.getCPUUsage() + ", server_ip = " + this.iAddr + " WHERE server_name = '" +
+                            hostname + "'";
+                } else {
+                    query = "INSERT INTO " + this.sTable +
+                            " (server_ip, server_online, server_cores, server_name) VALUES(" + this.iAddr +
+                            ", TRUE, " + this.procs + ", '" + hostname + "')";
                 }
-            } catch (IOException | InterruptedException e) {
+                dbConnector.execute(query, this);
+            }catch(SQLException | IOException | InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
 
-    //~ Inner Classes -----------------------------------------------------------------------------
-    private class RunWhenShuttingDown extends Thread {
-
-        public void run() {
-            if (!SimulationServer.shutdown) {
-                String query;
-                boolean tapas_finished = false;
-                timer.cancel(); //stop the update process
-                System.out.println(sysoutPrefix + "Shutdown initiated...");
-
-                //tell out loop to finish, will let the server process finish
-                keepOn = false;
-
-                //tell TPS_Main to finish
-                TPS_Main.STATE.setRunning(false);
-
-                try {
-                    SimulationServer.this.dbConnector.getConnection(this);
-
-                    for (int i = 0; i <
-                            60; i++) { //quick fix to avoid endless looping in case TPS_Main is "hanging"; one could think of implementing a CountDownLatch
-                        if (TPS_Main.waitForMe) {
-                            System.out.println(sysoutPrefix + "Waiting for TAPAS to finish...");
-                            Thread.sleep(1000);
-                        } else {
-                            tapas_finished = true;
-                            break;
-                        }
-                    }
-                    //Thread.sleep(2000); //this allows the timer to cancel before updating the server table.
-                    //Otherwise it might happen that changes by DB-trigger functions get overwritten.
-
-
-                    //update server process in the server_processes table. This will trigger cleanup procedures inside the DB
-                    query = "UPDATE " + SimulationServer.this.getParameters().getString(
-                            ParamString.DB_TABLE_PROCESSES) + " SET end_time = '" + LocalDateTime.now().toString() +
-                            "', tapas_exit_ok = " + tapas_finished + " WHERE host = '" + SimulationServer.hostname +
-                            "' AND end_time IS NULL";
-
-                    int rowcount = SimulationServer.this.dbConnector.executeUpdate(query, this);
-                    System.out.println(sysoutPrefix + "Updated " + rowcount + " rows from the server processes table.");
-                    System.out.println(sysoutPrefix + "Shutdown finished!");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                SimulationServer.shutdown = true;
-                SimulationServer.shuttingDown = false;
-            }
+    private void initiateShutdown() {
+        this.keepOn = false;
+        if(this.current_simulation_run != null){
+            this.current_simulation_run.initShutdown();
         }
     }
+
+    public boolean isManuallyShutDown(){
+        return !this.keepOn;
+    }
+
+    //~ Inner Classes -----------------------------------------------------------------------------
+    private class RunWhenShuttingDown extends Thread {
+        private final TPS_DB_Connector dbConnector;
+        private final SimulationServer server;
+
+        public RunWhenShuttingDown(TPS_DB_Connector dbConnector, SimulationServer server) {
+            this.dbConnector = dbConnector;
+            this.server = server;
+        }
+
+        public void run() {
+            //update server process in the server_processes table. This will trigger cleanup procedures inside the DB
+            String query = "UPDATE " + server.getParameters().getString(
+                    ParamString.DB_TABLE_PROCESSES) + " SET end_time = '" + LocalDateTime.now().toString() +
+                    "', tapas_exit_ok = " + !server.isManuallyShutDown() + " WHERE host = '" + server.getHostname() +
+                    "' AND end_time IS NULL";
+
+            int rowcount = dbConnector.executeUpdate(query, this);
+            System.out.println(sysoutPrefix + "Updated " + rowcount + " rows from the server processes table.");
+            System.out.println(sysoutPrefix + "Shutdown finished!");
+
+            query = "UPDATE " + server.getParameters().getString(ParamString.DB_TABLE_SERVERS) + " SET server_online = false WHERE server_name = '" + server.getHostname() + "'";
+            dbConnector.execute(query, this);
+        }
+    }
+
+    private Optional<TPS_Simulation> getNextSimulationToProcess(TPS_DB_Connector dbConnector, File runtime_file, String hostname){
+
+        Connection connection = null;
+        TPS_Simulation simulation = null;
+
+        try {
+            connection = dbConnector.getConnection(this);
+
+
+            TPS_ParameterClass parameterClass = dbConnector.getParameters();
+
+            File tmpFile = new File(runtime_file.getPath());
+            while (!tmpFile.getPath().endsWith(
+                    parameterClass.SIM_DIR.substring(0, parameterClass.SIM_DIR.length() - 1))) {
+                tmpFile = tmpFile.getParentFile();
+            }
+            parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getParent());
+
+            String simulations_table_name = parameterClass.getString(ParamString.DB_TABLE_SIMULATIONS);
+
+            //take manual control over the transaction
+            connection.setAutoCommit(false);
+
+            String lock = "LOCK TABLE " + simulations_table_name + " IN ACCESS EXCLUSIVE MODE;";
+            System.out.println(lock);
+
+            connection.createStatement().execute(lock);
+
+            String available_simulations = "SELECT * FROM " + simulations_table_name +
+                    " WHERE sim_finished = false" +
+                    " AND sim_ready = true" +
+                    " AND sim_started = true" +
+                    " AND (simulation_server IS NULL OR simulation_server = '')" +
+                    " ORDER BY timestamp_insert LIMIT 1";
+
+            ResultSet available_simulation = dbConnector.executeQuery(available_simulations, this);
+
+            if (available_simulation.next()) {
+
+                String sim_key = available_simulation.getString("sim_key");
+
+                dbConnector.readRuntimeParametersFromDB(sim_key);
+
+                if (parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) &&
+                        parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)) { //insert the server that has dedicated itself
+
+                    String update_host_query = "UPDATE " + simulations_table_name + " SET simulation_server = '" + hostname + "' WHERE sim_key = '" + sim_key + "'";
+                    connection.createStatement().execute(update_host_query);
+                }
+
+                simulation = new TPS_Simulation(sim_key, dbConnector);
+            }
+
+            connection.commit();
+            connection.setAutoCommit(true);
+
+        } catch (SQLException throwables) {
+            try {
+                if(connection != null)
+                    connection.rollback();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            throwables.printStackTrace();
+        }
+
+        return Optional.ofNullable(simulation);
+    }
+
+    public Optional<TPS_Main> getCurrentSimulationRun(){
+        return Optional.ofNullable(this.current_simulation_run);
+    }
+
 }

@@ -2,20 +2,20 @@ package de.dlr.ivf.tapas.execution.sequential.event;
 
 public class TPS_PlanEvent {
 
-    private Object data;
-    private TPS_PlanEventType type;
+    private int data;
+    private TPS_EventType type;
 
-    public TPS_PlanEvent(TPS_PlanEventType type, Object data){
+    public TPS_PlanEvent(TPS_EventType type, int data){
 
         this.data = data;
         this.type = type;
     }
 
-    public Object getData(){
+    public int getData(){
         return this.data;
     }
 
-    public TPS_PlanEventType getEventType(){
+    public TPS_EventType getEventType(){
         return this.type;
     }
 }

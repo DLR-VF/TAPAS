@@ -117,9 +117,6 @@ public class TPS_Household implements ExtendedWritable {
     public void initializeCarMediator(TPS_Household household, List<TPS_Plan> household_plans){
         if(this.car_mediator == null)
             this.car_mediator = new TPS_HouseholdCarMediator(household);
-
-        car_mediator.initializeFirstRequests(household_plans);
-
     }
 
     /**

@@ -83,6 +83,12 @@ public enum ParamFlag {
      * a car, others)
      */
     FLAG_SELECT_LOCATIONS_DIFF_PERSON_GROUP,
+
+    /**
+     * Determines whether a simulation should be run sequentially
+     */
+
+    FLAG_SEQUENTIAL_EXECUTION,
     /**
      * Boolean, determines whether the location choice for shopping
      * should be differentiated by type of motive
@@ -150,7 +156,6 @@ public enum ParamFlag {
     /**
      * Flag, whether taxi should be enabled
      */
-    FLAG_USE_LOCATION_GROUPS
-
+    FLAG_USE_LOCATION_GROUPS;
 }
 

@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.scheme;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.EpisodeType;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingClass;
@@ -156,5 +157,10 @@ public class TPS_Stay extends TPS_Episode implements Comparable<TPS_Stay> {
         sb.setLength(sb.length() - 1);
         sb.append(", priority=" + priority + "]");
         return sb.toString();
+    }
+
+    @Override
+    public EpisodeType getEpisodeType() {
+        return isAtHome() ? EpisodeType.HOME : EpisodeType.ACTIVITY;
     }
 }

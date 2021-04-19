@@ -29,7 +29,7 @@ public class TPS_UtilityChaidMNLMixedBS extends TPS_UtilityMNLFullComplex {
     @Override
     public double calculateDelta(TPS_Mode mode, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
         double origValue = 1;
-        if (!(mode.isType(ModeType.TRAIN) && plan.getPM().getParameters().isTrue(ParamFlag.FLAG_USE_CARSHARING))) {
+        if (!(mode.isType(ModeType.CAR_SHARING) && plan.getPM().getParameters().isTrue(ParamFlag.FLAG_USE_CARSHARING))) {
             origValue = super.calculateDelta(mode, plan, distanceNet, mcc);
         }
         return origValue;
@@ -56,10 +56,10 @@ public class TPS_UtilityChaidMNLMixedBS extends TPS_UtilityMNLFullComplex {
                 dist.setValues(origDist.getValues());
             } else {
                 dist = pNode.getCopyOfValueDistribution();
-                //set car sharing from original values, remember: Car Sharing uses "TRAIN"
+
                 if (plan.getPM().getParameters().isTrue(ParamFlag.FLAG_USE_CARSHARING) ||
                         plan.getPM().getParameters().isTrue(ParamFlag.FLAG_USE_ROBOTAXI)) dist.setValueByKey(
-                        TPS_Mode.get(ModeType.TRAIN), origDist.getValueByKey(TPS_Mode.get(ModeType.TRAIN)));
+                        TPS_Mode.get(ModeType.CAR_SHARING), origDist.getValueByKey(TPS_Mode.get(ModeType.CAR_SHARING)));
             }
             expertCheck = TPS_ExpertKnowledgeTree.applyExpertKnowledge(modeSet, plan, distanceNet, mcc, true, dist);
             if (pNode.getParent() == null) {

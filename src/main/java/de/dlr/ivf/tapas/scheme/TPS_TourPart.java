@@ -23,7 +23,7 @@ import java.util.*;
  * @author mark_ma
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
-public class TPS_TourPart extends TPS_SchemePart {
+public class TPS_TourPart extends TPS_SchemePart{
 
     public boolean hasWorkActivity = false;
     public boolean hasEducationActivity = false;
@@ -550,6 +550,7 @@ public class TPS_TourPart extends TPS_SchemePart {
             }
         }
     }
+
 
     /**
      * Structure to store the complete arrival and departure duration for one stay in the tour part.<br>

@@ -16,7 +16,7 @@ public class TPS_CarCheckInAction implements TPS_PlanStateAction {
 
     @Override
     public void run() {
-        this.car_mediator.checkinCar(this.pc.carForThisPlan);
+        //this.car_mediator.checkinCar(this.pc.carForThisPlan);
         pc.carForThisPlan = null;
     }
 }

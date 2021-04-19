@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.io;
 
+import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
@@ -29,6 +30,7 @@ public class TPS_PlanGenerator{
 
 
     List<TPS_Plan> plans;
+    List<HouseholdBasedStateMachineController> household_controllers = new ArrayList<>();
 
     public TPS_PlanGenerator(TPS_PersistenceManager pm){
         this.pm = pm;

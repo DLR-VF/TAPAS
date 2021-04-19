@@ -52,16 +52,16 @@ public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeigthBa
         } else if (currentAccessibilityPreference.equals(ShoppingPreferenceAccessibility.Erreichbarkeit)) {
 
             double ttCarFrom = TPS_Mode.get(ModeType.MIT).getTravelTime(prevMCC.fromStayLocation,
-                    prevMCC.toStayLocation, (int) prevMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO,
+                    prevMCC.toStayLocation, prevMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO,
                     prevMCC.fromStay.getActCode(), prevMCC.toStay.getActCode(), plan.getPerson(), null);
             double ttCarTo = TPS_Mode.get(ModeType.MIT).getTravelTime(nextMCC.fromStayLocation, nextMCC.toStayLocation,
-                    (int) nextMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, nextMCC.fromStay.getActCode(),
+                    nextMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, nextMCC.fromStay.getActCode(),
                     nextMCC.toStay.getActCode(), plan.getPerson(), null);
             double ttPTFrom = TPS_Mode.get(ModeType.PT).getTravelTime(prevMCC.fromStayLocation, prevMCC.toStayLocation,
-                    (int) prevMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, prevMCC.fromStay.getActCode(),
+                    prevMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, prevMCC.fromStay.getActCode(),
                     prevMCC.toStay.getActCode(), plan.getPerson(), null);
             double ttPTTo = TPS_Mode.get(ModeType.PT).getTravelTime(nextMCC.fromStayLocation, nextMCC.toStayLocation,
-                    (int) nextMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, nextMCC.fromStay.getActCode(),
+                    nextMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, nextMCC.fromStay.getActCode(),
                     nextMCC.toStay.getActCode(), plan.getPerson(), null);
             boolean carConnectionAvailable = ttCarFrom >= 0 && ttCarTo >= 0;
             boolean ptConnectionAvailable = ttPTFrom >= 0 && ttPTTo >= 0;

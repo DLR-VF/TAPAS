@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.plan;
 
 import de.dlr.ivf.tapas.loc.TPS_Location;
@@ -132,17 +140,17 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
         TPS_TrafficAnalysisZone comingFromTVZ = pLocComingFrom.getTrafficAnalysisZone();
         double tt = -1;
 
-        TPS_Car carForTrip = this.plan.getPlanningContext().carForThisPlan;       //null;
+        TPS_Car carForTrip = null;
         //pick cars used for this plan
-//        for (TPS_SchemePart schemePart : this.plan.getScheme()) {
-//            if (!schemePart.isHomePart()) {
-//                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
-//                if (tourpart.getCar() != null) {
-//                    carForTrip = tourpart.getCar();
-//                    break;
-//                }
-//            }
-//        }
+        for (TPS_SchemePart schemePart : this.plan.getScheme()) {
+            if (!schemePart.isHomePart()) {
+                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
+                if (tourpart.getCar() != null) {
+                    carForTrip = tourpart.getCar();
+                    break;
+                }
+            }
+        }
 
 
         /*
@@ -150,7 +158,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
          * pGoingTo hinzukommen (getPModeCome)
          */
         TPS_ExtMode pModeComingFrom = pComingFrom.getModeDep();
-        //TPS_ExtMode pModeGoingTo = pGoingTo.getModeArr();
+        TPS_ExtMode pModeGoingTo = pGoingTo.getModeArr();
 
         // If the person comes from home or is going home, then pModeGoingTo or pModeComingFrom are 0. Usually at least
         // one
@@ -160,22 +168,21 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
 
         // If different modes are used for leave and to get to the locations of these episodes then the priority of the
         // episodes determines the mode choice.
-//fixme needed?
-//        if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
-//            if (pComingFrom.getStay().isAtHome()) {
-//                setMode(pModeGoingTo);
-//            } else {
-//                setMode(pModeComingFrom);
-//            }
-//        } else {
-//            if (pGoingTo.getStay().isAtHome()) {
-//                setMode(pModeComingFrom);
-//            } else {
-//                setMode(pModeGoingTo);
-//            }
-//        }
 
-        setMode(pModeComingFrom);
+        if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
+            if (pComingFrom.getStay().isAtHome()) {
+                setMode(pModeGoingTo);
+            } else {
+                setMode(pModeComingFrom);
+            }
+        } else {
+            if (pGoingTo.getStay().isAtHome()) {
+                setMode(pModeComingFrom);
+            } else {
+                setMode(pModeGoingTo);
+            }
+        }
+
         this.setDistanceEmptyNet(
                 TPS_Mode.get(ModeType.WALK).getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, null));
 
@@ -221,7 +228,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
                     }
                 }
             }
-        } else if (primaryMode.isType(ModeType.TRAIN) && this.plan.getParameters().isDefined(
+        } else if (primaryMode.isType(ModeType.CAR_SHARING) && this.plan.getParameters().isDefined(
                 ParamFlag.FLAG_USE_CARSHARING) && this.plan.getParameters().isTrue(
                 ParamFlag.FLAG_USE_CARSHARING)) { // carsharing faker!
             tt = TPS_Mode.get(ModeType.MIT).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
@@ -252,6 +259,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
 
         this.setDistance(primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip));
         if (Double.isNaN(tt)) {
+            System.err.println("Arg!");
             tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
                     pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
         }

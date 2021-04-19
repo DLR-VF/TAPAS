@@ -13,6 +13,9 @@ public class TPS_PlanningContext {
     public boolean influenceBikeUsageInPlan;
     public boolean isBikeAvailable;
 
+    private boolean car_sharing_user;
+    private TPS_Car car_sharing_car;
+
     public TPS_Trip previousTrip = null;
     public boolean fixLocationAtBase = false;
 
@@ -38,5 +41,35 @@ public class TPS_PlanningContext {
             return false;
         }
         return true;
+    }
+
+    public TPS_Car getHouseHoldCar() {
+        return this.carForThisPlan;
+    }
+
+    public boolean isHouseHoldCarAvailable(){
+        return carForThisPlan != null;
+    }
+
+    public void setCarSharingCar(TPS_Car car) {
+        this.car_sharing_car = car;
+    }
+
+    public void setCarPooler(boolean carPooler) {
+        this.car_sharing_user = carPooler;
+    }
+
+    public boolean isCarSharingUser() {
+        return this.car_sharing_user;
+    }
+
+    public TPS_Car getCarSharingCar() {
+        return this.car_sharing_car;
+    }
+
+    public void setHouseHoldCar(TPS_Car household_car) {
+
+        this.carForThisPlan = household_car;
+
     }
 }
