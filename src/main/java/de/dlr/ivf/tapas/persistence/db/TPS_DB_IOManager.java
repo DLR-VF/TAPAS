@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.persistence.db;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
@@ -45,16 +53,13 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
     private TPS_Region region;
     private TPS_SchemeSet schemeSet;
 
-
-    private final List<TPS_Plan> all_plans = new ArrayList<>(3700000); //TODO remove hard coded value and replace with person count
-
     /**
      * Constructor class: creates a new db connection, file handler, statement map and the general pattern of the trip-statement
      *
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    public TPS_DB_IOManager(TPS_ParameterClass parameterClass) throws IOException, ClassNotFoundException, SQLException {
+    public TPS_DB_IOManager(TPS_ParameterClass parameterClass) throws IOException, ClassNotFoundException {
         this.dbConnector = new TPS_DB_Connector(parameterClass.getString(ParamString.DB_USER),
                 parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
         this.dbIO = new TPS_DB_IO(this);
@@ -258,8 +263,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO, "Create temporary location table");
         }
-        functionExecute("create_temp_locations", ParamString.DB_TABLE_LOCATION, ParamString.DB_TABLE_LOCATION_TMP,
-                !Behaviour.FAT.equals(TPS_DB_IOManager.BEHAVIOUR));
+        functionExecute("create_temp_locations", ParamString.DB_TABLE_LOCATION, ParamString.DB_TABLE_LOCATION_TMP);
 
 
         if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
@@ -487,7 +491,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         }
         this.storeFinishedHouseholdIDsToDB();
     }
-
 
     /**
      * Method to insert all pending Trips.
@@ -733,14 +736,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         synchronized (this.plansToStore) {
             this.plansToStore.add(plan);
         }
-    }
-
-    public void addToAllPlans(TPS_Plan plan){
-        all_plans.add(plan);
-    }
-
-    public List<TPS_Plan> getAllPlans(){
-        return this.all_plans;
     }
 
     /**

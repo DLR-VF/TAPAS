@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.analyzer.tum.constants;
 
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.Activity;
@@ -707,14 +715,16 @@ public class TuMEnums {
     }
 
     public enum PersonGroup {
-        PG_1(0, "Vollzeit/Teilzeit Frau mit Pkw", generateSet(Job.JOB_5, Job.JOB_11, Job.JOB_19)), //
-        PG_2(1, "Vollzeit/Teilzeit Frau ohne Pkw", generateSet(Job.JOB_12, Job.JOB_20)), //
-        PG_3(2, "Vollzeit/Teilzeit Mann mit Pkw", generateSet(Job.JOB_3, Job.JOB_9, Job.JOB_17)), //
-        PG_4(3, "Vollzeit/Teilzeit Mann ohne Pkw", generateSet(Job.JOB_10, Job.JOB_18)), //
-        PG_5(4, "nicht erwerbstätig Frau mit Pkw", generateSet(Job.JOB_8, Job.JOB_15, Job.JOB_23)), //
-        PG_6(5, "nicht erwerbstätig Frau ohne Pkw", generateSet(Job.JOB_16, Job.JOB_24)), //
-        PG_7(6, "nicht erwerbstätig Mann mit Pkw", generateSet(Job.JOB_6, Job.JOB_13, Job.JOB_21)), //
-        PG_8(7, "nicht erwerbstätig Mann ohne Pkw", generateSet(Job.JOB_14, Job.JOB_22)), //
+        PG_1(0, "Vollzeit/Teilzeit Frau mit Pkw", generateSet(Job.JOB_5, Job.JOB_11, Job.JOB_19, Job.JOB_36, Job.JOB_44, Job.JOB_52, Job.JOB_60)), //
+        PG_2(1, "Vollzeit/Teilzeit Frau ohne Pkw", generateSet(Job.JOB_12, Job.JOB_20, Job.JOB_37, Job.JOB_45, Job.JOB_53, Job.JOB_61)), //
+
+        PG_3(2, "Vollzeit/Teilzeit Mann mit Pkw", generateSet(Job.JOB_3, Job.JOB_9, Job.JOB_17, Job.JOB_34, Job.JOB_42, Job.JOB_50, Job.JOB_58)), //
+        PG_4(3, "Vollzeit/Teilzeit Mann ohne Pkw", generateSet(Job.JOB_10, Job.JOB_18, Job.JOB_35, Job.JOB_43, Job.JOB_51, Job.JOB_59)), //
+
+        PG_5(4, "nicht erwerbstätig Frau mit Pkw", generateSet(Job.JOB_8, Job.JOB_15, Job.JOB_23, Job.JOB_40, Job.JOB_48, Job.JOB_56, Job.JOB_64)), //
+        PG_6(5, "nicht erwerbstätig Frau ohne Pkw", generateSet(Job.JOB_16, Job.JOB_24, Job.JOB_41, Job.JOB_49, Job.JOB_57, Job.JOB_65)), //
+        PG_7(6, "nicht erwerbstätig Mann mit Pkw", generateSet(Job.JOB_6, Job.JOB_13, Job.JOB_21, Job.JOB_38, Job.JOB_46, Job.JOB_54, Job.JOB_62)), //
+        PG_8(7, "nicht erwerbstätig Mann ohne Pkw", generateSet(Job.JOB_14, Job.JOB_22, Job.JOB_39, Job.JOB_47, Job.JOB_55, Job.JOB_63)), //
         PG_9(8, "Rentner mit Pkw", generateSet(Job.JOB_25, Job.JOB_27, Job.JOB_29, Job.JOB_31)), //
         PG_10(9, "Rentner ohne Pkw", generateSet(Job.JOB_26, Job.JOB_28, Job.JOB_30, Job.JOB_32)), //
         PG_11(10, "Schüler/Student", generateSet(Job.JOB_1, Job.JOB_2)), //
@@ -852,7 +862,11 @@ public class TuMEnums {
         JOB_1(1), JOB_2(2), JOB_3(3), JOB_4(4), JOB_5(5), JOB_6(6), JOB_7(7), JOB_8(8), JOB_9(9), JOB_10(10), JOB_11(
                 11), JOB_12(12), JOB_13(13), JOB_14(14), JOB_15(15), JOB_16(16), JOB_17(17), JOB_18(18), JOB_19(
                 19), JOB_20(20), JOB_21(21), JOB_22(22), JOB_23(23), JOB_24(24), JOB_25(25), JOB_26(26), JOB_27(
-                27), JOB_28(28), JOB_29(29), JOB_30(30), JOB_31(31), JOB_32(32);
+                27), JOB_28(28), JOB_29(29), JOB_30(30), JOB_31(31), JOB_32(32), JOB_34(34), JOB_35(35), JOB_36(
+                36), JOB_37(37), JOB_38(38), JOB_39(39), JOB_40(40), JOB_41(41), JOB_42(42), JOB_43(43), JOB_44(
+                44), JOB_45(45), JOB_46(46), JOB_47(47), JOB_48(48), JOB_49(49), JOB_50(50), JOB_51(51), JOB_52(
+                52), JOB_53(53), JOB_54(54), JOB_55(55), JOB_56(56), JOB_57(57), JOB_58(58), JOB_59(59), JOB_60(
+                60), JOB_61(61), JOB_62(62), JOB_63(63), JOB_64(64), JOB_65(65);
 
         private final int id;
 

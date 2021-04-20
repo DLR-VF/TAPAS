@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
@@ -306,8 +314,7 @@ public class SumoDaemon extends Thread {
         String query = "";
         try {
             if (this.checkAndReestablishCon()) {
-                String sumoStatusTable = this.manager.readSingleParameter(sim_key, "DB_SCHEMA_CORE") +
-                        this.manager.readSingleParameter(sim_key, "DB_TABLE_SUMO_STATUS");
+                String sumoStatusTable = this.manager.readSingleParameter(sim_key, "DB_TABLE_SUMO_STATUS");
                 if (!sumoStatusTable.equals("")) {
                     query = "SELECT max(iteration) as iter, count(*)::integer as num FROM " + sumoStatusTable +
                             " WHERE msg_type = 'finished' and sim_key ='" + sim_key + "'";
@@ -436,8 +443,18 @@ public class SumoDaemon extends Thread {
         List<String> possibleSims = new LinkedList<>();
         try {
             if (this.checkAndReestablishCon()) {
-                query = "SELECT t.sim_key from core.global_sumo_status as t join simulations as s on s.sim_key=t.sim_key where msg_type='finished' and sim_finished=TRUE";
+                String sumoStatusTable ="";
+                //this table should be the same for all simulations!
+                query = "SELECT param_value from simulation_parameters where param_key = 'DB_TABLE_SUMO_STATUS'";
                 ResultSet rs = this.manager.executeQuery(query, this);
+                if (rs.next()) {
+                    sumoStatusTable = rs.getString("param_value");
+                }
+                rs.close();
+
+
+                query = "SELECT t.sim_key from "+sumoStatusTable+" as t join simulations as s on s.sim_key=t.sim_key where msg_type='finished' and sim_finished=TRUE";
+                rs = this.manager.executeQuery(query, this);
                 while (rs.next()) {
                     possibleSims.add(rs.getString("sim_key"));
                 }

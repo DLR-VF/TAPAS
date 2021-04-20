@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.scheme;
 
 import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
@@ -141,7 +149,8 @@ public class TPS_SchemeSet implements Iterable<TPS_Scheme>, ExtendedWritable {
      */
     public TPS_Scheme selectScheme(TPS_Person person) {
         TPS_DiscreteDistribution<Integer> scDis = this.distributionMap.get(person.getPersGroup());
-        TPS_SchemeClass sc = this.schemeClasses.get(scDis.drawKey());
+        Integer key = scDis.drawKey();
+        TPS_SchemeClass sc = this.schemeClasses.get(key);
         return sc.draw();
     }
 

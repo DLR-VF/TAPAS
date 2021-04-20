@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.runtime.server;
 
 import java.io.File;
@@ -106,10 +114,7 @@ public class SimulationData {
      * a link to ther insance which calculates the progress
      */
     private final ProgressCalculator progressCalc;
-    /**
-     * an array, which stores the parameters for this simulation like random seed, sample size, population key
-     */
-    private String[] simParams;
+
 
     /**
      * This constructor should be used when the simulation is build because of a database query. All members are set from the ResultSet of a database select statement.
@@ -120,8 +125,7 @@ public class SimulationData {
     public SimulationData(ResultSet rs) throws SQLException {
         this(rs.getString("sim_key"), rs.getString("sim_file"), rs.getString("sim_description"),
                 rs.getLong("sim_progress"), rs.getLong("sim_total"), rs.getBoolean("sim_ready"),
-                rs.getBoolean("sim_started"), rs.getBoolean("sim_finished"),
-                (String[]) rs.getArray("sim_par").getArray());
+                rs.getBoolean("sim_started"), rs.getBoolean("sim_finished"));
         this.update(rs);
     }
 
@@ -131,10 +135,9 @@ public class SimulationData {
      *
      * @param sim_key  The key value for this simulation
      * @param fileName The filename of the config file
-     * @param params   The array of parameters from the db-simulation array
      */
-    public SimulationData(String sim_key, String fileName, String[] params) {
-        this(sim_key, fileName, "", 0, 0, false, false, false, params);
+    public SimulationData(String sim_key, String fileName) {
+        this(sim_key, fileName, "", 0, 0, false, false, false);
     }
 
     /**
@@ -147,11 +150,9 @@ public class SimulationData {
      * @param sim_ready    ready flag
      * @param sim_started  started flag
      * @param sim_finished finished flag
-     * @param sim_params   array of the simulation parameters: random seed, sample size etc.
      */
-    private SimulationData(String sim_key, String fileName, String description, long sim_progress, long sim_total, boolean sim_ready, boolean sim_started, boolean sim_finished, String[] sim_params) {
-        this.simParams = sim_params;
-        this.fileName = fileName.replace('\\', '/');
+    private SimulationData(String sim_key, String fileName, String description, long sim_progress, long sim_total, boolean sim_ready, boolean sim_started, boolean sim_finished) {
+        this.fileName = fileName;
         this.description = description;
         this.sim_finished = sim_finished;
         this.sim_key = sim_key;
@@ -265,10 +266,6 @@ public class SimulationData {
         return fileName;
     }
 
-    public String[] getSimParams() {
-        return simParams;
-    }
-
     /**
      * @return current state of the simulation
      */
@@ -361,7 +358,6 @@ public class SimulationData {
         this.sim_total = rs.getLong("sim_total");
         this.timestamp_started = rs.getTimestamp("timestamp_started");
         this.timestamp_finished = rs.getTimestamp("timestamp_finished");
-        this.simParams = (String[]) rs.getArray("sim_par").getArray();
         this.progressCalc.update();
     }
 

@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.tools.persitence.db;
 
 import de.dlr.ivf.tapas.log.TPS_Logger;
@@ -140,7 +148,7 @@ public class TPS_BasicConnectionClass {
         } else {
             JFileChooser choose = new JFileChooser();
             choose.setDialogTitle("Select login info file");
-            int val = choose.showOpenDialog(null);
+            int val = choose.showOpenDialog(choose); // choose as a parameter is necessary to put the dialog in the front
             String baseDirectory;
             File tmpFile;
             // did they click on open

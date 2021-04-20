@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.analyzer.tum.databaseConnector;
 
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
@@ -75,8 +83,14 @@ public class DBTripReader implements TapasTripReader {
         this.console = console;
         this.settlementType = settlementType;
 
-        String q = "SELECT sim_par[1] as region, sim_par[2] as hhkey, sim_description" + " FROM simulations " +
-                " WHERE sim_key = '" + simulation + "'";
+//        String q = "SELECT sim_par[1] as region, sim_par[2] as hhkey, sim_description" + " FROM simulations " +
+//                " WHERE sim_key = '" + simulation + "'";
+
+        String q = "SELECT sp.param_value as region, sp2.param_value as hhkey, sim_description" +
+                "    FROM simulations s join simulation_parameters sp on (s.sim_key = sp.sim_key)" +
+                "        join simulation_parameters sp2 on (s.sim_key = sp2.sim_key) " +
+                "WHERE sim_key = '" + simulation +  "' and sp.param_key = 'DB_REGION' " +
+                "and sp2.param_key = 'DB_HOUSEHOLD_AND_PERSON_KEY' ORDER BY sim_key";
 
         ResultSet rs = connection.executeQuery(q, this);
 

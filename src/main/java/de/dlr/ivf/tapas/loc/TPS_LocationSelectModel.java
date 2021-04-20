@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.loc;
 
 import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
@@ -15,7 +23,7 @@ public abstract class TPS_LocationSelectModel {
     /**
      * The interface method to select a location from the given choice set
      *
-     * @param choiceSet the choiceset to scan
+     * @param choiceSet the choice set to scan
      * @return the picked location.
      */
 

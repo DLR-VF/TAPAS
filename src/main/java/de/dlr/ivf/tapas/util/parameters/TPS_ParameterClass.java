@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.util.parameters;
 
 import com.csvreader.CsvReader;
@@ -367,6 +375,7 @@ public class TPS_ParameterClass {
                     case DB_TABLE_SIMULATION_PARAMETERS:
                     case DB_TABLE_SERVERS:
                     case DB_TABLE_PROCESSES:
+                    case DB_TABLE_SUMO_STATUS:
                         break;
                     default:
                         this.paramStringClass.add(param, ParamString.DB_SCHEMA_CORE, "");
@@ -477,20 +486,17 @@ public class TPS_ParameterClass {
      * instance. If the file is in csv format the key is in the first column and
      * the value in the second one.<br>
      * In the second step the value all values are set to enum constants of type
-     * ParamStrin}, ParamFlag and ParamValue. If the constant is found and the
+     * ParamString, ParamFlag and ParamValue. If the constant is found and the
      * parameter has a wrong format an error is logged (e.g. you try to define
      * an instance of ParamValue with "true"). If no constant was found to set
      * the value a warning is logged.
      *
      * @param currentPath    current path of the properties file
-     * @param propertiesFile file name of the current properties file; file
-     *                       can be in java properties or in standard csv format
-     * @param flagSet        set with all instances of ParamFlag, which are
-     *                       not defined yet
-     * @param stringSet      set with all instances of ParamString, which are
-     *                       not defined yet
-     * @param valueSet       set with all instances of ParamValue, which are
-     *                       not defined
+     * @param propertiesFile file name of the current properties file; file can be in java properties or in standard
+     *                       csv format
+     * @param flagSet        set with all instances of ParamFlag, which are not defined yet
+     * @param stringSet      set with all instances of ParamString, which are not defined yet
+     * @param valueSet       set with all instances of ParamValue, which are not defined
      *                       yet
      * @throws FileNotFoundException if the file is not found
      * @throws IOException           if there occurs a read error

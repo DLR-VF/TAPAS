@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.runtime.client;
 
 import de.dlr.ivf.tapas.analyzer.gui.Control;
@@ -141,6 +149,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
      */
     private ConfigurableJTable simTable;
     private final Set<String> workingSimKeys = Collections.synchronizedSet(new HashSet<>());
+
     /**
      * The constructor builds up the whole GUI
      *
@@ -395,7 +404,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                     @Override
                     public void setValueAt(Object aValue, int row, int column) {
                         super.setValueAt(aValue, row, column);
-                        if (column == SIM_INDEX.FILE.ordinal()) {
+                        if (column == SIM_INDEX.DESCRIPTION.ordinal()) {
                             String simkey = (String) getValueAt(row, SIM_INDEX.KEY.ordinal());
                             updateSimulationDescription((String) aValue, simkey);
                         }
@@ -431,17 +440,13 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 
             @Override
             public void mouseClicked(MouseEvent e) {
-
                 int selectedRow = simTable.getSelectedRow();
-
                 if (e.getClickCount() == 2 && selectedRow != -1) {
-
                     final String simKeyOld = simTable.getModel().getValueAt(selectedRow, SIM_INDEX.KEY.ordinal())
                                                      .toString();
                     new Thread(() -> {
                         String optionalNewSimKey = new TPS_ParameterFileConverterGUI(control.getParameters()).showModal(
                                 frame, simKeyOld);
-
                         if (!simKeyOld.equals(optionalNewSimKey)) {
                             // start new simulation on the basis of the simulation key
                             // configuration data is already in the DB
@@ -800,8 +805,9 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 
         Object[] data = new Object[this.simTable.getColumnCount()];
         data[SIM_INDEX.KEY.ordinal()] = simulation.getKey();
-        data[SIM_INDEX.FILE.ordinal()] =
+        data[SIM_INDEX.DESCRIPTION.ordinal()] =
                 simulation.getDescription() == null ? simulation.getRelativeFileName() : simulation.getDescription();
+        data[SIM_INDEX.FILE.ordinal()] = simulation.getRelativeFileName();
         data[SIM_INDEX.PROGRESS.ordinal()] = 0;
         data[SIM_INDEX.COUNT.ordinal()] = simulation.getProgress() + "/" + simulation.getTotal();
         data[SIM_INDEX.STOPPED.ordinal()] = simulation.minimumState(TPS_SimulationState.STOPPED);
@@ -812,7 +818,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         data[SIM_INDEX.ELAPSED.ordinal()] = 0;
         data[SIM_INDEX.ESTIMATED.ordinal()] = 0;
         data[SIM_INDEX.ACTION.ordinal()] = "";
-        data[SIM_INDEX.PARAMS.ordinal()] = simulation.getSimParams();
         ((DefaultTableModel) this.simTable.getModel()).addRow(data);
         //((DefaultTableModel) this.simTable.getModel()).fireTableDataChanged();
 
@@ -870,7 +875,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
             }
 
             if (rows.length > 0 && JOptionPane.showConfirmDialog(frame,
-                    "Folgende Simulationen lï¿½schen:\n\n" + toDelete + "?") == JOptionPane.YES_OPTION) {
+                    "Folgende Simulationen löschen:\n\n" + toDelete + "?") == JOptionPane.YES_OPTION) {
                 for (Object[] row : rows) {
                     final String simKey = (String) row[SIM_INDEX.KEY.ordinal()];
                     new Thread(() -> {
@@ -1108,6 +1113,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         ((DefaultTableModel) this.serverTable.getModel()).setColumnIdentifiers(serverHeader);
 
         String[] simHeader = {MultilanguageSupport.getString("SIM_HEADER_KEY"), MultilanguageSupport.getString(
+                "SIM_HEADER_DESCRIPTION"), MultilanguageSupport.getString(
                 "SIM_HEADER_FILE"), MultilanguageSupport.getString("SIM_HEADER_READY"), MultilanguageSupport.getString(
                 "SIM_HEADER_STARTED"), MultilanguageSupport.getString(
                 "SIM_HEADER_FINISHED"), MultilanguageSupport.getString(
@@ -1116,8 +1122,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                 "SIM_HEADER_ELAPSED"), MultilanguageSupport.getString(
                 "SIM_HEADER_ESTIMATED"), MultilanguageSupport.getString(
                 "SIM_HEADER_DATE_STARTED"), MultilanguageSupport.getString(
-                "SIM_HEADER_DATE_FINISHED"), MultilanguageSupport.getString(
-                "SIM_HEADER_ACTION"), MultilanguageSupport.getString("SIM_HEADER_PARAMETERS")};
+                "SIM_HEADER_DATE_FINISHED"), MultilanguageSupport.getString("SIM_HEADER_ACTION")};
         // MultilanguageSupport
         ((DefaultTableModel) this.simTable.getModel()).setColumnIdentifiers(simHeader);
 
@@ -1156,7 +1161,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                 null);
         this.simTable.initTableColumn(SIM_INDEX.ACTION.ordinal(), 75, new ButtonRenderer(true),
                 new SimTableButtonEditor());
-        this.simTable.initTableColumn(SIM_INDEX.PARAMS.ordinal(), 0, new StringArrayRenderer(true), null);
 
         this.simTable.setDragEnabled(true);
         this.simTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -1572,7 +1576,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
             simTable.setValueAt(simulation.getEstimatedTime(control.getCurrentDatabaseTimestamp()), row,
                     SIM_INDEX.ESTIMATED.ordinal());
             simTable.setValueAt(simulation.getState().getAction(), row, SIM_INDEX.ACTION.ordinal());
-            simTable.setValueAt(simulation.getSimParams(), row, SIM_INDEX.PARAMS.ordinal());
         }
 
     }
@@ -1601,8 +1604,8 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
     }
 
 
-    private enum SIM_INDEX {
-        KEY, FILE, STOPPED, STARTED, FINISHED, PROGRESS, COUNT, ELAPSED, ESTIMATED, DATE_STARTED, DATE_FINISHED, ACTION, PARAMS
+    enum SIM_INDEX {
+        KEY, DESCRIPTION, FILE, STOPPED, STARTED, FINISHED, PROGRESS, COUNT, ELAPSED, ESTIMATED, DATE_STARTED, DATE_FINISHED, ACTION, PARAMS
     }
 
     private final class ExportThread implements Runnable {
@@ -1944,6 +1947,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
             return comp;
         }
     }
+
     /**
      * End of {@link ITumInterface} implementation
      */
@@ -1957,6 +1961,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         private final TableCellRenderer delegate;
         private final Set<Cell> blinkingCells = new HashSet<>();
         private boolean blinkingState = true;
+
         ServerColorRenderer(final JTable table, TableCellRenderer delegate) {
 
             this.delegate = delegate;

@@ -1,0 +1,33 @@
+name,value,comment
+DB_DBNAME,tapas,database name
+DB_DRIVER,org.postgresql.Driver,driver class for connection
+DB_TYPE,postgresql,type of the database
+DB_HOST,localhost,
+DB_PORT,5432,port to connect to
+DB_USER,postgres,database user
+DB_PASSWORD,postgres,user password
+DB_SCHEMA_CORE,core.,
+DB_SCHEMA_TEMP,temp.,
+DB_TABLE_CFNX,global_cfnx,
+DB_TABLE_CONSTANT_ACTIVITY ,global_activity_codes,
+DB_TABLE_CONSTANT_AGE,global_age_codes,
+DB_TABLE_CONSTANT_CARS,global_car_codes,
+DB_TABLE_CONSTANT_DISTANCE,global_distance_codes,
+DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION,global_driving_license_information,
+DB_TABLE_CONSTANT_HOUSEHOLD,global_household_codes,
+DB_TABLE_CONSTANT_INCOME,global_income_codes,
+DB_TABLE_CONSTANT_LOCATION,global_location_codes,
+DB_TABLE_CONSTANT_MODE,global_mode_codes,
+DB_TABLE_CONSTANT_PERSON,global_person_codes,
+DB_TABLE_CONSTANT_SETTLEMENT,global_settlement_codes,
+DB_TABLE_CONSTANT_SEX,global_sex_codes,
+DB_TABLE_EPISODE,global_episodes,
+DB_TABLE_MCT,global_mode_choice_trees,
+DB_TABLE_SCHEME,global_schemes,
+DB_TABLE_SCHEME_CLASS,global_scheme_classes,
+DB_TABLE_SCHEME_CLASS_DISTRIBUTION,global_scheme_class_distributions,
+DB_TABLE_VOT,global_values_of_time,
+DB_TABLE_SIMULATIONS,simulations,
+DB_TABLE_SIMULATION_PARAMETERS,simulation_parameters,
+DB_TABLE_SERVERS,servers,
+DB_TABLE_PROCESSES,server_processes,

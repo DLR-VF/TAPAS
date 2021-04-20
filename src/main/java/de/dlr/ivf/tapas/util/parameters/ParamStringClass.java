@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.util.parameters;
 
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -141,7 +149,14 @@ public class ParamStringClass {
         this.paramStrings.put(ParamString.SEVERENCE_LOG_LEVEL_MASK, new MutablePair<>(ParamType.LOG, null));
         this.paramStrings.put(ParamString.UTILITY_FUNCTION_CLASS, new MutablePair<>(ParamType.RUN, null));
         this.paramStrings.put(ParamString.UTILITY_FUNCTION_KEY, new MutablePair<>(ParamType.RUN, "default"));
-        this.paramStrings.put(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY, new MutablePair<>(ParamType.DB, null));
+        this.paramStrings.put(ParamString.DB_ACTIVITY_2_LOCATION_KEY, new MutablePair<>(ParamType.DB, "default"));
+        this.paramStrings.put(ParamString.DB_ADDITIONAL_TRAFFIC_KEY, new MutablePair<>(ParamType.DB, "default"));
+        this.paramStrings.put(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY, new MutablePair<>(ParamType.DB, "default"));
+        this.paramStrings.put(ParamString.DB_LOCATION_KEY, new MutablePair<>(ParamType.DB, "default"));
+        this.paramStrings.put(ParamString.DB_EPISODE_KEY, new MutablePair<>(ParamType.DB, "default"));
+        this.paramStrings.put(ParamString.DB_SCHEME_KEY, new MutablePair<>(ParamType.DB, "default"));
+        this.paramStrings.put(ParamString.DB_SCHEME_CLASS_KEY, new MutablePair<>(ParamType.DB, "default"));
+        this.paramStrings.put(ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY, new MutablePair<>(ParamType.DB,"default"));
         this.paramStrings.put(ParamString.DB_CAR_FLEET_KEY, new MutablePair<>(ParamType.DB, null));
         this.paramStrings.put(ParamString.DB_ACTIVITY_CNF_KEY, new MutablePair<>(ParamType.DB, "default"));
         this.paramStrings.put(ParamString.DB_REGION_CNF_KEY, new MutablePair<>(ParamType.DB, "default"));

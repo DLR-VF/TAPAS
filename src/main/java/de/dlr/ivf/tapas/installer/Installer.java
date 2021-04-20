@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.installer;
 
 import net.lingala.zip4j.ZipFile;
@@ -31,6 +39,11 @@ public class Installer {
 
     // this must be set to true here otherwise existsDestinationDirectory does not work
     private static boolean DESTINATION_ALREADY_EXISTS = true;
+
+    // source sql files archive
+    private static String source = "sql_dumps.zip";
+    // directory to which the source is going to be extracted
+    private static String destination = "tmp_sql_dumps";
 
     /**
      * Closes the database connection
@@ -94,6 +107,7 @@ public class Installer {
             Statement statement = DBCONNECTION.createStatement();
             statement.executeUpdate("CREATE DATABASE " + dbname);
         } catch (SQLException e) {
+            System.err.println("DB already exists? Abort and leave the DB alone");
             exitAndCleanUp(e, false);
         }
     }
@@ -127,6 +141,7 @@ public class Installer {
             System.out.println("Try to drop newly created database " + DBNAME);
             stmt = DBCONNECTION.createStatement();
             stmt.execute("DROP DATABASE IF EXISTS " + DBNAME);
+            System.out.println(DBNAME + " successfully dropped");
         } catch (SQLException e) {
             System.err.println("Could not delete database " + DBNAME);
             exitAndCleanUp(e, false);
@@ -258,6 +273,7 @@ public class Installer {
     /**
      * Method to exit the program as cleanly as possible when an exception occurred,
      * i.e. it prints the stack trace and drops the newly created database if necessary
+     * additionally it deletes the destination folder (if it did not exist at the beginning)
      *
      * @param e       exception whose stack trace is printed
      * @param cleanUp if true it drops the newly created database
@@ -265,6 +281,7 @@ public class Installer {
     private static void exitAndCleanUp(Exception e, boolean cleanUp) {
         e.printStackTrace();
         if (cleanUp) dropDBIfFailed();
+        if (cleanUp & !DESTINATION_ALREADY_EXISTS) deleteDirectory(new File(destination));
         System.exit(1);
     }
 
@@ -288,9 +305,6 @@ public class Installer {
     }
 
     public static void main(String[] args) {
-        String source = "sql_dumps.zip";
-        String destination = "tmp_sql_dumps";
-
         Options options = new Options();
         options.addOption("n", "dbname", true, "Database Name");
         options.addOption("u", "dbuser", true, "Database User with sufficient rights");
@@ -338,19 +352,19 @@ public class Installer {
      */
     private static List<String> parseFunctionFile(String functionString) {
         //            String functionString = Files.readString(Paths.get(file));
-        String[] bar = functionString.split("CREATE OR REPLACE FUNCTION");
+        String[] functionStringArray = functionString.split("CREATE OR REPLACE FUNCTION");
         //first basic sql statements which are not a function
-        ArrayList<String> stringlist = Arrays.stream(bar[0].split(";")).collect(
+        ArrayList<String> stringlist = Arrays.stream(functionStringArray[0].split(";")).collect(
                 Collectors.toCollection(ArrayList::new));
-        for (int i = 0; i < bar.length - 1; i++) {
-            String[] baz = bar[i].split("COST 100;");
+        for (int i = 0; i <= functionStringArray.length - 1; i++) {
+            String[] baz = functionStringArray[i].split("COST 100;");
             if (baz.length > 1) {
                 stringlist.add("CREATE OR REPLACE FUNCTION" + baz[0] + "COST 100;");
                 stringlist.addAll(Arrays.stream(baz[1].split(";")).collect(Collectors.toList()));
             } else stringlist.addAll(Arrays.stream(baz[0].split(";")).collect(Collectors.toList()));
         }
         //last basic sql statements
-        stringlist.addAll(Arrays.stream(bar[0].split(";")).collect(Collectors.toList()));
+//        stringlist.addAll(Arrays.stream(functionStringArray[functionStringArray.length - 1].split(";")).collect(Collectors.toList()));
         return stringlist;
     }
 
@@ -398,7 +412,7 @@ public class Installer {
             System.out.println(destination + " already exists. It will not be deleted afterwards.");
         } else {
             DESTINATION_ALREADY_EXISTS = false;
-            System.out.println(destination + " does not exist already. Will create and delete it afterwards. ");
+            System.out.println(destination + " does not exist already. It will be created and deleted afterwards. ");
         }
     }
 

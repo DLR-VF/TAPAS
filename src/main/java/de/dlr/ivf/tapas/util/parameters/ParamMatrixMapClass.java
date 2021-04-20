@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.util.parameters;
 
 import de.dlr.ivf.tapas.log.TPS_Logger;
@@ -91,7 +99,7 @@ public class ParamMatrixMapClass {
         }
         int index = type.getIndex();
         if (this.paramMatrixMaps.get(param).getRight()[index] == null) throw new RuntimeException(
-                "MatrixMap for index " + index + " is not defined: " + this);
+                "MatrixMap for index " + index + " and param " + param + " is not defined: " + this);
         return this.paramMatrixMaps.get(param).getRight()[index].getMatrix(time);
     }
 

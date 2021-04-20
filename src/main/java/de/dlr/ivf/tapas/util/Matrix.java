@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.util;
 
 import java.text.DecimalFormat;
@@ -14,7 +22,7 @@ public class Matrix {
     /**
      * The matrix is stored in this value distribution.
      */
-    double[][] vals;
+    public double[][] vals;
     /**
      * Flag if the matrix is a diagonal matrix
      */

@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.loc;
 
 import de.dlr.ivf.tapas.TPS_Main;
@@ -23,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
-    /// The number of representats to choose
+    /// The number of representants to choose
     int numOfTazRepresentants = 3;
 
     public List<TPS_Location> generateLocationRepr(TPS_ActivityConstant actCode, TPS_TrafficAnalysisZone taz) {

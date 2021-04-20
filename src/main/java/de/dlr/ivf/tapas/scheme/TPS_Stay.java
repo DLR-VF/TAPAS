@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.scheme;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
@@ -49,7 +57,7 @@ public class TPS_Stay extends TPS_Episode implements Comparable<TPS_Stay> {
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */
     public int compareTo(TPS_Stay stay) {
-        int deltaPriority = this.getPriority() - stay.getPriority(); // higher priority -> first in list
+        int deltaPriority = stay.getPriority() - this.getPriority(); // higher priority -> first in list
         if (deltaPriority == 0) {
             int deltaDuration = this.getOriginalDuration() -
                     stay.getOriginalDuration(); // same priority: longer duration -> first in list

@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.util.parameters;
 
 import org.apache.commons.lang3.tuple.MutablePair;
@@ -59,7 +67,6 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.MAX_TIME_DIFFERENCE, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.MAX_TRIES_PERSON, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.MAX_TRIES_SCHEME, new MutablePair<>(ParamType.DEFAULT, null));
-        this.paramValues.put(ParamValue.MAX_TRIES_PLANS, new MutablePair<>(ParamType.OPTIONAL, 1));
         this.paramValues.put(ParamValue.MAX_TRIES_LOCATION_SELECTION, new MutablePair<>(ParamType.DEFAULT, 6));
         this.paramValues.put(ParamValue.MAX_VISUM_ITERATION, new MutablePair<>(ParamType.DEFAULT, 0));
         this.paramValues.put(ParamValue.MAX_SUMO_ITERATION, new MutablePair<>(ParamType.DEFAULT, 0));

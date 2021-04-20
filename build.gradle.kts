@@ -24,7 +24,7 @@ plugins {
     `maven-publish`
 
     // git versioning plugin
-    id("org.ajoberstar.reckon") version "0.12.0"
+    id("org.ajoberstar.reckon") version "0.13.0"
 }
 
 
@@ -80,6 +80,15 @@ reckon {
     snapshotFromProp()
 }
 
+// task for checking the git status
+// useful for reckoning a "final" release
+// necessary because of differences between c git and jgit
+task("gitstatus") {
+    doLast {
+        println(grgit.status())
+    }
+}
+
 
 // This is for publishing a package to GitHub
 publishing {
@@ -96,7 +105,7 @@ publishing {
     publications {
         create<MavenPublication>("TAPAS") {
             groupId = "de.dlr.ivf"
-            artifactId = "TAPAS"
+            artifactId = "tapas"
             version = project.version.toString()
             from(components["java"])
             artifact(tasks["shadowJar"])
@@ -161,7 +170,7 @@ task("Installer", JavaExec::class) {
     // Define the main class for the application
     main = "de.dlr.ivf.tapas.installer.Installer"
 //    set arguments like in the line below
-//    args = mutableListOf("-s localhost -n my_tapas_db_name -u my_already_existing_tapas_db_user -p my_db_password")
+//    args = mutableListOf("--dbserver=localhost","--dbname=my_tapas_db_name","--dbuser=my_already_existing_tapas_db_user","--dbpassword=my_db_password")
 }
 
 tasks {

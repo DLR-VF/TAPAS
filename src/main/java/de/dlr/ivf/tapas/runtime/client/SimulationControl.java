@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020 DLR Institute of Transport Research
+ * All rights reserved.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package de.dlr.ivf.tapas.runtime.client;
 
 import com.csvreader.CsvReader;
@@ -267,12 +275,7 @@ public class SimulationControl {
      *                      inserting the simulation into the database
      */
     public void addSimulation(String sim_key, String filename, boolean addConfigToDB) throws IOException, SQLException {
-//        filename = filename.replace('\\', '/').substring(tapasNetworkDirectory.getAbsolutePath().length());
-
-        String fullFileName;
-
-//        fullFileName = tapasNetworkDirectory.getAbsolutePath() + filename;
-        fullFileName = filename;
+        String fullFileName = filename;
         // now read the parameters and store them into the db
         HashMap<String, String> parameters = new HashMap<>();
         this.parameterFiles.push(new File(fullFileName));
@@ -284,7 +287,6 @@ public class SimulationControl {
         paramVal += "_" + sim_key;
         parameters.put("SUMO_DESTINATION_FOLDER", paramVal);
 
-
         Random generator;
         if (parameters.get("RANDOM_SEED_NUMBER") != null && Boolean.parseBoolean(
                 parameters.get("FLAG_INFLUENCE_RANDOM_NUMBER"))) {
@@ -295,23 +297,10 @@ public class SimulationControl {
         double randomSeed = generator.nextDouble(); // postgres needs a double
         // value as seed ranging
         // from 0 to 1
-        String array = parameters.get("DB_REGION") + "," + parameters.get("DB_HOUSEHOLD_AND_PERSON_KEY") + "," +
-                randomSeed + "," + Double.parseDouble(parameters.get("DB_HH_SAMPLE_SIZE")) + ", ";
-        if (Behaviour.FAT.equals(TPS_DB_IOManager.BEHAVIOUR)) array = array.concat("FALSE");
-        else array = array.concat("TRUE");
-        // new parameter: iteration
-        array = array.concat(",0");
-        // String query =
-        // ("INSERT INTO simulations (sim_key, sim_file, sim_par) "
-        // + " VALUES('" + sim_key + "', '"
-        // + simulation.getRelativeFileName() + "', '{" + array +
-        // "}'::character varying[])");
 
-        String query = ("INSERT INTO simulations (sim_key, sim_file, sim_par, sim_description) " + " VALUES('" +
-                sim_key + "', '"
-//				+ this.getParameters().SIM_DIR
-//				+ new File(this.props.get(ClientControlPropKey.LOGIN_CONFIG)).getName()
-                + "', '{" + array + "}'::character varying[],'" + filename + "')");
+        String projectName = parameters.getOrDefault("PROJECT_NAME", "");
+        String query = String.format("INSERT INTO simulations (sim_key, sim_file, sim_description) VALUES('%s', '%s', '%s')",
+                sim_key, filename, projectName);
 
         SimulationControl.this.dbConnection.execute(query, this);
         if (addConfigToDB) {
