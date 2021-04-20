@@ -113,8 +113,8 @@ public class TPS_ParameterXLSDAO extends AbstractTPS_ParameterDAO {
         map0.put(ParamValue.MIT_VARIABLE_COST_PER_KM, "tpsModeMIV.SzenVariableCostPerKilometer");
         map0.put(ParamValue.PT_COST_PER_KM_BASE, "tpsModeOEV.BasisCostPerKilometer");
         map0.put(ParamValue.PT_COST_PER_KM, "tpsModeOEV.SzenCostPerKilometer");
-        map0.put(ParamValue.TRAIN_COST_PER_KM_BASE, "tpsModeTrain.BasisCostPerKilometer");
-        map0.put(ParamValue.TRAIN_COST_PER_KM, "tpsModeTrain.SzenCostPerKilometer");
+        map0.put(ParamValue.CAR_SHARING_COST_PER_KM_BASE, "tpsModeTrain.BasisCostPerKilometer");
+        map0.put(ParamValue.CAR_SHARING_COST_PER_KM, "tpsModeTrain.SzenCostPerKilometer");
         map0.put(ParamValue.TAXI_COST_PER_KM_BASE, "tpsModeTAXI.BasisCostPerKilometer");
         map0.put(ParamValue.TAXI_COST_PER_KM, "tpsModeTAXI.SzenCostPerKilometer");
         map0.put(ParamValue.DEFAULT_VOT, "tpsVOT.defaultVOT");

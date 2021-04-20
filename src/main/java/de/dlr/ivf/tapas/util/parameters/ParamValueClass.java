@@ -130,8 +130,8 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.TOLL_CAT_2_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.TOLL_CAT_3, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.TOLL_CAT_3_BASE, new MutablePair<>(ParamType.RUN, null));
-        this.paramValues.put(ParamValue.TRAIN_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
-        this.paramValues.put(ParamValue.TRAIN_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.CAR_SHARING_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.CAR_SHARING_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.VELOCITY_BIKE, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.VELOCITY_CAR, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.VELOCITY_FOOT, new MutablePair<>(ParamType.DEFAULT, null));

@@ -641,13 +641,13 @@ public enum ParamValue {
      * costs of using the the train in the scenario in € / Kilometer;
      * category train contains "other" as ferry, plane, train, ...
      */
-    TRAIN_COST_PER_KM,
+    CAR_SHARING_COST_PER_KM,
 
     /**
      * costs of using the the train in the base scenario in € / Kilometer;
      * category train contains "other" as ferry, plane, train, ...
      */
-    TRAIN_COST_PER_KM_BASE,
+    CAR_SHARING_COST_PER_KM_BASE,
 
     /**
      * average speed on bike in m/s
