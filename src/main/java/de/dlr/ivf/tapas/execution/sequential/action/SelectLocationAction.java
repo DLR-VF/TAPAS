@@ -32,7 +32,7 @@ public class SelectLocationAction implements TPS_PlanStateAction{
                                 location -> { location_context.setNextLocation(location);
                                               next_located_stay.setLocation(location);
                                             },
-                                () -> next_located_stay.selectLocation(plan,plan.getPlanningContext(), tour_context.getNextHomeStay())
+                                () -> next_located_stay.selectLocation(plan,plan.getPlanningContext(), () -> tour_context.getCurrentStay(), tour_context.getNextHomeStay())
                         );
         if(next_stay.getActCode().isFix() || next_stay.isAtHome()){
             location_context.addToFixLocations(next_stay.getActCode(),next_located_stay.getLocation());

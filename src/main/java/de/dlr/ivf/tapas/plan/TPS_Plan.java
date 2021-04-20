@@ -971,7 +971,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                 this.fixLocations.get(currentActCode).getTrafficAnalysisZone()
                                                  .isRestricted()) // we have a restricted car wanting to go to a restricted area! -> BAD!
                         {
-                            currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getNextStay());
+                            currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getPrevStay(), () -> tourpart.getStayHierarchy(stay).getNextStay());
                             if (currentActCode.isFix()) {
                                 this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
                             }
@@ -984,7 +984,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                     "Set location from fix locations");
                         }
                     } else {
-                        currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getNextStay());
+                        currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getPrevStay(), () -> tourpart.getStayHierarchy(stay).getNextStay());
                         if (currentActCode.isFix()) {
                             this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
                         }

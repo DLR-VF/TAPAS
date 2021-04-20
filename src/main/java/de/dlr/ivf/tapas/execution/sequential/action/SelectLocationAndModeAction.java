@@ -131,7 +131,7 @@ public class SelectLocationAndModeAction implements TPS_PlanStateAction {
                             "Set location from fix locations");
                 }
             } else {
-                arrival_located_stay.selectLocation(plan, plan.getPlanningContext(), () -> plan.getNextHomeStay(tour_part));
+                //arrival_located_stay.selectLocation(plan, plan.getPlanningContext(), () -> plan.getNextHomeStay(tour_part));
                 if (currentActCode.isFix()) {
                     plan.getFixLocations().put(currentActCode, plan.getLocatedStay(arrival_stay).getLocation());
                 }

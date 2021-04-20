@@ -23,6 +23,8 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_VariableMap;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
@@ -32,6 +34,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * This class represents a complete region for a TAPAS simulation. A region can be Berlin. The region contains all
@@ -478,11 +481,14 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
         }
 
         // get the location choice set
+        TPS_TourPart tour_part = (TPS_TourPart) locatedStay.getStay().getSchemePart();
+        Supplier<TPS_Stay> coming_from = () -> tour_part.getStayHierarchy(locatedStay.getStay()).getPrevStay();
+        Supplier<TPS_Stay> going_to = () -> tour_part.getStayHierarchy(locatedStay.getStay()).getNextStay();
         TPS_RegionResultSet resultSet = this.getLocationChoiceSet().getLocationRepresentatives(plan, pc, locatedStay,
-                this.PM.getParameters());
+                this.PM.getParameters(),coming_from,going_to);
         //locComingFrom, td.getArrivalDuration(), locGoingTo, td.getDepartureDuration(), actCode,tourpart);
         //select a location from the choice set
-        return this.getLocationSelectModel().selectLocationFromChoiceSet(resultSet, plan, pc, locatedStay);
+        return this.getLocationSelectModel().selectLocationFromChoiceSet(resultSet, plan, pc, locatedStay, coming_from, going_to);
     }
 
     /**

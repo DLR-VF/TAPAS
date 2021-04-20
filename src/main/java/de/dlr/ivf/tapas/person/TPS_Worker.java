@@ -308,8 +308,7 @@ public class TPS_Worker implements Callable<Exception> {
                 TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person);
                 createPersonPlans(pe, null);
                 TPS_Plan plan = pe.getBestPlan();
-                ((TPS_DB_IOManager)PM).addToAllPlans(plan);
-                //PM.writePlan(plan);//todo remove later
+                PM.writePlan(plan);
                 // reset the age adaption of the retirees
                 person.setAgeAdaption(false, this.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
@@ -552,8 +551,7 @@ public class TPS_Worker implements Callable<Exception> {
             for (TPS_Person person : bestPlans.keySet()) {
                 TPS_Plan plan = bestPlans.get(person);
                 this.assignCarToPlan(plan); //TODO: isn't it too late here?
-                ((TPS_DB_IOManager)PM).addToAllPlans(plan);
-                //PM.writePlan(plan);//todo remove later
+                PM.writePlan(plan);
             }
         }
     }

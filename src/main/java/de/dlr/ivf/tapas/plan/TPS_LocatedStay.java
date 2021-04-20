@@ -183,7 +183,7 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
      * @param plan day plan to be executed
      * @param pc
      */
-    public void selectLocation(TPS_Plan plan, TPS_PlanningContext pc, Supplier<TPS_Stay> next_stay) {
+    public void selectLocation(TPS_Plan plan, TPS_PlanningContext pc, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
             TPS_Logger.log(SeverenceLogLevel.DEBUG,
                     "Start select procedure for stay (id=" + this.getStay().getId() + ")");
@@ -208,8 +208,8 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
 
         // Has to be a tour part because all home parts are at home; home parts will never reach this method
         TPS_TourPart tourpart = (TPS_TourPart) this.stay.getSchemePart();
-        TPS_Stay comingFrom = tourpart.getStayHierarchy(this.stay).getPrevStay();
-        TPS_Stay goingTo = next_stay.get();
+        TPS_Stay comingFrom = coming_from.get();
+        TPS_Stay goingTo = going_to.get();
         if (!plan.isLocated(comingFrom) || !plan.isLocated(goingTo)) {
             // this case should be impossible because we now iterate over the priorised stays,
             // so every stay where we can come from or where we go to is located

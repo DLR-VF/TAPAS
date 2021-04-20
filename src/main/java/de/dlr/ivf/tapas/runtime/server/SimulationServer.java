@@ -479,7 +479,6 @@ public class SimulationServer extends Thread {
             connection.setAutoCommit(false);
 
             String lock = "LOCK TABLE " + simulations_table_name + " IN ACCESS EXCLUSIVE MODE;";
-            System.out.println(lock);
 
             connection.createStatement().execute(lock);
 
@@ -496,6 +495,8 @@ public class SimulationServer extends Thread {
 
                 String sim_key = available_simulation.getString("sim_key");
 
+
+                parameterClass.setString(ParamString.RUN_IDENTIFIER, sim_key);
                 dbConnector.readRuntimeParametersFromDB(sim_key);
 
                 if (parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) &&

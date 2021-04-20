@@ -27,6 +27,7 @@ import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 
 public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectModel {
     abstract public WeightedResult createLocationOption(Result result, double travelTime);
@@ -44,7 +45,7 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
     abstract public double getTravelTime(TPS_Plan plan, TPS_PlanningContext pc, TPS_ModeChoiceContext prevMCC, TPS_ModeChoiceContext nextMCC, TPS_TrafficAnalysisZone taz, TPS_ParameterClass parameterClass);
 
     @Override
-    public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay) {
+    public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         if (this.PM == null) {
             TPS_Logger.log(SeverenceLogLevel.FATAL,
                     "TPS_LocationSelectModel not properly initialized! Persistance manager is null?!?! Driving home!");
@@ -58,8 +59,8 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
         TPS_Stay stay = locatedStay.getStay();
         TPS_ActivityConstant actCode = stay.getActCode();
         TPS_TourPart tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
-        TPS_Stay comingFrom = tourpart.getPreviousStay(stay); //tourpart.getStayHierarchy(stay).getPrevStay();
-        TPS_Stay goingTo = plan.getNextHomeStay(tourpart);//tourpart.getStayHierarchy(stay).getNextStay();
+        TPS_Stay comingFrom = coming_from.get(); //tourpart.getStayHierarchy(stay).getPrevStay();
+        TPS_Stay goingTo = going_to.get();//tourpart.getStayHierarchy(stay).getNextStay();
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
         TPS_SettlementSystem regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();
