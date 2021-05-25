@@ -159,7 +159,7 @@ public class TPS_DB_IO {
         for (int j = 0; j < size; ++j) {
             buffer = new StringBuilder();
             for (int k = 0; k < size; ++k) {
-                buffer.append(new BigDecimal(array.getValue(j, k)).setScale(decimalPlaces, RoundingMode.HALF_UP))
+                buffer.append(new BigDecimal(array.getValue(j+array.sIndex, k+array.sIndex)).setScale(decimalPlaces, RoundingMode.HALF_UP))
                       .append(",");
             }
             if (j < size - 1) totalBuffer.append(buffer);
@@ -183,6 +183,8 @@ public class TPS_DB_IO {
         double working = pRs.getInt("p_working") / 100.0;
         double budget = (pRs.getInt("p_budget_it") + pRs.getInt("p_budget_pt")) / 100.0;
 
+        int pGroupNumber = 0;
+        if(pRs.getInt("p_group")))
         TPS_Person person = new TPS_Person(pRs.getInt("p_id"), TPS_Sex.getEnum(pRs.getInt("p_sex")),
                 TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroupType.TAPAS, pRs.getInt("p_group")),
                 pRs.getInt("p_age"), pRs.getBoolean("p_abo"), hasBike, budget, working, false, pRs.getInt("p_work_id"),
