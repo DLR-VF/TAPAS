@@ -207,7 +207,7 @@ public class TPS_Logger {
             return;
         }
         if (text == null) {
-            text = "NULL-Exception";
+            text = "NULL-Exception"+throwable.getStackTrace();
         }
         log(getCallerClass(), hLog, sLog, text, throwable);
     }
