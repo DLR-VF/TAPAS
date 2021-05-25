@@ -39,7 +39,7 @@ public class Matrix {
     /**
      * The start index of the matrix. Normally an Array starts a 0. Here you can define the start index, e.g. 1.
      */
-    private final int sIndex;
+    public final int sIndex;
 
 
     /**
