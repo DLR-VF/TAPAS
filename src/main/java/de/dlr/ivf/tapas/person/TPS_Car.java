@@ -29,7 +29,7 @@ import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.THREAD)
 public class TPS_Car {
 
-    public static FuelType[] FUEL_TYPE_ARRAY = new FuelType[]{FuelType.BENZINE, FuelType.DIESEL, FuelType.GAS, FuelType.EMOBILE, FuelType.PLUGIN, FuelType.FUELCELL};
+    public static FuelType[] FUEL_TYPE_ARRAY = new FuelType[]{FuelType.BENZINE, FuelType.DIESEL, FuelType.GAS, FuelType.EMOBILE, FuelType.PLUGIN, FuelType.FUELCELL, FuelType.LPG};
     public static EmissionClass[] EMISSION_TYPE_ARRAY = new EmissionClass[]{EmissionClass.EURO_0, EmissionClass.EURO_1, EmissionClass.EURO_2, EmissionClass.EURO_3, EmissionClass.EURO_4, EmissionClass.EURO_5, EmissionClass.EURO_6};
     public boolean hasPaidToll = false;
     public int index = -1; // index of this car in the household entry
@@ -368,7 +368,13 @@ public class TPS_Car {
      * Method to get the cost per kilometre, depending on fueltype
      */
     public double getCostPerKilometer(SimulationType simType) {
-        return this.companyCar ? 0 : this.parameterClass.getDoubleValue(type.getCostPerKilometer(simType)) * fixCosts;
+        try {
+            return this.companyCar ? 0 : this.parameterClass.getDoubleValue(type.getCostPerKilometer(simType)) * fixCosts;
+        }
+        catch (NullPointerException e){
+
+            return 0.1;
+        }
     }
 
     /**
@@ -783,7 +789,10 @@ public class TPS_Car {
                 ParamValue.MIT_RANGE_PLUGIN), FUELCELL(ParamValue.MIT_FUELCELL_COST_PER_KM,
                 ParamValue.MIT_FUELCELL_COST_PER_KM_BASE, ParamValue.MIT_VARIABLE_COST_PER_KM,
                 ParamValue.MIT_VARIABLE_COST_PER_KM_BASE, ParamValue.MIT_RANGE_CONVENTIONAL,
-                ParamValue.MIT_RANGE_CONVENTIONAL);
+                ParamValue.MIT_RANGE_CONVENTIONAL),LPG(
+                ParamValue.MIT_GAS_COST_PER_KM, ParamValue.MIT_GAS_COST_PER_KM_BASE,
+                ParamValue.MIT_VARIABLE_COST_PER_KM, ParamValue.MIT_VARIABLE_COST_PER_KM_BASE,
+                ParamValue.MIT_RANGE_CONVENTIONAL, ParamValue.MIT_RANGE_CONVENTIONAL);
 
         private final ParamValue costPerKilometer;
         private final ParamValue variableCostsPerKilometer;
