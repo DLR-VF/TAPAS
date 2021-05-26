@@ -254,8 +254,8 @@ public class RamonaResultPreparator extends TPS_BasicConnectionClass {
      */
     public static void main(String[] args) {
         RamonaResultPreparator worker = new RamonaResultPreparator();
-        String[] results={"ramona_s3_trips_georeferenced_autogen","ramona_s3a_trips_georeferenced_autogen"};
-        String[] sims={"berlin_trips_2020y_11m_18d_10h_11m_18s_042ms","berlin_trips_2020y_11m_18d_17h_07m_19s_860ms"};
+        String[] results={"ramona_s1a_0_5_trips_georeferenced_autogen","ramona_s3a_0_5_trips_georeferenced_autogen"};
+        String[] sims={"berlin_trips_2021y_01m_15d_17h_48m_02s_348ms","berlin_trips_2021y_01m_15d_17h_48m_02s_350ms"};
 
 
 
