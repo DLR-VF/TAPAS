@@ -184,9 +184,17 @@ public class TPS_DB_IO {
         double budget = (pRs.getInt("p_budget_it") + pRs.getInt("p_budget_pt")) / 100.0;
 
         int pGroupNumber = 0;
-        if(pRs.getInt("p_group")))
+        if(pRs.getInt("p_group")>=0){
+            pGroupNumber = pRs.getInt("p_group");
+        }
+        else{
+            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN)) {
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN,
+                        "Unknown person group "+pRs.getInt("p_group"));
+            }
+        }
         TPS_Person person = new TPS_Person(pRs.getInt("p_id"), TPS_Sex.getEnum(pRs.getInt("p_sex")),
-                TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroupType.TAPAS, pRs.getInt("p_group")),
+                TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroupType.TAPAS, pGroupNumber),
                 pRs.getInt("p_age"), pRs.getBoolean("p_abo"), hasBike, budget, working, false, pRs.getInt("p_work_id"),
                 pRs.getInt("p_education"), this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
 
