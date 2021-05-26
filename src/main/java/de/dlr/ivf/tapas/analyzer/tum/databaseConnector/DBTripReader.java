@@ -89,7 +89,7 @@ public class DBTripReader implements TapasTripReader {
         String q = "SELECT sp.param_value as region, sp2.param_value as hhkey, sim_description" +
                 "    FROM simulations s join simulation_parameters sp on (s.sim_key = sp.sim_key)" +
                 "        join simulation_parameters sp2 on (s.sim_key = sp2.sim_key) " +
-                "WHERE sim_key = '" + simulation +  "' and sp.param_key = 'DB_REGION' " +
+                "WHERE s.sim_key = '" + simulation +  "' and sp.param_key = 'DB_REGION' " +
                 "and sp2.param_key = 'DB_HOUSEHOLD_AND_PERSON_KEY' ORDER BY sim_key";
 
         ResultSet rs = connection.executeQuery(q, this);
