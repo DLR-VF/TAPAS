@@ -265,9 +265,11 @@ public class DBSimulationChooserPanel extends JPanel {
     private boolean getDatabaseContent() {
 
         try {
-            String q = "SELECT sim_key, sim_par[1] as region, sim_par[2] as hhkey, sim_finished, sim_description " +
-                    " FROM simulations " + " WHERE sim_finished or (not sim_started and sim_progress>0) " +
-                    " ORDER BY sim_key";
+            String q = "SELECT s.sim_key, sp.param_value as region, sp2.param_value as hhkey, sim_finished, sim_description" +
+                    "    FROM simulations s join simulation_parameters sp on (s.sim_key = sp.sim_key)" +
+                    "        join simulation_parameters sp2 on (s.sim_key = sp2.sim_key) " +
+                    "WHERE (sim_finished or (not sim_started and sim_progress>0)) and sp.param_key = 'DB_REGION' " +
+                    "and sp2.param_key = 'DB_HOUSEHOLD_AND_PERSON_KEY' ORDER BY sim_key";
 
             simdata.clear();
             simulations.clear();
