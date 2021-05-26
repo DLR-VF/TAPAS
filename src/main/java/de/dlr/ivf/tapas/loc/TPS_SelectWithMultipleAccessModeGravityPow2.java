@@ -11,27 +11,26 @@ package de.dlr.ivf.tapas.loc;
 
 import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet.Result;
 
-    public class TPS_SelectWithMultipleAccessModeGravityPow2 extends TPS_SelectWithMultipleAccessMode {
+public class TPS_SelectWithMultipleAccessModeGravityPow2 extends TPS_SelectWithMultipleAccessMode {
+    @Override
+    public WeightedResult createLocationOption(Result result, double travelTime) {
+        return new GravityWeightedResults(result, travelTime);
+    }
+
+    class GravityWeightedResults extends WeightedResult {
+        public GravityWeightedResults(Result result, double travelTime) {
+            super(result, travelTime);
+        }
         @Override
-        public WeightedResult createLocationOption(TPS_RegionResultSet.Result result, double travelTime) {
-            return new GravityWeightedResults(result, travelTime);
+        /**
+         *
+         */
+        public int compareTo(WeightedResult arg0) {
+            return -(this.getAdaptedWeight().compareTo(arg0.getAdaptedWeight()));
         }
 
-        class GravityWeightedResults extends WeightedResult {
-            public GravityWeightedResults(TPS_RegionResultSet.Result result, double travelTime) {
-                super(result, travelTime);
-            }
-
-            @Override
-            /**
-             *
-             */ public int compareTo(WeightedResult arg0) {
-                return -(this.getAdaptedWeight().compareTo(arg0.getAdaptedWeight()));
-            }
-
-            public Double getAdaptedWeight() {
+        public Double getAdaptedWeight() {
                 return this.result.sumWeight / (this.travelTime*this.travelTime);
-            }
-
         }
     }
+}
