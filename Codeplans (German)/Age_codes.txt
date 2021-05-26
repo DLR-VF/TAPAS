@@ -1,0 +1,15 @@
+"nonRelevant"	-1
+"under 6"	0
+"under 10"	1
+"under 15"	2
+"under 18"	3
+"under 21"	4
+"under 24"	5
+"under 30"	6
+"under 35"	7
+"under 40"	8
+"under 45"	9
+"under 60"	10
+"under 65"	11
+"under 75"	12
+"older 75"	13

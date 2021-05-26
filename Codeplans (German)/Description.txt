@@ -1,0 +1,42 @@
+p_id = id der Person, nur eindeutig zusammen mit der household_id!
+p_group = Personengruppe, siehe Textanhang
+p_age_category = Altersgruppe, siehe Textanhang
+p_age = Alter in Jahren
+p_sex = Geschlecht 1= Mann 2 = Frau
+p_has_season_ticket = ÖV Abo
+p_has_licence = Führerschein
+hh_id = Hausghalt_id
+hh_members = Anzahl Haushaltsmitgieder
+hh_has_child = Kinder vorhanden
+hh_cars = Anzahl verfügbarer  Autos
+hh_income = verfügbares Einkommen des Haushalts in Euro
+scheme_id = ID des Tagesplans 
+score_combined = Akzeptanz score Zeit und Budget 
+score_finance = Score budget
+score_time = Score Zeit 
+taz_id_start = Start Verkehrszelle
+block_id_start = Start des Häuserblocks (deprecated)
+loc_id_start = ID der Startgelegenheit (negative IDs = Haushalte)
+loc_coord_x_start = Longitude Start
+loc_coord_y_start = Latitude Start
+taz_bbr_type_start = BBR-Raumtyp Start, siehe Textanhang
+taz_has_toll_start = Maut im Startgebiet
+taz_id_end = Ziel Verkehrszelle
+block_id_end = Ziel des Häuserblocks (deprecated)
+loc_id_end = ID der Zielgelegenheit (negative IDs = Haushalte)
+loc_coord_x_end = Longitude Ziel
+loc_coord_y_end = Latitude Ziel
+taz_bbr_type_end = BBR-Raumtyp Ziel, siehe Textanhang
+taz_has_toll_end = Maut im Zielgebiet
+start_time_min = Startzeit in Minuten nach Mitternacht (Negative Werte beginnen am Vortag, Trips können weit über 24h hinausgehen)
+travel_time_sec = geplante Reisezeit in Sekunden
+mode =Verkehrsmittel, siehe Textanhang
+car_type = Typ des Autos, siehe Textanhang
+distance_bl_m = Luftlininedistanz in Metern
+distance_real_m = Angenommenen Netzdistanz in Metern
+activity = Aktivitätencode , siehe Textanhang
+is_home = Ist das ein Trip nach Hause?
+activity_start_min = Geplanter Start der Aktivität in Minuten nach Mitternacht
+activity_duration_min = Geplante Dauer der Aktivität in Minuten
+emmision_type = Emissionstyp des Autos.  Depricated: wird aus dem car_type gebildet
+is_restricted = Einfahrtverbot für das Auto für eine Umweltzone
