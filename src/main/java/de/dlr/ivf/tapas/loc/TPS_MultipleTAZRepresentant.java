@@ -142,14 +142,11 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
                                 incFactor * (double) i;
                         departureDistance = departureDuration * parameterClass.getDoubleValue(
                                 ParamValue.MAX_SYSTEM_SPEED) * incFactor * (double) i;
+                        if (actDistance > (departureDistance + arrivalDistance)) {
+                            continue;
+                        }
                     } else {
-                        // desperate last try: drop distance constraint!
-                        arrivalDistance = Double.MAX_VALUE;
-                        departureDistance = Double.MAX_VALUE;
-                    }
-
-                    if (actDistance > (departureDistance + arrivalDistance)) {
-                        continue;
+                        // desperate last try: drop distance constraint and keep on going!
                     }
                 }
 
