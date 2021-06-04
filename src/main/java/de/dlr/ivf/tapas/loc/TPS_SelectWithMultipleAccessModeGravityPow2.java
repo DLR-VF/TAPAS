@@ -13,13 +13,13 @@ import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet.Result;
 
 public class TPS_SelectWithMultipleAccessModeGravityPow2 extends TPS_SelectWithMultipleAccessMode {
     @Override
-    public WeightedResult createLocationOption(Result result, double travelTime) {
-        return new GravityWeightedResults(result, travelTime);
+    public WeightedResult createLocationOption(Result result, double travelTime, double param) {
+        return new GravityWeightedResults(result, travelTime,param);
     }
 
     class GravityWeightedResults extends WeightedResult {
-        public GravityWeightedResults(Result result, double travelTime) {
-            super(result, travelTime);
+        public GravityWeightedResults(Result result, double travelTime, double param) {
+            super(result, travelTime, param);
         }
         @Override
         /**
@@ -30,7 +30,7 @@ public class TPS_SelectWithMultipleAccessModeGravityPow2 extends TPS_SelectWithM
         }
 
         public Double getAdaptedWeight() {
-                return this.result.sumWeight / (this.travelTime*this.travelTime);
+                return this.result.sumWeight /  Math.pow(this.travelTime,this.param);
         }
     }
 }

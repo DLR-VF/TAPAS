@@ -683,6 +683,10 @@ public enum ParamString {
      */
     DB_ACTIVITY_CNF_KEY,
     /**
+     * The key-name for the activity based search radius table e.g. default
+     */
+    DB_ACTIVITY_POTENTIAL_KEY,
+    /**
      * The key-name for the region based capacity limiting table e.g. default
      */
     DB_REGION_CNF_KEY,

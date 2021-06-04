@@ -23,8 +23,8 @@ import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeigthBased {
 
-    public WeightedResult createLocationOption(Result result, double travelTime) {
-        return new InterveningOpportunitiesWeightedResult(result, travelTime);
+    public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {
+        return new InterveningOpportunitiesWeightedResult(result, travelTime,parameter);
     }
 
     /**
@@ -137,8 +137,8 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeigthBase
     }
 
     class InterveningOpportunitiesWeightedResult extends WeightedResult {
-        public InterveningOpportunitiesWeightedResult(Result result, double travelTime) {
-            super(result, travelTime);
+        public InterveningOpportunitiesWeightedResult(Result result, double travelTime, double param) {
+            super(result, travelTime, param);
         }
 
 

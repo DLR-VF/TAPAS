@@ -1550,6 +1550,26 @@ public class TPS_DB_IO {
 
         region.setCfn(cfn);
 
+        //optional potential parameter, might return no result!
+        TPS_CFN potential = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
+        query = "SELECT \"CURRENT_EPISODE_ACTIVITY_CODE_TAPAS\",\"CURRENT_TAZ_SETTLEMENT_CODE_TAPAS\",value FROM " +
+                this.PM.getParameters().getString(ParamString.DB_TABLE_CFN4) + " WHERE key = '" +
+                this.PM.getParameters().getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY) + "'";
+        rsCFN4 = PM.executeQuery(query);
+        while (rsCFN4.next()) {
+            reg = rsCFN4.getInt("CURRENT_TAZ_SETTLEMENT_CODE_TAPAS");
+            key = rsCFN4.getInt("CURRENT_EPISODE_ACTIVITY_CODE_TAPAS");
+            val = rsCFN4.getDouble("value");
+            potential.addToCFN4Map(reg, key, val);
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+                        "Found a location choice parameter (region, key, value): " + reg + " "+ key+ " " +val);
+            }
+        }
+        rsCFN4.close();
+
+        region.setPotential(potential);
+
         String tazTable = this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ);
         if (tazTable.indexOf(".") > 0) {
             tazTable = tazTable.substring(tazTable.indexOf(".") + 1);

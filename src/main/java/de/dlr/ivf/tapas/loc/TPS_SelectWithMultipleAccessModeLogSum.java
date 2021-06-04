@@ -43,8 +43,8 @@ import java.util.TreeSet;
 public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultipleAccessMode {
 
 
-    public WeightedResult createLocationOption(Result result, double travelTime) {
-        return new LogSumWeightedResult(result, travelTime);
+    public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {
+        return new LogSumWeightedResult(result, travelTime, parameter);
     }
 
     /**
@@ -225,6 +225,13 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         // different cnf4-params according to the type of trip
         double cfn4 = region.getCfn().getCFN4Value(regionType, actCode);
         double cnfX = region.getCfn().getCFNXValue(regionType);
+        double param = 1;
+        TPS_CFN pot = region.getPotential();
+        if(pot!=null){
+            double val = pot.getParamValue(regionType, actCode);
+            if (val>=0)
+                param = val;
+        };
 
         SortedSet<WeightedResult> weightedChoiceSet = new TreeSet<>();
         TPS_Location locRepresentant = null;
@@ -262,7 +269,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
             if (!weightedTT.isNaN()) {
                 weightedTT = TPS_FastMath.exp(muScale * weightedTT); //use the activity based µ here..
                 //here we can switch between different Opportunity-weighting
-                WeightedResult weightedResult = this.createLocationOption(result, weightedTT);
+                WeightedResult weightedResult = this.createLocationOption(result, weightedTT, param);
                 //now the calib the weight with the distance
                 //weightedResult.result.sumWeight *= calibFactor/beeLineDist;
 
@@ -301,8 +308,8 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
     }
 
     class LogSumWeightedResult extends WeightedResult {
-        public LogSumWeightedResult(Result result, double travelTime) {
-            super(result, travelTime);
+        public LogSumWeightedResult(Result result, double travelTime, double param) {
+            super(result, travelTime, param);
         }
 
         @Override

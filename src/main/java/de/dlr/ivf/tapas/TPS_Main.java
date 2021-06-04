@@ -232,6 +232,7 @@ public class TPS_Main {
             if (DEBUG) {
                 threads = 1;
             }
+            threads = Math.min(48, threads); // limit to 48 cores
             // now update the costs variables for the modes, which are not initialized again!
             this.updateCosts();
 

@@ -47,6 +47,9 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
     /// All CFN values for this region
     private TPS_CFN cfn;
 
+    /// All Potential values for this region
+    private TPS_CFN potential;
+
     /// The map for all traffic analysis zones sorted by their id
     private final SortedMap<Integer, TPS_TrafficAnalysisZone> TAZ_Map;
 
@@ -164,6 +167,13 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
     }
 
     /**
+     * @return the cfn
+     */
+    public TPS_CFN getPotential() {
+        return potential;
+    }
+
+    /**
      * Sets the reference of all cfn values
      *
      * @param cfn all cfn values for this region
@@ -172,6 +182,14 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
         this.cfn = cfn;
     }
 
+    /**
+     * Sets the reference of all potential values
+     *
+     * @param pot all potential values for this region
+     */
+    public void setPotential(TPS_CFN pot) {
+        this.potential = pot;
+    }
     /**
      * Gets the specified location from this region
      *

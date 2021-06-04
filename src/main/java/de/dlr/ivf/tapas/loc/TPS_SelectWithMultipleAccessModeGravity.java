@@ -12,20 +12,20 @@ import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet.Result;
 
 public class TPS_SelectWithMultipleAccessModeGravity extends TPS_SelectWithMultipleAccessMode {
     @Override
-    public WeightedResult createLocationOption(Result result, double travelTime) {
-        return new GravityWeightedResults(result, travelTime);
+    public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {
+        return new GravityWeightedResults(result, travelTime, parameter);
     }
 
     class GravityWeightedResults extends WeightedResult {
-        public GravityWeightedResults(Result result, double travelTime) {
-            super(result, travelTime);
+        public GravityWeightedResults(Result result, double travelTime,double param) {
+            super(result, travelTime,param);
         }
 
         @Override
         /**
          *
          */ public int compareTo(WeightedResult arg0) {
-            return -(this.getAdaptedWeight().compareTo(arg0.getAdaptedWeight()));
+            return -(this.getAdaptedWeight().compareTo(arg0.getAdaptedWeight())); //fortunately all potential function are "monothon steigend"
         }
 
         public Double getAdaptedWeight() {
