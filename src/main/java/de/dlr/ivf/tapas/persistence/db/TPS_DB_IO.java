@@ -916,7 +916,7 @@ public class TPS_DB_IO {
         this.readLocationConstantCodes();
         this.readModes();
         this.readPersonGroupCodes();
-        this.readSettlementSystemCodes();
+        this.readSettlementSystemCodes("");
         this.readSexCodes();
 
         //must be after reading of activities and locations because they are used in it
@@ -1861,8 +1861,16 @@ public class TPS_DB_IO {
      * A SettlementSystem has the form (id, 3-tuples of (name, code, type))
      * Example: (7, ("R1, K1, Kernstadt > 500000", "1", "FORDCP"))
      */
-    public void readSettlementSystemCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT);
+    public void readSettlementSystemCodes(String simulation) {
+
+        String settlement_systems_table = "";
+
+        if(simulation.equals(""))
+            settlement_systems_table = this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT);
+        else
+            settlement_systems_table = this.PM.getDbConnector().readSingleParameter(simulation,ParamString.DB_TABLE_CONSTANT_SETTLEMENT.toString());
+
+        String query = "SELECT * FROM core." + settlement_systems_table;
         try (ResultSet rs = PM.executeQuery(query)) {
             TPS_SettlementSystem tss;
             while (rs.next()) {

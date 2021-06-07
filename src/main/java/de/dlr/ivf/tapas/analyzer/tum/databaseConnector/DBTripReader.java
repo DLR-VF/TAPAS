@@ -15,6 +15,7 @@ import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
+import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import javax.swing.text.BadLocationException;
@@ -280,7 +281,8 @@ public class DBTripReader implements TapasTripReader {
                 TPS_DB_IOManager dbIOM = new TPS_DB_IOManager(dbCon.getParameters());
                 TPS_DB_IO dbIO = new TPS_DB_IO(dbIOM);
                 dbIO.initStart();
-                dbIO.readSettlementSystemCodes();
+
+                dbIO.readSettlementSystemCodes(FuncUtils.toRawSimKey.apply(this.simulation));
 
             } catch (IOException | ClassNotFoundException e) {
                 throw e; // handle that outside of the class
