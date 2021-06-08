@@ -138,6 +138,7 @@ public class TuMEnums {
 
     }
 
+    //todo needs a new design
     public enum RegionCode {
         REGION_0(0, "Gesamt"), //
         REGION_1(1, "Agglomeration"), //
