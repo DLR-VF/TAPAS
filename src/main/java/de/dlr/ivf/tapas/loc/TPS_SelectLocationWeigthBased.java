@@ -30,7 +30,7 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 
 public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectModel {
-    abstract public WeightedResult createLocationOption(Result result, double travelTime);
+    abstract public WeightedResult createLocationOption(Result result, double travelTime, double parameter);
 
     /**
      * Method to calculate the expected travel time to the locRepresentant.
@@ -68,6 +68,13 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
         // different cnf4-params according to the type of trip
         double cfn4 = region.getCfn().getCFN4Value(regionType, actCode);
         double cnfX = region.getCfn().getCFNXValue(regionType);
+        double param = 1;
+        TPS_CFN pot = region.getPotential();
+        if(pot!=null){
+            double val = pot.getParamValue(regionType, actCode);
+            if (val>=0)
+                param = val;
+        };
 
         SortedSet<WeightedResult> weightedChoiceSet = new TreeSet<>();
         TPS_Location locRepresentant = null;
@@ -101,7 +108,7 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
             if (weightedTT > 0) {
                 //here we can switch between different Opportunity-weighting
                 WeightedResult weightedResult = this.createLocationOption(result,
-                        weightedTT); //weight wird mit steigender Reisezeit abgewertet
+                        weightedTT,param); //weight wird mit steigender Reisezeit abgewertet
                 sumWeight += weightedResult.getAdaptedWeight();
                 weightedChoiceSet.add(weightedResult);
             }
@@ -144,10 +151,12 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
     abstract class WeightedResult implements Comparable<WeightedResult> {
         Result result;
         Double travelTime;
+        Double param;
 
-        public WeightedResult(Result result, double travelTime) {
+        public WeightedResult(Result result, double travelTime, double param) {
             this.result = result;
             this.travelTime = travelTime;
+            this.param = param;
         }
 
         public abstract Double getAdaptedWeight();
@@ -156,8 +165,8 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
     }
 
     class GravityWeightedResults extends WeightedResult {
-        public GravityWeightedResults(Result result, double weight, double travelTime) {
-            super(result, travelTime);
+        public GravityWeightedResults(Result result, double weight, double travelTime, double param) {
+            super(result, travelTime,param);
         }
 
         @Override

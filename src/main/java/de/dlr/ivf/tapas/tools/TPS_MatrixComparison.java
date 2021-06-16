@@ -26,37 +26,23 @@ public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
 
     Map<Integer, Integer> result = new TreeMap<>();
 
-    @SuppressWarnings("unused")
+
     public static void main(String[] args) {
         String table = "core.berlin_matrices";
-        String trips = "berlin_trips_2018y_11m_12d_16h_49m_38s_210ms";
+        String trips = "berlin_trips_2018y_06m_27d_14h_27m_54s_080ms";
         int[] modes = {5};
         int binSize = 60;
         int binSizeTransfer = 10;
         String matrix1, matrix2, pattern1, pattern2;
         TPS_MatrixComparison worker = new TPS_MatrixComparison();
-        String path = "T:\\Runs\\evoBus\\Basisstatistik\\Runde 2\\Iterationen\\1.0.1-2.0.1\\diff_trips_";
-        pattern1 = "PT_VISUM_1223_2030_1_0_1_%02d_%02d_";
-        pattern2 = "PT_VISUM_1223_2030_2_0_1_%02d_%02d_";
+        String path = "T:\\Runs\\diff_trips_";
+        pattern1 = "CONST_0MIN_1223_CORRECTED";
+        pattern2 = "PT_VISUM_1223_2030_1_1_0_10_16_EGT";
 
-        int[] startMatrixArray = {6, 10, 16, 19};
-        int[] endMatrixArray = {9, 16, 19, 23};
+        worker.analyzeThis(table, pattern1, pattern2, path, binSize);
 
-        for (int i = 0; i < startMatrixArray.length; i++) {
-            matrix1 = String.format(pattern1, startMatrixArray[i], endMatrixArray[i]);
-            matrix2 = String.format(pattern2, startMatrixArray[i], endMatrixArray[i]);
-            worker.analyzeThis(table, matrix1 + "SUM_TT", matrix2 + "SUM_TT", path, binSize);
-            //worker.analyzeThisTripWeighted(table, trips,matrix1+"SUM_TT", matrix2+"SUM_TT", modes,path,binSize);
-            worker.analyzeThis(table, matrix1 + "ACT", matrix2 + "ACT", path, binSize);
-            //worker.analyzeThisTripWeighted(table, trips,matrix1+"ACT", matrix2+"ACT", modes,path,binSize);
-            worker.analyzeThis(table, matrix1 + "EGT", matrix2 + "EGT", path, binSize);
-            //worker.analyzeThisTripWeighted(table, trips,matrix1+"EGT", matrix2+"EGT", modes,path,binSize);
-            //the transfer has a different bin size!
-            worker.analyzeThis(table, matrix1 + "NTR", matrix2 + "NTR", path, binSizeTransfer);
-            //worker.analyzeThisTripWeighted(table, trips,matrix1+"NTR", matrix2+"NTR", modes,path,binSizeTransfer);
-        }
 
-//		matrix1= "PT_VISUM_1223__2030_HOCHFEIN60_6_9_IT0_ACT";
+        //		matrix1= "PT_VISUM_1223__2030_HOCHFEIN60_6_9_IT0_ACT";
 //		matrix2= "PT_VISUM_1223_2030_HF20_1_ACT";
 //		worker.analyzeThis(table, matrix1, matrix2);
 //

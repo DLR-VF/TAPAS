@@ -142,7 +142,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                         if (Double.isNaN(plan.getBudgetAcceptanceProbability()) || Double.isInfinite(
                                 plan.getBudgetAcceptanceProbability())) {
                             TPS_Logger.log(SeverenceLogLevel.FATAL,
-                                    "NaN detected in getBudgetcceptanceProbability for person " + p.getId());
+                                    "NaN detected in getBudgetAcceptanceProbability for person " + p.getId());
                         }
                         pS.setDouble(index++, plan.getBudgetAcceptanceProbability());
                         if (Double.isNaN(plan.getTimeAcceptanceProbability()) || Double.isInfinite(

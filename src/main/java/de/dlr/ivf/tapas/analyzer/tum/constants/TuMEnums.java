@@ -213,9 +213,9 @@ public class TuMEnums {
         TRIP_35(5, "Freizeit",
                 generateSet(Activity.ACT_231, Activity.ACT_300, Activity.ACT_511, Activity.ACT_512, Activity.ACT_531,
                         Activity.ACT_533, Activity.ACT_640, Activity.ACT_700, Activity.ACT_711, Activity.ACT_720,
-                        Activity.ACT_721, Activity.ACT_722, Activity.ACT_723, Activity.ACT_724, Activity.ACT_800,
-                        Activity.ACT_880, Activity.ACT_881)), //
-        TRIP_36(6, "Sonstige", generateSet(Activity.ACT_740, Activity.ACT_799)), //
+                        Activity.ACT_721, Activity.ACT_722, Activity.ACT_723, Activity.ACT_724, Activity.ACT_740,
+                        Activity.ACT_800, Activity.ACT_880, Activity.ACT_881)), //
+        TRIP_36(6, "Sonstige", generateSet(Activity.ACT_799)), //
         TRIP_37(7, "BackHome", generateSet()), //
         TRIP_MISC(8, "Nicht zugeordnet", generateSet());//
 

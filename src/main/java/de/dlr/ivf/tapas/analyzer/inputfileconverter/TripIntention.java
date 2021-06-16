@@ -14,18 +14,18 @@ import java.util.Set;
 
 public enum TripIntention {
     // Wegezweck
-    TRIP_31(0, "Schule", generateSet(Activity.ACT_410, Activity.ACT_499)), //
-    TRIP_38(1, "Studium", generateSet(Activity.ACT_411)), //
-    TRIP_32(2, "Arbeit", generateSet(Activity.ACT_62, Activity.ACT_211)), //
+    TRIP_31(0, "Schule", generateSet(Activity.ACT_410, Activity.ACT_413, Activity.ACT_499)), //
+    TRIP_38(1, "Studium", generateSet(Activity.ACT_411,Activity.ACT_412,Activity.ACT_414 )), //
+    TRIP_32(2, "Arbeit", generateSet(Activity.ACT_62, Activity.ACT_211, Activity.ACT_212, Activity.ACT_213)), //
     TRIP_33(3, "Private Erledigungen",
             generateSet(Activity.ACT_10, Activity.ACT_12, Activity.ACT_32, Activity.ACT_522, Activity.ACT_611,
                     Activity.ACT_631)), //
-    TRIP_34(4, "Einkauf", generateSet(Activity.ACT_50)), //
+    TRIP_34(4, "Einkauf", generateSet(Activity.ACT_50,Activity.ACT_51,Activity.ACT_52,Activity.ACT_53,Activity.ACT_54)), //
     TRIP_35(5, "Freizeit",
-            generateSet(Activity.ACT_231, Activity.ACT_300, Activity.ACT_511, Activity.ACT_512, Activity.ACT_531,
+            generateSet(Activity.ACT_231, Activity.ACT_299, Activity.ACT_300, Activity.ACT_511, Activity.ACT_512, Activity.ACT_531,
                     Activity.ACT_533, Activity.ACT_640, Activity.ACT_700, Activity.ACT_711, Activity.ACT_720,
-                    Activity.ACT_721, Activity.ACT_722, Activity.ACT_723, Activity.ACT_724, Activity.ACT_800)), //
-    TRIP_36(6, "Sonstige", generateSet(Activity.ACT_740, Activity.ACT_799)), //
+                    Activity.ACT_721, Activity.ACT_722, Activity.ACT_723, Activity.ACT_724, Activity.ACT_740, Activity.ACT_800)), //
+    TRIP_36(6, "Sonstige", generateSet(Activity.ACT_799)), //
     TRIP_37(7, "BackHome", generateSet()), //
     TRIP_MISC(8, "Nicht zugeordnet", generateSet());//
 

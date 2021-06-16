@@ -1,0 +1,20 @@
+"R1, K1, Kernstadt > 500000"	1
+"R1, K1, Kernstadt < 500000"	2
+"R1, K2, Zentrum"	3
+"R1, K2, Sonstiges"	4
+"R1, K3, Zentrum"	5
+"R1, K3, Sonstiges"	6
+"R1, K4, Zentrum"	7
+"R1, K4, Sonstiges"	8
+"R2, K5, Kernstadt"	9
+"R2, K6, Zentrum"	10
+"R2, K6, Sonstiges"	11
+"R2, K7, Zentrum"	12
+"R2, K7, Sonstiges"	13
+"R3, K8, Zentrum"	14
+"R3, K8, Sonstiges"	15
+"R3, K9, Zentrum"	16
+"R3, K9, Sonstiges"	17
+
+
+ACHTUNG: Umstellung auf Regiostar7 steht bevor!

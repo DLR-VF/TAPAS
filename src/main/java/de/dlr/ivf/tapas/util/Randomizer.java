@@ -44,7 +44,7 @@ public class Randomizer {
      *
      * @return random value
      */
-    public static double random() {
+    public static synchronized double random() {
 //		if (ParamFlag.FLAG_INFLUENCE_RANDOM_NUMBER.isTrue()) {
         if (FLAG_INFLUENCE_RANDOM_NUMBER) {
             return RANDOM_VALUE; //return the fair dice roll! *OMG*
@@ -52,7 +52,7 @@ public class Randomizer {
         return generator.nextDouble();
     }
 
-    public static double randomGaussian() {
+    public static synchronized double randomGaussian() {
         return generator.nextGaussian();
     }
 
@@ -65,7 +65,7 @@ public class Randomizer {
      * @return
      */
 
-    public static double randomGaussianDistribution(DoubleSupplier gen, double mean, double stdDev) {
+    public static synchronized double randomGaussianDistribution(DoubleSupplier gen, double mean, double stdDev) {
         if (stdDev < 0) {
             throw new IllegalArgumentException("The standard deviation cannot be < 0");
         }
@@ -81,7 +81,7 @@ public class Randomizer {
      * @return
      */
 
-    public static double randomGumbelDistribution(DoubleSupplier gen, double mu, double alpha) {
+    public static synchronized double randomGumbelDistribution(DoubleSupplier gen, double mu, double alpha) {
         if (alpha <= 0) {
             throw new IllegalArgumentException("The scaling parameter alpha must be > 0");
         }

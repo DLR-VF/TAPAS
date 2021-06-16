@@ -1,0 +1,43 @@
+"Kleinkinder"	0
+"Schüler"	1
+"Studenten"	2
+"EWT25mP M"	3
+"EWT25oP"	4
+"EWT25mP W"	5
+"NEW25mP M"	6
+"NEW25oP"	7
+"NEW25mP W"	8
+"EWT45mP M"	9
+"EWT45oP M"	10
+"EWT45mP W"	11
+"EWT45oP W"	12
+"NEW45mP M"	13
+"NEW45oP M"	14
+"NEW45mP W"	15
+"NEW45oP W"	16
+"EWT65mP M"	17
+"EWT65oP M"	18
+"EWT65mP W"	19
+"EWT65oP W"	20
+"NEW65mP M"	21
+"NEW65oP M"	22
+"NEW65mP W"	23
+"NEW65oP W"	24
+"R75mP M"	25
+"R75oP M"	26
+"R75mP W"	27
+"R75oP W"	28
+"R75+mP M"	29
+"R75+oP M"	30
+"R75+mP W"	31
+"R75+oP W"	32
+
+EWT = Erwerbstätig
+NEW = nicht Erwerbstätig
+mP = Mit PKW
+oP = ohen PKW
+R = Rentner
+
+Alter ist immer "Weniger als x und implizit mehr als die Gruppe davor"
+
+M/W = Männlich/Weiblich

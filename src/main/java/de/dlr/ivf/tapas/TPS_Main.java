@@ -160,6 +160,48 @@ public class TPS_Main {
     }
 
     /**
+     * Main method initialises a TPS_Main and starts the simulation via the run method.
+     *
+     * @param args Arguments with a R are necessary, these with an O are optional <br>
+     *             R args[0] absolute filename of the run configuration file<br>
+     *             O args[1] constant for run type [ALL, SIMULATE] <br>
+     *             O args[2] simulation key<br>
+     *             O args[3] amount of parallel threads<br>
+     */
+    public static void main(String[] args) {
+        // List of parameters
+        List<TPS_ArgumentType<?>> list = new ArrayList<>(4);
+        list.add(new TPS_ArgumentType<>("absolute run configuration filename", File.class));
+        list.add(new TPS_ArgumentType<>("constant for run type", RunType.class, RunType.ALL));
+        list.add(new TPS_ArgumentType<>("simulation key", String.class, getDefaultSimKey()));
+        list.add(new TPS_ArgumentType<>("amount of parallel threads", Integer.class,
+                Runtime.getRuntime().availableProcessors()));
+
+        // check parameters
+        Object[] parameters = TPS_Argument.checkArguments(args, list);
+
+        // initialise and start
+        TPS_Main main = new TPS_Main((File) parameters[0], (String) parameters[2]);
+        int numOfThreads = (Integer) parameters[3];
+
+        switch ((RunType) parameters[1]) {
+            // REMOTE
+            case SIMULATE:
+                main.run(numOfThreads);
+                break;
+            // LOCAL
+            case ALL:
+                main.init();
+                main.run(numOfThreads);
+                main.finish();
+                break;
+        }
+        main.PM.close();
+
+        STATE.setFinished();
+    }
+
+    /**
      * This method drops the temporary tables from the database if necessary.
      */
     public void finish() {
@@ -208,7 +250,8 @@ public class TPS_Main {
     }
 
     /**
-     * This method initialises the persistence manager and builds all worker threads.
+     * This method initialises the persistence manager and builds all worker threads. The method blocks until all
+     * workers have finished the simulation.
      *
      * @param threads amount of parallel threads.
      */
@@ -302,10 +345,6 @@ public class TPS_Main {
         mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE);
 
     }
-
-
-
-
 
     /**
      * This enumeration lists all run types for the simulation.

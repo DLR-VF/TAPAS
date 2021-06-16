@@ -170,7 +170,7 @@ public class TPS_DB_IO {
         for (int j = 0; j < size; ++j) {
             buffer = new StringBuilder();
             for (int k = 0; k < size; ++k) {
-                buffer.append(new BigDecimal(array.getValue(j, k)).setScale(decimalPlaces, RoundingMode.HALF_UP))
+                buffer.append(new BigDecimal(array.getValue(j+array.sIndex, k+array.sIndex)).setScale(decimalPlaces, RoundingMode.HALF_UP))
                       .append(",");
             }
             if (j < size - 1) totalBuffer.append(buffer);
@@ -194,8 +194,18 @@ public class TPS_DB_IO {
         double working = pRs.getInt("p_working") / 100.0;
         double budget = (pRs.getInt("p_budget_it") + pRs.getInt("p_budget_pt")) / 100.0;
 
+        int pGroupNumber = 0;
+        if(pRs.getInt("p_group")>=0){
+            pGroupNumber = pRs.getInt("p_group");
+        }
+        else{
+            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN)) {
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN,
+                        "Unknown person group "+pRs.getInt("p_group"));
+            }
+        }
         TPS_Person person = new TPS_Person(pRs.getInt("p_id"), TPS_Sex.getEnum(pRs.getInt("p_sex")),
-                TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroupType.TAPAS, pRs.getInt("p_group")),
+                TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroupType.TAPAS, pGroupNumber),
                 pRs.getInt("p_age"), pRs.getBoolean("p_abo"), hasBike, budget, working, false, pRs.getInt("p_work_id"),
                 pRs.getInt("p_education"), this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
 
@@ -918,7 +928,7 @@ public class TPS_DB_IO {
         this.readLocationConstantCodes();
         this.readModes();
         this.readPersonGroupCodes();
-        this.readSettlementSystemCodes();
+        this.readSettlementSystemCodes("");
         this.readSexCodes();
 
         //must be after reading of activities and locations because they are used in it
@@ -1552,6 +1562,26 @@ public class TPS_DB_IO {
 
         region.setCfn(cfn);
 
+        //optional potential parameter, might return no result!
+        TPS_CFN potential = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
+        query = "SELECT \"CURRENT_EPISODE_ACTIVITY_CODE_TAPAS\",\"CURRENT_TAZ_SETTLEMENT_CODE_TAPAS\",value FROM " +
+                this.PM.getParameters().getString(ParamString.DB_TABLE_CFN4) + " WHERE key = '" +
+                this.PM.getParameters().getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY) + "'";
+        rsCFN4 = PM.executeQuery(query);
+        while (rsCFN4.next()) {
+            reg = rsCFN4.getInt("CURRENT_TAZ_SETTLEMENT_CODE_TAPAS");
+            key = rsCFN4.getInt("CURRENT_EPISODE_ACTIVITY_CODE_TAPAS");
+            val = rsCFN4.getDouble("value");
+            potential.addToCFN4Map(reg, key, val);
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+                        "Found a location choice parameter (region, key, value): " + reg + " "+ key+ " " +val);
+            }
+        }
+        rsCFN4.close();
+
+        region.setPotential(potential);
+
         String tazTable = this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ);
         if (tazTable.indexOf(".") > 0) {
             tazTable = tazTable.substring(tazTable.indexOf(".") + 1);
@@ -1843,8 +1873,16 @@ public class TPS_DB_IO {
      * A SettlementSystem has the form (id, 3-tuples of (name, code, type))
      * Example: (7, ("R1, K1, Kernstadt > 500000", "1", "FORDCP"))
      */
-    public void readSettlementSystemCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT);
+    public void readSettlementSystemCodes(String simulation) {
+
+        String settlement_systems_table = "";
+
+        if(simulation.equals(""))
+            settlement_systems_table = this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT);
+        else
+            settlement_systems_table = this.PM.getDbConnector().readSingleParameter(simulation,ParamString.DB_TABLE_CONSTANT_SETTLEMENT.toString());
+
+        String query = "SELECT * FROM core." + settlement_systems_table;
         try (ResultSet rs = PM.executeQuery(query)) {
             TPS_SettlementSystem tss;
             while (rs.next()) {

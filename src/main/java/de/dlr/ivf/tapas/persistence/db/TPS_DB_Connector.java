@@ -478,26 +478,16 @@ public class TPS_DB_Connector {
                 Matrix[] matrices = new Matrix[numOfMatrices];
                 //load matrix map
                 for (int i = 0; i < numOfMatrices; ++i) {
-                    query = "SELECT matrix_values FROM " + this.parameterClass.getString(
-                            ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrix_names[i] + "'";
-                    rs = this.executeQuery(query, caller);
-                    if (rs.next()) {
-                        int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                        int len = (int) Math.sqrt(iArray.length);
-                        matrices[i] = new Matrix(len, len, sIndex);
-                        for (int index = 0; index < iArray.length; index++) {
-                            matrices[i].setRawValue(index, iArray[index]);
-                        }
-                        rs.close();
+                    matrices[i] = this.readMatrix(matrix_names[i], sIndex, caller);
+                    if(matrices[i] != null){
+                        TPS_Logger.log(SeverenceLogLevel.INFO,
+                                "Loaded matrix from DB: " + matrix_names[i] + " End time: " + distribution[i] +
+                                        " Average value: " + matrices[i].getAverageValue(false, true));
                     } else {
                         throw new SQLException(
                                 "Couldn't load matrix " + matrix_names[i] + " form matrix map" + matrixName +
                                         ": No such matrix.");
                     }
-                    TPS_Logger.log(SeverenceLogLevel.INFO,
-                            "Loaded matrix from DB: " + matrix_names[i] + " End time: " + distribution[i] +
-                                    " Average value: " + matrices[i].getAverageValue(false, true));
-
                 }
                 matrix = new MatrixMap(distribution, matrices);
             } else {
@@ -508,6 +498,41 @@ public class TPS_DB_Connector {
             TPS_Logger.log(SeverenceLogLevel.ERROR, e);
         }
         return matrix;
+    }
+
+    /**
+     * Method to load a single matrix from the DB. The parameter ParamString.DB_TABLE_MATRICES must be defined.
+     * @param matrixName The name of the matrix
+     * @param sIndex the indexoffset of the matrix
+     * @param caller the calling object to reuse DB-connections
+     * @return the matrix or null, if nothing is found in the DB
+     */
+    public Matrix readMatrix(String matrixName, int sIndex, Object caller) {
+        Matrix returnVal = null;
+        String query ="";
+        try {
+            query = "SELECT matrix_values FROM " + this.parameterClass.getString(
+                    ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrixName + "'";
+            ResultSet rs = this.executeQuery(query, caller);
+            if (rs.next()) {
+                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+                int len = (int) Math.sqrt(iArray.length);
+                returnVal = new Matrix(len, len, sIndex);
+                for (int index = 0; index < iArray.length; index++) {
+                    returnVal.setRawValue(index, iArray[index]);
+                }
+                rs.close();
+                TPS_Logger.log(SeverenceLogLevel.INFO,
+                        "Loaded matrix from DB: " + matrixName);
+            } else {
+                TPS_Logger.log(SeverenceLogLevel.ERROR, "No results from DB for"+ matrixName+
+                                ": No such matrix.");
+            }
+        } catch (SQLException e) {
+            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in sql-query: " + query);
+            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+        }
+        return  returnVal;
     }
 
     /**
@@ -529,6 +554,7 @@ public class TPS_DB_Connector {
             if (rs.next()) {
                 result = rs.getString("param_value");
             }
+            rs.close();
         } catch (SQLException e) {
             TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in SQL-query: " + query, e);
             throw new RuntimeException(e);

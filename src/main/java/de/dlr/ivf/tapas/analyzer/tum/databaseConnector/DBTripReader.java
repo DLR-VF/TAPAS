@@ -15,6 +15,7 @@ import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
+import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import javax.swing.text.BadLocationException;
@@ -89,8 +90,8 @@ public class DBTripReader implements TapasTripReader {
         String q = "SELECT sp.param_value as region, sp2.param_value as hhkey, sim_description" +
                 "    FROM simulations s join simulation_parameters sp on (s.sim_key = sp.sim_key)" +
                 "        join simulation_parameters sp2 on (s.sim_key = sp2.sim_key) " +
-                "WHERE sim_key = '" + simulation +  "' and sp.param_key = 'DB_REGION' " +
-                "and sp2.param_key = 'DB_HOUSEHOLD_AND_PERSON_KEY' ORDER BY sim_key";
+                "WHERE s.sim_key = '" + simulation +  "' and sp.param_key = 'DB_REGION' " +
+                "and sp2.param_key = 'DB_HOUSEHOLD_AND_PERSON_KEY' ORDER BY s.sim_key";
 
         ResultSet rs = connection.executeQuery(q, this);
 
@@ -280,7 +281,8 @@ public class DBTripReader implements TapasTripReader {
                 TPS_DB_IOManager dbIOM = new TPS_DB_IOManager(dbCon.getParameters());
                 TPS_DB_IO dbIO = new TPS_DB_IO(dbIOM);
                 dbIO.initStart();
-                dbIO.readSettlementSystemCodes();
+
+                dbIO.readSettlementSystemCodes(FuncUtils.toRawSimKey.apply(this.simulation));
 
             } catch (IOException | ClassNotFoundException e) {
                 throw e; // handle that outside of the class
