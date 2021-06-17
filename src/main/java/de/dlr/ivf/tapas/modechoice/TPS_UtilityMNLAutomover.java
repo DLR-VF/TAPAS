@@ -25,99 +25,12 @@ import de.dlr.ivf.tapas.util.parameters.ParamMatrixMap;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 
-public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
-
-    double costsForMIV(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
-        double cost = 0;
-        TPS_TrafficAnalysisZone comingFromTVZ;
-        TPS_TrafficAnalysisZone goingToTVZ;
-        double tmpFactor = 1;
-        comingFromTVZ = mcc.fromStayLocation.getTrafficAnalysisZone();
-        goingToTVZ = mcc.toStayLocation.getTrafficAnalysisZone();
-        //fuel cost per km
-        if (mcc.carForThisPlan != null) {
-
-            if (goingToTVZ.isRestricted() && mcc.carForThisPlan.isRestricted()) {
-                return Double.NaN;
-            }
-            tmpFactor = (mcc.carForThisPlan.getCostPerKilometer(simType) +
-                    mcc.carForThisPlan.getVariableCostPerKilometer(simType));
-            //TODO: Bad hack to modify the costs according to the av-reduction!
-            if (mcc.carForThisPlan.getAutomation() >= mode.getParameters().getIntValue(
-                    ParamValue.AUTOMATIC_VEHICLE_LEVEL) && SimulationType.SCENARIO.equals(simType)) {
-                //calculate time perception modification
-                double rampUp = mode.getParameters().getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_RAMP_UP_TIME);
-                if (travelTime > rampUp) {
-                    double timeMod = distanceNet > mode.getParameters().getIntValue(
-                            ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_THRESHOLD) ? mode.getParameters().getDoubleValue(
-                            ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_FAR) : mode.getParameters().getDoubleValue(
-                            ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_NEAR);
-                    tmpFactor *= timeMod; // modify the costs according to the av-reduction from the first meter!
-                }
-            }
-
-        } else { //calc cost for a generic car
-            boolean carIsRestricted = true;
-            if (Randomizer.random() < mode.getParameters().getDoubleValue(ParamValue.PASS_PROBABILITY_HOUSEHOLD_CAR)) {
-                TPS_Car coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
-                if (coDriver != null) { //does the household has a car???
-                    carIsRestricted = plan.getPerson().getHousehold().getLeastRestrictedCar().isRestricted();
-                } else {
-                    carIsRestricted = Randomizer.random() < mode.getParameters().getDoubleValue(
-                            ParamValue.PASS_PROBABILITY_RESTRICTED);
-                    //return Double.NaN; // Don't ride with strangers, 'Cause they're only there to do you harm
-                }
-            } else {
-                carIsRestricted = Randomizer.random() < mode.getParameters().getDoubleValue(
-                        ParamValue.PASS_PROBABILITY_RESTRICTED);
-            }
-
-            if (goingToTVZ.isRestricted() && carIsRestricted) {
-                return Double.NaN;
-            }
-
-            tmpFactor = (mode.getCost_per_km(simType) + mode.getVariableCost_per_km(simType));
-        }
-        tmpFactor *= 0.001; //km to m
-
-
-        cost = distanceNet * tmpFactor;
-
-        //should I add costs for a PT-ticket for this ride?
-        if ((goingToTVZ.isPNR() || comingFromTVZ.isPNR()) && !plan.getPerson().hasAbo()) {
-            cost += mode.getParameters().getDoubleValue(ParamValue.PNR_COST_PER_TRIP);
-            cost += mode.getParameters().getDoubleValue(ParamValue.PNR_COST_PER_HOUR) * mcc.duration *
-                    2.7777777777e-4;// stay time
-        }
-
-        // location based cost differences
-        // determine whether target zone has parking fees or toll (only relevant if entering zone)
-        // momentary situation compared to base situation
-        boolean carMustPayToll = true;
-        if (mcc.carForThisPlan != null && mcc.carForThisPlan.hasPaidToll || plan.mustPayToll) carMustPayToll = false;
-
-        if (goingToTVZ.hasToll(simType) && carMustPayToll) {
-            // toll is relevant as entering a cordon toll zone
-            cost += goingToTVZ.getTollFee(simType);
-        }
-
-        if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_EXIT_MAUT) && !goingToTVZ.hasToll(simType) &&
-                comingFromTVZ.hasToll(simType) && carMustPayToll) {// scenario:
-            //FIXME necessary?
-        }
-        // diff parking fees
-        if (goingToTVZ.hasParkingFee(simType)
-				/*
-				&&actCode!=1&&actCode!=2&&actCode!=7 //not for work, school or university
-				*/) {// scenario
-            cost += goingToTVZ.getParkingFee(simType) * mcc.duration * 2.7777777777e-4;// stay
-        }
-        return cost;
-    }
+public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
 
     @Override
 
     /**
+     * CHange change change!!!
      * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm. See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
      * @author hein_mh
      *
