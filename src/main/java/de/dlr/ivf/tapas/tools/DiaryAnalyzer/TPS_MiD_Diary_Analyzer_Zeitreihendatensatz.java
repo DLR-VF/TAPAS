@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020 DLR Institute of Transport Research
+ * Copyright (c) 2021 DLR Institute of Transport Research
  * All rights reserved.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.tools;
+package de.dlr.ivf.tapas.tools.DiaryAnalyzer;
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -22,11 +22,13 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
 
     static final int ONE_DAY = 24 * 60;
     static final int ANY_DIARY_GROUP = -1;
-    static final int ERHEBUNG = 3;
+    static int ERHEBUNG = 1;
     static final String diaryGroupCol = "tbg";
     static final String diaryGroupColName = "tbg";
     static final String pgTapasCol = "pg_tapas34";
-    static final String tableKey = "MID_2002-2008-2017_" + String.valueOf(ERHEBUNG);
+    static String tableKey = "MiD2002-2008-2017_";
+//    static String tableKey = "MiD2002-2008-2017_pg_x_";
+    static String pgXColFilter = pgTapasCol + " != -1 ";
 
     //static final int kindergartengruppe = 91;
 
@@ -37,7 +39,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
     Map<Integer, Integer> purposeNonHomeStartTrip = new HashMap<>();
     Map<Integer, Map<Integer, Integer>> diaryStatistics = new HashMap<>();
     Map<Integer, Map<Integer, Integer>> diarySumStatistics = new HashMap<>();
-    Map<Integer, Map<Integer, Integer>> personGroupDistribution = new HashMap<>();
+    Map<Integer, Map<Integer, Double>> personGroupDistribution = new HashMap<>();
     Set<Integer> activities = new TreeSet<>();
     Set<Integer> diaryGroups = new TreeSet<>();
 
@@ -49,31 +51,34 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
     int numOfDiariesNotEndingAtHome = 0;
 
     public static void main(String[] args) {
+        ERHEBUNG = Integer.parseInt(args[0]);
+        if (args.length == 2) pgXColFilter = pgTapasCol + " in (" + args[1] + ") ";
+        tableKey = tableKey + String.valueOf(ERHEBUNG);
         TPS_MiD_Diary_Analyzer_Zeitreihendatensatz worker = new TPS_MiD_Diary_Analyzer_Zeitreihendatensatz();
         HashMap<String, String> times = new HashMap<>();
-		times.put("true", "_Mo-So");
-        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
+//		times.put("true", "_Mo-So");
+//        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
         times.put("st_wotag = ANY(ARRAY[2,3,4])", "_Di-Do");
-        times.put("st_wotag = ANY(ARRAY[6,7])","_Sa-So");
-        times.put("st_wotag = ANY(ARRAY[5, 6,7])","_Fr-So");
-		times.put("st_wotag = 1","_Mo");
-		times.put("st_wotag = 2","_Di");
-		times.put("st_wotag = 3","_Mi");
-		times.put("st_wotag = 4","_Do");
-		times.put("st_wotag = 5","_Fr");
-		times.put("st_wotag = 6","_Sa");
-		times.put("st_wotag = 7","_So");
+//        times.put("st_wotag = ANY(ARRAY[6,7])","_Sa-So");
+//        times.put("st_wotag = ANY(ARRAY[5, 6,7])","_Fr-So");
+//		times.put("st_wotag = 1","_Mo");
+//		times.put("st_wotag = 2","_Di");
+//		times.put("st_wotag = 3","_Mi");
+//		times.put("st_wotag = 4","_Do");
+//		times.put("st_wotag = 5","_Fr");
+//		times.put("st_wotag = 6","_Sa");
+//		times.put("st_wotag = 7","_So");
         HashMap<String, String> regions = new HashMap<>();
 
-		regions.put("true", "");
+//		regions.put("true", "");
 //		regions.put("rtyp = 1", "_RTYP1");
 //		regions.put("rtyp = 2", "_RTYP2");
 //		regions.put("rtyp = 3", "_RTYP3");
-		regions.put("polgk =1", "_PolGK1");
-		regions.put("polgk =2", "_PolGK2");
-		regions.put("polgk =3", "_PolGK3");
-		regions.put("polgk =4", "_PolGK4");
-		regions.put("polgk =5", "_PolGK5");
+//		regions.put("polgk =1", "_PolGK1");
+//		regions.put("polgk =2", "_PolGK2");
+//		regions.put("polgk =3", "_PolGK3");
+//		regions.put("polgk =4", "_PolGK4");
+//		regions.put("polgk =5", "_PolGK5");
         regions.put("polgk =6", "_PolGK6");
 
 
@@ -81,9 +86,10 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
             for (Entry<String, String> r : regions.entrySet()) {
                 System.out.println(ERHEBUNG);
                 System.out.println(pgTapasCol);
+                System.out.println(pgXColFilter);
                 System.out.println(t);
                 System.out.println(r);
-                worker.readMIDDiary("public.mid_zeitreihen2", t.getKey() + " and " + r.getKey());
+                worker.readMIDDiary("public.\"MiD2002-2008-2017_Wege\"", t.getKey() + " and " + r.getKey());
                 //System.out.println("Read "+worker.diaryMap.size()+" diaries");
                 //System.out.println("Found "+worker.numOfDoubleWays+" doublet ways. "+worker.numOfExactDoubleWays+" are exact doublets.");
                 worker.calcDiaryStatistics();
@@ -110,7 +116,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
     public void calcDiaryStatistics() {
         Map<Integer, Integer> groupStatistics;
         Map<Integer, Integer> groupSumStatistics;
-        Map<Integer, Integer> groupDistribution;
+        Map<Integer, Double> groupDistribution;
         int countGroup;
         for (Diary e : this.diaryMap.values()) {
 
@@ -137,7 +143,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
             if (!personGroupDistribution.containsKey(e.pGroup)) { //make new person group
                 groupDistribution = new HashMap<>();
                 for (Integer i : this.diaryGroups) {//fill with init-values for all groups
-                    groupDistribution.put(i, 0);
+                    groupDistribution.put(i, 0.0);
                 }
                 personGroupDistribution.put(e.pGroup, groupDistribution);
             } else {
@@ -151,8 +157,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 }
             }
             //and count one diary for this persongroup
-            countGroup = groupDistribution.get(e.group);
-            groupDistribution.put(e.group, countGroup + 1);
+//            countGroup = groupDistribution.get(e.group);
+            groupDistribution.put(e.group, groupDistribution.get(e.group) + e.weight);
         }
     }
 
@@ -182,7 +188,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
     }
 
     public void printDiariesSQLInserts(String table_episode, String table_schemes, boolean print) {
-        //triple consists of trip purpose/trip purpose detail/diary group
+        //triple consists of trip purpose/diary group
         Map<ImmutablePair<Integer, Integer>, Integer> activityMapping = new HashMap<>();
         //build the code mapping
         activityMapping.put(new ImmutablePair<>(0, ANY_DIARY_GROUP), 10); //stay at home
@@ -203,7 +209,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
 
         activityMapping.put(new ImmutablePair<>(2, ANY_DIARY_GROUP), 211); //Business trip->WORKING
 
-        activityMapping.put(new ImmutablePair<>(3, ANY_DIARY_GROUP), 413); //Bildungsweg->Kindergarden TODO WHY? Kindergarden
+        activityMapping.put(new ImmutablePair<>(3, ANY_DIARY_GROUP),
+                413); //Bildungsweg->Kindergarden TODO WHY? Kindergarden
         activityMapping.put(new ImmutablePair<>(3, 1), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
         activityMapping.put(new ImmutablePair<>(3, 2), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
         activityMapping.put(new ImmutablePair<>(3, 3), 412); //Vollzeit berufstätig->SCHOOL TRAINEE
@@ -222,24 +229,37 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         activityMapping.put(new ImmutablePair<>(4, ANY_DIARY_GROUP), 50);  //Shopping ->SHOPPING
 
         activityMapping.put(new ImmutablePair<>(5, ANY_DIARY_GROUP), 522); //private Erledigung ->PERSONAL_MATTERS
+        activityMapping.put(new ImmutablePair<>(6, ANY_DIARY_GROUP), 740); //hwzweck2 Freizeit ->FREETIME_ANY
+        activityMapping.put(new ImmutablePair<>(7, ANY_DIARY_GROUP), 799); //hwzweck2 Begleitung -> ACTIVITIES_ANY
 
         //TODO keine Aktivität fürs Bringen von allgemeinen Personen? (es gibt Bringen von Kindern in der DB aber
         // nicht in MiD)
-        activityMapping.put(new ImmutablePair<>(6, ANY_DIARY_GROUP), 799); //Bringen+Holen: kein Einkaufs-, Erledigungs- und Freizeitweg?!?!?->ACTIVITIES_ANY
+//        activityMapping.put(new ImmutablePair<>(6, ANY_DIARY_GROUP),799); //Bringen+Holen: kein Einkaufs-, Erledigungs- und Freizeitweg?!?!?->ACTIVITIES_ANY
 
-        activityMapping.put(new ImmutablePair<>(7, ANY_DIARY_GROUP), 740); //Freizeit: keine Angabe->FREETIME_ANY
+//        activityMapping.put(new ImmutablePair<>(7, ANY_DIARY_GROUP), 740); //Freizeit: keine Angabe->FREETIME_ANY
+////
+//        activityMapping.put(new ImmutablePair<>(8, ANY_DIARY_GROUP), 10); //nach Hause->HOUSEWORK_AT_HOME
+//        activityMapping.put(new ImmutablePair<>(9, ANY_DIARY_GROUP), 799); //Rückweg vom vorherigen Weg->ACTIVITIES_ANY
+//        activityMapping.put(new ImmutablePair<>(10, ANY_DIARY_GROUP), 799); //andere Zweck->ACTIVITIES_ANY
+//        activityMapping.put(new ImmutablePair<>(11, ANY_DIARY_GROUP), 410); //(Vor-)Schule->SCHOOL
+//        activityMapping.put(new ImmutablePair<>(12, ANY_DIARY_GROUP), 413); //Kita/Kindergarten/Hort->KINDERGARDEN
+//        activityMapping.put(new ImmutablePair<>(13, ANY_DIARY_GROUP), 799); //Begleitung Erwachsener->ACTIVITIES_ANY
+//        activityMapping.put(new ImmutablePair<>(14, ANY_DIARY_GROUP), 740); //Sport/Sportverein->Sports
+//        activityMapping.put(new ImmutablePair<>(15, ANY_DIARY_GROUP), 740); //Freunde besuchen -> Visiting
+//        activityMapping.put(new ImmutablePair<>(16, ANY_DIARY_GROUP), 740); //Unterricht(nicht Schule)->Weiterbildung
 
-        activityMapping.put(new ImmutablePair<>(8, ANY_DIARY_GROUP), 10); //nach Hause->HOUSEWORK_AT_HOME
-        activityMapping.put(new ImmutablePair<>(9, ANY_DIARY_GROUP), 799); //Rückweg vom vorherigen Weg->ACTIVITIES_ANY
-        activityMapping.put(new ImmutablePair<>(10, ANY_DIARY_GROUP), 799); //andere Zweck->ACTIVITIES_ANY
-        activityMapping.put(new ImmutablePair<>(11, ANY_DIARY_GROUP), 410); //(Vor-)Schule->SCHOOL
-        activityMapping.put(new ImmutablePair<>(12, ANY_DIARY_GROUP), 413); //Kita/Kindergarten/Hort->KINDERGARDEN
-        activityMapping.put(new ImmutablePair<>(13, ANY_DIARY_GROUP), 799); //Begleitung Erwachsener->ACTIVITIES_ANY
-        activityMapping.put(new ImmutablePair<>(14, ANY_DIARY_GROUP), 721); //Sport/Sportverein->Sports
-        activityMapping.put(new ImmutablePair<>(15, ANY_DIARY_GROUP), 631); //Freunde besuchen -> Visiting
-        activityMapping.put(new ImmutablePair<>(16, ANY_DIARY_GROUP), 414); //Unterricht(nicht Schule)->Weiterbildung
+//        activityMapping.put(new ImmutablePair<>(8, ANY_DIARY_GROUP), 10); //nach Hause->HOUSEWORK_AT_HOME
+//        activityMapping.put(new ImmutablePair<>(9, ANY_DIARY_GROUP), 799); //Rückweg vom vorherigen Weg->ACTIVITIES_ANY
+//        activityMapping.put(new ImmutablePair<>(10, ANY_DIARY_GROUP), 799); //andere Zweck->ACTIVITIES_ANY
+//        activityMapping.put(new ImmutablePair<>(11, ANY_DIARY_GROUP), 410); //(Vor-)Schule->SCHOOL
+//        activityMapping.put(new ImmutablePair<>(12, ANY_DIARY_GROUP), 413); //Kita/Kindergarten/Hort->KINDERGARDEN
+//        activityMapping.put(new ImmutablePair<>(13, ANY_DIARY_GROUP), 799); //Begleitung Erwachsener->ACTIVITIES_ANY
+//        activityMapping.put(new ImmutablePair<>(14, ANY_DIARY_GROUP), 721); //Sport/Sportverein->Sports
+//        activityMapping.put(new ImmutablePair<>(15, ANY_DIARY_GROUP), 631); //Freunde besuchen -> Visiting
+//        activityMapping.put(new ImmutablePair<>(16, ANY_DIARY_GROUP), 414); //Unterricht(nicht Schule)->Weiterbildung
 
-        activityMapping.put(new ImmutablePair<>(99, ANY_DIARY_GROUP), 799); //keine Angabe/im PAPI nicht erhoben->ACTIVITIES_ANY
+        activityMapping.put(new ImmutablePair<>(99, ANY_DIARY_GROUP),
+                799); //keine Angabe/im PAPI nicht erhoben->ACTIVITIES_ANY
 
         //now we go through the diaries and convert the numbers:
         int schemeID = 1, start, duration, act_code_zbe, tourNumber;
@@ -260,8 +280,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 Diary tmp = e.getValue();
                 tmp.schemeID = schemeID;
                 tmpString = String.format(Locale.ENGLISH,
-                        "INSERT INTO %s (scheme_id, scheme_class_id, homework, key) VALUES (%d,%d,false,'%s');", table_schemes,
-                        tmp.schemeID, tmp.group, tableKey);
+                        "INSERT INTO %s (scheme_id, scheme_class_id, homework, key) VALUES (%d,%d,false,'%s');",
+                        table_schemes, tmp.schemeID, tmp.group, tableKey);
                 if (print) {
                     pw.printf(tmpString + "\n");
                 } else {
@@ -273,7 +293,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                     diaries++;
                     start = d.start_min;
                     duration = d.getDuration();
-                    key = new ImmutablePair<>(d.purpose,tmp.group);
+                    key = new ImmutablePair<>(d.purpose, tmp.group);
                     if (!activityMapping.containsKey(key)) {
                         key = new ImmutablePair<>(d.purpose, ANY_DIARY_GROUP);
                     }
@@ -286,8 +306,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                     //System.out.printf("Scheme %6d Start %4d Duration %4d Act %3d tour %2d home %s workchain %s\n", schemeID, start, duration, act_code_zbe, tourNumber, (home?"T":"F"), (workchain?"T":"F"));
                     tmpString = String.format(Locale.ENGLISH, "INSERT INTO %s" +
                                     " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain, key) " +
-                                    "VALUES (%d,%d,%d,%d,%s,%d,%s,'%s'); --hhid: %d, pid: %d", table_episode, tmp.schemeID, start,
-                            duration, act_code_zbe, home, tourNumber, workchain, tableKey, tmp.hhID, tmp.pID);
+                                    "VALUES (%d,%d,%d,%d,%s,%d,%s,'%s'); --hhid: %d, pid: %d", table_episode, tmp.schemeID,
+                            start, duration, act_code_zbe, home, tourNumber, workchain, tableKey, tmp.hhID, tmp.pID);
                     if (print) {
                         pw.printf(tmpString + "\n");
                     } else {
@@ -323,9 +343,9 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
     }
 
     public void printDistributionVectorSQLInserts(String tablename, String name, boolean print) {
-        Map<Integer, Integer> groupDistribution;
-        Map<Integer, Integer> groupSumCount = new HashMap<>();
-        int count;
+        Map<Integer, Double> groupDistribution;
+        Map<Integer, Double> groupSumCount = new HashMap<>();
+        double count;
         double norm;
         //count the numbers for normalization
         for (Integer pgroup : this.personGroupDistribution.keySet()) {
@@ -364,7 +384,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
     }
 
     public void printDistributionVectors() {
-        Map<Integer, Integer> groupDistribution;
+        Map<Integer, Double> groupDistribution;
         Map<Integer, Integer> groupSumCount = new HashMap<>();
         System.out.println("PG\tDG\tNum\tProb");
         int count;
@@ -401,13 +421,13 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         double avg, stdDev, within, sumtime, sumways;
         //set the keys and default values
         for (Integer i : this.diaryGroups) {
-            groupCounter.put(i,0);
-            groupSumTime.put(i,0);
-            groupSumWay.put(i,0);
-            groupAvgTime.put(i,0.0);
-            groupAvgWay.put(i,0.0);
-            groupStdDeviation.put(i,0.0);
-            groupWithinStdDeviation.put(i,0.0);
+            groupCounter.put(i, 0);
+            groupSumTime.put(i, 0);
+            groupSumWay.put(i, 0);
+            groupAvgTime.put(i, 0.0);
+            groupAvgWay.put(i, 0.0);
+            groupStdDeviation.put(i, 0.0);
+            groupWithinStdDeviation.put(i, 0.0);
         }
 
 
@@ -436,7 +456,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         for (Integer i : this.diaryGroups) {
             counter = groupCounter.get(i);
             sumtime = counter > 0 ? (groupSumTime.get(i) / (double) counter) : 0.0;
-            sumways = counter > 0 ? ((double) groupSumWay.get(i)/ (double) counter): 0.0;
+            sumways = counter > 0 ? ((double) groupSumWay.get(i) / (double) counter) : 0.0;
             groupAvgTime.put(i, sumtime);
             groupAvgWay.put(i, sumways);
         }
@@ -455,7 +475,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         //normalize stdDev
         for (Integer i : this.diaryGroups) {
             counter = groupCounter.get(i) - 1;
-            stdDev = counter>0 ? (groupStdDeviation.get(i)/ (double) counter) : 0;
+            stdDev = counter > 0 ? (groupStdDeviation.get(i) / (double) counter) : 0;
             groupStdDeviation.put(i, stdDev);
         }
 
@@ -470,7 +490,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
             }
 
             //update value
-            if ((e.totalTravelTime - groupAvgTime.get(group)) * (e.totalTravelTime - groupAvgTime.get(group))< stdDev) {
+            if ((e.totalTravelTime - groupAvgTime.get(group)) * (e.totalTravelTime - groupAvgTime.get(group)) <
+                    stdDev) {
                 within += 1;
             }
             groupWithinStdDeviation.put(group, within);
@@ -479,7 +500,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         for (Integer i : this.diaryGroups) {
             counter = groupCounter.get(i);
             within = groupWithinStdDeviation.get(i);
-            stdDev = counter>0 ? (within / (double) counter) : 0;
+            stdDev = counter > 0 ? (within / (double) counter) : 0;
             groupWithinStdDeviation.put(i, stdDev);
         }
 
@@ -495,8 +516,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 //double ways = groupAvgWay.get(i);
                 //pw.printf(Locale.ENGLISH,"%d;%f;%f;%f\n",i,avg,within, ways);
                 pw.printf(Locale.ENGLISH,
-                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev, key) VALUES (%d,%f,%f,'%s');\n", table,
-                        i, avg, within, tableKey);
+                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev, key) VALUES (%d,%f,%f,'%s');\n",
+                        table, i, avg, within, tableKey);
 
             }
             pw.flush();
@@ -507,8 +528,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 avg = groupAvgTime.get(i);
                 within = groupWithinStdDeviation.get(i);
                 query = String.format(Locale.ENGLISH,
-                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev, key) VALUES (%d,%f,%f,'%s');", table,
-                        i, avg, within, tableKey);
+                        "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev, key) VALUES (%d,%f,%f,'%s');",
+                        table, i, avg, within, tableKey);
                 this.dbCon.execute(query, this);
 
             }
@@ -555,16 +576,17 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         int doubleReturnDiaries = 0;
 
         try {
-            query = "select \"Erhebung\", h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
-                    "w_folgetag, wegmin, "+ pgTapasCol +", " + diaryGroupCol + " from " + table +
-                    " where w_szs != 99 and w_szs != 701 and w_azs != 99 and w_azs != 701 and " +
-                    " w_szm != 99 and w_szm != 701 and w_azm != 99 and w_azm != 701 and" +
-                    " \"Erhebung\" = " + ERHEBUNG + " and wegmin != 9994 and " + pgTapasCol + " != -1 and " + filter +
-                    " order by h_id, p_id, w_id";
+            query = "select \"Erhebung\", h_id, p_id, w_id, hp_taet, hwzweck2 as w_zweck, w_szs, w_szm, w_azs, w_azm, " +
+                    "w_folgetag, wegmin, berlin_weight as w_hoch, " + pgTapasCol + ", " + diaryGroupCol + " from " + table +
+                    " where useable_diary=true and w_szs != 99 and w_szs != 701 and w_azs != 99 and w_azs != 701 and " +
+                    " w_szm != 99 and w_szm != 701 and w_azm != 99 and w_azm != 701 and" + " \"Erhebung\" = " +
+                    ERHEBUNG + " and wegmin != 9994 and " + pgXColFilter + " and " +
+                    filter + " order by h_id, p_id, w_id";
             ResultSet rs = this.dbCon.executeQuery(query, this);
             String key, lastKey = "";
             long hhID;
             int pID, start, end, purpose, group, pGroup, personStatus, erhebung;
+            double weight;
             boolean clean = true, home, addTripElement;
 
             while (rs.next()) {
@@ -575,6 +597,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 purpose = rs.getInt("w_zweck");
                 group = rs.getInt(diaryGroupCol);
                 pGroup = rs.getInt(pgTapasCol);
+                weight = rs.getDouble("w_hoch");
                 personStatus = rs.getInt("hp_taet");
                 home = purpose == 8;
                 erhebung = rs.getInt("Erhebung");
@@ -591,7 +614,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                         this.diaryMap.remove(lastKey);
                     }
                     clean = true;
-                    actualDiary = new Diary(hhID, pID, group, pGroup, personStatus);
+                    actualDiary = new Diary(hhID, pID, group, pGroup, personStatus, weight);
                     this.diaryMap.put(key, actualDiary);
                     lastActivity = null;
                 }
@@ -610,7 +633,8 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                     } else {
                         lastActivity.purpose = 10; //change prev trip purpose to "anderer Zweck"
                         if (lastActivity.end_min >= start) {//merge the trips and take the first one
-                            if (lastActivity.end_min - lastActivity.start_min >= end - start) {//which trip is the longer one?
+                            if (lastActivity.end_min - lastActivity.start_min >=
+                                    end - start) {//which trip is the longer one?
                                 lastActivity.end_min = start - 5; //reduce the first/prev trip duration
                             } else {
                                 start = lastActivity.end_min + 5; //reduce the second/current trip duration
@@ -618,7 +642,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                         }
                     }
                 }
-                if (addTripElement){
+                if (addTripElement) {
                     if (start != end) {
                         clean &= actualDiary.addNextElement(start, end, purpose, home);
                         int diaryIndex = actualDiary.activities.size() - 1;
@@ -680,8 +704,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         public void printElement() {
             System.out.println(
                     "\tWay ID: " + this.wsID + " start: " + this.start_min + " end: " + this.end_min + " purpose: " +
-                            this.purpose + " stay: " + this.stay + " home: " +
-                            this.home);
+                            this.purpose + " stay: " + this.stay + " home: " + this.home);
 
         }
     }
@@ -695,15 +718,17 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         int personStatus;
         int totalTravelTime = 0;
         boolean reported;
+        double weight;
         List<DiaryElement> activities = new ArrayList<>();
 
-        public Diary(long hhID, int pID, int group, int pGroup, int personStatus) {
+        public Diary(long hhID, int pID, int group, int pGroup, int personStatus, double weight) {
             this.hhID = hhID;
             this.pID = pID;
             this.group = group;
             this.pGroup = pGroup;
             this.personStatus = personStatus;
             this.reported = false;
+            this.weight = weight;
             DiaryElement startElem = new DiaryElement();
             startElem.wsID = -1;
             startElem.start_min = 0;

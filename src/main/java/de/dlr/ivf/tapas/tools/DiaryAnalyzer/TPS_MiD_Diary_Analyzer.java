@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020 DLR Institute of Transport Research
+ * Copyright (c) 2021 DLR Institute of Transport Research
  * All rights reserved.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.tools;
+package de.dlr.ivf.tapas.tools.DiaryAnalyzer;
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 

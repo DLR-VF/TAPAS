@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2020 DLR Institute of Transport Research
+ * Copyright (c) 2021 DLR Institute of Transport Research
  * All rights reserved.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.tools;
+package de.dlr.ivf.tapas.tools.DiaryAnalyzer;
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -23,12 +23,9 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
     static final int ONE_DAY = 24 * 60;
     static final int ANY_DIARY_GROUP = -1;
     static final int ANY_TRIP_PURPOSE_DETAIL = -1;
-    //    static final String groupCol = "TBG_23";
-//    static final String groupCol_name = "TBG_23";
     static final String diaryGroupCol = "tbg";
-    static final String diaryGroupColName = "tbg";
-    static final String pgTapasCol = "pg_tapas33";
-    static final String tableKey = "MID17_33";
+    static final String pgTapasCol = "pg_tapas_noage";
+    static final String tableKey = "MID17_NOAGE";
 
     //static final int kindergartengruppe = 91;
 
@@ -54,29 +51,30 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         TPS_MiD_Diary_Analyzer2017 worker = new TPS_MiD_Diary_Analyzer2017();
         HashMap<String, String> times = new HashMap<>();
 		times.put("true", "_Mo-So");
-        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
+//        times.put("st_wotag = ANY(ARRAY[1,2,3,4,5])","_Mo-Fr");
         times.put("st_wotag = ANY(ARRAY[2,3,4])", "_Di-Do");
-        times.put("st_wotag = ANY(ARRAY[6,7])","_Sa-So");
-        times.put("st_wotag = ANY(ARRAY[5, 6,7])","_Fr-So");
-		times.put("st_wotag = 1","_Mo");
-		times.put("st_wotag = 2","_Di");
-		times.put("st_wotag = 3","_Mi");
-		times.put("st_wotag = 4","_Do");
-		times.put("st_wotag = 5","_Fr");
-		times.put("st_wotag = 6","_Sa");
-		times.put("st_wotag = 7","_So");
+//        times.put("st_wotag = ANY(ARRAY[6,7])","_Sa-So");
+//        times.put("st_wotag = ANY(ARRAY[5, 6,7])","_Fr-So");
+//		times.put("st_wotag = 1","_Mo");
+//		times.put("st_wotag = 2","_Di");
+//		times.put("st_wotag = 3","_Mi");
+//		times.put("st_wotag = 4","_Do");
+//		times.put("st_wotag = 5","_Fr");
+//		times.put("st_wotag = 6","_Sa");
+//		times.put("st_wotag = 7","_So");
         HashMap<String, String> regions = new HashMap<>();
 
 		regions.put("true", "");
 //		regions.put("rtyp = 1", "_RTYP1");
 //		regions.put("rtyp = 2", "_RTYP2");
 //		regions.put("rtyp = 3", "_RTYP3");
-		regions.put("polgk =1", "_PolGK1");
-		regions.put("polgk =2", "_PolGK2");
-		regions.put("polgk =3", "_PolGK3");
-		regions.put("polgk =4", "_PolGK4");
-		regions.put("polgk =5", "_PolGK5");
+//		regions.put("polgk =1", "_PolGK1");
+//		regions.put("polgk =2", "_PolGK2");
+//		regions.put("polgk =3", "_PolGK3");
+//		regions.put("polgk =4", "_PolGK4");
+//		regions.put("polgk =5", "_PolGK5");
         regions.put("polgk =6", "_PolGK6");
+        regions.put("bland =3", "_bland3");
 
 
         for (Entry<String, String> t : times.entrySet()) {
@@ -101,7 +99,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
                 printOnScreen);
 //                worker.printDistributionVectors();
                 worker.printDistributionVectorSQLInserts("core.global_scheme_class_distributions",
-                        "MID_2017_" + diaryGroupColName + t.getValue() + r.getValue(), printOnScreen);
+                        "MID_2017_" + diaryGroupCol + t.getValue() + r.getValue(), printOnScreen);
                 worker.clearEverything();
             }
         }
@@ -237,7 +235,7 @@ public class TPS_MiD_Diary_Analyzer2017 extends TPS_BasicConnectionClass {
         activityMapping.put(new ImmutableTriple<>(5, 605, ANY_DIARY_GROUP), 522); //private Erledigung: Betreuung->PERSONAL_MATTERS
         activityMapping.put(new ImmutableTriple<>(5, 699, ANY_DIARY_GROUP), 522); //private Erledigung: keine Angabe des Details->PERSONAL_MATTERS
         activityMapping.put(new ImmutableTriple<>(5, 701, ANY_DIARY_GROUP), 631); //private Erledigung: Besuch mit/bei Freunden->VISITING
-        activityMapping.put(new ImmutableTriple<>(5, 705, ANY_DIARY_GROUP), 414); //private Erledigung: Weiterbildung ->Weitebrildung
+        activityMapping.put(new ImmutableTriple<>(5, 705, ANY_DIARY_GROUP), 414); //private Erledigung: Weiterbildung ->Weiterbildung
         activityMapping.put(new ImmutableTriple<>(5, 706, ANY_DIARY_GROUP), 720); //private Erledigung: Restaurant->DINING_OR_GOING_OUT
         activityMapping.put(new ImmutableTriple<>(5, 711, ANY_DIARY_GROUP), 722); //private Erledigung: Hund ausführen->PROMENADING
         activityMapping.put(new ImmutableTriple<>(5, 713, ANY_DIARY_GROUP), 522); //private Erledigung: Kirche, Friedhof->PERSONAL_MATTERS
