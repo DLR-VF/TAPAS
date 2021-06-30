@@ -114,7 +114,7 @@ publishing {
 
 application {
     // Define the main class for the application
-    mainClassName = "de.dlr.ivf.tapas.runtime.client.SimulationControl"
+    getMainClass().set("de.dlr.ivf.tapas.runtime.client.SimulationControl")
 }
 
 
@@ -146,7 +146,7 @@ task("SimulationDaemon", JavaExec::class) {
     group = "runnables"
     description = "Runs the SimulationDaemon"
     // Define the main class for the application
-    main = "de.dlr.ivf.tapas.runtime.server.SimulationDaemon"
+    getMainClass().set("de.dlr.ivf.tapas.runtime.server.SimulationDaemon")
     classpath = sourceSets["main"].runtimeClasspath
     args = listOf("data/Simulations")
 //    jvmArgs = listOf("-Xmx8g")
@@ -157,7 +157,7 @@ task("SimulationControl", JavaExec::class) {
     group = "runnables"
     description = "Starts the SimulationControl app"
     // Define the main class for the application
-    main = "de.dlr.ivf.tapas.runtime.client.SimulationControl"
+    getMainClass().set("de.dlr.ivf.tapas.runtime.client.SimulationControl")
     classpath = sourceSets["main"].runtimeClasspath
 }
 
@@ -167,7 +167,7 @@ task("Installer", JavaExec::class) {
     description = "Starts the installation script"
     classpath = sourceSets["main"].runtimeClasspath
     // Define the main class for the application
-    main = "de.dlr.ivf.tapas.installer.Installer"
+    getMainClass().set("de.dlr.ivf.tapas.installer.Installer")
 //    set arguments like in the line below
 //    args = mutableListOf("--dbserver=localhost","--dbname=my_tapas_db_name","--dbuser=my_already_existing_tapas_db_user","--dbpassword=my_db_password")
 }
