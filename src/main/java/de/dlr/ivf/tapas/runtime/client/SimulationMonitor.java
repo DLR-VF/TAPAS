@@ -398,7 +398,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                      */
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return column == SIM_INDEX.ACTION.ordinal() || column == SIM_INDEX.FILE.ordinal();
+                        return column == SIM_INDEX.ACTION.ordinal() || column == SIM_INDEX.DESCRIPTION.ordinal();
                     }
 
                     @Override
@@ -1149,7 +1149,8 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         this.simTable.initTableColumn(SIM_INDEX.COUNT.ordinal(), 125, new AlignmentRenderer(JLabel.RIGHT, true), null);
         this.simTable.initTableColumn(SIM_INDEX.KEY.ordinal(), 0, new AlignmentRenderer(JLabel.LEFT, true), null);
         this.simTable.initTableColumn(SIM_INDEX.FINISHED.ordinal(), 21, new ColorRenderer(true), null);
-        this.simTable.initTableColumn(SIM_INDEX.FILE.ordinal(), 0, new LongTextRenderer(), new TextPopupEditor());
+        this.simTable.initTableColumn(SIM_INDEX.DESCRIPTION.ordinal(), 0, new LongTextRenderer(), new TextPopupEditor());
+        this.simTable.initTableColumn(SIM_INDEX.FILE.ordinal(), 0, new LongTextRenderer(), null);
         this.simTable.initTableColumn(SIM_INDEX.STOPPED.ordinal(), 21, new ColorRenderer(true), null);
         this.simTable.initTableColumn(SIM_INDEX.STARTED.ordinal(), 21, new ColorRenderer(true), null);
         this.simTable.initTableColumn(SIM_INDEX.ESTIMATED.ordinal(), 75, new AlignmentRenderer(JLabel.RIGHT, true),

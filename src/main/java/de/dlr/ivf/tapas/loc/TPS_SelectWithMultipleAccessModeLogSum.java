@@ -129,7 +129,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
             }
             //calc the value
             utilities[i] = ((TPS_UtilityMNL) (TPS_Mode.getUtilityFunction(parameterClass))).getCostOfMode(mode, plan,
-                    distanceNet, travelTime, mcc, SimulationType.SCENARIO);
+                    travelTime, mcc, SimulationType.SCENARIO);
             if (Double.isNaN(utilities[i])) {
                 utilities[i] = TPS_UtilityFunction.minModeProbability;
                 continue;

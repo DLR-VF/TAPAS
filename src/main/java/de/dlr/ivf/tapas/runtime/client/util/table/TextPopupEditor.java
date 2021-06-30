@@ -25,6 +25,7 @@ public class TextPopupEditor extends AbstractCellEditor implements TableCellEdit
     private final JButton button;
     private final TextAreaDialog window;
     private JTable table;
+
     public TextPopupEditor() {
         super();
         button = new JButton();

@@ -31,12 +31,12 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
     /**
      * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm. See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
      *
-     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc,/*TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike,*/ SimulationType simType/*, TPS_Stay stay*/) {
+     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double travelTime, TPS_ModeChoiceContext mcc,/*TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike,*/ SimulationType simType/*, TPS_Stay stay*/) {
         double cost = 0;
         double[] parameters = this.parameterMap.get(mode);
 
         double expInterChanges = 0;
-        distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
+        double distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
                 mcc.carForThisPlan); //correct the distance to the actual value!
 
         switch (mode.getAttribute()) {

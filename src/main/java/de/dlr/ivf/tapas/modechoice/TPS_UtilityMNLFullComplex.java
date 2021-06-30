@@ -116,17 +116,15 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
     }
 
     @Override
-
     /**
      * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm. See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
-     * @author hein_mh
      *
-     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc,/*TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike,*/ SimulationType simType/*, TPS_Stay stay*/) {
+     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
         double cost = 0;
         double[] parameters = this.parameterMap.get(mode);
 
         double expInterChanges = 0;
-        distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
+        double distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
                 mcc.carForThisPlan); //correct the distance to the actual value!
 
         switch (mode.getAttribute()) {

@@ -33,12 +33,11 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
     static boolean writeStats = false;
 
     @Override
-
     /**
      * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm.
      * See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
      *
-     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
+     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
         if (writeStats && writer == null) {
             try {
                 writer = new BufferedWriter(new FileWriter("d:\\measures.txt"));
@@ -52,7 +51,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
 
         double modeConstant = parameters[0];
         double expInterChanges = 0;
-        distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
+        double distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
                 mcc.carForThisPlan); //correct the distance to the actual value!
 
         boolean work = false, education = false, shopping = false, errant = false, leisure = false;
