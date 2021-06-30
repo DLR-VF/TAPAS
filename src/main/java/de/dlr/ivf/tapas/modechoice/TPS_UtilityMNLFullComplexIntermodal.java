@@ -35,9 +35,8 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
     @Override
 
     /**
-     * Utility function, which implements the mnl-model according to the complex  model developped by Alexander Kihm.
+     * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm.
      * See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
-     * @author hein_mh
      *
      */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
         if (writeStats && writer == null) {
@@ -48,8 +47,6 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                 e.printStackTrace();
             }
         }
-
-
         double cost = 0;
         double[] parameters = this.parameterMap.get(mode);
 

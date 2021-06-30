@@ -276,9 +276,9 @@ public abstract class TPS_Mode {
     }
 
     /**
-     * * This method returns the cost factor for this mode for the specified Scenario case. It must be multiplied with a cost per km value.
+     * This method returns the cost factor for this mode for the specified Scenario case. It must be multiplied with a cost per km value.
      *
-     * @param simType Secario or base
+     * @param simType scenario or base
      * @return cost factor per km.
      */
     public double getCost_per_km(SimulationType simType) {

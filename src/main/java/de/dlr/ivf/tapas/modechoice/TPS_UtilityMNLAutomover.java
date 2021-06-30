@@ -28,11 +28,8 @@ import de.dlr.ivf.tapas.util.parameters.SimulationType;
 public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
 
     @Override
-
     /**
-     * CHange change change!!!
      * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm. See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
-     * @author hein_mh
      *
      */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc,/*TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike,*/ SimulationType simType/*, TPS_Stay stay*/) {
         double cost = 0;
@@ -58,12 +55,11 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                 } else {
                     cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
                 }
-
                 break;
             case TAXI:
                 //Todo: HACK: No separate access /egress-times for taxi. Assumption: 5min waiting but no egress!
                 //Car has a general 4min waiting so add one minute
-                travelTime += 60; // add one more minute for TAXI
+//                travelTime += 60; // add one more minute for TAXI
                 //TODO: make hard coded values configurable
                 /*
                  * Taxi tarif Berlin:
@@ -71,10 +67,11 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                  * first 7 km: 1.58€
                  * after that: 1.20€
                  */
-                double baseCharge = 3.0;
-                double shortCharge = Math.min(7000, distanceNet) * 0.001 * 1.58;
-                double longCharge = Math.max(0, distanceNet - 7000) * 0.001 * 1.20;
-                cost = baseCharge + shortCharge + longCharge;
+//                double baseCharge = 3.0;
+//                double shortCharge = Math.min(7000, distanceNet) * 0.001 * 1.58;
+//                double longCharge = Math.max(0, distanceNet - 7000) * 0.001 * 1.20;
+//                cost = baseCharge + shortCharge + longCharge;
+                cost = distanceNet * 0.001 * 0.6;
                 break;
             case PT:
 
@@ -94,29 +91,31 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                                 mcc.toStayLocation.getTAZId(), mcc.startTime) * TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
-            case TRAIN: //car sharing-faker
-                if ((mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) && mode.getParameters().isTrue(
-                        ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler()) //cs user?
-                        || (mode.getParameters().isDefined(ParamFlag.FLAG_USE_ROBOTAXI) && mode.getParameters().isTrue(
-                        ParamFlag.FLAG_USE_ROBOTAXI)) // is robotaxi
-                ) { //no cs user!
-                    //service area in scenario?
-                    if (!mcc.toStayLocation.getTrafficAnalysisZone().isCarSharingService(SimulationType.SCENARIO) ||
-                            !mcc.fromStayLocation.getTrafficAnalysisZone().isCarSharingService(
-                                    SimulationType.SCENARIO)) {
-                        return Double.NaN;
-                    }
-                    // time equals MIT + 3 min more access
-                    travelTime = TPS_Mode.get(ModeType.MIT).getTravelTime(mcc.fromStayLocation, mcc.toStayLocation,
-                            mcc.startTime, simType, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
-                            plan.getPerson(), mcc.carForThisPlan);
-                    travelTime += mode.getParameters().getDoubleValue(
-                            ParamValue.CARSHARING_ACCESS_ADDON); //Longer Access for Carsharing
-                    cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
-                } else {
-                    cost = Double.NaN;
-                }
+            case TRAIN: //shared automatic vehicle-faker
+                cost = distanceNet * 0.001 * 0.4;
                 break;
+//                if ((mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) && mode.getParameters().isTrue(
+//                        ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler()) //cs user?
+//                        || (mode.getParameters().isDefined(ParamFlag.FLAG_USE_ROBOTAXI) && mode.getParameters().isTrue(
+//                        ParamFlag.FLAG_USE_ROBOTAXI)) // is robotaxi
+//                ) { //no cs user!
+//                    //service area in scenario?
+//                    if (!mcc.toStayLocation.getTrafficAnalysisZone().isCarSharingService(SimulationType.SCENARIO) ||
+//                            !mcc.fromStayLocation.getTrafficAnalysisZone().isCarSharingService(
+//                                    SimulationType.SCENARIO)) {
+//                        return Double.NaN;
+//                    }
+//                    // time equals MIT + 3 min more access
+//                    travelTime = TPS_Mode.get(ModeType.MIT).getTravelTime(mcc.fromStayLocation, mcc.toStayLocation,
+//                            mcc.startTime, simType, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
+//                            plan.getPerson(), mcc.carForThisPlan);
+//                    travelTime += mode.getParameters().getDoubleValue(
+//                            ParamValue.CARSHARING_ACCESS_ADDON); //Longer Access for Carsharing
+//                    cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
+//                } else {
+//                    cost = Double.NaN;
+//                }
+//                break;
         }
 
         if (Double.isNaN(cost)) return Double.NaN;

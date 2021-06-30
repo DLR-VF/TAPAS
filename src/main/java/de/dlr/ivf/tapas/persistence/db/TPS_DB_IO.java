@@ -1870,7 +1870,9 @@ public class TPS_DB_IO {
         else
             settlement_systems_table = this.PM.getDbConnector().readSingleParameter(simulation,ParamString.DB_TABLE_CONSTANT_SETTLEMENT.toString());
 
-        String query = "SELECT * FROM core." + settlement_systems_table;
+        if (!settlement_systems_table.startsWith("core.")) settlement_systems_table = "core." + settlement_systems_table;
+
+        String query = "SELECT * FROM " + settlement_systems_table;
         try (ResultSet rs = PM.executeQuery(query)) {
             TPS_SettlementSystem tss;
             while (rs.next()) {

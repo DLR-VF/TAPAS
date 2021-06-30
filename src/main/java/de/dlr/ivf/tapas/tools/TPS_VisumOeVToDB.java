@@ -64,7 +64,7 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
         String matrixName = "PT_VISUM_1223_ANT2020_%02d_%02d_";
         int[] start = {6, 10, 16, 19}, end = {9, 16, 19, 23}, runNo = {31, 61, 29, 30}, cappaAddon = {0, 0, 0, 0};
         boolean[] fixPJT = {false, false, false, false};
-//		String visumPath = "V:\\Projekte-Berlin\\EvoBus\\Szenarien\\Basisszenario 2030\\Kenngr��en\\1-0_1_%02d-%02d_%d_Kenngr��en\\";
+//		String visumPath = "V:\\Projekte-Berlin\\EvoBus\\Szenarien\\Basisszenario 2030\\Kenngrößen\\1-0_1_%02d-%02d_%d_Kenngrößen\\";
 //		String visumFile =  "1-0_1_%02d-%02d_%d.";
 //		String matrixName = "PT_VISUM_1223_2030_1_0_1_%02d_%02d_";
 //		int[] start= {6,10,16,19}, end= {9,16,19,23}, runNo= {31,61,29,30},cappaAddon={0,0,0,0};

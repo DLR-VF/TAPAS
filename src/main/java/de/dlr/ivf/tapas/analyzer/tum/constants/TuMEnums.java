@@ -727,7 +727,7 @@ public class TuMEnums {
         PG_8(7, "nicht erwerbstätig Mann ohne Pkw", generateSet(Job.JOB_14, Job.JOB_22, Job.JOB_39, Job.JOB_47, Job.JOB_55, Job.JOB_63)), //
         PG_9(8, "Rentner mit Pkw", generateSet(Job.JOB_25, Job.JOB_27, Job.JOB_29, Job.JOB_31)), //
         PG_10(9, "Rentner ohne Pkw", generateSet(Job.JOB_26, Job.JOB_28, Job.JOB_30, Job.JOB_32)), //
-        PG_11(10, "Schüler/Student", generateSet(Job.JOB_1, Job.JOB_2)), //
+        PG_11(10, "Schüler/Student/Azubi", generateSet(Job.JOB_1, Job.JOB_2, Job.JOB_33)), //
         PG_12(11, "Kinder", generateSet()), //
         PG_13(12, "4 und 7: junge Erwachsene bis 24 Jahre mit und ohne PKW, erwerbstätig und nichterwerbstätig",
                 generateSet(Job.JOB_4, Job.JOB_7));
@@ -768,9 +768,7 @@ public class TuMEnums {
                     return group;
                 }
             }
-
             throw new IllegalArgumentException("Job is not assigned to any personGroup");
-
         }
 
         /**
@@ -862,11 +860,11 @@ public class TuMEnums {
         JOB_1(1), JOB_2(2), JOB_3(3), JOB_4(4), JOB_5(5), JOB_6(6), JOB_7(7), JOB_8(8), JOB_9(9), JOB_10(10), JOB_11(
                 11), JOB_12(12), JOB_13(13), JOB_14(14), JOB_15(15), JOB_16(16), JOB_17(17), JOB_18(18), JOB_19(
                 19), JOB_20(20), JOB_21(21), JOB_22(22), JOB_23(23), JOB_24(24), JOB_25(25), JOB_26(26), JOB_27(
-                27), JOB_28(28), JOB_29(29), JOB_30(30), JOB_31(31), JOB_32(32), JOB_34(34), JOB_35(35), JOB_36(
-                36), JOB_37(37), JOB_38(38), JOB_39(39), JOB_40(40), JOB_41(41), JOB_42(42), JOB_43(43), JOB_44(
-                44), JOB_45(45), JOB_46(46), JOB_47(47), JOB_48(48), JOB_49(49), JOB_50(50), JOB_51(51), JOB_52(
-                52), JOB_53(53), JOB_54(54), JOB_55(55), JOB_56(56), JOB_57(57), JOB_58(58), JOB_59(59), JOB_60(
-                60), JOB_61(61), JOB_62(62), JOB_63(63), JOB_64(64), JOB_65(65);
+                27), JOB_28(28), JOB_29(29), JOB_30(30), JOB_31(31), JOB_32(32), JOB_33(33), JOB_34(34), JOB_35(
+                35), JOB_36(36), JOB_37(37), JOB_38(38), JOB_39(39), JOB_40(40), JOB_41(41), JOB_42(42), JOB_43(
+                43), JOB_44(44), JOB_45(45), JOB_46(46), JOB_47(47), JOB_48(48), JOB_49(49), JOB_50(50), JOB_51(
+                51), JOB_52(52), JOB_53(53), JOB_54(54), JOB_55(55), JOB_56(56), JOB_57(57), JOB_58(58), JOB_59(
+                59), JOB_60(60), JOB_61(61), JOB_62(62), JOB_63(63), JOB_64(64), JOB_65(65);
 
         private final int id;
 

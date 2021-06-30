@@ -1,5 +1,5 @@
 "Kleinkinder"	0
-"Sch¸ler"	1
+"Sch√ºler"	1
 "Studenten"	2
 "EWT25mP M"	3
 "EWT25oP"	4
@@ -32,12 +32,12 @@
 "R75+mP W"	31
 "R75+oP W"	32
 
-EWT = Erwerbst‰tig
-NEW = nicht Erwerbst‰tig
+EWT = Erwerbst√§tig
+NEW = nicht Erwerbst√§tig
 mP = Mit PKW
 oP = ohen PKW
 R = Rentner
 
 Alter ist immer "Weniger als x und implizit mehr als die Gruppe davor"
 
-M/W = M‰nnlich/Weiblich
+M/W = M√§nnlich/Weiblich
