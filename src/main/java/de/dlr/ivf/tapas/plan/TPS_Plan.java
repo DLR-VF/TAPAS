@@ -41,12 +41,9 @@ import java.util.Map.Entry;
  * Class for a TAPAS plan.
  * Contains trips, budgets, and many more stuff for plan related work
  *
- * @author cyga_ri
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
-    /// Flag for DEBUG-Modus
-    private static final boolean DEBUG = false;
     /// The environment for this plan
     public TPS_PlanEnvironment pe;
     public List<TPS_Car> usedCars = new LinkedList<>();
@@ -987,22 +984,16 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                     if (currentLocatedStay.getLocation() == null) {
                         TPS_Logger.log(SeverenceLogLevel.ERROR, "No Location found!");
                     }
-
-                    if (DEBUG) {
-                        if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                            String s = "gewählte Location zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
-                                    currentLocatedStay.getLocation().getId() + " in TAZ:" +
-                                    currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                    " in block: " +
-                                    (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                     .getBlock()
-                                                                                                     .getId() : -1) +
-                                    " via" + currentLocatedStay.getModeArr().getName() + "/" +
-                                    currentLocatedStay.getModeDep().getName();
-                            TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
-                        }
-                    }
                     if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
+                        String s = "gewählte Location zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
+                                currentLocatedStay.getLocation().getId() + " in TAZ:" +
+                                currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() + " in block: " +
+                                (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
+                                                                                                 .getBlock()
+                                                                                                 .getId() : -1) +
+                                " via" + currentLocatedStay.getModeArr().getName() + "/" +
+                                currentLocatedStay.getModeDep().getName();
+                        TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
                         TPS_Logger.log(SeverenceLogLevel.DEBUG,
                                 "Selected location (id=" + currentLocatedStay.getLocation().getId() +
                                         ") for stay (id=" + currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
@@ -1059,22 +1050,18 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                         myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
                     }
                 }
-                if (DEBUG) {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                        String s = "gewählter Modus zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
-                                currentLocatedStay.getModeArr() == null ? "NULL" :
-                                currentLocatedStay.getModeArr().getName() + " in TAZ:" +
-                                        currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                        " in block: " +
-                                        (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                         .getBlock()
-                                                                                                         .getId() : -1) +
-                                        " via" + currentLocatedStay.getModeArr().getName() + "/" +
-                                        currentLocatedStay.getModeDep().getName();
-                        TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
-                    }
-                }
                 if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
+                    String s = "gewählter Modus zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
+                            currentLocatedStay.getModeArr() == null ? "NULL" :
+                            currentLocatedStay.getModeArr().getName() + " in TAZ:" +
+                                    currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
+                                    " in block: " +
+                                    (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
+                                                                                                     .getBlock()
+                                                                                                     .getId() : -1) +
+                                    " via" + currentLocatedStay.getModeArr().getName() + "/" +
+                                    currentLocatedStay.getModeDep().getName();
+                    TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
                     TPS_Logger.log(SeverenceLogLevel.DEBUG,
                             "Selected mode (id=" + currentLocatedStay.getModeArr() == null ? "NULL" :
                                     currentLocatedStay.getModeArr().getName() + ") for stay (id=" +

@@ -96,7 +96,6 @@ public interface TPS_LoggingInterface {
     /**
      * The SeverenceLogLevel: specifies the Hierarchy within the severence
      *
-     * @author mark_ma
      */
     enum SeverenceLogLevel {
         OFF(0, ParamString.LOG_LEVEL_OFF), FATAL(1, ParamString.LOG_LEVEL_FATAL), ERROR(2,
