@@ -16,7 +16,7 @@ plugins {
     application
 
     //plugin for creating a fat jar (called shadow jar) with all dependencies included
-    id("com.github.johnrengelman.shadow") version "5.1.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 
     // javafx plugin to handle javafx dependencies
     id("org.openjfx.javafxplugin") version "0.0.8"
