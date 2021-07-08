@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.mode;
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.person.TPS_Car;
+import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 
 import java.util.Optional;
@@ -16,7 +17,7 @@ public class TPS_ModeValidator {
         this.car_sharing_delegator = car_sharing_mediator;
     }
 
-    public void validateMode(TPS_PlanningContext planning_context, ModeContext mode_context, TPS_Location start_location, TPS_Location end_location){
+    public void validateMode(TPS_PlanningContext planning_context, ModeContext mode_context, TPS_Location start_location, TPS_Location end_location, TPS_PlannedTrip planned_trip){
 
         TPS_ExtMode next_mode = mode_context.getNextMode();
 
@@ -25,6 +26,9 @@ public class TPS_ModeValidator {
             case BIKE: validateBikeWithChosenMode(planning_context.isBikeAvailable, next_mode); break;
             case CAR_SHARING: validateCarSharing(planning_context, next_mode,start_location,end_location); break;
         }
+
+        //now set the mode manually to the trip
+        planned_trip.setMode(next_mode);
     }
 
     private void validateCarSharing(TPS_PlanningContext planning_context, TPS_ExtMode chosen_mode, TPS_Location start_location, TPS_Location end_location) {

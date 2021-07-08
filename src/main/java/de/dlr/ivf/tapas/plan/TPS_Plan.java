@@ -91,11 +91,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         this.PM = pm;
 
         this.locatedStays = new HashMap<>();
-        this.plannedTrips = new TreeMap<>(new Comparator<TPS_Trip>() {
-            public int compare(TPS_Trip trip1, TPS_Trip trip2) {
-                return trip1.getOriginalStart() - trip2.getOriginalStart();
-            }
-        });
+        this.plannedTrips = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
 
         this.scheme = schemeIn.clone();
 

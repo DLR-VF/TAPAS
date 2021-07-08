@@ -5,16 +5,19 @@ import com.lmax.disruptor.ExceptionHandler;
 public class StateMachineEventExceptionHandler implements ExceptionHandler<TPS_StateMachineEvent> {
     @Override
     public void handleEventException(Throwable ex, long sequence, TPS_StateMachineEvent event) {
-        ex.printStackTrace();
+
+        throw new RuntimeException(ex);
     }
 
     @Override
     public void handleOnStartException(Throwable ex) {
-        ex.printStackTrace();
+
+        throw new RuntimeException(ex);
     }
 
     @Override
     public void handleOnShutdownException(Throwable ex) {
-        ex.printStackTrace();
+
+        throw new RuntimeException(ex);
     }
 }

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -83,7 +84,7 @@ public class SequentialSimulator implements TPS_Simulator{
 
             TPS_ModeValidator mode_validator = new TPS_ModeValidator(car_sharing_delegator);
 
-            BiFunction<TPS_Episode, Integer, Integer> guard_adaption_function = (episode, time_deviation) -> episode.getOriginalEnd() + time_deviation;
+            BiFunction<TPS_Episode, Supplier<Integer>, Integer> guard_adaption_function = (episode, time_deviation) -> FuncUtils.secondsToRoundedMinutes.apply(episode.getOriginalEnd() + time_deviation.get());
 
             ActionProvider transition_actions_provider = new ActionProvider((TPS_DB_IOManager) this.pm, writer, guard_adaption_function, mode_validator, car_sharing_delegator);
 

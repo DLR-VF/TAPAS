@@ -210,6 +210,8 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
         TPS_TourPart tourpart = (TPS_TourPart) this.stay.getSchemePart();
         TPS_Stay comingFrom = coming_from.get();
         TPS_Stay goingTo = going_to.get();
+
+
         if (!plan.isLocated(comingFrom) || !plan.isLocated(goingTo)) {
             // this case should be impossible because we now iterate over the priorised stays,
             // so every stay where we can come from or where we go to is located
@@ -226,7 +228,7 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
             this.setLocation(plan.getPerson().getHousehold().getLocation());
         } else {
             TPS_Region region = PM.getRegion();
-            this.setLocation(region.selectLocation(plan, pc, this));
+            this.setLocation(region.selectLocation(plan, pc, this, coming_from,going_to));
             if (this.getLocation() == null) {
                 TPS_Logger.log(SeverenceLogLevel.ERROR,
                         "End select procedure for stay (id=" + this.getStay().getId() + ") with no location");

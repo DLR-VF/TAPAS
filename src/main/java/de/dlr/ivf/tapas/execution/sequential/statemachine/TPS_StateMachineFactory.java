@@ -51,8 +51,8 @@ public class TPS_StateMachineFactory {
         Guard activity_to_trip_guard = new Guard(getSimulationEntryTime(plan));
         Guard trip_to_activity_guard = new Guard(Integer.MAX_VALUE);
 
-        activity_state.addHandler(TPS_EventType.SIMULATION_STEP, trip_state, () -> transition_actions_provider.getActivityToTripActions(plan_context,activity_to_trip_guard, stateMachine), activity_to_trip_guard);
-        trip_state.addHandler(TPS_EventType.SIMULATION_STEP, activity_state, () -> transition_actions_provider.getTripToActivityActions(plan_context,trip_to_activity_guard), trip_to_activity_guard);
+        activity_state.addHandler(TPS_EventType.SIMULATION_STEP, trip_state, () -> transition_actions_provider.getActivityToTripActions(plan_context,trip_to_activity_guard, stateMachine), activity_to_trip_guard);
+        trip_state.addHandler(TPS_EventType.SIMULATION_STEP, activity_state, () -> transition_actions_provider.getTripToActivityActions(plan_context,activity_to_trip_guard), trip_to_activity_guard);
 
 
 //

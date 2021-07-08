@@ -303,7 +303,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         } else {
             TPS_Logger.log(SeverenceLogLevel.WARN,
                     "No specific location found for activity " + actCode.getCode(TPS_ActivityCodeType.ZBE));
-            return region.selectDefaultLocation(plan, pc, locatedStay);
+            return region.selectDefaultLocation(plan, pc, locatedStay,coming_from,going_to);
         }
         return locRepresentant;
     }

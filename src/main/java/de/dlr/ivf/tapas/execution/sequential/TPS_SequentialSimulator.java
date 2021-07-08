@@ -74,7 +74,7 @@ public class TPS_SequentialSimulator implements Runnable{
         this.writer = (TPS_PipedDbWriter) writer;
         this.state_machine_controllers = state_machine_controllers;
         this.next_simulation_event = start_event;
-        this.simulation_time_stamp.set((int) next_simulation_event.getData());
+        this.simulation_time_stamp.set(next_simulation_event.getData());
     }
 
     /**
@@ -140,7 +140,10 @@ public class TPS_SequentialSimulator implements Runnable{
 
         //set up the ring and worker pool
         RingBuffer<TPS_StateMachineEvent> ring_buffer = RingBuffer.createSingleProducer(event_factory, buffer_size, new BusySpinWaitStrategy());
-        WorkerPool<TPS_StateMachineEvent> worker_pool = new WorkerPool<>(ring_buffer, ring_buffer.newBarrier(), new StateMachineEventExceptionHandler(), workers);
+
+        StateMachineEventExceptionHandler exceptionHandler = new StateMachineEventExceptionHandler();
+
+        WorkerPool<TPS_StateMachineEvent> worker_pool = new WorkerPool<>(ring_buffer, ring_buffer.newBarrier(), exceptionHandler, workers);
         ring_buffer.addGatingSequences(worker_pool.getWorkerSequences());
 
         //start the worker pool
@@ -158,7 +161,7 @@ public class TPS_SequentialSimulator implements Runnable{
         //start the simulation
         while(!all_finished && simulation_time_stamp.get() < 2000){
 
-            all_finished = true;
+            //all_finished = true;
             var unfinished = 0;
             var event_count = 0;
             var current_iteration_start_time = System.currentTimeMillis();

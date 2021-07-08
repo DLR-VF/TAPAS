@@ -25,7 +25,6 @@ public class TourContext implements ContextUpdateable {
 
     private ModeContext mode_context;
 
-    int deltatime;
 
     TPS_Stay end_stay;
     private TPS_Trip next_trip;
@@ -41,24 +40,23 @@ public class TourContext implements ContextUpdateable {
         this.last_stay = last_stay;
 
         this.trips_to_stays = initTripStayStructure(tour_part, last_stay);
+        initNextTripAndStay();
 
-//        TPS_Stay next_episode = tour_part.getNextStay()
-//        TPS_Stay departure_stay = tour_part.getPreviousEpisode();
     }
 
 
     private NavigableMap<TPS_Trip, TPS_Stay> initTripStayStructure(TPS_TourPart tour_part, TPS_Stay end_stay) {
 
-        NavigableMap<TPS_Trip, TPS_Stay> trips_to_stays  = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
+        NavigableMap<TPS_Trip, TPS_Stay> _trips_to_stays  = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
 
         List<TPS_Episode> episodes = tour_part.getEpisodes();
 
-        IntStream.range(0, tour_part.size() / 2).forEach(i -> trips_to_stays.put((TPS_Trip) episodes.get(i), (TPS_Stay) episodes.get(i+1)));
+        IntStream.range(0, tour_part.size() / 2).forEach(i -> _trips_to_stays.put((TPS_Trip) episodes.get(i*2), (TPS_Stay) episodes.get(i*2+1)));
 
         //episodes count is always odd, so we need to add the last trip and the next home stay to the map
-        trips_to_stays.put((TPS_Trip) episodes.get(episodes.size() - 1), end_stay);
+        _trips_to_stays.put((TPS_Trip) episodes.get(episodes.size() - 1), end_stay);
 
-        return trips_to_stays;
+        return _trips_to_stays;
     }
 
 
@@ -92,12 +90,9 @@ public class TourContext implements ContextUpdateable {
         return this.mode_context;
     }
 
-    @Override
-    public void updateContext() {
+    private void initNextTripAndStay(){
+
         Map.Entry<TPS_Trip, TPS_Stay> next_trip_entry = trips_to_stays.pollFirstEntry();
-        
-        this.current_stay = next_stay;
-        this.previous_trip = next_trip;
 
         if(next_trip_entry == null) {
             this.next_trip = null;
@@ -108,7 +103,18 @@ public class TourContext implements ContextUpdateable {
         }
     }
 
-    public void updateDeltaTravelTime(int delta_traveltime) {
-        this.deltatime += delta_traveltime;
+    @Override
+    public void updateContext() {
+        
+        this.current_stay = next_stay;
+        this.previous_trip = next_trip;
+
+        initNextTripAndStay();
+
     }
+
+    public TPS_Stay getLastStay(){
+        return this.last_stay;
+    }
+
 }

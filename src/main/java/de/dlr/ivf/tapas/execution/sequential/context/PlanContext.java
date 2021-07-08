@@ -51,6 +51,7 @@ public class PlanContext {
         this.tour_parts = scheme_parts.stream()
                                       .filter(TPS_SchemePart::isTourPart)
                                       .sorted(Comparator.comparingDouble(TPS_SchemePart::getOriginalSchemePartStart))
+                                      .filter(scheme_part -> scheme_part.getEpisodes().size() > 1)
                                       .map(TPS_TourPart.class::cast)
                                       .collect(Collectors.toCollection(ArrayDeque::new));
     }
@@ -87,10 +88,10 @@ public class PlanContext {
         TPS_HomePart current_home_part = plan.getHomePartPriorToTourPart(tour_part);
         TPS_HomePart next_home_part = plan.getHomePartAfterTourPart(tour_part);
 
-        return new TourContext(tour_part, (TPS_Stay) current_home_part.getFirstEpisode(),null, (TPS_Stay) next_home_part.getFirstEpisode());
+        return new TourContext(tour_part, (TPS_Stay) current_home_part.getFirstEpisode(),location_context, (TPS_Stay) next_home_part.getFirstEpisode());
     }
 
-    public Integer getTimeDeviation() {
+    public int getTimeDeviation() {
         return this.absolute_time_deviation;
     }
 }

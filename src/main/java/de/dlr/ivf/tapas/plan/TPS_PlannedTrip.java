@@ -31,6 +31,7 @@ import de.dlr.ivf.tapas.util.parameters.*;
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
 public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWritable {
+    private final TPS_ParameterClass parameters;
     // variable costs of the trip in Euro
     private double costs;
     // mode selected for the trip
@@ -48,6 +49,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
     public TPS_PlannedTrip(TPS_Plan plan, TPS_Trip trip, TPS_ParameterClass parameterClass) {
         super(plan, trip);
         this.trip = trip;
+        this.parameters = parameterClass;
     }
 
     /**
@@ -169,17 +171,19 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
         // If different modes are used for leave and to get to the locations of these episodes then the priority of the
         // episodes determines the mode choice.
 
-        if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
-            if (pComingFrom.getStay().isAtHome()) {
-                setMode(pModeGoingTo);
+        if(this.parameters.isFalse(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)) {
+            if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
+                if (pComingFrom.getStay().isAtHome()) {
+                    setMode(pModeGoingTo);
+                } else {
+                    setMode(pModeComingFrom);
+                }
             } else {
-                setMode(pModeComingFrom);
-            }
-        } else {
-            if (pGoingTo.getStay().isAtHome()) {
-                setMode(pModeComingFrom);
-            } else {
-                setMode(pModeGoingTo);
+                if (pGoingTo.getStay().isAtHome()) {
+                    setMode(pModeComingFrom);
+                } else {
+                    setMode(pModeGoingTo);
+                }
             }
         }
 

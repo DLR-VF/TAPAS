@@ -19,7 +19,7 @@ public class TripPersistenceAction implements TPS_PlanStateAction {
         this.writer = writer;
         this.plan = plan_context.getPlan();
         this.tp = tour_context.getTourPart();
-        this.associated_trip = associated_trip;
+        this.associated_trip = tour_context.getNextTrip();
     }
 
     @Override

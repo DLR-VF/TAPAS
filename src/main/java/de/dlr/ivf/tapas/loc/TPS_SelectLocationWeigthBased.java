@@ -143,7 +143,7 @@ public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectMo
         } else {
             TPS_Logger.log(SeverenceLogLevel.WARN,
                     "No specific location found for activity " + actCode.getCode(TPS_ActivityCodeType.ZBE));
-            return region.selectDefaultLocation(plan, pc, locatedStay);
+            return region.selectDefaultLocation(plan, pc, locatedStay, coming_from, going_to);
         }
         return locRepresentant;
     }

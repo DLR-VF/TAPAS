@@ -8,14 +8,17 @@ public class ModeContext implements ContextUpdateable {
     private TPS_ExtMode next_mode;
 
     public void setNextMode(TPS_ExtMode next_mode){
+
         this.next_mode = next_mode;
     }
 
     public TPS_ExtMode getNextMode(){
+
         return this.next_mode;
     }
 
     public TPS_ExtMode getCurrentMode(){
+
         return this.current_mode;
     }
 

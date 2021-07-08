@@ -41,6 +41,10 @@ public class TPS_NonMotorisedMode extends TPS_Mode {
      */
     @Override
     public double getDistance(Locatable start, Locatable end, SimulationType simType, TPS_Car car) {
+
+        Locatable _start = start;
+        Locatable _end = end;
+
         if (this.getParameters().isDefined(ParamMatrix.DISTANCES_BIKE) && this.isType(ModeType.BIKE)) {
             return this.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_BIKE,
                     start.getTrafficAnalysisZone().getTAZId(), end.getTrafficAnalysisZone().getTAZId());
