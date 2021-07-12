@@ -158,6 +158,7 @@ public class ParamStringClass {
         this.paramStrings.put(ParamString.DB_SCHEME_CLASS_KEY, new MutablePair<>(ParamType.DB, "default"));
         this.paramStrings.put(ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY, new MutablePair<>(ParamType.DB,"default"));
         this.paramStrings.put(ParamString.DB_CAR_FLEET_KEY, new MutablePair<>(ParamType.DB, null));
+        this.paramStrings.put(ParamString.DB_PERSON_GROUP_KEY, new MutablePair<>(ParamType.DB, "TAPAS"));
         this.paramStrings.put(ParamString.DB_ACTIVITY_CNF_KEY, new MutablePair<>(ParamType.DB, "default"));
         this.paramStrings.put(ParamString.DB_ACTIVITY_POTENTIAL_KEY, new MutablePair<>(ParamType.DB, "default"));
         this.paramStrings.put(ParamString.DB_REGION_CNF_KEY, new MutablePair<>(ParamType.DB, "default"));

@@ -32,6 +32,15 @@ public class TPS_AgeClass {
      * Included maximum vale
      */
     private final int max;
+
+    public int getMax() {
+        return max;
+    }
+
+    public int getMin() {
+        return min;
+    }
+
     /**
      * Included minimum value
      */

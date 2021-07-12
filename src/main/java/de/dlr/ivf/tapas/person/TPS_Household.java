@@ -155,7 +155,7 @@ public class TPS_Household implements ExtendedWritable {
      *
      * @return number of cars
      */
-    public int getCarNumber() {
+    public int getNumberOfCars() {
         if (cars != null) {
             return cars.length;
         } else {
@@ -350,7 +350,7 @@ public class TPS_Household implements ExtendedWritable {
      */
     public String toString(String prefix) {
         return prefix + this.getClass().getSimpleName() + "[id=" + this.getId() + ", type=" + this.getType() +
-                ", members=" + this.members.size() + ", cars=" + this.getCarNumber() + ", income=" + this.getIncome() +
+                ", members=" + this.members.size() + ", cars=" + this.getNumberOfCars() + ", income=" + this.getIncome() +
                 "]";
     }
 

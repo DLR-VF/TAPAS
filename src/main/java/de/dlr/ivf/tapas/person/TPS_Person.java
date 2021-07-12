@@ -33,6 +33,7 @@ import java.util.Map;
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.THREAD)
 public class TPS_Person implements ExtendedWritable {
+    private final int status;
     public ShoppingPreferenceAccessibility currentAccessibilityPreference = ShoppingPreferenceAccessibility.Sonstige;
     public ShoppingPreferenceSupply currentSupplyPreference = ShoppingPreferenceSupply.Sonstige;
     /**
@@ -43,8 +44,6 @@ public class TPS_Person implements ExtendedWritable {
     double errorTerm = 0;
     /// id of the person
     private final int id;
-    /// the person group
-    private TPS_PersonGroup persGroup;
     /// sex of the person
     private final TPS_Sex sex;
     /// Flag if person holds a long term ticket (season / month...)for the public transport
@@ -74,25 +73,27 @@ public class TPS_Person implements ExtendedWritable {
     private double driverScore = -1;
     private int educationLevel = 0;
 
+
     /**
      * This constructor just calls the init() method.
      *
      * @param id                   The id of this person
+     * @param status               status value of the person (1=child under 6, 2=pupil, 3=student, 4=retiree,
+     *                             5=other non working person, 6=working full-time, 7=working part-time, 8= trainee,
+     *                             9=non working
      * @param sex                  The sex of this person
-     * @param personGroup          The person group this person matches
      * @param age                  The age of this person
      * @param abo                  Whether this person has a public transport abo
      * @param hasBike              Whether this person has a bike
      * @param budget               This person's budget
      * @param isWorking            Whether this person is working
      * @param isTeleworker         Whether this person is a teleworker
-     * @param workLocationID       The id of this person's work location (negative if not valid)
      * @param eduactionLevel
      * @param use_shopping_motives
      */
-    public TPS_Person(int id, TPS_Sex sex, TPS_PersonGroup personGroup, int age, boolean abo, boolean hasBike, double budget, double isWorking, boolean isTeleworker, int workLocationID, int eduactionLevel, boolean use_shopping_motives) {
-        this.persGroup = personGroup;
+    public TPS_Person(int id, int status, TPS_Sex sex, int age, boolean abo, boolean hasBike, double budget, double isWorking, boolean isTeleworker, int eduactionLevel, boolean use_shopping_motives) {
         this.id = id;
+        this.status = status;
         this.sex = sex;
         this.age = age;
         this.ageClass = TPS_AgeClass.getAgeClass(this.getAge());
@@ -111,8 +112,18 @@ public class TPS_Person implements ExtendedWritable {
             this.errorTerm = Randomizer.randomGumbelDistribution(() -> Randomizer.random(), 0,
                     1); // constant for one person
         }
-
     }
+
+    /**
+     * returns the status field of the person like (1=child under 6, 2=pupil, 3=student, 4=retiree,
+     * 5=other non working person, 6=working full-time, 7=working part-time, 8= trainee,
+     * 9=non working
+     * @return status field of the person
+     */
+    public int getStatus() {
+        return status;
+    }
+
 
     public void estimateAccessibilityPreference(TPS_Stay stay, boolean use_shopping_motives) {
 
@@ -228,8 +239,8 @@ public class TPS_Person implements ExtendedWritable {
      *
      * @return the person group
      */
-    public TPS_PersonGroup getPersGroup() {
-        return persGroup;
+    public TPS_PersonGroup getPersonGroup() {
+        return TPS_PersonGroup.getPersonGroupOfPerson(this);
     }
 
     /**
@@ -327,7 +338,7 @@ public class TPS_Person implements ExtendedWritable {
      * @return true if child; false else
      */
     public boolean isChild() {
-        return this.getPersGroup().isChild();
+        return this.getPersonGroup().isChild();
     }
 
     /**
@@ -336,7 +347,7 @@ public class TPS_Person implements ExtendedWritable {
      * @return true if child; false else
      */
     public boolean isPupil() {
-        return this.getPersGroup().isPupil();
+        return this.getPersonGroup().isPupil();
     }
 
     /**
@@ -345,7 +356,7 @@ public class TPS_Person implements ExtendedWritable {
      * @return true if the person is a university student; false else
      */
     public boolean isStudent() {
-        return this.getPersGroup().isStudent();
+        return this.getPersonGroup().isStudent();
     }
 
     /**
@@ -392,7 +403,7 @@ public class TPS_Person implements ExtendedWritable {
             int numberOfMembersWithDrivingLicense = 0;
             int ageYoungestAdhult = 1000; //I hope no one becomes older, ever!
             int ageYoungestChild = 1000;
-            int numberOfCars = this.getHousehold().getCarNumber();
+            int numberOfCars = this.getHousehold().getNumberOfCars();
             //shortcut:
             if (numberOfCars == 0 || !this.hasDrivingLicense()) {
                 driverScore = 0;
@@ -535,7 +546,7 @@ public class TPS_Person implements ExtendedWritable {
                 .get(s);
         PreferenceSet prefSet;
 
-        //calc utilities with a new random uncertantiy (normal distributed) for every choice
+        //calc utilities with a new random uncertainty (normal distributed) for every choice
         for (TPS_PreferenceParameters.ShoppingPreferenceSupply e : TPS_PreferenceParameters.ShoppingPreferenceSupply.valueArray) {
             prefSet = supplyForShoppingClass.get(e);
             if (prefSet.isUsed) {
@@ -598,17 +609,9 @@ public class TPS_Person implements ExtendedWritable {
                 this.age = this.age - rejuvenate_by_nb_years;
             }
             this.ageClass = TPS_AgeClass.getAgeClass(this.age);
-            if (!persGroup.fits(this)) {
-                // is this correct??
-                // Yes I think so, if there are mistakes in the age classes then here is the point to start with debugging
-                for (TPS_PersonGroup tpg : TPS_PersonGroup.getConstants()) {
-                    if (tpg.fits(this)) {
-                        this.persGroup = tpg;
-                    }
-                }
-            }
         }
     }
+
 
     /*
      * (non-Javadoc)
@@ -626,9 +629,9 @@ public class TPS_Person implements ExtendedWritable {
      * @see de.dlr.ivf.tapas.util.ExtendedWritable#toString(java.lang.String)
      */
     public String toString(String prefix) {
-        return prefix + this.getClass().getSimpleName() + " [id=" + id + ", persGroup=" + persGroup.getCode() +
-                ", age=" + age + " in class=" + this.getAgeClass().getCode(TPS_AgeCodeType.STBA) + ", sex=" +
-                sex.name() + "]";
+        return prefix + this.getClass().getSimpleName() + " [id=" + id + ", age=" + age + " in class=" +
+                this.getAgeClass().getCode(TPS_AgeCodeType.STBA) + ", sex=" + sex.name() + ", status=" + status+ ", cars=" +
+                getHousehold().getNumberOfCars() + "]";
     }
 
 }

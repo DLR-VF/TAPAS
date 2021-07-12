@@ -200,8 +200,8 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                                         plan.getPerson().getHousehold().getIncome() +
                                 0.77164373393662 * (double) plan.getPerson().getHousehold().getNumCarDrivers() +
                                 //0 * (plan.getPerson().getHousehold().getCarNumber()==0 ? 1. : 0) +// !!! prüfen
-                                -0.643042179466235 * (plan.getPerson().getHousehold().getCarNumber() == 1 ? 1. : 0.) +
-                                -0.725748521675366 * (plan.getPerson().getHousehold().getCarNumber() == 2 ? 1. : 0.) +
+                                -0.643042179466235 * (plan.getPerson().getHousehold().getNumberOfCars() == 1 ? 1. : 0.) +
+                                -0.725748521675366 * (plan.getPerson().getHousehold().getNumberOfCars() == 2 ? 1. : 0.) +
 
                                 0.0463649704603541 * distanceNet / 1000. +
 
@@ -237,17 +237,17 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                     }
                     if (ptCarAccessTAZId > 0) {
                         double combinesWithCarB = 0.473495331672679 * (plan.getPerson().mayDriveACar() ? 1. : 0.) +
-                                -2.46390987118912 * (plan.getPerson().getHousehold().getCarNumber() == 0 ? 1. : 0.) +
+                                -2.46390987118912 * (plan.getPerson().getHousehold().getNumberOfCars() == 0 ? 1. : 0.) +
                                 // !!! prüfen
                                 -0.295204809067696 * (plan.getPerson().hasAbo() ? 1. : 0.) +
 
                                 -0.663841245241534 * (double) plan.getPerson().getHousehold().getNumMalePersons() +
                                 0.000175464954796569 * plan.getPerson().getHousehold().getIncome() +
-                                0 * (plan.getPerson().getHousehold().getCarNumber() == 0 ? 1. : 0.) +
+                                0 * (plan.getPerson().getHousehold().getNumberOfCars() == 0 ? 1. : 0.) +
                                 // !!! prüfen
-                                -0.164594273391178 * (plan.getPerson().getHousehold().getCarNumber() == 1 ? 1. : 0.) +
+                                -0.164594273391178 * (plan.getPerson().getHousehold().getNumberOfCars() == 1 ? 1. : 0.) +
                                 // !!! prüfen
-                                1.00960568985536 * (plan.getPerson().getHousehold().getCarNumber() == 2 ? 1. : 0.) +
+                                1.00960568985536 * (plan.getPerson().getHousehold().getNumberOfCars() == 2 ? 1. : 0.) +
                                 // !!! prüfen
 
                                 0.07887060144215 * distanceNet / 1000. + // !!! prüfen
@@ -525,7 +525,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                 parameters[2] * cost + // beta costs
                 parameters[3] * plan.getPerson().getAge() + //alter
                 parameters[4] * plan.getPerson().getAge() * plan.getPerson().getAge() + //quadratisches alter
-                parameters[5] * plan.getPerson().getHousehold().getCarNumber() + // anzahl autos
+                parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 // ab jetzt binär-Betas, also Ja/nein
                 (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein

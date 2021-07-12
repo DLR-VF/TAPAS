@@ -38,4 +38,25 @@ public enum TPS_Sex {
     public int getCode() {
         return code;
     }
+
+    /**
+     * This method checks whether the sex of a person fits to the constant. If the constant is NON_RELEVANT then true is
+     * returned. In the other cases it has to be equal to the constant.
+     *
+     * @param sex gender attribute of the person
+     * @return bool value of current TPS_Sex enum and sex of person
+     */
+    public boolean fits(TPS_Sex sex) {
+        switch (this) {
+            case NON_RELEVANT:
+                return true;
+            case MALE:
+                return MALE.equals(sex);
+            case FEMALE:
+                return FEMALE.equals(sex);
+            case UNKNOWN:
+                return UNKNOWN.equals(sex);
+        }
+        return false;
+    }
 }

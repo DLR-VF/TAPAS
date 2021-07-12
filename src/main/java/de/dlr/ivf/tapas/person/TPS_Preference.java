@@ -93,7 +93,7 @@ public class TPS_Preference {
         if (person.getEducationLevel() >= 3 && person.getEducationLevel() <= 4) {
             utility += param.abi;
         } //FIXME TPS_PersonGroup is no TPS_PersonType
-        if (person.getPersGroup().equals(TPS_PersonGroup.TPS_PersonType.RETIREE)) {
+        if (person.getPersonGroup().equals(TPS_PersonGroup.TPS_PersonType.RETIREE)) {
             utility += param.retired;
         }
         if (person.isWorking()) {
@@ -102,7 +102,7 @@ public class TPS_Preference {
         //count adults, children, cars and bikes
         double children = 0;
         double adults = 0;
-        double cars = myHH.getCarNumber();
+        double cars = myHH.getNumberOfCars();
         double bikes = 0;
         for (TPS_Person p : myHH.getMembers(TPS_Household.Sorting.NONE)) {
             if (p.getAge() >= 18) {

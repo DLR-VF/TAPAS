@@ -304,7 +304,7 @@ public class TPS_Worker implements Callable<Exception> {
             }
         } else {
             // determine who may drive a car and how many cars exist
-            int numCarsInHH = hh.getCarNumber();
+            int numCarsInHH = hh.getNumberOfCars();
             Vector<TPS_Person> competingCarDrivers = new Vector<>();
             for (TPS_Person person : hh.getMembers(sortAlgo)) {
                 if (person.mayDriveACar()) {
@@ -324,7 +324,7 @@ public class TPS_Worker implements Callable<Exception> {
             }
             // check car
             TPS_Car leastLimitedCar = null;
-            if (hh.getCarNumber() > 0) {
+            if (hh.getNumberOfCars() > 0) {
                 leastLimitedCar = hh.getCar(0); // TODO: get the car that poses the least limitations
             }
             // allocate plan storages

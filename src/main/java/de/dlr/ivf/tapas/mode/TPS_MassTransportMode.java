@@ -153,7 +153,7 @@ public class TPS_MassTransportMode extends TPS_Mode {
             // simulated
             if (TPS_Mode.noConnection(ttBuf)) {
                 ttBuf = TPS_Mode.NO_CONNECTION;
-                if (TPS_PersonType.PUPIL.equals(person.getPersGroup().getPersType()) && this.getParameters().isTrue(
+                if (TPS_PersonType.PUPIL.equals(person.getPersonGroup().getPersonType()) && this.getParameters().isTrue(
                         ParamFlag.FLAG_USE_SCHOOLBUS) && (actCodeFrom.hasAttribute(
                         TPS_ActivityConstantAttribute.SCHOOL) || actCodeTo.hasAttribute(
                         TPS_ActivityConstantAttribute.SCHOOL))) {

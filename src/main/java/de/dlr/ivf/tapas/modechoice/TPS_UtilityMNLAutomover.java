@@ -8,17 +8,12 @@
 
 package de.dlr.ivf.tapas.modechoice;
 
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
-import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamMatrixMap;
@@ -138,7 +133,7 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                 parameters[2] * cost + // beta costs
                 parameters[3] * plan.getPerson().getAge() + //alter
                 parameters[4] * plan.getPerson().getAge() * plan.getPerson().getAge() + //quadratisches alter
-                parameters[5] * plan.getPerson().getHousehold().getCarNumber() + // anzahl autos
+                parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 //ab jetzt binär-Betas, also Ja/nein
                 (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein
