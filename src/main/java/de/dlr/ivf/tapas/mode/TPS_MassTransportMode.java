@@ -10,7 +10,7 @@ package de.dlr.ivf.tapas.mode;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
-import de.dlr.ivf.tapas.constants.TPS_PersonGroup.TPS_PersonType;
+import de.dlr.ivf.tapas.constants.TPS_PersonType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.loc.Locatable;
 import de.dlr.ivf.tapas.loc.TPS_Block;

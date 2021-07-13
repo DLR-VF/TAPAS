@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.person;
 
-import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
+import de.dlr.ivf.tapas.constants.TPS_PersonType;
 import de.dlr.ivf.tapas.constants.TPS_Sex;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ChoiceParams;
 
@@ -16,9 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * This class holdts the specific preference parameters for this person.
+ * This class holds the specific preference parameters for this person.
  *
- * @author hein_mh
  */
 public class TPS_Preference {
 
@@ -93,7 +92,7 @@ public class TPS_Preference {
         if (person.getEducationLevel() >= 3 && person.getEducationLevel() <= 4) {
             utility += param.abi;
         } //FIXME TPS_PersonGroup is no TPS_PersonType
-        if (person.getPersonGroup().equals(TPS_PersonGroup.TPS_PersonType.RETIREE)) {
+        if (person.getPersonGroup().equals(TPS_PersonType.RETIREE)) {
             utility += param.retired;
         }
         if (person.isWorking()) {
