@@ -51,6 +51,7 @@ public class ParamFlagClass {
         this.paramFlags.put(ParamFlag.FLAG_USE_TAXI, new MutablePair<>(ParamType.RUN, false));
         this.paramFlags.put(ParamFlag.FLAG_FIX_PT_COSTS, new MutablePair<>(ParamType.RUN, false));
         this.paramFlags.put(ParamFlag.FLAG_USE_LOCATION_GROUPS, new MutablePair<>(ParamType.OPTIONAL, true));
+        this.paramFlags.put(ParamFlag.FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS, new MutablePair<>(ParamType.OPTIONAL, false));
     }
 
     /**

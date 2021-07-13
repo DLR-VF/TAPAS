@@ -28,12 +28,15 @@ import java.util.Map;
 
 /**
  * This class represents a person.
- *
- * @author mark_ma
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.THREAD)
 public class TPS_Person implements ExtendedWritable {
     private final int status;
+
+    /**
+     * group code as integer, only used if ParamFlag.FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS is true
+     */
+    private final int group;
     public ShoppingPreferenceAccessibility currentAccessibilityPreference = ShoppingPreferenceAccessibility.Sonstige;
     public ShoppingPreferenceSupply currentSupplyPreference = ShoppingPreferenceSupply.Sonstige;
     /**
@@ -78,6 +81,9 @@ public class TPS_Person implements ExtendedWritable {
      * This constructor just calls the init() method.
      *
      * @param id                   The id of this person
+     * @param group                person group code is used if {@linkParamFlag.FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS}
+     *                             is true (default false), if false: the attributes status, sex, age, cars and children
+     *                             (from the household) are used to determine the person group
      * @param status               status value of the person (1=child under 6, 2=pupil, 3=student, 4=retiree,
      *                             5=other non working person, 6=working full-time, 7=working part-time, 8= trainee,
      *                             9=non working
@@ -91,8 +97,9 @@ public class TPS_Person implements ExtendedWritable {
      * @param eduactionLevel
      * @param use_shopping_motives
      */
-    public TPS_Person(int id, int status, TPS_Sex sex, int age, boolean abo, boolean hasBike, double budget, double isWorking, boolean isTeleworker, int eduactionLevel, boolean use_shopping_motives) {
+    public TPS_Person(int id, int group, int status, TPS_Sex sex, int age, boolean abo, boolean hasBike, double budget, double isWorking, boolean isTeleworker, int eduactionLevel, boolean use_shopping_motives) {
         this.id = id;
+        this.group = group;
         this.status = status;
         this.sex = sex;
         this.age = age;
@@ -118,6 +125,7 @@ public class TPS_Person implements ExtendedWritable {
      * returns the status field of the person like (1=child under 6, 2=pupil, 3=student, 4=retiree,
      * 5=other non working person, 6=working full-time, 7=working part-time, 8= trainee,
      * 9=non working
+     *
      * @return status field of the person
      */
     public int getStatus() {
@@ -241,6 +249,16 @@ public class TPS_Person implements ExtendedWritable {
      */
     public TPS_PersonGroup getPersonGroup() {
         return TPS_PersonGroup.getPersonGroupOfPerson(this);
+    }
+
+    /**
+     * Returns the person group code if ParamFlag.FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS is true
+     * Use this attribute and function with care! Only used if the flag is true and it only returns the group code as an integer.
+     * It does not return a person group instance (of {@link TPS_PersonGroup}.
+     * @return person group code as integer
+     */
+    public int getGroup() {
+        return group;
     }
 
     /**
@@ -630,8 +648,8 @@ public class TPS_Person implements ExtendedWritable {
      */
     public String toString(String prefix) {
         return prefix + this.getClass().getSimpleName() + " [id=" + id + ", age=" + age + " in class=" +
-                this.getAgeClass().getCode(TPS_AgeCodeType.STBA) + ", sex=" + sex.name() + ", status=" + status+ ", cars=" +
-                getHousehold().getNumberOfCars() + "]";
+                this.getAgeClass().getCode(TPS_AgeCodeType.STBA) + ", sex=" + sex.name() + ", status=" + status +
+                ", cars=" + getHousehold().getNumberOfCars() + "]";
     }
 
 }

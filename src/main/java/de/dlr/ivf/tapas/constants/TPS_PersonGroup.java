@@ -25,7 +25,10 @@ import java.util.List;
 public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
 
     private static final HashMap<Integer, TPS_PersonGroup> PERSON_GROUP_MAP = new HashMap<>();
-
+    /**
+     * is set once while reading the person groups in TPS_DB_IO.readPersonGroupCodes()
+     */
+    public static boolean USE_GROUP_COLUMN_FOR_PERSON_GROUPS;
     /**
      * List of all age classes the person group constant contains
      */
@@ -40,7 +43,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * states if there are children in the household
      */
     private TPS_HasChildCode hasChildCode;
-    private TPS_PersonType persType;
+    private TPS_PersonType personType;
     /**
      * Sex constant; 1= male, 2 = female, 0 = not relevant
      */
@@ -111,9 +114,14 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * @return person group object for a given person
      */
     public static TPS_PersonGroup getPersonGroupOfPerson(TPS_Person person) {
-        for (TPS_PersonGroup tpg : PERSON_GROUP_MAP.values()) {
-            if (tpg.fits(person)){
-                return tpg;
+        if (USE_GROUP_COLUMN_FOR_PERSON_GROUPS) {
+            return PERSON_GROUP_MAP.get(person.getGroup());
+        }
+        else {
+            for (TPS_PersonGroup tpg : PERSON_GROUP_MAP.values()) {
+                if (tpg.fits(person)) {
+                    return tpg;
+                }
             }
         }
         if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.ERROR)) {
@@ -153,9 +161,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
                 this.getSex().fits(person.getSex()) &&
                 this.getCarCode().fits(person.getHousehold().getNumberOfCars()) &&
                 this.getHasChildCode().fits(person.getHousehold().getNumChildren()) &&
-                (this.getPersonType().equals(TPS_PersonType.getPersonTypeByStatus(person.getStatus()))||
-                        //if a person is over 64 we do not care about the persontype, all are non working (retirees)
-                        person.getAge()>=65);
+                this.getPersonType().equals(TPS_PersonType.getPersonTypeByStatus(person.getStatus()));
     }
 
     /**
@@ -209,7 +215,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * @return person type
      */
     public TPS_PersonType getPersonType() {
-        return persType;
+        return personType;
     }
 
     public void setDescription(String description) {
@@ -222,7 +228,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * @param persType new person type for the person type field
      */
     private void setPersonType(TPS_PersonType persType) {
-        this.persType = persType;
+        this.personType = persType;
     }
 
 
@@ -303,7 +309,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
                 case 3:
                     return STUDENT;
                 case 4:
-                    return NON_WORKING_ADULT; //actually it could be RETIREE TODO
+                    return RETIREE;
                 case 5:
                     return NON_WORKING_ADULT;
                 case 6:
