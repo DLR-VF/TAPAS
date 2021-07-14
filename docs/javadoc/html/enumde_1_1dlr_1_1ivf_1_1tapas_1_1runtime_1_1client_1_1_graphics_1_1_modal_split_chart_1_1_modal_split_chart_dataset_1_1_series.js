@@ -1,0 +1,8 @@
+var enumde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_dataset_1_1_series =
+[
+    [ "getById", "enumde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_dataset_1_1_series.html#a7c04be5fcfc2dc24108aa79b9e11b31d", null ],
+    [ "DATA", "enumde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_dataset_1_1_series.html#a0ab009ed2617933447b616ff61f8835b", null ],
+    [ "GEH5_HIGH", "enumde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_dataset_1_1_series.html#afd5a6f9ec448eaf7ad9f8c3a5afa742e", null ],
+    [ "GEH5_LOW", "enumde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_dataset_1_1_series.html#a0e190d48b2aead5f7519fca98674ae47", null ],
+    [ "OPTIMAL", "enumde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_dataset_1_1_series.html#a10abdd97f5642e8d7cfd9dcf48662d24", null ]
+];

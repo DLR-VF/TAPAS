@@ -1,0 +1,4 @@
+var namespacede_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1database_connector =
+[
+    [ "DBTripReader", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1database_connector_1_1_d_b_trip_reader.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1database_connector_1_1_d_b_trip_reader" ]
+];

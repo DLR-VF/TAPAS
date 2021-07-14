@@ -1,0 +1,4 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1constants_1_1_tu_m_enums_1_1_travel_time_analyzer =
+[
+    [ "assignTrip", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1constants_1_1_tu_m_enums_1_1_travel_time_analyzer.html#abf53990be813d2396e234f6d6970cf81", null ]
+];

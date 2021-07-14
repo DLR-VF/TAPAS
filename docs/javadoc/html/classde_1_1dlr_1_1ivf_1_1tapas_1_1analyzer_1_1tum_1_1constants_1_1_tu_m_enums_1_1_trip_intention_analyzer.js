@@ -1,0 +1,4 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1constants_1_1_tu_m_enums_1_1_trip_intention_analyzer =
+[
+    [ "assignTrip", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1constants_1_1_tu_m_enums_1_1_trip_intention_analyzer.html#af2345632d8107124604d58c1305cdc36", null ]
+];

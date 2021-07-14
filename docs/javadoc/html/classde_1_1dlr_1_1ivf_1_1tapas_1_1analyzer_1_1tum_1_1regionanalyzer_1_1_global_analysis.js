@@ -1,0 +1,26 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis =
+[
+    [ "GlobalAnalysis", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#adc68c7c2585b7a585105906745d6e3cb", null ],
+    [ "addTrip", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a68d99c391d1c52743b3503f21811bdf0", null ],
+    [ "getCntPersons", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a47cad1a7f0a59dbb0cb5c582e0a28ff5", null ],
+    [ "getCntPersons", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a06557c84b6cc4ca56eeb74923090cf94", null ],
+    [ "getCntTrips", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a79e93650e0d8bd4e6f1d74366e341a41", null ],
+    [ "getMaxDuration", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a657555224c9fcfedcb680c0cda672cfa", null ],
+    [ "getMaxTripLength", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a830a3b4b8054d1e6091644505e1d710f", null ],
+    [ "getMinDuration", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#aa6341ba53deb049c594c23162cf06dd1", null ],
+    [ "getMinTripLength", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a73b3d3f769686617be652932643a1192", null ],
+    [ "getRegion", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#ab188fbc74d83d56ffcc0c9b37fd4847a", null ],
+    [ "getTotalDuration", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a9162e15c3ee3991f9eec0eff087ec61e", null ],
+    [ "getTotalTripLength", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a78f1849459606cc9f0e8e14ae6625894", null ],
+    [ "cntPersons", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#aa91534d40e524bb9bac27fb373064301", null ],
+    [ "cntTrips", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#ac749d420ee233200a9106bda89cdaba5", null ],
+    [ "maxDuration", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#abb9eddecad84bf595d796629a101c03f", null ],
+    [ "maxTripLength", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a986ff4eb18916b4f8874f2225ad63c2e", null ],
+    [ "minDuration", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a46730521ef1a5aa07d51483e56e1946b", null ],
+    [ "minTripLength", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#ae8ae4d9a81ba9bd9a018b0ed0c70b8a9", null ],
+    [ "personGroupAnalyzer", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a84c3ef453119b509397bb22c3019dac8", null ],
+    [ "region", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#af91696e4dfaf0ad625c46f6beafc0d96", null ],
+    [ "totalDuration", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#abcfef576319165de19adf2c6685eaa75", null ],
+    [ "totalTripLength", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#a37b093e61845a6e6bcb6f8d030fe5bc7", null ],
+    [ "uniquePersons", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1_global_analysis.html#abb41cf62fb377c687ec404b665699b93", null ]
+];

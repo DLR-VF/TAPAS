@@ -1,0 +1,4 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_import_distributions_1_1_geringfuegig_beschaeftigte =
+[
+    [ "GeringfuegigBeschaeftigte", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_import_distributions_1_1_geringfuegig_beschaeftigte.html#ac24fc8b67224cda3b9d73303e1933fa2", null ]
+];

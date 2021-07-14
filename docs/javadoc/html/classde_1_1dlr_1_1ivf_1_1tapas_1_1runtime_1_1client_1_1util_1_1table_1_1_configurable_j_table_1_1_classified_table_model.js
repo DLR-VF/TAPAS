@@ -1,0 +1,7 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1util_1_1table_1_1_configurable_j_table_1_1_classified_table_model =
+[
+    [ "ClassifiedTableModel", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1util_1_1table_1_1_configurable_j_table_1_1_classified_table_model.html#a1ade3b2a586339a7e402c18a2bbeb506", null ],
+    [ "getColumnClass", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1util_1_1table_1_1_configurable_j_table_1_1_classified_table_model.html#abc01c8dde4f52b8a2a275a4e2b9a2f07", null ],
+    [ "isCellEditable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1util_1_1table_1_1_configurable_j_table_1_1_classified_table_model.html#a2d2c1aaacfdacde34fdd43bc04a0e312", null ],
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1util_1_1table_1_1_configurable_j_table_1_1_classified_table_model.html#a6ed406f8d27e911710191bd2f4365d7c", null ]
+];

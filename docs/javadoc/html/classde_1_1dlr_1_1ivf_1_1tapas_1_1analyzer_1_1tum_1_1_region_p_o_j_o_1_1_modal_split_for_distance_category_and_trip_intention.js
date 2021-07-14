@@ -1,0 +1,8 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category_and_trip_intention =
+[
+    [ "ModalSplitForDistanceCategoryAndTripIntentionElement", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distanc4348ae557268c8fd82a413ae28314244.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distanc4348ae557268c8fd82a413ae28314244" ],
+    [ "getElements", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category_and_trip_intention.html#aea902b6b6637e8391b0c667e5283a472", null ],
+    [ "getMode", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category_and_trip_intention.html#a272c9ba7a6f1a8eddacc4dbb36ab9450", null ],
+    [ "elements", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category_and_trip_intention.html#aedb37a606707d93bdadaf64464d829bb", null ],
+    [ "mode", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category_and_trip_intention.html#a282c258f56d71b37e67e705d4955fe85", null ]
+];

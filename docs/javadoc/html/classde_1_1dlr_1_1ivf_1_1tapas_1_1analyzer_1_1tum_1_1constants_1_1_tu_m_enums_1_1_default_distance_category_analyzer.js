@@ -1,0 +1,4 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1constants_1_1_tu_m_enums_1_1_default_distance_category_analyzer =
+[
+    [ "assignTrip", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1constants_1_1_tu_m_enums_1_1_default_distance_category_analyzer.html#a0883b7e59a32d76142a16ba665b06f84", null ]
+];

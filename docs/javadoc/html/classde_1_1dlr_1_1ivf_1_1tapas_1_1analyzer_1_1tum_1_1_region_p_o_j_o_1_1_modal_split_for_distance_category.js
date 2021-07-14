@@ -1,0 +1,8 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category =
+[
+    [ "ModalSplitForDistanceCategoryElement", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distanc72254372fc3844a78c21f22e56171365.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distanc72254372fc3844a78c21f22e56171365" ],
+    [ "getElements", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category.html#ac1bff41cde3c7c8b37f56ab073d4e3c4", null ],
+    [ "getMode", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category.html#a51406849a791193b7b9d6480304ec62b", null ],
+    [ "elements", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category.html#a77123b56414b076e6836e48edcff440d", null ],
+    [ "mode", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1_region_p_o_j_o_1_1_modal_split_for_distance_category.html#abe0e12118aa85ed60dbac525e111b2e7", null ]
+];

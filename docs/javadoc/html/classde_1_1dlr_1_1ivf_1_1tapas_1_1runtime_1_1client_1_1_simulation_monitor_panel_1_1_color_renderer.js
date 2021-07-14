@@ -1,0 +1,5 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_simulation_monitor_panel_1_1_color_renderer =
+[
+    [ "ColorRenderer", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_simulation_monitor_panel_1_1_color_renderer.html#add4420d16622f7440bc9b5bd140e6805", null ],
+    [ "getTableCellRendererComponent", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_simulation_monitor_panel_1_1_color_renderer.html#a848dabe896a0ce7c1006c25ff68c6abb", null ]
+];

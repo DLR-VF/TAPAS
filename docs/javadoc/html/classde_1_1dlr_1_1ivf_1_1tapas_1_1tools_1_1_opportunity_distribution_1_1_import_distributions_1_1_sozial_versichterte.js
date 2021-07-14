@@ -1,0 +1,4 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_import_distributions_1_1_sozial_versichterte =
+[
+    [ "SozialVersichterte", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_import_distributions_1_1_sozial_versichterte.html#afcc8ff7de241f1c3105299d99b609db6", null ]
+];

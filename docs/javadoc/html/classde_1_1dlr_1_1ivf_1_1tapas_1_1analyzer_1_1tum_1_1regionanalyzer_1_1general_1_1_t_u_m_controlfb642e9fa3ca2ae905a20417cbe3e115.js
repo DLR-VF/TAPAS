@@ -1,0 +1,9 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlfb642e9fa3ca2ae905a20417cbe3e115 =
+[
+    [ "canImport", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlfb642e9fa3ca2ae905a20417cbe3e115.html#a5af15cf3687eee635e3c21aba25f3f51", null ],
+    [ "createTransferable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlfb642e9fa3ca2ae905a20417cbe3e115.html#af21212ccf8135023bcd5936059c162b4", null ],
+    [ "exportDone", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlfb642e9fa3ca2ae905a20417cbe3e115.html#a0470bdcda0181faa1eecaa21f6590fae", null ],
+    [ "getSourceActions", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlfb642e9fa3ca2ae905a20417cbe3e115.html#a71e950d27ba3f352b0f423e57075f8e0", null ],
+    [ "importData", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlfb642e9fa3ca2ae905a20417cbe3e115.html#a0890a133dc6464518040bbb3a2bde1ff", null ],
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlfb642e9fa3ca2ae905a20417cbe3e115.html#afd786d14abfd02d5fea782def64ee94e", null ]
+];

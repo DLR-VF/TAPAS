@@ -1,0 +1,5 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1gui_1_1_d_b_simulation_chooser_panel_1_1_toggle_selection_model =
+[
+    [ "setSelectionInterval", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1gui_1_1_d_b_simulation_chooser_panel_1_1_toggle_selection_model.html#a2c7a0577381377dd2a380cb82e10f60b", null ],
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1gui_1_1_d_b_simulation_chooser_panel_1_1_toggle_selection_model.html#a485f9539545d31e5995c524957346c06", null ]
+];

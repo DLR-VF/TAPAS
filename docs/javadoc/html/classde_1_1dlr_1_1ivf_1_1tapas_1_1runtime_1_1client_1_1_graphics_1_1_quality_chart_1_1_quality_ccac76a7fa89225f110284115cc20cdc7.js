@@ -1,0 +1,4 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_ccac76a7fa89225f110284115cc20cdc7 =
+[
+    [ "generateLabel", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_ccac76a7fa89225f110284115cc20cdc7.html#a57f9c7ae20ac5c82ab4584c231844f5b", null ]
+];

@@ -1,0 +1,9 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control418cb767bb116e75e2ba969c29c8b782 =
+[
+    [ "AnalyzerTransferable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control418cb767bb116e75e2ba969c29c8b782.html#a68389068e2cebc30791c2d41033d194c", null ],
+    [ "getTransferData", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control418cb767bb116e75e2ba969c29c8b782.html#a766b072be1acbce6f5b92485acf5d601", null ],
+    [ "getTransferDataFlavors", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control418cb767bb116e75e2ba969c29c8b782.html#aed1176f6f8096fdb053ec7ac64188c79", null ],
+    [ "isDataFlavorSupported", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control418cb767bb116e75e2ba969c29c8b782.html#a4d1c1d8f527297592daf6e62bdb7298e", null ],
+    [ "analyzer", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control418cb767bb116e75e2ba969c29c8b782.html#ac40c97e8c53a29d0b2cbb2aff9dc5e56", null ],
+    [ "ANALYZER_DATA_FLAVOR", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control418cb767bb116e75e2ba969c29c8b782.html#a66674eb2508cf91cffed9fb076e17177", null ]
+];

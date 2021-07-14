@@ -1,0 +1,4 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_household_distribution_1_1_distribution_exception =
+[
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_household_distribution_1_1_distribution_exception.html#ada7dd3cd98d995b30f46a11660559d95", null ]
+];

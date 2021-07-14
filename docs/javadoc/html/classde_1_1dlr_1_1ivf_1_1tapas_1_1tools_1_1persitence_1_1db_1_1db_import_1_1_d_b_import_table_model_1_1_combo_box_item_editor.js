@@ -1,0 +1,5 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1persitence_1_1db_1_1db_import_1_1_d_b_import_table_model_1_1_combo_box_item_editor =
+[
+    [ "ComboBoxItemEditor", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1persitence_1_1db_1_1db_import_1_1_d_b_import_table_model_1_1_combo_box_item_editor.html#a7ba7d5e5060a6a029436385f3c91fb03", null ],
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1persitence_1_1db_1_1db_import_1_1_d_b_import_table_model_1_1_combo_box_item_editor.html#afda257b2a18fa3667ee93bdb95943abc", null ]
+];

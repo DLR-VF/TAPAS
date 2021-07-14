@@ -1,0 +1,13 @@
+var namespacede_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution =
+[
+    [ "EmptyBlockAnalysis", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_empty_block_analysis.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_empty_block_analysis" ],
+    [ "FixTours", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_fix_tours.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_fix_tours" ],
+    [ "GroupToDistribute", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_group_to_distribute.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_group_to_distribute" ],
+    [ "GroupToTAZ", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_group_to_t_a_z.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_group_to_t_a_z" ],
+    [ "HouseholdDistribution", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_household_distribution.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_household_distribution" ],
+    [ "ImportDistributions", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_import_distributions.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_import_distributions" ],
+    [ "LocationCodesFromOSM", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_location_codes_from_o_s_m.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_location_codes_from_o_s_m" ],
+    [ "OpportunityDistribution", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_opportunity_distribution.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_opportunity_distribution" ],
+    [ "RefactorDistricts", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_refactor_districts.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_refactor_districts" ],
+    [ "UniqueStreetIdentifier", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_unique_street_identifier.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1_opportunity_distribution_1_1_unique_street_identifier" ]
+];

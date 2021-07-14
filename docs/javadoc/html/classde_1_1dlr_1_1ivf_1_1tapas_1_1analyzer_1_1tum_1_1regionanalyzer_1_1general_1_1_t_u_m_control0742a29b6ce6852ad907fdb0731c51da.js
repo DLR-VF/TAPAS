@@ -1,0 +1,6 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control0742a29b6ce6852ad907fdb0731c51da =
+[
+    [ "canImport", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control0742a29b6ce6852ad907fdb0731c51da.html#aeb0de8ba097792399a878771eb10abdf", null ],
+    [ "importData", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control0742a29b6ce6852ad907fdb0731c51da.html#a31cc7fe40184ad189b8fba14818a083c", null ],
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_control0742a29b6ce6852ad907fdb0731c51da.html#a50975feba8c1f8861601a2bd2fd0a568", null ]
+];

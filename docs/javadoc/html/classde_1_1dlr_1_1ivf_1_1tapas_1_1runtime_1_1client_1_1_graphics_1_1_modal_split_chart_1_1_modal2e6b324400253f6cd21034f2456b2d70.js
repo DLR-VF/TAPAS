@@ -1,0 +1,6 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal2e6b324400253f6cd21034f2456b2d70 =
+[
+    [ "ModalShapeLegendSource", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal2e6b324400253f6cd21034f2456b2d70.html#a4a87e020bf3a89b62f48e4f78ac7e2a8", null ],
+    [ "getLegendItems", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal2e6b324400253f6cd21034f2456b2d70.html#a49e0dcfaeee50d1652f69f3df5491998", null ],
+    [ "itemCollection", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal2e6b324400253f6cd21034f2456b2d70.html#a8959ffee13a46c263bf60d5caa4d1c8a", null ]
+];

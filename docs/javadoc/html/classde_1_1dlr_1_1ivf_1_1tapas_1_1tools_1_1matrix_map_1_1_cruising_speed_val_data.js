@@ -1,0 +1,28 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data =
+[
+    [ "CruisingSpeedValData", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a0ed2bb70b508fcbfdf5679fb2133fdac", null ],
+    [ "getMatricesTable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a07caf9d27d593ad07c7b2d5f5cabbbc9", null ],
+    [ "getPath", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a0f8f22d2efff163689e0ffbc384f81f7", null ],
+    [ "getRecordName", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a0af6bd40587171226f8b04aa9a38efa5", null ],
+    [ "getReferenceDist", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a50fbfde24cdcffe79e4c4c3e21d20d26", null ],
+    [ "getReferenceTT", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#afc048806dfa8d5d9435b2476d9ebc299", null ],
+    [ "getTazTable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a2d7655fe915704b7b94653830ac8cdb9", null ],
+    [ "getTerrain", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#adf6ccb07b89d52de958dbfccf5f969ba", null ],
+    [ "isIndirectWayFactor", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a9c3a9555cd4f13342009d33f66016f0b", null ],
+    [ "setIndirectWayFactor", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#af2abc050fdef0212bbc89d4eb237c0e6", null ],
+    [ "setMatricesTable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#aadcb55a8ee2f4accfb209396cd41e8c4", null ],
+    [ "setPath", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a3c04e4833517d47545fb24ad83d9a253", null ],
+    [ "setRecordName", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a3dab085a95c2ad01518688c64025e788", null ],
+    [ "setReferenceDist", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a097d7864171e40f9d902cda65bf075f8", null ],
+    [ "setReferenceTT", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a44335f1f682c792a3d245dafb081516c", null ],
+    [ "setTazTable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#abea78b34aec8a4082cf38c8ba2526226", null ],
+    [ "setTerrain", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#ab414f39c2a0ce40d846917295995d9a7", null ],
+    [ "indirectWayFactor", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a734d33c3b3ef2b81da92fec5e038e0bc", null ],
+    [ "matricesTable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a9ff538dccdfd498761dabea379bf1317", null ],
+    [ "path", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a539339b45b97ba5b9e3b2b631b5f93c9", null ],
+    [ "recordName", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#ae98f8425f4243b3d9823186a72027e2c", null ],
+    [ "referenceDist", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#ae5e7e5a2758c9e7324b10db78b430623", null ],
+    [ "referenceTT", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#ab982ec65d60c05de6808813a2527581b", null ],
+    [ "tazTable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a8cc5d6ece88f4eca5aca0d8205dfc90b", null ],
+    [ "terrain", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1matrix_map_1_1_cruising_speed_val_data.html#a0a0d67ceee6369d8526b3a2a18ba1ccf", null ]
+];

@@ -1,0 +1,5 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1persistence_1_1db_1_1_t_p_s___d_b___i_o_manager_1_1_loc_with_occupancy =
+[
+    [ "LocWithOccupancy", "classde_1_1dlr_1_1ivf_1_1tapas_1_1persistence_1_1db_1_1_t_p_s___d_b___i_o_manager_1_1_loc_with_occupancy.html#a23b4094b63cbd8dc02ccbdc5e9d779df", null ],
+    [ "compareTo", "classde_1_1dlr_1_1ivf_1_1tapas_1_1persistence_1_1db_1_1_t_p_s___d_b___i_o_manager_1_1_loc_with_occupancy.html#a51a05bb8c313f39f727b79cda6fdfe29", null ]
+];

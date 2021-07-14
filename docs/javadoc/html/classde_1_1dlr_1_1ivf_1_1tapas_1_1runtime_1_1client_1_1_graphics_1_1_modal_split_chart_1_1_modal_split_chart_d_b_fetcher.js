@@ -1,0 +1,5 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_d_b_fetcher =
+[
+    [ "getModalSplitData", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_d_b_fetcher.html#a4beb1d2bf90f9325dd34a58a2c976814", null ],
+    [ "mergeData", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal_split_chart_d_b_fetcher.html#a7505d6375f6dc32d656b521cac1500e4", null ]
+];

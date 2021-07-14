@@ -1,0 +1,6 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal5499042643ef3d6b7741ee37c398bda9 =
+[
+    [ "QualityLegendSource", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal5499042643ef3d6b7741ee37c398bda9.html#a76da331a3cb4974270306ad2fff7344c", null ],
+    [ "getLegendItems", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal5499042643ef3d6b7741ee37c398bda9.html#a25c31265dc10ef4aa5dde7062c0b1a3d", null ],
+    [ "itemCollection", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_modal_split_chart_1_1_modal5499042643ef3d6b7741ee37c398bda9.html#a6970fcf1d16cb5f15c43a18cd3737132", null ]
+];

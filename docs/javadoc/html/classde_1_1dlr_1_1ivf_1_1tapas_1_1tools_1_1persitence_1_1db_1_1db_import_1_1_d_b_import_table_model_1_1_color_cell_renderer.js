@@ -1,0 +1,5 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1persitence_1_1db_1_1db_import_1_1_d_b_import_table_model_1_1_color_cell_renderer =
+[
+    [ "getTableCellRendererComponent", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1persitence_1_1db_1_1db_import_1_1_d_b_import_table_model_1_1_color_cell_renderer.html#a80d1f850924c2e8c7ec4378c8fae10d4", null ],
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1tools_1_1persitence_1_1db_1_1db_import_1_1_d_b_import_table_model_1_1_color_cell_renderer.html#ac964e8ae93abfa3ba030a1c2136502e1", null ]
+];

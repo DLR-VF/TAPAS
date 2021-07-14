@@ -1,0 +1,7 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_chart_factory =
+[
+    [ "QualityChartLegendGerator", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_ccac76a7fa89225f110284115cc20cdc7.html", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_ccac76a7fa89225f110284115cc20cdc7" ],
+    [ "createChart", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_chart_factory.html#ab5f2c9f9e52eff715ac25db02b9c713a", null ],
+    [ "main", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_chart_factory.html#a5b10805ece6a958392ed7bd92d93dcf0", null ],
+    [ "TOOL_TIP_TEMPLATE", "classde_1_1dlr_1_1ivf_1_1tapas_1_1runtime_1_1client_1_1_graphics_1_1_quality_chart_1_1_quality_chart_factory.html#a719daa966fadc6c62ea0c311faf1ea15", null ]
+];

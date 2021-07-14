@@ -1,0 +1,6 @@
+var classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlf938856d8fcf3522e92308c6041ec0c9 =
+[
+    [ "createTransferable", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlf938856d8fcf3522e92308c6041ec0c9.html#a1e91c141d62254670467d3792679b13e", null ],
+    [ "getSourceActions", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlf938856d8fcf3522e92308c6041ec0c9.html#a91f353ce4f127f43d4f4305e2dd654c3", null ],
+    [ "serialVersionUID", "classde_1_1dlr_1_1ivf_1_1tapas_1_1analyzer_1_1tum_1_1regionanalyzer_1_1general_1_1_t_u_m_controlf938856d8fcf3522e92308c6041ec0c9.html#ace8e10757f66e8be6303dbaef57fe790", null ]
+];
