@@ -5,7 +5,7 @@ When using it, you are obligated to cite it as:
 
 Heinrichs, Matthias and Krajzewicz, Daniel and Cyganski, Rita and von Schmidt, Antje (2017) [_Introduction of car sharing into existing car fleets in microscopic travel demand modelling. Personal and Ubiquitous Computing_](https://elib.dlr.de/113300/), Seiten 1-11. Springer. doi: [10.1007/s00779-017-1031-3](https://doi.org/10.1007/s00779-017-1031-3). ISSN 1617-4909
 
-For more information see https://wiki.dlr.de/display/MUD/TAPAS
+For more information see the [TAPAS Wiki](https://github.com/DLR-VF/TAPAS/wiki) or the [TAPAS Source Code Documentation](https://dlr-vf.github.io/TAPAS/docs/html/index.html).
 
 ## Table of Contents
 
