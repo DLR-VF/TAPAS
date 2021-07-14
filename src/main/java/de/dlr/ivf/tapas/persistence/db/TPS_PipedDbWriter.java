@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
-    private int total_trip_count;
+    private long total_trip_count;
 
     private AtomicInteger registered_trips = new AtomicInteger(0);
     private AtomicInteger written_trips = new AtomicInteger(0);
@@ -48,7 +48,7 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
      * @param buffer_size original size of the {@link RingBuffer}. Must be a power of 2!
      */
 
-    public TPS_PipedDbWriter(TPS_PersistenceManager pm, int total_trip_count, int buffer_size){
+    public TPS_PipedDbWriter(TPS_PersistenceManager pm, long total_trip_count, int buffer_size){
 
         this.pm = (TPS_DB_IOManager) pm;
         this.buffer_size = buffer_size;
