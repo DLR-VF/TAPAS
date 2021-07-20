@@ -8,7 +8,7 @@ import de.dlr.ivf.tapas.scheme.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PlanContext {
+public class PlanContext implements ContextUpdateable{
 
     private final Deque<TPS_TourPart> tour_parts;
 
@@ -54,15 +54,13 @@ public class PlanContext {
                                       .filter(scheme_part -> scheme_part.getEpisodes().size() > 1)
                                       .map(TPS_TourPart.class::cast)
                                       .collect(Collectors.toCollection(ArrayDeque::new));
+
+        updateContext();
     }
 
     public Optional<TourContext> getTourContext() {
 
-        if(current_tour_context == null || current_tour_context.isFinished()) {
-            current_tour_context = getNextTourContext();
             return Optional.ofNullable(current_tour_context);
-        }else
-            return Optional.of(current_tour_context);
     }
 
     public void updateTimeDeviation(int delta_time){
@@ -93,5 +91,20 @@ public class PlanContext {
 
     public int getTimeDeviation() {
         return this.absolute_time_deviation;
+    }
+
+    @Override
+    public void updateContext() {
+
+        TPS_TourPart tour_part = tour_parts.poll();
+
+        if(tour_part == null) {
+            this.current_tour_context = null;
+        }else{
+            TPS_HomePart current_home_part = plan.getHomePartPriorToTourPart(tour_part);
+            TPS_HomePart next_home_part = plan.getHomePartAfterTourPart(tour_part);
+
+            this.current_tour_context = new TourContext(tour_part, (TPS_Stay) current_home_part.getFirstEpisode(),location_context, (TPS_Stay) next_home_part.getFirstEpisode());
+        }
     }
 }

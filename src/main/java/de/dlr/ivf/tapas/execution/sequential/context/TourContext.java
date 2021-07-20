@@ -15,7 +15,6 @@ public class TourContext implements ContextUpdateable {
 
     private NavigableMap<TPS_Trip, TPS_Stay> trips_to_stays;
 
-    private TPS_Stay previous_stay;
     private TPS_Stay current_stay;
     private TPS_Stay last_stay;
 
@@ -25,8 +24,6 @@ public class TourContext implements ContextUpdateable {
 
     private ModeContext mode_context;
 
-
-    TPS_Stay end_stay;
     private TPS_Trip next_trip;
     private TPS_Stay next_stay;
     private TPS_Trip previous_trip;
@@ -108,7 +105,6 @@ public class TourContext implements ContextUpdateable {
         
         this.current_stay = next_stay;
         this.previous_trip = next_trip;
-
         initNextTripAndStay();
 
     }

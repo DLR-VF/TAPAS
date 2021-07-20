@@ -2,15 +2,18 @@ package de.dlr.ivf.tapas.execution.sequential.io;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
+import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
+import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
+import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 
 /**
@@ -19,26 +22,33 @@ import de.dlr.ivf.tapas.scheme.TPS_Trip;
 
 public class TPS_WritableTrip {
     private TPS_PersistenceManager pm;
+    private PlanContext plan_context;
+    private TourContext tour_context;
     private TPS_Plan plan;
-    private TPS_TourPart tour_part;
     private TPS_Trip trip;
-
+    private TPS_Car used_car;
     private TPS_Stay nextStay;
     private TPS_Location prevLoc;
     private TPS_LocatedStay nextStayLocated;
     private TPS_Location nextLoc;
 
-    public TPS_WritableTrip(TPS_Plan plan, TPS_TourPart tour_part, TPS_Trip trip){
-        this.pm = plan.getPM();
-        this.plan = plan;
-        this.tour_part = tour_part;
-        this.trip = trip;
-
-        TPS_Stay prevStay = tour_part.getPreviousStay(trip);
-        this.nextStay = tour_part.getNextStay(trip);
-        this.prevLoc = plan.getLocatedStay(prevStay).getLocation();
-        this.nextStayLocated = plan.getLocatedStay(nextStay);
+    public TPS_WritableTrip(PlanContext plan_context, TourContext tour_context, TPS_PersistenceManager pm){
+        this.pm = pm;
+        this.plan_context = plan_context;
+        this.tour_context = tour_context;
+        this.plan = plan_context.getPlan();
+        this.used_car = getUsedCar(plan);
+        TPS_Stay prevStay = tour_context.getCurrentStay();
+        this.nextStay = tour_context.getNextStay();
+        this.prevLoc = tour_context.getCurrentLocation();
+        this.nextStayLocated = this.plan.getLocatedStay(nextStay);
         this.nextLoc = nextStayLocated.getLocation();
+        this.trip = tour_context.getNextTrip();
+    }
+
+    private TPS_Car getUsedCar(TPS_Plan plan) {
+        TPS_PlanningContext pc = plan.getPlanningContext();
+        return pc.getHouseHoldCar() == null ? pc.getCarSharingCar() == null ? null : pc.getCarSharingCar() : pc.getHouseHoldCar();
     }
 
     public int getPersonId(){
@@ -146,7 +156,7 @@ public class TPS_WritableTrip {
     }
 
     public int getCarType(){
-        return tour_part.getCar() == null ? -1 : tour_part.getCar().getId();
+        return this.used_car == null ? -1 : used_car.getId();
     }
 
     public double getDistanceBlMeter(){
@@ -186,11 +196,11 @@ public class TPS_WritableTrip {
     }
 
     public int getCarIndex(){
-        return tour_part.getCar() != null ? tour_part.getCar().index : -1;
+        return used_car != null ? used_car.index : -1;
     }
 
     public boolean getIsRestrictedCar(){
-        return tour_part.getCar() != null && tour_part.getCar().isRestricted();
+        return used_car != null && used_car.isRestricted();
     }
 
     public int getPersonGroup(){

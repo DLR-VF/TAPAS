@@ -81,6 +81,7 @@ public class HouseholdBasedPlanGenerator {
 
             person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
 
+
             person_plans.add(the_plan);
         }
 

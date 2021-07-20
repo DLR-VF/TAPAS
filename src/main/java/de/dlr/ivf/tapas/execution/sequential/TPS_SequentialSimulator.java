@@ -93,7 +93,7 @@ public class TPS_SequentialSimulator implements Runnable{
         plans.stream().parallel()
                 .mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration())
                 .min()
-                .ifPresentOrElse( i -> simulation_start_time.set(FuncUtils.secondsToRoundedMinutes.apply(i)), RuntimeException::new);
+                .ifPresentOrElse( i -> simulation_start_time.set(FuncUtils.secondsToRoundedMinutes.apply(i)), () -> {throw new RuntimeException();});
 
         TPS_PlanEvent first_simulation_event = new TPS_PlanEvent(TPS_EventType.SIMULATION_STEP,  simulation_start_time.get());
 
@@ -159,7 +159,7 @@ public class TPS_SequentialSimulator implements Runnable{
         writer.startSimulationProgressUpdateTask();
 
         //start the simulation
-        while(!all_finished && simulation_time_stamp.get() < 2000){
+        while(!all_finished && simulation_time_stamp.get() < 10000){
 
             //all_finished = true;
             var unfinished = 0;

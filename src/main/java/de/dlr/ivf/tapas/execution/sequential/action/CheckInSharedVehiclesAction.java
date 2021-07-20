@@ -11,8 +11,6 @@ import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 
-import java.util.function.Supplier;
-
 public class CheckInSharedVehiclesAction<T> implements TPS_PlanStateAction{
     private final TPS_HouseholdCarMediator household_car_provider;
     private final TPS_PlanningContext planning_context;
@@ -30,21 +28,22 @@ public class CheckInSharedVehiclesAction<T> implements TPS_PlanStateAction{
     @Override
     public void run() {
 
-        TPS_Stay current_stay = tour_context.getCurrentStay();
+        TPS_Stay next_stay = tour_context.getNextStay();
         ModeContext mode_context = tour_context.getModeContext();
-        TPS_ExtMode current_mode = mode_context.getCurrentMode();
+        TPS_ExtMode current_mode = mode_context.getNextMode();
 
-        if(household_car_provider != null && current_stay.isAtHome()) {
+        if(household_car_provider != null && next_stay.isAtHome()) {
 
-            if (current_mode != null && current_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.MIT)) {
+            if (current_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.MIT)) {
                 household_car_provider.checkIn(planning_context.getHouseHoldCar());
                 planning_context.setHouseHoldCar(null);
             }
         }
 
-        if(current_mode != null && current_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.CAR_SHARING)){
+
+        if(current_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.CAR_SHARING)){
             TPS_Location current_location = tour_context.getCurrentLocation();
-            car_sharing_delegator.checkOut(current_location.getTAZId(), planning_context.getCarSharingCar());
+            car_sharing_delegator.checkIn(current_location.getTAZId(), planning_context.getCarSharingCar());
         }
 
     }

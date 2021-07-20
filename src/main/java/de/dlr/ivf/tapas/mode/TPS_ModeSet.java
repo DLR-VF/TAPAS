@@ -409,8 +409,6 @@ public class TPS_ModeSet implements ExtendedWritable {
 //		}
 
         //TODO: should a forbidden bike be set to PT?
-
-        //TODO: this does not belong here and should be extracted
         //correct forbidden modes MIT->PT and BIKE-> WALK
         if (primary.isType(ModeType.MIT) && mcc.carForThisPlan == null) {
                 primary = TPS_Mode.get(ModeType.PT);

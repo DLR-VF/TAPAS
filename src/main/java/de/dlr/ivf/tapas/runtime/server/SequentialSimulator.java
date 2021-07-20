@@ -64,11 +64,15 @@ public class SequentialSimulator implements TPS_Simulator{
             HouseholdBasedPlanGenerator plan_generator = new HouseholdBasedPlanGenerator(this.pm, preference_models,preference_parameters);
 
             Map<TPS_Household,List<TPS_Plan>> households_to_plans = generatePlansAndGet(plan_generator,hhs);
+            Map<TPS_Household, List<TPS_Plan>> test_hh = households_to_plans.entrySet().stream().filter(entry -> entry.getValue().size()>1 && entry.getKey().getAllCars().length == 1).limit(1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            //System.out.println(test_hh.size());
+            //test_hh.forEach((k,v) -> System.out.println(v.get(0).getPerson().getId()+" "+v.get(0).getScheme().getSchemeParts()));
+            //todo revert changes
 
             //set up entry time
-            IntSummaryStatistics stats = calcStatistics(households_to_plans, TPS_Episode::getOriginalStart);
+            IntSummaryStatistics stats = calcStatistics(test_hh, TPS_Episode::getOriginalStart);
             this.trip_count = stats.getCount();
-            this.simulation_start_time_minute = stats.getMin();
+            this.simulation_start_time_minute = FuncUtils.secondsToRoundedMinutes.apply(Math.toIntExact(stats.getMin()));
 
             //set up sharing delegators
             TazBasedCarSharingDelegator car_sharing_delegator = new TazBasedCarSharingDelegator(initCS());
@@ -86,7 +90,8 @@ public class SequentialSimulator implements TPS_Simulator{
 
             //set up state machines
             TPS_StateMachineFactory state_machine_factory = new TPS_StateMachineFactory(transition_actions_provider);
-            List<HouseholdBasedStateMachineController> statemachine_controllers = generateHouseholdStateMachineControllers(households_to_plans, state_machine_factory);
+            //todo revert changes
+            List<HouseholdBasedStateMachineController> statemachine_controllers = generateHouseholdStateMachineControllers(test_hh, state_machine_factory);
 
 
             //now init the first event of the simulation

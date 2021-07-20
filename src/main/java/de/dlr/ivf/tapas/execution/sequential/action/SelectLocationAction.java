@@ -1,8 +1,10 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
+import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.execution.sequential.choice.LocationContext;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
+import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
@@ -27,20 +29,30 @@ public class SelectLocationAction implements TPS_PlanStateAction{
         TPS_Stay next_stay = tour_context.getNextStay();
         TPS_LocatedStay next_located_stay = plan.getLocatedStay(next_stay);
 
-        location_context.getFromFixLocations(next_stay.getActCode())
-                        .ifPresentOrElse(
-                                location -> { location_context.setNextLocation(location);
-                                              next_located_stay.setLocation(location);
-                                            },
-                                () -> { next_located_stay.selectLocation(plan,plan.getPlanningContext(), () -> tour_context.getCurrentStay(), () -> tour_context.getLastStay());
-                                        location_context.setNextLocation(next_located_stay.getLocation());
-                                      }
-                        );
-        if(next_stay.getActCode().isFix() || next_stay.isAtHome()){
+        if(next_stay.isAtHome()){
+            updateContextAndStayLocation(location_context.getHomeLocation(), next_located_stay);
+        }else {
+            location_context.getFromFixLocations(next_stay.getActCode())
+                    .ifPresentOrElse(
+                            location -> updateContextAndStayLocation(location,next_located_stay),
+                            () -> {
+                                next_located_stay.selectLocation(plan, plan.getPlanningContext(), tour_context::getCurrentStay, tour_context::getLastStay);
+                                location_context.setNextLocation(next_located_stay.getLocation());
+                            }
+                    );
+        }
+
+        if(next_stay.getActCode().isFix()){
             location_context.addToFixLocations(next_stay.getActCode(),next_located_stay.getLocation());
         }
 
         location_context.setNextLocation(next_located_stay.getLocation());
 
+    }
+
+    private void updateContextAndStayLocation(TPS_Location next_location, TPS_LocatedStay located_stay) {
+
+        location_context.setNextLocation(next_location);
+        located_stay.setLocation(next_location);
     }
 }

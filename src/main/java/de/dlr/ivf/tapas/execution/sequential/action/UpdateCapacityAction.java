@@ -8,13 +8,11 @@ public class UpdateCapacityAction implements TPS_PlanStateAction {
 
     private Supplier<TPS_Location> location_supplier;
     private int delta;
-    private String s;
 
 
-    public UpdateCapacityAction(Supplier<TPS_Location> location_supplier, int delta, String s){
+    public UpdateCapacityAction(Supplier<TPS_Location> location_supplier, int delta){
         this.location_supplier = location_supplier;
         this.delta = delta;
-        this.s = s;
     }
 
     @Override

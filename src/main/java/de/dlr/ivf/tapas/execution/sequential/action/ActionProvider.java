@@ -1,6 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
 import de.dlr.ivf.tapas.execution.sequential.choice.LocationContext;
+import de.dlr.ivf.tapas.execution.sequential.context.ContextUpdateable;
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
@@ -93,27 +94,26 @@ public class ActionProvider {
         transition_actions.add(new UpdateDepartureAndArrivalModeAction(current_located_stay,next_located_stay, mode_context.getNextMode()));
         transition_actions.add(new CalculateTravelTimeAction(current_located_stay, next_located_stay, next_planned_trip));
         transition_actions.add(new UpdateTimeDeviationAction(next_trip, next_planned_trip, plan_context));
-        transition_actions.add(new TripPersistenceAction(this.writer,plan_context,tour_context));
-        transition_actions.add(new AdaptGuardAction(trip_to_activity_guard, guard_adaption_function, next_trip, () -> plan_context.getTimeDeviation()));
+        transition_actions.add(new AdaptGuardAction(trip_to_activity_guard, guard_adaption_function, next_trip, plan_context::getTimeDeviation));
 
 
         //now we might add an occupancy update action in case the stay we are going to is fix (education, work)
         //we do this FOR NOW in order not to overstimulate the capacity of the locations.
         //todo at a later stage we should add an atomic field in form of a reservation to the actual capacity or completely lock the location
         if(next_stay.getActCode().isFix())
-            transition_actions.add(new UpdateCapacityAction(() -> location_context.getNextLocation(), -1,"a"));
+            transition_actions.add(new UpdateCapacityAction(location_context::getNextLocation, -1));
 
         //add current stay dependant actions
         if(!current_stay.isAtHome()) { //we are not at home and leave a location
             //increment capacity
-            transition_actions.add(new UpdateCapacityAction(() -> location_context.getCurrentLocation(), 1,"a"));
+            transition_actions.add(new UpdateCapacityAction(location_context::getCurrentLocation, 1));
         }
 
         //checkout a potential car-sharing car that has been requested
         transition_actions.add(new CheckOutSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator));
 
         //finally we update the contexts for the next transition
-        transition_actions.add(new UpdateContextsAction(List.of(tour_context, mode_context, location_context)));
+       // transition_actions.add(new UpdateContextsAction(List.of(tour_context, mode_context, location_context)));
 
 
         return transition_actions;
@@ -123,21 +123,30 @@ public class ActionProvider {
 
         ArrayList<TPS_PlanStateAction> transition_actions = new ArrayList<>();
 
+        transition_actions.add(new TripPersistenceAction(this.writer,plan_context,tour_context, pm));
+
         LocationContext location_context = plan_context.getLocationContext();
         ModeContext mode_context = tour_context.getModeContext();
-
-        TPS_ExtMode next_mode = mode_context.getCurrentMode();
 
         TPS_PlanningContext pc = plan_context.getPlan().getPlanningContext();
 
         if(!tour_context.getCurrentStay().getActCode().isFix())
-            transition_actions.add(new UpdateCapacityAction(() -> location_context.getCurrentLocation(), -1,"b"));
+            transition_actions.add(new UpdateCapacityAction(location_context::getCurrentLocation, -1));
 
         transition_actions.add(new CheckInSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator));
 
         TPS_Stay next_stay = tour_context.getNextStay();
-        if(next_stay != null)
-            transition_actions.add(new AdaptGuardAction(activity_to_trip_guard, guard_adaption_function, next_stay, () -> plan_context.getTimeDeviation()));
+      //  if(next_stay != null)
+        transition_actions.add(new AdaptGuardAction(activity_to_trip_guard, guard_adaption_function, next_stay, plan_context::getTimeDeviation));
+
+        List<ContextUpdateable> contexts_to_update = new ArrayList<>(List.of(tour_context, mode_context, location_context));
+
+        //tour is finished, update plan context
+        if(tour_context.isFinished())
+            contexts_to_update.add(plan_context);
+
+        transition_actions.add(new UpdateContextsAction(contexts_to_update));
+
 
         return transition_actions;
     }
