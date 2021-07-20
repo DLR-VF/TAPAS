@@ -65,6 +65,7 @@ public class SequentialSimulator implements TPS_Simulator{
 
             Map<TPS_Household,List<TPS_Plan>> households_to_plans = generatePlansAndGet(plan_generator,hhs);
             Map<TPS_Household, List<TPS_Plan>> test_hh = households_to_plans.entrySet().stream().filter(entry -> entry.getValue().size()>1 && entry.getKey().getAllCars().length == 1).limit(1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            test_hh = households_to_plans;
             //System.out.println(test_hh.size());
             //test_hh.forEach((k,v) -> System.out.println(v.get(0).getPerson().getId()+" "+v.get(0).getScheme().getSchemeParts()));
             //todo revert changes

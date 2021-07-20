@@ -22,14 +22,6 @@ public class SetupAvailableModesAction implements TPS_PlanStateAction{
 
     @Override
     public void run() {
-//        TPS_ModeChoiceContext mode_context;
-//
-//        if(!tc.isModeContextInitialized()){
-//            mode_context = new TPS_ModeChoiceContext();
-//            tc.setModeContext(mode_context);
-//        }else{
-//            mode_context = tc.getModeChoiceContext();
-//        }
 
         if(tour_context.getCurrentStay().isAtHome()){
             planning_context.isBikeAvailable = person.hasBike();

@@ -28,9 +28,6 @@ public class SelectModeAction implements TPS_PlanStateAction{
 
         ModeContext mode_context = tour_context.getModeContext();
 
-        TPS_ExtMode current_mode = mode_context.getPreviousMode();
-
-
         //mode_set.selectMode(plan, () -> tour_context.getCurrentStay(),plan.getLocatedStay(tour_context.getNextStay()),() -> tour_context.getLastStay(),plan.getPlanningContext());
         TPS_ExtMode next_mode = mode_set.selectDepartureMode(plan,plan.getLocatedStay(tour_context.getCurrentStay()), next_located_stay, plan.getPlanningContext());
 

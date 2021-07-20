@@ -87,8 +87,9 @@ public class ActionProvider {
 
         List<TPS_PlanStateAction> transition_actions = new ArrayList<>();
         transition_actions.add(new SetupAvailableModesAction(tour_context, plan_context.getHouseholdCarProvider(), person, pc));
-
+        transition_actions.add(new UpdateLocationChoicePlanAttributesAction(plan,person,pc, next_stay));
         transition_actions.add(new SelectLocationAction(tour_context, location_context, plan_context));
+        transition_actions.add(new UpdateModeChoicePlanAttributesAction(plan, next_located_stay));
         transition_actions.add(new SelectModeAction(tour_context, plan_context, mode_set));
         transition_actions.add(new ValidateModeAction(mode_validator, tour_context, pc, plan.getPlannedTrip(next_trip)));
         transition_actions.add(new UpdateDepartureAndArrivalModeAction(current_located_stay,next_located_stay, mode_context.getNextMode()));
