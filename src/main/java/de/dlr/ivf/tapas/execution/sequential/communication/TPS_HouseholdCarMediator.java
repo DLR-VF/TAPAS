@@ -40,17 +40,19 @@ public class TPS_HouseholdCarMediator implements SharingMediator<TPS_Car> {
 
     @Override
     public void checkIn(TPS_Car used_vehicle) {
-
+        if(this.car_occupancy_map.get(used_vehicle).getAndSet(false) == false)
+            throw new IllegalArgumentException("Car has neither been requested nor checked out before");
     }
 
     @Override
     public void checkOut(TPS_Car requested_vehicle) {
-
+        if(this.car_occupancy_map.get(requested_vehicle).getAndSet(true) == false)
+            throw new IllegalArgumentException("Car has not been requested before and cannot be checked out");
     }
 
     @Override
     public void release(TPS_Car requested_vehicle) {
         if(this.car_occupancy_map.get(requested_vehicle).getAndSet(false) == false)
-            throw new IllegalArgumentException("Car has not been requested before so we cannot release it");
+            throw new IllegalArgumentException("Car has not been requested before and cannot be released");
     }
 }
