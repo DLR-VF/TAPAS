@@ -71,7 +71,7 @@ javafx {
 
 // One can change the reckoned version through
 // -Preckon.scope=TAPAS_SCOPE -Preckon.stage=TAPAS_STAGE
-// where TAPAS_COPE is one of major, minor or patch (defaults to minor)
+// where TAPAS_SCOPE is one of major, minor or patch (defaults to minor)
 // and TAPAS_STAGE is one of snapshot and final (defaults to snapshot)
 // Example: ./gradlew build -Preckon.scope=major -Preckon.stage=final
 reckon {
