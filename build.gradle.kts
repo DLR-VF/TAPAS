@@ -8,6 +8,10 @@
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Do not forget to set the version number in the tapas.doxyfile
+// also create a release tag "1.0.1" or similar afterwards
+project.version = "1.0.1"
+
 plugins {
     // Apply the java plugin to add support for Java
     java
@@ -22,9 +26,6 @@ plugins {
     id("org.openjfx.javafxplugin") version "0.0.8"
 
     `maven-publish`
-
-    // git versioning plugin
-    id("org.ajoberstar.reckon") version "0.13.0"
 }
 
 
@@ -68,26 +69,6 @@ javafx {
     version = "13"
     modules("javafx.controls", "javafx.fxml", "javafx.swing")
 }
-
-// One can change the reckoned version through
-// -Preckon.scope=TAPAS_SCOPE -Preckon.stage=TAPAS_STAGE
-// where TAPAS_SCOPE is one of major, minor or patch (defaults to minor)
-// and TAPAS_STAGE is one of snapshot and final (defaults to snapshot)
-// Example: ./gradlew build -Preckon.scope=major -Preckon.stage=final
-reckon {
-    scopeFromProp()
-    snapshotFromProp()
-}
-
-// task for checking the git status
-// useful for reckoning a "final" release
-// necessary because of differences between c git and jgit
-task("gitstatus") {
-    doLast {
-        println(grgit.status())
-    }
-}
-
 
 // This is for publishing a package to GitHub
 publishing {
