@@ -97,7 +97,7 @@ publishing {
             url = uri("https://maven.pkg.github.com/DLR-VF/TAPAS")
             credentials {
                 username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USER")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }
@@ -105,7 +105,7 @@ publishing {
         create<MavenPublication>("TAPAS") {
             groupId = "de.dlr.ivf"
             artifactId = "tapas"
-            version = project.version.toString()
+            version = "1.0.1"//project.version.toString()
             from(components["java"])
             artifact(tasks["shadowJar"])
         }
