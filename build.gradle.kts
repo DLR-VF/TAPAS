@@ -8,7 +8,7 @@
 import java.text.SimpleDateFormat
 import java.util.*
 
-// Do not forget to set the version number in the tapas.doxyfile
+// Do not forget to set the PROJECT_NUMBER in the tapas.doxyfile
 // also create a release tag "1.0.1" or similar afterwards
 project.version = "1.0.1"
 
