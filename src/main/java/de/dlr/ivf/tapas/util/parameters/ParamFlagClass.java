@@ -47,6 +47,7 @@ public class ParamFlagClass {
         this.paramFlags.put(ParamFlag.FLAG_USE_SCHOOLBUS, new MutablePair<>(ParamType.DEFAULT, false));
         this.paramFlags.put(ParamFlag.FLAG_USE_CARSHARING, new MutablePair<>(ParamType.RUN, false));
         this.paramFlags.put(ParamFlag.FLAG_USE_ROBOTAXI, new MutablePair<>(ParamType.RUN, false));
+        this.paramFlags.put(ParamFlag.FLAG_USE_AUTOMATED_RIDE_POOLING, new MutablePair<>(ParamType.RUN, false));
         this.paramFlags.put(ParamFlag.FLAG_USE_INTERMODAL, new MutablePair<>(ParamType.RUN, false));
         this.paramFlags.put(ParamFlag.FLAG_USE_TAXI, new MutablePair<>(ParamType.RUN, false));
         this.paramFlags.put(ParamFlag.FLAG_FIX_PT_COSTS, new MutablePair<>(ParamType.RUN, false));

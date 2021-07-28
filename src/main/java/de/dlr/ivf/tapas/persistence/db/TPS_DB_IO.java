@@ -179,17 +179,9 @@ public class TPS_DB_IO {
         boolean hasBike = pRs.getBoolean("has_bike") && Randomizer.random() < this.PM.getParameters().getDoubleValue(
                 ParamValue.AVAILABILITY_FACTOR_BIKE);// TODO: make
         // a better model
-        double working = pRs.getInt("working") / 100.0;
-        double budget = (pRs.getInt("budget_it") + pRs.getInt("budget_pt")) / 100.0;
-//        int pGroupNumber = 0;
-//        if (pRs.getInt("group") >= 0) {
-//            pGroupNumber = pRs.getInt("group");
-//        } else {
-//            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN)) {
-//                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN,
-//                        "Unknown person group " + pRs.getInt("group"));
-//            }
-//        }
+        double working = pRs.getDouble("working");
+        double budget = (pRs.getDouble("budget_it") + pRs.getDouble("budget_pt")) / 100.0;
+
         TPS_Person person = new TPS_Person(pRs.getInt("p_id"), pRs.getInt("group"), pRs.getInt("status"), TPS_Sex.getEnum(pRs.getInt("sex")), pRs.getInt("age"),
                 pRs.getBoolean("pt_abo"), hasBike, budget, working, false,
                 pRs.getInt("education"), this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
@@ -622,8 +614,8 @@ public class TPS_DB_IO {
                     }
                     int chunks = 10; //avoid big fetches! the modulo operation is quite fast and scales very well
                     for (int i = 0; i < chunks; ++i) {
-                        query = "SELECT p_id, \"group\", status, has_bike, sex, group, age, pt_abo, budget_pt, budget_it, " +
-                                "working, work_id, driver_license, hh_id, education FROM " + persTable +
+                        query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
+                                "working, driver_license, hh_id, education FROM " + persTable +
                                 " WHERE key='" + this.PM.getParameters().getString(
                                 ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'and hh_id%" + chunks + "=" + i;
                         pRs = PM.executeQuery(query);
@@ -1486,9 +1478,9 @@ public class TPS_DB_IO {
         try (ResultSet rs = PM.executeQuery(query)) {
             TPS_PersonGroup tpg;
             while (rs.next()) {
-                tpg = new TPS_PersonGroup(rs.getInt("code"), rs.getString("description"),
-                        rs.getInt("code_ageclass"), rs.getInt("min_age"), rs.getInt("max_age"),
-                        rs.getInt("code_cars"), rs.getInt("code_sex"), rs.getString("pers_type"),
+                tpg = new TPS_PersonGroup(rs.getInt("code"), rs.getString("description"), rs.getString("work_status"),
+                        rs.getInt("min_age"), rs.getInt("max_age"),
+                        rs.getInt("code_cars"), rs.getInt("code_sex"), rs.getString("person_type"),
                         rs.getString("has_child"));
                 // add person group object to a global static map which is a collection of all person groups
                 tpg.addPersonGroupToMap();

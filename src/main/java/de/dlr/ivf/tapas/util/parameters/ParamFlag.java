@@ -161,6 +161,11 @@ public enum ParamFlag {
      * Flag, whether the "group" column is used for indicating the person groups (true) or attributes like sex, age, cars, children, status (false)
      * default false
      */
-    FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS
+    FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS,
+
+    /**
+     * Flag whether automated ride pooling services are used, default false
+     */
+    FLAG_USE_AUTOMATED_RIDE_POOLING
 }
 

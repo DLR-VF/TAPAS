@@ -29,10 +29,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * is set once while reading the person groups in TPS_DB_IO.readPersonGroupCodes()
      */
     public static boolean USE_GROUP_COLUMN_FOR_PERSON_GROUPS;
-    /**
-     * List of all age classes the person group constant contains
-     */
-    private List<TPS_AgeClass> ageClasses;
+
     private int minAge;
     private int maxAge;
     /**
@@ -48,24 +45,35 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * Sex constant; 1= male, 2 = female, 0 = not relevant
      */
     private TPS_Sex sex;
+
+    /**
+     *
+     */
+    private TPS_WorkStatus workStatus;
     /**
      * code obtained from the db
      */
     private int code;
     private String description;
 
-    public TPS_PersonGroup(int code, String description, int ageClass, int minAge, int maxAge, int cars, int sex, String personType, String hasChild) {
+    public TPS_PersonGroup(int code, String description, String workStatus, int minAge, int maxAge, int cars, int sex, String personType, String hasChild) {
         this.code = code;
         this.description = description;
-        this.setAgeClasses(TPS_AgeClass.getConstants(TPS_AgeCodeType.PersGroup, ageClass));
-//        this.setMinAge(this.getAgeClasses().stream().mapToInt(ac->ac.getMin()).min().orElse(-1));
-//        this.setMaxAge(this.getAgeClasses().stream().mapToInt(ac->ac.getMax()).max().orElse(-1));
+        this.setWorkStatus(TPS_WorkStatus.valueOf(workStatus));
         this.setMinAge(minAge);
         this.setMaxAge(maxAge);
         this.setSex(TPS_Sex.getEnum(sex));
         this.setCarCode(TPS_CarCode.getEnum(cars));
         this.setPersonType(TPS_PersonType.valueOf(personType));
         this.setHasChildCode(TPS_HasChildCode.valueOf(hasChild));
+    }
+
+    public TPS_WorkStatus getWorkStatus() {
+        return workStatus;
+    }
+
+    public void setWorkStatus(TPS_WorkStatus workStatus) {
+        this.workStatus = workStatus;
     }
 
     public int getMinAge() {
@@ -128,6 +136,11 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
             TPS_Logger.log(
                     TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.ERROR,
                     "Person does not match any person group: " + person.toString());
+            for (TPS_PersonGroup tpg : PERSON_GROUP_MAP.values()) {
+                if (tpg.fits(person)) {
+                    return tpg;
+                }
+            }
         }
         return null;
     }
@@ -161,29 +174,12 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
                 this.getSex().fits(person.getSex()) &&
                 this.getCarCode().fits(person.getHousehold().getNumberOfCars()) &&
                 this.getHasChildCode().fits(person.getHousehold().getNumChildren()) &&
+                this.getWorkStatus().fits(person.getWorkingAmount()) &&
                 this.getPersonType().equals(TPS_PersonType.getPersonTypeByStatus(person.getStatus()));
-    }
-
-    /**
-     * Returns the age categories; see {@link TPS_AgeClass}
-     *
-     * @return return all age classes
-     */
-    private List<TPS_AgeClass> getAgeClasses() {
-        return ageClasses;
     }
 
     public String getDescription() {
         return description;
-    }
-
-    /**
-     * Sets age classes.
-     *
-     * @param ageClasses list of of age classes objects
-     */
-    private void setAgeClasses(List<TPS_AgeClass> ageClasses) {
-        this.ageClasses = ageClasses;
     }
 
     /**
