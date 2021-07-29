@@ -144,7 +144,14 @@ public class TuMEnums {
         REGION_2(2, "städtisch"), //
         REGION_3(3, "wenig verstädtert"), //
         REGION_4(4, "ländlich"), //
-        REGION_5(5, "sehr ländlich");
+        REGION_5(5, "sehr ländlich"),
+        REGION_71(71,"71"), //"Metropolen(111)"
+        REGION_72(72,"72"), //"Regiopolen und Großstädte(112,121)"),
+        REGION_73(73,"73"),//"Mittelstädte, städtischer Raum einer Stadtregion (113, 114, 123, 124)"),
+        REGION_74(74,"74"),//"Kleinstädtischer dörflicher Raum einer Stadtregion (115, 125)"),
+        REGION_75(75,"75"),//"Zentrale Städte einer Ländlichen Region (211, 221)"),
+        REGION_76(76,"76"),//"Mittelstädte, städtischer Raum (213, 214, 223, 224)"),
+        REGION_77(77,"77");//"Kleinstädtischer, dörflicher Raum einer Ländlichen Region (215, 225)");
 
         private final int id;
         private final String desc;
