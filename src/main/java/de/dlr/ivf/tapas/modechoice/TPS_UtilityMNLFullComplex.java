@@ -224,7 +224,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                 parameters[2] * cost + // beta costs
                 parameters[3] * plan.getPerson().getAge() + //alter
                 parameters[4] * plan.getPerson().getAge() * plan.getPerson().getAge() + //quadratisches alter
-                parameters[5] * plan.getPerson().getHousehold().getCarNumber() + // anzahl autos
+                parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 //ab jetzt binär-Betas, also Ja/nein
                 (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein

@@ -9,10 +9,11 @@
 package de.dlr.ivf.tapas.constants;
 
 import de.dlr.ivf.tapas.constants.TPS_AgeClass.TPS_AgeCodeType;
+import de.dlr.ivf.tapas.log.TPS_Logger;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.person.TPS_Person;
 
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 
@@ -24,55 +25,71 @@ import java.util.List;
 public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
 
     private static final HashMap<Integer, TPS_PersonGroup> PERSON_GROUP_MAP = new HashMap<>();
-
     /**
-     * List of all age classes the person group constant contains
+     * is set once while reading the person groups in TPS_DB_IO.readPersonGroupCodes()
      */
-    private List<TPS_AgeClass> ageClasses;
+    public static boolean USE_GROUP_COLUMN_FOR_PERSON_GROUPS;
+
+    private int minAge;
+    private int maxAge;
     /**
      * number of cars in the household
      */
     private TPS_CarCode carCode;
-    private TPS_PersonType persType;
+    /**
+     * states if there are children in the household
+     */
+    private TPS_HasChildCode hasChildCode;
+    private TPS_PersonType personType;
     /**
      * Sex constant; 1= male, 2 = female, 0 = not relevant
      */
     private TPS_Sex sex;
+
     /**
-     * id obtained from the db
+     *
      */
-    private final int id;
+    private TPS_WorkStatus workStatus;
     /**
-     * mapping of the {@link TPS_PersonGroupType} to the internal representation
+     * code obtained from the db
      */
-    private final EnumMap<TPS_PersonGroupType, TPS_InternalConstant<TPS_PersonGroupType>> map;
+    private int code;
+    private String description;
 
-    public TPS_PersonGroup(int id, String[] attributes) {
-        if ((attributes.length - 4) % 3 != 0) {
-            throw new RuntimeException("Person need n*3 + 4 attributes n*(name, code, type) + (code_ageclass, " +
-                    "code_sex, code_cars, persType): " + attributes.length);
-        }
+    public TPS_PersonGroup(int code, String description, String workStatus, int minAge, int maxAge, int cars, int sex, String personType, String hasChild) {
+        this.code = code;
+        this.description = description;
+        this.setWorkStatus(TPS_WorkStatus.valueOf(workStatus));
+        this.setMinAge(minAge);
+        this.setMaxAge(maxAge);
+        this.setSex(TPS_Sex.getEnum(sex));
+        this.setCarCode(TPS_CarCode.getEnum(cars));
+        this.setPersonType(TPS_PersonType.valueOf(personType));
+        this.setHasChildCode(TPS_HasChildCode.valueOf(hasChild));
+    }
 
-        this.map = new EnumMap<>(TPS_PersonGroupType.class);
-        this.id = id;
-        TPS_InternalConstant<TPS_PersonGroupType> tic;
-        for (int i = 0; i < attributes.length - 4; i += 3) {
-            tic = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
-                    TPS_PersonGroupType.valueOf(attributes[i + 2]));
-            this.map.put(tic.getType(), tic);
-        }
+    public TPS_WorkStatus getWorkStatus() {
+        return workStatus;
+    }
 
-        for (TPS_PersonGroupType type : TPS_PersonGroupType.values()) {
-            if (!this.map.containsKey(type)) {
-                throw new RuntimeException(
-                        "Person group code for " + this.getId() + " for type " + type.name() + " not " + "defined");
-            }
-        }
-        this.setAgeClasses(TPS_AgeClass
-                .getConstants(TPS_AgeCodeType.PersGroup, Integer.parseInt(attributes[attributes.length - 4])));
-        this.setSex(TPS_Sex.getEnum(Integer.parseInt(attributes[attributes.length - 3])));
-        this.setCarCode(TPS_CarCode.getEnum(Integer.parseInt(attributes[attributes.length - 2])));
-        this.setPersType(TPS_PersonType.valueOf(attributes[attributes.length - 1]));
+    public void setWorkStatus(TPS_WorkStatus workStatus) {
+        this.workStatus = workStatus;
+    }
+
+    public int getMinAge() {
+        return minAge;
+    }
+
+    public void setMinAge(int minAge) {
+        this.minAge = minAge;
+    }
+
+    public int getMaxAge() {
+        return maxAge;
+    }
+
+    public void setMaxAge(int maxAge) {
+        this.maxAge = maxAge;
     }
 
     /**
@@ -93,14 +110,36 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
     }
 
     /**
-     * @param type like TAPAS, VISEVA or VISEVA_R, see TPS_PersonGroupType
      * @param code person group code from the db
      * @return person group object for a given TPS_PersonGroupType and code (int)
      */
-    public static TPS_PersonGroup getPersonGroupByTypeAndCode(TPS_PersonGroupType type, int code) {
-        for (TPS_PersonGroup tpg : PERSON_GROUP_MAP.values()) {
-            if (tpg.getCode(type) == code) {
-                return tpg;
+    public static TPS_PersonGroup getPersonGroupByCode(int code) {
+        return PERSON_GROUP_MAP.get(code);
+    }
+
+    /**
+     * @param person of who the group is determined
+     * @return person group object for a given person
+     */
+    public static TPS_PersonGroup getPersonGroupOfPerson(TPS_Person person) {
+        if (USE_GROUP_COLUMN_FOR_PERSON_GROUPS) {
+            return PERSON_GROUP_MAP.get(person.getGroup());
+        }
+        else {
+            for (TPS_PersonGroup tpg : PERSON_GROUP_MAP.values()) {
+                if (tpg.fits(person)) {
+                    return tpg;
+                }
+            }
+        }
+        if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.ERROR)) {
+            TPS_Logger.log(
+                    TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.ERROR,
+                    "Person does not match any person group: " + person.toString());
+            for (TPS_PersonGroup tpg : PERSON_GROUP_MAP.values()) {
+                if (tpg.fits(person)) {
+                    return tpg;
+                }
             }
         }
         return null;
@@ -111,7 +150,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * The objects are accessed by their ids from the db.
      */
     public void addPersonGroupToMap() {
-        PERSON_GROUP_MAP.put(id, this);
+        PERSON_GROUP_MAP.put(code, this);
     }
 
     public int compareTo(TPS_PersonGroup persGroup) {
@@ -123,32 +162,24 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * a) {@link TPS_AgeClass}: Checks if the person's age class is included in the person group <br>
      * b) {@link TPS_Sex}: checks the sex of person and group <br>
      * c) {@link TPS_CarCode}: checks whether the amount of cars in the person's household corresponds with the constant in car
+     * d) {@link TPS_HasChildCode} checks whether the number of children in the person's household corresponds to the HasChildCode
      * constant in the person group constant.
      *
      * @param person which is checked against the person group
      * @return true if the person attributes fit with the person group constant
      */
     public boolean fits(TPS_Person person) {
-        return this.getAgeClasses().contains(person.getAgeClass()) && this.getSex() == person.getSex() &&
-                this.getCarCode().fits(person.getHousehold().getCarNumber());
+        return this.getMinAge()<=person.getAge() &&
+                this.getMaxAge() >= person.getAge() &&
+                this.getSex().fits(person.getSex()) &&
+                this.getCarCode().fits(person.getHousehold().getNumberOfCars()) &&
+                this.getHasChildCode().fits(person.getHousehold().getNumChildren()) &&
+                this.getWorkStatus().fits(person.getWorkingAmount()) &&
+                this.getPersonType().equals(TPS_PersonType.getPersonTypeByStatus(person.getStatus()));
     }
 
-    /**
-     * Returns the age categories; see {@link TPS_AgeClass}
-     *
-     * @return return all age classes
-     */
-    private List<TPS_AgeClass> getAgeClasses() {
-        return ageClasses;
-    }
-
-    /**
-     * Sets age classes.
-     *
-     * @param ageClasses list of of age classes objects
-     */
-    private void setAgeClasses(List<TPS_AgeClass> ageClasses) {
-        this.ageClasses = ageClasses;
+    public String getDescription() {
+        return description;
     }
 
     /**
@@ -169,16 +200,9 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
         this.carCode = carCode;
     }
 
-    public int getCode(TPS_PersonGroupType type) {
-        return this.map.get(type).getCode();
-    }
 
     public int getCode() {
-        return this.getCode(TPS_PersonGroupType.TAPAS);
-    }
-
-    public int getId() {
-        return id;
+        return code;
     }
 
     /**
@@ -186,8 +210,12 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      *
      * @return person type
      */
-    public TPS_PersonType getPersType() {
-        return persType;
+    public TPS_PersonType getPersonType() {
+        return personType;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     /**
@@ -195,8 +223,17 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      *
      * @param persType new person type for the person type field
      */
-    private void setPersType(TPS_PersonType persType) {
-        this.persType = persType;
+    private void setPersonType(TPS_PersonType persType) {
+        this.personType = persType;
+    }
+
+
+    private void setHasChildCode(TPS_HasChildCode hasChildCode) {
+        this.hasChildCode = hasChildCode;
+    }
+
+    private TPS_HasChildCode getHasChildCode() {
+        return this.hasChildCode;
     }
 
     /**
@@ -223,7 +260,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * @return true if the constant represents a child, false otherwise
      */
     public boolean isChild() {
-        return TPS_PersonType.CHILD.equals(this.getPersType());
+        return TPS_PersonType.CHILD.equals(this.getPersonType());
     }
 
     /**
@@ -232,16 +269,7 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * @return true if the constant represents a pupil, false otherwise
      */
     public boolean isPupil() {
-        return TPS_PersonType.PUPIL.equals(this.getPersType());
-    }
-
-    /**
-     * States if the person is a retiree
-     *
-     * @return true if the constant represents a retiree, false otherwise
-     */
-    public boolean isRetiree() {
-        return TPS_PersonType.RETIREE.equals(this.getPersType());
+        return TPS_PersonType.PUPIL.equals(this.getPersonType());
     }
 
     /**
@@ -250,11 +278,11 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      * @return true if the constant represents a student, false otherwise
      */
     public boolean isStudent() {
-        return TPS_PersonType.STUDENT.equals(this.getPersType());
+        return TPS_PersonType.STUDENT.equals(this.getPersonType());
     }
 
     public String toString() {
-        return this.getClass().getSimpleName() + "." + this.getId() + "[id=" + this.getId() + "]";
+        return this.getClass().getSimpleName() + "." + this.getCode() + "[code=" + this.getCode() + "]";
     }
 
     public String toString(boolean extended) {
@@ -262,28 +290,4 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
         return toString();
     }
 
-    /**
-     * General person types as enum constants.
-     */
-    public enum TPS_PersonType {
-        ADULT, CHILD, PUPIL, RETIREE, STUDENT, TRAINEE
-    }
-
-    /**
-     * This enum provides all person code types for this application and further analysis tools like VISEVA.
-     */
-    public enum TPS_PersonGroupType {
-        /**
-         * Person code type for this application
-         */
-        TAPAS,
-        /**
-         * Person code type for VISEVA
-         */
-        VISEVA,
-        /**
-         * Person code type for VISEVA with a special differentiation of the retirees
-         */
-        VISEVA_R
-    }
 }

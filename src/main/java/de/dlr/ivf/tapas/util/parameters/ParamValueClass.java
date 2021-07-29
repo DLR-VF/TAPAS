@@ -74,12 +74,16 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.MIN_DIST, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.MIN_AGE_CARSHARING, new MutablePair<>(ParamType.OPTIONAL, 20.0));
         this.paramValues.put(ParamValue.MIT_GASOLINE_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.MIT_GASOLINE_AUTOMATED_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_GASOLINE_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_DIESEL_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.MIT_DIESEL_AUTOMATED_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_DIESEL_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_PLUGIN_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.MIT_PLUGIN_AUTOMATED_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_PLUGIN_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_ELECTRO_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.MIT_ELECTRO_AUTOMATED_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_ELECTRO_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_FUELCELL_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.MIT_FUELCELL_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
@@ -131,6 +135,7 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.TOLL_CAT_3, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.TOLL_CAT_3_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.TRAIN_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.RIDE_POOLING_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.TRAIN_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.VELOCITY_BIKE, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.VELOCITY_CAR, new MutablePair<>(ParamType.DEFAULT, null));

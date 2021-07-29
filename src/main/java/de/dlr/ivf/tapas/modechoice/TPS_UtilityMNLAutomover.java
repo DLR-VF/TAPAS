@@ -8,17 +8,12 @@
 
 package de.dlr.ivf.tapas.modechoice;
 
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
-import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamMatrixMap;
@@ -56,25 +51,12 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                     cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
                 }
                 break;
-            case TAXI:
-                //Todo: HACK: No separate access /egress-times for taxi. Assumption: 5min waiting but no egress!
-                //Car has a general 4min waiting so add one minute
-//                travelTime += 60; // add one more minute for TAXI
-                //TODO: make hard coded values configurable
-                /*
-                 * Taxi tarif Berlin:
-                 * 3€ base charge
-                 * first 7 km: 1.58€
-                 * after that: 1.20€
-                 */
-//                double baseCharge = 3.0;
-//                double shortCharge = Math.min(7000, distanceNet) * 0.001 * 1.58;
-//                double longCharge = Math.max(0, distanceNet - 7000) * 0.001 * 1.20;
-//                cost = baseCharge + shortCharge + longCharge;
-                cost = distanceNet * 0.001 * 0.6;
+            case TAXI: //basically means Robotaxi
+                if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_ROBOTAXI))
+                    cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.TAXI_COST_PER_KM);
+                else return Double.NaN;
                 break;
             case PT:
-
                 if (!plan.getPerson().hasAbo()) {
                     if (simType == SimulationType.BASE) {
                         cost = mode.getParameters().getDoubleValue(ParamValue.PT_COST_PER_KM_BASE);
@@ -85,37 +67,17 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                         cost *= distanceNet * 0.001;
                     }
                 }
-
                 expInterChanges = TPS_FastMath.exp(mode.getParameters().paramMatrixMapClass
                         .getValue(ParamMatrixMap.INTERCHANGES_PT, mcc.fromStayLocation.getTAZId(),
                                 mcc.toStayLocation.getTAZId(), mcc.startTime) * TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
-            case TRAIN: //shared automatic vehicle-faker
-                cost = distanceNet * 0.001 * 0.4;
+            case TRAIN: //automatic ride pooling vehicle-faker
+                if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_AUTOMATED_RIDE_POOLING))
+                    cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.RIDE_POOLING_COST_PER_KM);
+                else return Double.NaN;
                 break;
-//                if ((mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) && mode.getParameters().isTrue(
-//                        ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler()) //cs user?
-//                        || (mode.getParameters().isDefined(ParamFlag.FLAG_USE_ROBOTAXI) && mode.getParameters().isTrue(
-//                        ParamFlag.FLAG_USE_ROBOTAXI)) // is robotaxi
-//                ) { //no cs user!
-//                    //service area in scenario?
-//                    if (!mcc.toStayLocation.getTrafficAnalysisZone().isCarSharingService(SimulationType.SCENARIO) ||
-//                            !mcc.fromStayLocation.getTrafficAnalysisZone().isCarSharingService(
-//                                    SimulationType.SCENARIO)) {
-//                        return Double.NaN;
-//                    }
-//                    // time equals MIT + 3 min more access
-//                    travelTime = TPS_Mode.get(ModeType.MIT).getTravelTime(mcc.fromStayLocation, mcc.toStayLocation,
-//                            mcc.startTime, simType, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
-//                            plan.getPerson(), mcc.carForThisPlan);
-//                    travelTime += mode.getParameters().getDoubleValue(
-//                            ParamValue.CARSHARING_ACCESS_ADDON); //Longer Access for Carsharing
-//                    cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
-//                } else {
-//                    cost = Double.NaN;
-//                }
-//                break;
+
         }
 
         if (Double.isNaN(cost)) return Double.NaN;
@@ -138,7 +100,7 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                 parameters[2] * cost + // beta costs
                 parameters[3] * plan.getPerson().getAge() + //alter
                 parameters[4] * plan.getPerson().getAge() * plan.getPerson().getAge() + //quadratisches alter
-                parameters[5] * plan.getPerson().getHousehold().getCarNumber() + // anzahl autos
+                parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 //ab jetzt binär-Betas, also Ja/nein
                 (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein

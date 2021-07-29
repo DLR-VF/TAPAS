@@ -222,7 +222,7 @@ public enum ParamValue {
     FINANCE_BUDGET_WP,
 
     /**
-     * Value for correcting the weigth of location choice according to a gamma-function
+     * Value for correcting the weight of location choice according to a gamma-function
      */
     GAMMA_LOCATION_WEIGHT,
 
@@ -295,7 +295,7 @@ public enum ParamValue {
     MIN_AGE_CARSHARING,
 
     /*
-     * Parameter declaration for the MNL-Models, both the liniar and the
+     * Parameter declaration for the MNL-Models, both the linear and the
      * non-linear version
      */
 
@@ -311,6 +311,12 @@ public enum ParamValue {
      */
     MIT_GASOLINE_COST_PER_KM_BASE,
 
+    /**
+     * fuel related cost per kilometer for pc in € in the scenario; average
+     * value taking into account both fuel price and consumption
+     * for autonomous gaosline vehicles
+     */
+    MIT_GASOLINE_AUTOMATED_COST_PER_KM,
 
     /**
      * fuel related cost per kilometer for pc in € in the scenario; average
@@ -327,6 +333,13 @@ public enum ParamValue {
     /**
      * fuel related cost per kilometer for pc in € in the scenario; average
      * value taking into account both fuel price and consumption
+     * for autonomous diesel vehicles
+     */
+    MIT_DIESEL_AUTOMATED_COST_PER_KM,
+
+    /**
+     * fuel related cost per kilometer for pc in € in the scenario; average
+     * value taking into account both fuel price and consumption
      */
     MIT_PLUGIN_COST_PER_KM,
 
@@ -335,6 +348,13 @@ public enum ParamValue {
      * average value taking into account both fuel price and consumption
      */
     MIT_PLUGIN_COST_PER_KM_BASE,
+
+    /**
+     * fuel related cost per kilometer for pc in € in the base scenario;
+     * average value taking into account both fuel price and consumption
+     * for autonomous plugin hybrid vehicles
+     */
+    MIT_PLUGIN_AUTOMATED_COST_PER_KM,
 
     /**
      * fuel related cost per kilometer for pc in € in the scenario; average
@@ -347,6 +367,13 @@ public enum ParamValue {
      * average value taking into account both fuel price and consumption
      */
     MIT_ELECTRO_COST_PER_KM_BASE,
+
+    /**
+     * fuel related cost per kilometer for pc in € in the base scenario;
+     * average value taking into account both fuel price and consumption
+     * for autonomous electric vehicles
+     */
+    MIT_ELECTRO_AUTOMATED_COST_PER_KM,
 
     /**
      * fuel related cost per kilometer for pc in € in the scenario; average
@@ -550,6 +577,11 @@ public enum ParamValue {
      * Factor for an acceptable shorter duration
      */
     RELATIVE_DURATION_SHORTER,
+
+    /**
+     * costs of using a ride pooling service in the scenario in € / Kilometer
+     */
+    RIDE_POOLING_COST_PER_KM,
 
     /**
      * This parameter defines the duration of one time slot in the scheme in

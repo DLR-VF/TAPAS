@@ -679,6 +679,10 @@ public enum ParamString {
      */
     DB_CAR_FLEET_KEY,
     /**
+     * The key-name for the person group division e.g. TAPAS or VISEVA, default is TAPAS
+     */
+    DB_PERSON_GROUP_KEY,
+    /**
      * The key-name for the activity based search radius table e.g. default
      */
     DB_ACTIVITY_CNF_KEY,
