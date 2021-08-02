@@ -3,26 +3,27 @@ package de.dlr.ivf.tapas.execution.sequential.statemachine;
 public class TPS_StateTransitionException extends RuntimeException {
 
 
-    private final Exception exception;
+    private final Throwable throwable;
     private final String message;
     private final TPS_StateMachine state_machine;
 
-    public TPS_StateTransitionException(String s, Exception e, TPS_StateMachine state_machine) {
-        this.exception = e;
+    public TPS_StateTransitionException(String s, Throwable t, TPS_StateMachine state_machine) {
+        this.throwable = t;
         this.message = s;
         this.state_machine = state_machine;
     }
 
-    public Exception getException() {
-        return exception;
+    public Throwable getException() {
+        return throwable;
     }
 
-    public String getMessageString() {
+    @Override
+    public String getMessage() {
         return message;
     }
 
     public TPS_StateMachine getStateMachine(){
-        return this.getStateMachine();
+        return this.state_machine;
     }
 
 

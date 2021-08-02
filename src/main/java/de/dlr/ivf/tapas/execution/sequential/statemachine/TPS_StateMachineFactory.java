@@ -48,6 +48,7 @@ public class TPS_StateMachineFactory {
         stateMachine.setAllStates( List.of(activity_state, trip_state, end_state) );
 
         stateMachine.setInitialStateAndReset(activity_state);
+        stateMachine.setErrorState(error_state);
 
         Guard activity_to_trip_guard = new Guard(getSimulationEntryTime(plan));
         Guard trip_to_activity_guard = new Guard(Integer.MAX_VALUE);

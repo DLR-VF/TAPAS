@@ -12,7 +12,7 @@ public class TPS_StateMachineHandler implements WorkHandler<TPS_StateMachineEven
 
     @Override
     public void onEvent(TPS_StateMachineEvent event) {
-        event.getStateMachineController().delegateSimulationEvent(event.getEvent());
+        event.getStateMachineController().delegateEvent(event.getEvent());
 
         event.clear();
     }

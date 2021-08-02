@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
 import de.dlr.ivf.tapas.execution.sequential.action.TPS_PlanStateAction;
-import de.dlr.ivf.tapas.execution.sequential.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_EventType;
 import de.dlr.ivf.tapas.execution.sequential.guard.Guard;
 
@@ -26,8 +26,6 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * The name
      */
     private String name;
-
-    private EpisodeType type;
 
     /**
      * The enter action that will run when this state is being entered
@@ -70,8 +68,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     public TPS_SimplePlanState(String name, TPS_StateMachine stateMachine, List<Supplier<TPS_PlanStateAction>> enter_actions, List<Supplier<TPS_PlanStateAction>> exit_actions){
 
         this.handlers = new EnumMap<>(TPS_EventType.class);
-        this.type = type;
-
+        this.name = name;
         this.stateMachine = stateMachine;
         this.enter_actions = enter_actions;
         this.exit_actions = exit_actions;
@@ -95,7 +92,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
 
 
     @Override
-    public boolean handle(TPS_PlanEvent event) {
+    public boolean handle(TPS_Event event) {
 
             stateMachine.makeTransition(handlers.get(event.getEventType()));
             return true;
@@ -109,7 +106,7 @@ public class TPS_SimplePlanState implements TPS_PlanState{
      * true if it will be handled, false otherwise
      */
     @Override
-    public boolean handleSafely(TPS_PlanEvent event) {
+    public boolean handleSafely(TPS_Event event) {
         if (willHandleEvent(event)) {
             //there has an event happened that triggered a guard, inform the state machine
             stateMachine.makeTransition(handlers.get(event.getEventType()));
@@ -119,10 +116,9 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     }
 
     @Override
-    public boolean willHandleEvent(TPS_PlanEvent event) {
+    public boolean willHandleEvent(TPS_Event event) {
         return handlers.containsKey(event.getEventType()) && handlers.get(event.getEventType()).check(event.getData());
     }
-
 
     /**
      *
@@ -141,64 +137,6 @@ public class TPS_SimplePlanState implements TPS_PlanState{
     }
 
     @Override
-    public void addHandler(TPS_EventType event_type, TPS_PlanStateTransitionHandler handler) {
-        this.handlers.put(event_type,handler);
-    }
-
-    /**
-     * This method will remove a specified handler
-     * Note that only one handler of a specific event type can be handled
-     * @param event
-     * the event type to be removed from handling
-     */
-    @Override
-    public void removeHandler(TPS_EventType event) {
-        handlers.remove(event);
-    }
-
-    /**
-     * return a specific handler to a specific plan event type
-     * @param event_type
-     * @return
-     */
-    @Override
-    public TPS_PlanStateTransitionHandler getHandler(TPS_EventType event_type) {
-        return handlers.get(event_type);
-    }
-
-    /**
-     * set the enter action
-     * @param action
-     */
-    @Override
-    public void addOnEnterAction(Supplier<TPS_PlanStateAction> action) {
-        this.enter_actions.add(action);
-    }
-
-    /**
-     * set the exit action
-     * @param action
-     */
-    @Override
-    public void addOnExitAction(Supplier<TPS_PlanStateAction> action) {
-        this.exit_actions.add(action);
-    }
-
-    @Override
-    public void removeOnEnterAction(TPS_PlanStateAction action) {
-        this.enter_actions.remove(action);
-    }
-
-    @Override
-    public void removeOnExitAction(TPS_PlanStateAction action) {
-        this.exit_actions.remove(action);
-    }
-
-    /**
-     * returns name
-     * @return
-     */
-    @Override
     public String getName() {
         return this.name;
     }
@@ -206,14 +144,10 @@ public class TPS_SimplePlanState implements TPS_PlanState{
 
     /**
      * set the state machine manually
-     * @param stateMachine
+     * @param stateMachine the state machine which this state is member of
      */
     @Override
     public void setStateMachine(TPS_StateMachine stateMachine) {
         this.stateMachine = stateMachine;
-    }
-
-    public EpisodeType getStateType(){
-        return this.type;
     }
 }

@@ -30,7 +30,6 @@ public class SetupAvailableModesAction implements TPS_PlanStateAction{
                 planning_context.carForThisPlan = car_provider.request(pred -> true).orElse(null);
 
         }
-
         planning_context.setCarPooler(person.isCarPooler());
     }
 }

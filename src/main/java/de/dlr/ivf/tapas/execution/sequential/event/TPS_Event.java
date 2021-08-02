@@ -1,11 +1,13 @@
 package de.dlr.ivf.tapas.execution.sequential.event;
 
-public class TPS_PlanEvent {
+import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
+
+public class TPS_Event {
 
     private int data;
     private TPS_EventType type;
 
-    public TPS_PlanEvent(TPS_EventType type, int data){
+    public TPS_Event(TPS_EventType type, int data){
 
         this.data = data;
         this.type = type;

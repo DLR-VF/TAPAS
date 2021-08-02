@@ -5,7 +5,7 @@ import de.dlr.ivf.tapas.execution.sequential.action.ActionProvider;
 import de.dlr.ivf.tapas.execution.sequential.communication.SharingMediator;
 import de.dlr.ivf.tapas.execution.sequential.communication.SimpleCarSharingOperator;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_EventType;
-import de.dlr.ivf.tapas.execution.sequential.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
 import de.dlr.ivf.tapas.execution.sequential.io.HouseholdBasedPlanGenerator;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
@@ -35,14 +35,10 @@ import java.util.stream.IntStream;
 public class SequentialSimulator implements TPS_Simulator{
 
     private final TPS_PersistenceManager pm;
-    private int simulation_start_time_minute = Integer.MAX_VALUE;
-    private long trip_count = 0;
 
     public SequentialSimulator(TPS_PersistenceManager pm){
         this.pm = pm;
     }
-
-    private TPS_PlanEvent first_simulation_event;
 
     @Override
     public void run(int num_threads) {
@@ -64,22 +60,17 @@ public class SequentialSimulator implements TPS_Simulator{
             HouseholdBasedPlanGenerator plan_generator = new HouseholdBasedPlanGenerator(this.pm, preference_models,preference_parameters);
 
             Map<TPS_Household,List<TPS_Plan>> households_to_plans = generatePlansAndGet(plan_generator,hhs);
-            Map<TPS_Household, List<TPS_Plan>> test_hh = households_to_plans.entrySet().stream().filter(entry -> entry.getValue().size()>1 && entry.getKey().getAllCars().length == 1).limit(1).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-            test_hh = households_to_plans;
-            //System.out.println(test_hh.size());
-            //test_hh.forEach((k,v) -> System.out.println(v.get(0).getPerson().getId()+" "+v.get(0).getScheme().getSchemeParts()));
-            //todo revert changes
 
             //set up entry time
-            IntSummaryStatistics stats = calcStatistics(test_hh, TPS_Episode::getOriginalStart);
-            this.trip_count = stats.getCount();
-            this.simulation_start_time_minute = FuncUtils.secondsToRoundedMinutes.apply(Math.toIntExact(stats.getMin()));
+            IntSummaryStatistics stats = calcStatistics(households_to_plans, TPS_Episode::getOriginalStart);
+            long trip_count = stats.getCount();
+            int simulation_start_time_minute = FuncUtils.secondsToRoundedMinutes.apply(Math.toIntExact(stats.getMin()));
 
             //set up sharing delegators
             TazBasedCarSharingDelegator car_sharing_delegator = new TazBasedCarSharingDelegator(initCS());
 
             //set up the writer
-            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(pm, this.trip_count, 1 << 19);
+            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(pm, trip_count, 1 << 19);
 
             //set up handlers for transition actions
             TPS_ModeValidator mode_validator = new TPS_ModeValidator(car_sharing_delegator);
@@ -91,12 +82,11 @@ public class SequentialSimulator implements TPS_Simulator{
 
             //set up state machines
             TPS_StateMachineFactory state_machine_factory = new TPS_StateMachineFactory(transition_actions_provider);
-            //todo revert changes
-            List<HouseholdBasedStateMachineController> statemachine_controllers = generateHouseholdStateMachineControllers(test_hh, state_machine_factory);
+            List<HouseholdBasedStateMachineController> statemachine_controllers = generateHouseholdStateMachineControllers(households_to_plans, state_machine_factory);
 
 
             //now init the first event of the simulation
-            this.first_simulation_event = new TPS_PlanEvent(TPS_EventType.SIMULATION_STEP, this.simulation_start_time_minute);
+            TPS_Event first_simulation_event = new TPS_Event(TPS_EventType.SIMULATION_STEP, simulation_start_time_minute);
 
             //initialize the database pipeline
             Thread persisting_thread = new Thread(writer);

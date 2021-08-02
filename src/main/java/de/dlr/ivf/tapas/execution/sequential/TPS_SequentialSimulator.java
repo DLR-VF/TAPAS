@@ -2,20 +2,15 @@ package de.dlr.ivf.tapas.execution.sequential;
 
 import com.lmax.disruptor.*;
 import com.lmax.disruptor.util.DaemonThreadFactory;
-import de.dlr.ivf.tapas.execution.sequential.action.TripPersistenceAction;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.mode.TazBasedCarSharingDelegator;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_PipedDbWriter;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.execution.sequential.event.*;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
-import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachineFactory;
 import de.dlr.ivf.tapas.util.FuncUtils;
 
 import java.util.*;
@@ -26,19 +21,19 @@ import java.util.stream.IntStream;
 
 /**
  * This should run inside its own thread. Upon construction the simulator will set up a {@link TPS_StateMachine}
- * for each plan passed to the constructor and determines the first {@link TPS_PlanEvent}.
+ * for each plan passed to the constructor and determines the first {@link TPS_Event}.
  *
  * When the {@link TPS_SequentialSimulator} is started, a single producer of {@link TPS_StateMachineEvent}s
  * and a {@link WorkerPool} of {@link TPS_StateMachineHandler}s as consumers are set up around a {@link RingBuffer}.
  * It is recommended that the count of {@link TPS_StateMachineHandler} does not exceed the count of PHYSICAL cpu cores.
  * Best results in performance have been achieved with "physical core count" - 2.
  *
- * During iteration, every simulation time step is wrapped into a {@link TPS_PlanEvent} of type {@link TPS_EventType#SIMULATION_STEP}
+ * During iteration, every simulation time step is wrapped into a {@link TPS_Event} of type {@link TPS_EventType#SIMULATION_STEP}
  * and passed to every {@link TPS_StateMachine}. If a state machine will handle the event, it is wrapped into a
  * {@link TPS_StateMachineEvent} and put onto the {@link RingBuffer} for transition.
  *
  * After each iteration (simulation time stamp), the {@link TPS_SequentialSimulator} will wait until all {@link TPS_StateMachineHandler}s
- * have finished working on their dedicated events. When all handlers are done, a new {@link TPS_PlanEvent} with an incremented
+ * have finished working on their dedicated events. When all handlers are done, a new {@link TPS_Event} with an incremented
  * simulation time stamp is generated.
  *
  * When an exception occurs during computations it will be handled by the {@link StateMachineEventExceptionHandler}.
@@ -51,11 +46,10 @@ public class TPS_SequentialSimulator implements Runnable{
     private TPS_DB_IOManager pm;
 
     private AtomicInteger simulation_time_stamp = new AtomicInteger(0);
-    private TPS_PlanEvent next_simulation_event;
+    private TPS_Event next_simulation_event;
     private TPS_PipedDbWriter writer;
     private List<HouseholdBasedStateMachineController> state_machine_controllers;
     private TPS_StateMachineHandler[] workers;
-    private Map<Integer, TazBasedCarSharingDelegator> carsharing_mediators;
 
     /**
      * Initializes all {@link TPS_StateMachine}s and the first simulation time event.
@@ -65,7 +59,7 @@ public class TPS_SequentialSimulator implements Runnable{
      * @param writer that handles persisting the data
      * @param buffer_size of the {@link RingBuffer}. Must be a power of 2.
      */
-    public TPS_SequentialSimulator(List<HouseholdBasedStateMachineController> state_machine_controllers, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer, int buffer_size, TPS_PlanEvent start_event){
+    public TPS_SequentialSimulator(List<HouseholdBasedStateMachineController> state_machine_controllers, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer, int buffer_size, TPS_Event start_event){
 
         this.worker_count = worker_count;
         this.buffer_size = buffer_size;
@@ -78,13 +72,13 @@ public class TPS_SequentialSimulator implements Runnable{
     }
 
     /**
-     * Extracts the start time for the simulation and generates the first {@link TPS_PlanEvent}.
+     * Extracts the start time for the simulation and generates the first {@link TPS_Event}.
      * @param plans containing all {@link de.dlr.ivf.tapas.scheme.TPS_SchemePart}s and their {@link de.dlr.ivf.tapas.scheme.TPS_Episode}s
-     * @return a {@link TPS_PlanEvent} of type {@link TPS_EventType#SIMULATION_STEP} where its payload is equal to the time
+     * @return a {@link TPS_Event} of type {@link TPS_EventType#SIMULATION_STEP} where its payload is equal to the time
      *         the first person is leaving the house.
      */
 
-    private TPS_PlanEvent initAndGetFirstSimulationTimeEvent(List<TPS_Plan> plans){
+    private TPS_Event initAndGetFirstSimulationTimeEvent(List<TPS_Plan> plans){
 
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Initializing first simulation event...");
 
@@ -95,7 +89,7 @@ public class TPS_SequentialSimulator implements Runnable{
                 .min()
                 .ifPresentOrElse( i -> simulation_start_time.set(FuncUtils.secondsToRoundedMinutes.apply(i)), () -> {throw new RuntimeException();});
 
-        TPS_PlanEvent first_simulation_event = new TPS_PlanEvent(TPS_EventType.SIMULATION_STEP,  simulation_start_time.get());
+        TPS_Event first_simulation_event = new TPS_Event(TPS_EventType.SIMULATION_STEP,  simulation_start_time.get());
 
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "First simulation event is of type: "+first_simulation_event.getEventType()+" at time: "+first_simulation_event.getData());
 
@@ -151,37 +145,61 @@ public class TPS_SequentialSimulator implements Runnable{
         worker_pool.start(executor);
 
         var all_finished = false;
-        var total_count = 0;
+
         var sim_start = System.currentTimeMillis();
         var last_written_trip_count = 0;
 
         //launch the simulation progress update thread
         writer.startSimulationProgressUpdateTask();
 
-        //start the simulation
-        while(!all_finished && simulation_time_stamp.get() < 10000){
+        int state_machine_controller_count = state_machine_controllers.size();
+        int state_machines_total_count = state_machine_controllers.stream().mapToInt(HouseholdBasedStateMachineController::getUnfinishedCount).sum();
 
-            //all_finished = true;
-            var unfinished = 0;
+        int unfinished_controllers_count = state_machine_controller_count;
+        int unfinished_state_machines_count;
+
+        int total_event_count = 0;
+
+
+        //start the simulation
+        while(!all_finished && simulation_time_stamp.get() < 2000){
+
             var event_count = 0;
             var current_iteration_start_time = System.currentTimeMillis();
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Publishing and consuming events for simulation time: "+simulation_time_stamp.get());
 
 
-            state_machine_controllers.stream()
-                                     .filter(state_machine_controller -> state_machine_controller.willPassEvent(next_simulation_event))
-                                     .forEach(state_machine_controller -> publishToRingBuffer(state_machine_controller, ring_buffer));
+//            state_machine_controllers.stream()
+//                                     .filter(state_machine_controller -> state_machine_controller.willPassEvent(next_simulation_event))
+//                                     .forEach(state_machine_controller -> publishToRingBuffer(state_machine_controller, ring_buffer));
 
+            //now pass the event to the controllers
+            List<HouseholdBasedStateMachineController> unfinished_state_machine_controllers = new ArrayList<>(unfinished_controllers_count);
+            unfinished_controllers_count = 0;
+            unfinished_state_machines_count = 0;
 
+            for(HouseholdBasedStateMachineController controller : state_machine_controllers){
+                if(controller.willPassEvent(next_simulation_event)){
+                    publishToRingBuffer(controller, ring_buffer);
+                    event_count++;
+                    total_event_count++;
+                }
 
-            //remove finished controllers from the list we iterate over and update some counts
-            if(simulation_time_stamp.get() % 5 == 0){
-                state_machine_controllers = state_machine_controllers.stream().filter(controller -> controller.getUnfinishedCount() > 0).collect(Collectors.toList());
+                int unfinished_state_machine_count = controller.getUnfinishedCount();
+
+                if(unfinished_state_machine_count > 0) {
+                    unfinished_controllers_count++;
+                    unfinished_state_machines_count = unfinished_state_machines_count + unfinished_state_machine_count;
+                    unfinished_state_machine_controllers.add(controller);
+                }
             }
 
+            state_machine_controllers = unfinished_state_machine_controllers;
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events published for "+unfinished+" unfinished state machines in "+(System.currentTimeMillis()-current_iteration_start_time)+" ms");
+            String log_message = event_count+" events published for "+unfinished_controllers_count+" unfinished controllers and "+ unfinished_state_machines_count +" unfinished state machines in "+(System.currentTimeMillis()-current_iteration_start_time)+" ms";
+
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, log_message);
 
             //the position of the last published event
             long cursor = ring_buffer.getCursor();
@@ -200,10 +218,10 @@ public class TPS_SequentialSimulator implements Runnable{
 
             last_written_trip_count = written_trip_count;
 
-            next_simulation_event = new TPS_PlanEvent(TPS_EventType.SIMULATION_STEP,  simulation_time_stamp.incrementAndGet());
+            next_simulation_event = new TPS_Event(TPS_EventType.SIMULATION_STEP,  simulation_time_stamp.incrementAndGet());
         }
 
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Simulation finished! "+total_count+" events handled in "+(System.currentTimeMillis()-sim_start)/60000+" minutes");
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Simulation finished! "+total_event_count+" events handled in "+(System.currentTimeMillis()-sim_start)/60000+" minutes");
 
         worker_pool.drainAndHalt();
         writer.finish();
@@ -218,7 +236,7 @@ public class TPS_SequentialSimulator implements Runnable{
         TPS_StateMachineEvent event = ring_buffer.get(sequenceId);
 
         //set event values
-        event.setStateMachineController(state_machine_controller);
+        event.setEventDelegator(state_machine_controller);
         event.setEvent(next_simulation_event);
 
         //finally publish the event being ready to be picked up by a worker

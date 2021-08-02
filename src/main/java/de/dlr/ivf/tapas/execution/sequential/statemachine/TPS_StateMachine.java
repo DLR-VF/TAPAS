@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
 import de.dlr.ivf.tapas.execution.sequential.action.TPS_PlanStateAction;
-import de.dlr.ivf.tapas.execution.sequential.event.TPS_PlanEvent;
+import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
 
 import java.util.List;
 import java.util.Map;
@@ -78,20 +78,21 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
 
     /**
      * When an event is sent to the state machine we pass it to the state itself and let it
-     * @param event
+     * @param event the event to be handled
      */
     @Override
-    public void handleEvent(TPS_PlanEvent event) {
+    public void handleEvent(TPS_Event event) {
+
         current_state.handle(event);
     }
 
     @Override
-    public void handleEventSafely(TPS_PlanEvent event) {
+    public void handleEventSafely(TPS_Event event) {
         current_state.handleSafely(event);
     }
 
     @Override
-    public boolean willHandleEvent(TPS_PlanEvent event) {
+    public boolean willHandleEvent(TPS_Event event) {
         return current_state.willHandleEvent(event);
     }
 
@@ -114,7 +115,7 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
                 executeActions(handler.getActions());
             }catch (RuntimeException e){
                 //we could transition to error state here but might want to do other things in case of an exception
-                throw new TPS_StateTransitionException("Error transitioning from "+previous_state.getName()+
+                throw new TPS_StateTransitionException("STATEMACHINE "+this.name+": Error transitioning from "+previous_state.getName()+
                                                        " to "+handler.getTargetState().getName(), e, this);
             }
 
@@ -128,7 +129,7 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
         if(states.contains(handler.getTargetState()))
             current_state = handler.getTargetState();
         else {
-            current_state = end_state;
+            current_state = error_state;
             System.err.println("a state has been supplied that is not part of the state machine...");
         }
         current_state.enter();
@@ -143,7 +144,7 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
     }
 
     public boolean hasFinished(){
-        return this.current_state == this.end_state;
+        return this.current_state == this.end_state || this.current_state == error_state;
     }
 
 
@@ -170,5 +171,18 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
 
     public void transitionToEndState() {
         this.current_state = end_state;
+    }
+
+    @Override
+    public void transitionToErrorState() {
+        this.current_state = error_state;
+    }
+
+    public void setErrorState(TPS_SimplePlanState error_state) {
+        this.error_state = error_state;
+    }
+
+    public String getName(){
+        return this.name;
     }
 }

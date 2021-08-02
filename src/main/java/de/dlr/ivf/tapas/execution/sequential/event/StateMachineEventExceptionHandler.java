@@ -5,7 +5,11 @@ import com.lmax.disruptor.ExceptionHandler;
 public class StateMachineEventExceptionHandler implements ExceptionHandler<TPS_StateMachineEvent> {
     @Override
     public void handleEventException(Throwable ex, long sequence, TPS_StateMachineEvent event) {
-        event.getStateMachineController().handleError(ex);
+
+        TPS_Event handled_event = event.getEvent();
+
+        if(handled_event.getEventType() == TPS_EventType.SIMULATION_STEP)
+            event.getStateMachineController().handleError(ex);
     }
 
     @Override

@@ -1,34 +1,33 @@
 package de.dlr.ivf.tapas.execution.sequential.event;
 
 import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
-import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
 
 public class TPS_StateMachineEvent {
 
-    private HouseholdBasedStateMachineController state_machine_controller;
-    private TPS_PlanEvent event;
+    private HouseholdBasedStateMachineController event_delegator;
+    private TPS_Event event;
 
     public TPS_StateMachineEvent(){}
 
     public HouseholdBasedStateMachineController getStateMachineController(){
-        return this.state_machine_controller;
+        return this.event_delegator;
     }
 
-    public void setStateMachineController(HouseholdBasedStateMachineController state_machine){
-        this.state_machine_controller = state_machine;
+    public void setEventDelegator(HouseholdBasedStateMachineController event_delegator){
+        this.event_delegator = event_delegator;
     }
 
-    public TPS_PlanEvent getEvent(){
+    public TPS_Event getEvent(){
         return this.event;
     }
 
-    public void setEvent(TPS_PlanEvent event){
+    public void setEvent(TPS_Event event){
         this.event = event;
     }
 
     public void clear(){
 
-        this.state_machine_controller = null;
+        this.event_delegator = null;
         this.event = null;
     }
 }
