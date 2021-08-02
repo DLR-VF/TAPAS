@@ -92,9 +92,9 @@ public class ActionProvider {
         transition_actions.add(new UpdateModeChoicePlanAttributesAction(plan, next_located_stay));
         transition_actions.add(new SelectModeAction(tour_context, plan_context, mode_set));
         transition_actions.add(new ValidateModeAction(mode_validator, tour_context, pc, plan.getPlannedTrip(next_trip)));
-        transition_actions.add(new UpdateDepartureAndArrivalModeAction(current_located_stay,next_located_stay, mode_context.getNextMode()));
+        transition_actions.add(new UpdateDepartureAndArrivalModesAction(current_located_stay,next_located_stay, mode_context.getNextMode()));
         transition_actions.add(new CalculateTravelTimeAction(current_located_stay, next_located_stay, next_planned_trip));
-        transition_actions.add(new UpdateTimeDeviationAction(next_trip, next_planned_trip, plan_context));
+        transition_actions.add(new UpdateTimeDeviationAndTimesAction(next_trip, next_planned_trip, plan_context, next_located_stay));
         transition_actions.add(new AdaptGuardAction(trip_to_activity_guard, guard_adaption_function, next_trip, plan_context::getTimeDeviation));
 
 
@@ -112,6 +112,7 @@ public class ActionProvider {
 
         //checkout a potential car-sharing car that has been requested
         transition_actions.add(new CheckOutSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator));
+        //transition_actions.add(new TripPersistenceAction(this.writer,plan_context,tour_context, pm));
 
         //finally we update the contexts for the next transition
        // transition_actions.add(new UpdateContextsAction(List.of(tour_context, mode_context, location_context)));

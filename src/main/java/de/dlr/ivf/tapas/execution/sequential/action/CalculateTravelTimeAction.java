@@ -19,6 +19,8 @@ public class CalculateTravelTimeAction implements TPS_PlanStateAction{
 
     @Override
     public void run() {
+
         next_planned_trip.setTravelTime(current_stay, next_stay);
+
     }
 }
