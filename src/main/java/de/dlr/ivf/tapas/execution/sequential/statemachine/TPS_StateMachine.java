@@ -16,7 +16,7 @@ import java.util.Objects;
  * the transition
  *
  */
-public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler{
+public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, TransitionErrorHandler {
 
 
     /**
@@ -104,12 +104,19 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler{
      */
     protected void makeTransition(TPS_PlanStateTransitionHandler handler){
 
+        TPS_PlanState previous_state = current_state;
         //first we exit the current state
         exitState();
 
         //then we make the transition
         if(handler.getActions() != null)
-            executeActions(handler.getActions());
+            try {
+                executeActions(handler.getActions());
+            }catch (RuntimeException e){
+                //we could transition to error state here but might want to do other things in case of an exception
+                throw new TPS_StateTransitionException("Error transitioning from "+previous_state.getName()+
+                                                       " to "+handler.getTargetState().getName(), e, this);
+            }
 
         //now we enter the new state
         enterState(handler);

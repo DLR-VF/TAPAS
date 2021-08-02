@@ -22,6 +22,7 @@ import java.util.function.BiFunction;
 public class TPS_StateMachineFactory {
 
     private ActionProvider transition_actions_provider;
+    private final TPS_SimplePlanState error_state = new TPS_SimplePlanState("error", null);
 
     public TPS_StateMachineFactory (ActionProvider transition_actions_provider){
 

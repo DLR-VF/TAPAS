@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class HouseholdBasedStateMachineController {
+public class HouseholdBasedStateMachineController implements ErrorHandler{
 
     private TPS_Household hh;
     private SharingMediator<TPS_Car> car_mediator;
@@ -96,5 +96,13 @@ public class HouseholdBasedStateMachineController {
                                   .filter(state_machine -> state_machine.willHandleEvent(simulation_event))
                                   .findAny()
                                   .isPresent();
+    }
+
+    @Override
+    public void handleError(Throwable t) {
+        if(t instanceof TPS_StateTransitionException){
+            TPS_StateMachine state_machine = ((TPS_StateTransitionException) t).getStateMachine();
+            state_machine.handleEvent(new TPS_PlanEvent());
+        }
     }
 }
