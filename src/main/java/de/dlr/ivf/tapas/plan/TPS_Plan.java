@@ -39,7 +39,6 @@ import java.util.Map.Entry;
 /**
  * Class for a TAPAS plan.
  * Contains trips, budgets, and many more stuff for plan related work
- *
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
@@ -94,8 +93,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         myAttributes.put(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE,
                 TPS_Income.getCode(person.getHousehold().getIncome()));
         myAttributes.put(TPS_Attribute.PERSON_AGE, person.getAge());
-        myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_PERSON_GROUP,
-                person.getPersonGroup().getCode());
+        myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_PERSON_GROUP, person.getPersonGroup().getCode());
         myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_STBA, person.getAgeClass().getCode(TPS_AgeCodeType.STBA));
         int code;
         if (person.hasDrivingLicenseInformation()) {
@@ -902,10 +900,14 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 pc.carForThisPlan = tourpart.getCar();
             } else if (!pc.influenceCarUsageInPlan) {
                 //check if a car could be used
-                if (this.getPerson().mayDriveACar()) {
-                    pc.carForThisPlan = TPS_Car.selectCar(this, tourpart);
-                } else {
-                    pc.carForThisPlan = null;
+                pc.carForThisPlan = TPS_Car.selectCar(this, tourpart);
+
+                if (pc.carForThisPlan != null && // if there is an available car
+                        !this.getPerson().mayDriveACar() && //but the person has no driver's license
+                        // AND the available car is not automated (i.e. below the defined automation level)
+                        (pc.carForThisPlan.getAutomation() < this.getParameters().getIntValue(
+                                ParamValue.AUTOMATIC_VEHICLE_LEVEL))) {
+                    pc.carForThisPlan = null; //we make the car unavailable for the person
                 }
             }
 
@@ -1066,10 +1068,11 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                     currentLocatedStay.getModeArr().getName() + ") for stay (id=" +
                                             currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
                                             currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                            ") in block (id= " +
-                                            (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay
-                                                    .getLocation().getBlock().getId() : -1) + ") via modes " +
-                                            currentLocatedStay.getModeArr().getName() + "/" +
+                                            ") in block (id= " + (currentLocatedStay.getLocation()
+                                                                                    .hasBlock() ? currentLocatedStay.getLocation()
+                                                                                                                    .getBlock()
+                                                                                                                    .getId() : -1) +
+                                            ") via modes " + currentLocatedStay.getModeArr().getName() + "/" +
                                             currentLocatedStay.getModeDep().getName());
                 }
 

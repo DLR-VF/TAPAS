@@ -72,9 +72,11 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                                 mcc.toStayLocation.getTAZId(), mcc.startTime) * TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
-            case TRAIN: //automatic ride pooling vehicle-faker
+            case TRAIN: //automatic ride pooling vehicle-faker or car sharing in the reference scenario
                 if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_AUTOMATED_RIDE_POOLING))
                     cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.RIDE_POOLING_COST_PER_KM);
+                else if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler())
+                    cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.TRAIN_COST_PER_KM);
                 else return Double.NaN;
                 break;
 
@@ -94,21 +96,22 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
             leisure = tourPart.hasLeisureActivity;
         }
 
-
+        boolean mayDriveCar = plan.getPerson().mayDriveACar();
+        mayDriveCar |= (mcc.carForThisPlan != null && mcc.carForThisPlan.getAutomation() >= plan.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL));
         return parameters[0] +  // mode constant
                 parameters[1] * travelTime + // beta travel time
                 parameters[2] * cost + // beta costs
                 parameters[3] * plan.getPerson().getAge() + //alter
-                parameters[4] * plan.getPerson().getAge() * plan.getPerson().getAge() + //quadratisches alter
-                parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
-                parameters[6] * expInterChanges + //umstiege (nur ÖV)
-                //ab jetzt binär-Betas, also Ja/nein
-                (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein
-                (plan.getPerson().hasAbo() ? parameters[8] : 0) + //Öffi -abo
-                (work ? parameters[9] : 0) + //tourpart mit Arbeit
-                (education ? parameters[10] : 0) + //tourpart mit Bildung
-                (shopping ? parameters[11] : 0) + //tourpart mit Einkauf
-                (errant ? parameters[12] : 0) + //tourpart mit Erledigung
+                parameters[4] * plan.getPerson().getAge() * plan.getPerson().getAge() + //quadratic age
+                parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // number cars
+                parameters[6] * expInterChanges + //public transport changes
+                //now binary values true/false
+                (mayDriveCar ? parameters[7] : 0) + //driver's license
+                (plan.getPerson().hasAbo() ? parameters[8] : 0) + //public transport season ticket
+                (work ? parameters[9] : 0) + //tour part with work
+                (education ? parameters[10] : 0) + //tour part with education
+                (shopping ? parameters[11] : 0) + //tour part with shopping trip
+                (errant ? parameters[12] : 0) + //tour part with private matter
                 (leisure ? parameters[13] : 0);
     }
 
