@@ -31,7 +31,7 @@ public class MatrixMap {
                             " distribution elements :" + distribution.length);
             return;
         }
-        //instanciate an array of the exact length
+        //instantiate an array of the exact length
         this.matrices = new MatrixTuple[distribution.length];
         for (int i = 0; i < distribution.length; i++) {
             this.matrices[i] = new MatrixTuple((int) (distribution[i] * 60 * 60), matrices[i]);
@@ -84,11 +84,13 @@ public class MatrixMap {
     /**
      * Method to select the appropriate matrix for the given time slot
      *
-     * @param time inputtime in minutes since midnight.
+     * @param time input time in minutes since midnight.
      * @return matrix for the given time
      */
     public Matrix getMatrix(int time) {
-
+        if (this.matrices.length==1){ //we do not need to search if there is only one available
+            return this.matrices[0].matrix;
+        }
         //make the time between 0 and oneDay
         time = time % oneDay;
         if (time < 0) time += oneDay;

@@ -28,10 +28,10 @@ import de.dlr.ivf.tapas.util.parameters.SimulationType;
 public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
 
     double costsForMIV(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
-        double cost = 0;
+        double cost;
         TPS_TrafficAnalysisZone comingFromTVZ;
         TPS_TrafficAnalysisZone goingToTVZ;
-        double tmpFactor = 1;
+        double tmpFactor;
         comingFromTVZ = mcc.fromStayLocation.getTrafficAnalysisZone();
         goingToTVZ = mcc.toStayLocation.getTrafficAnalysisZone();
         //fuel cost per km
@@ -60,7 +60,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             boolean carIsRestricted = true;
             if (Randomizer.random() < mode.getParameters().getDoubleValue(ParamValue.PASS_PROBABILITY_HOUSEHOLD_CAR)) {
                 TPS_Car coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
-                if (coDriver != null) { //does the household has a car???
+                if (coDriver != null) { //does the household have a car???
                     carIsRestricted = plan.getPerson().getHousehold().getLeastRestrictedCar().isRestricted();
                 } else {
                     carIsRestricted = Randomizer.random() < mode.getParameters().getDoubleValue(
@@ -174,9 +174,10 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                     }
                 }
 
-                expInterChanges = TPS_FastMath.exp(mode.getParameters().paramMatrixMapClass
-                        .getValue(ParamMatrixMap.INTERCHANGES_PT, mcc.fromStayLocation.getTAZId(),
-                                mcc.toStayLocation.getTAZId(), mcc.startTime) * TPS_DB_IO.INTERCHANGE_FACTOR);
+                expInterChanges = TPS_FastMath.exp(
+                        mode.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.INTERCHANGES_PT,
+                                mcc.fromStayLocation.getTAZId(), mcc.toStayLocation.getTAZId(), mcc.startTime) *
+                                TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
             case TRAIN: //car sharing-faker

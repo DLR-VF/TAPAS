@@ -86,8 +86,8 @@ public class ParamMatrixMapClass {
      * given simulation type is returned.
      *
      * @param param matrix map parameter enum
-     * @param time  the time slot for the requested matrix
      * @param type  simulation type
+     * @param time  the time slot for the requested matrix
      * @return matrix corresponding to the given simulation type
      * @throws RuntimeException if the constant was not defined
      *                          or the constant is not simulation type

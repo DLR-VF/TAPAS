@@ -1348,7 +1348,10 @@ public class TPS_DB_IO {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.WARN, "No matrix found for query: " + query);
         }
         TPS_Logger.log(SeverenceLogLevel.INFO, "Loaded matrix from DB: " + matrixName + " Average value: " +
-                this.PM.getParameters().getMatrix(matrix).getAverageValue(false, true));
+                this.PM.getParameters().getMatrix(matrix).getAverageValue(false, true) +
+                " Size (Elements, Rows, Columns): " + this.PM.getParameters().getMatrix(matrix).getNumberOfElements() + ", "
+                + this.PM.getParameters().getMatrix(matrix).getNumberOfRows() + ", "
+                + this.PM.getParameters().getMatrix(matrix).getNumberOfColums());
         rs.close();
     }
 
@@ -1951,11 +1954,12 @@ public class TPS_DB_IO {
                         this.PM.getParameters().getString(ParamString.DB_NAME_MODEL_PARAMETERS) +
                         " WHERE utility_function_class='" + utilityFunctionName + "' and key='" +
                         this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_KEY) + "'");
+        //now init the utility function
+        TPS_Mode.initUtilityFunction(this.PM.getParameters());
         while (rs.next()) {
             String mode = rs.getString("mode_class");
             double[] parameters = extractDoubleArray(rs, "parameters");
-            TPS_Mode.getUtilityFunction(this.PM.getParameters()).setParameterSet(TPS_Mode.get(ModeType.valueOf(mode)),
-                    parameters);
+            TPS_Mode.getUtilityFunction().setParameterSet(TPS_Mode.get(ModeType.valueOf(mode)), parameters);
         }
         rs.close();
 

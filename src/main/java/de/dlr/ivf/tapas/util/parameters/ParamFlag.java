@@ -119,7 +119,7 @@ public enum ParamFlag {
      */
     FLAG_USE_EXIT_MAUT,
     /**
-     * Flag, whether tolls and fees should be charged to the passengers aswell
+     * Flag, whether tolls and fees should be charged to the passengers as well
      */
     FLAG_CHARGE_PASSENGERS_WITH_EVERYTHING,
     /**

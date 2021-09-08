@@ -887,9 +887,7 @@ public class TPS_ParameterClass {
      *                  are not defined yet
      * @param valueSet  set with all instances of {@link ParamValue}, which
      *                  are not defined yet
-     * @return true, if sucessfull
-     * @throws FileNotFoundException if the file is not found
-     * @throws IOException           if there occurs a read error
+     * @return true, if successful
      */
     private boolean updateParameter(String key, String value, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) {
         boolean consumed = false;

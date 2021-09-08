@@ -222,6 +222,40 @@ public class SimulationServer extends Thread {
 
     }
 
+    /**
+     * Returns the simulation key of the next available simulation
+     * Each host should only be assigned to one simulation
+     * @return
+     * @throws SQLException
+     */
+    public String getNextSimulation() throws SQLException{
+        //look for started simulations
+        String query = "select sim_key from simulations where sim_ready=true and sim_started=true and sim_finished=false ORDER BY timestamp_insert;";
+        ResultSet rs = this.dbConnector.executeQuery(query, this);
+        ResultSet rs2;
+        String simkey;
+        while (rs.next()) {
+            simkey = rs.getString("sim_key");
+            // look if the simulation has no started attached servers
+            query = "select * from server_processes join servers on (host=server_name) where server_online = true and sim_key = '" + simkey + "'";
+            rs2 = this.dbConnector.executeQuery(query, this);
+            if (!rs2.next()) {//we found a simulation!
+                //check if the simulation is fresh and new and no households has been processed
+                query = "SELECT hh_id FROM temp.households_" + simkey + " WHERE hh_started =true  LIMIT 1;";
+                rs2 = this.dbConnector.executeQuery(query, this);
+                if (!rs2.next()) {//no started households yet, hence we set the timestamp
+                    query = "UPDATE simulations SET timestamp_started = now() WHERE sim_key ='" + simkey + "';";
+                    this.dbConnector.executeUpdate(query, this);
+                }
+                rs.close();
+                rs2.close();
+                return simkey;
+            }
+        }
+        rs.close();
+        return null;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -254,13 +288,11 @@ public class SimulationServer extends Thread {
 
             while (keepOn) {
 
-                query = "SELECT core.get_next_simulation() as sim_key";
-                rsGet = this.dbConnector.executeQuery(query, this);
-
-                if (rsGet.next()) sim_key = rsGet.getString("sim_key");
-
-                rsGet.close();
-
+//                query = "SELECT core.get_next_simulation() as sim_key";
+//                rsGet = this.dbConnector.executeQuery(query, this);
+//                if (rsGet.next()) sim_key = rsGet.getString("sim_key");
+//                rsGet.close();
+                sim_key = getNextSimulation();
 
                 if (sim_key != null) {
                     printMessage = true;

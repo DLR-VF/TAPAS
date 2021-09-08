@@ -128,7 +128,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
                 continue;
             }
             //calc the value
-            utilities[i] = ((TPS_UtilityMNL) (TPS_Mode.getUtilityFunction(parameterClass))).getCostOfMode(mode, plan,
+            utilities[i] = ((TPS_UtilityMNL) (TPS_Mode.getUtilityFunction())).getCostOfMode(mode, plan,
                     travelTime, mcc, SimulationType.SCENARIO);
             if (Double.isNaN(utilities[i])) {
                 utilities[i] = TPS_UtilityFunction.minModeProbability;
@@ -171,8 +171,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
             return plan.getPerson().getHousehold().getLocation();
         }
 
-        if (!(TPS_Mode.getUtilityFunction(
-                this.PM.getParameters()) instanceof TPS_UtilityMNL)) { // no LogSum for non MNL-Models!
+        if (!(TPS_Mode.getUtilityFunction() instanceof TPS_UtilityMNL)) { // no LogSum for non MNL-Models!
             super.selectLocationFromChoiceSet(choiceSet, plan, pc, locatedStay);
         }
 
