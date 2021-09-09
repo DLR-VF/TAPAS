@@ -225,7 +225,7 @@ public class SimulationServer extends Thread {
     /**
      * Returns the simulation key of the next available simulation
      * Each host should only be assigned to one simulation
-     * @return
+     * @return simulation key string or null if there is none
      * @throws SQLException
      */
     public String getNextSimulation() throws SQLException{
@@ -254,6 +254,16 @@ public class SimulationServer extends Thread {
         }
         rs.close();
         return null;
+    }
+
+    /**
+     * Sets the simulation key to the current host in the server_processes table
+     * @param sim_key simulation key string
+     * @throws SQLException
+     */
+    private void updateServerProcess(String sim_key) throws SQLException{
+        this.dbConnector.execute("UPDATE server_processes SET sim_key = '" + sim_key + "' WHERE host = '" +
+                SimulationServer.hostname + "'", this);
     }
 
     /*
@@ -285,55 +295,33 @@ public class SimulationServer extends Thread {
                 rsGet.close();
             }
             rs.close();
-
             while (keepOn) {
-
-//                query = "SELECT core.get_next_simulation() as sim_key";
-//                rsGet = this.dbConnector.executeQuery(query, this);
-//                if (rsGet.next()) sim_key = rsGet.getString("sim_key");
-//                rsGet.close();
                 sim_key = getNextSimulation();
-
                 if (sim_key != null) {
                     printMessage = true;
                     System.out.println("Simulation to start: " + sim_key);
                     File file = this.runtimeFile;
-//					query = "SELECT sim_file FROM " + this.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) + " WHERE sim_key= '"+sim_key+"'";
-//					rs = this.dbConnector.executeQuery(query,this);
-//					File file = null;
-//
-//					if (rs.next())
-//						file = new File(tapasNetworkDirectory, rs.getString("sim_file"));
-//					rs.close();
-//
                     if (file != null) {
                         //insert the simkey into server_processes table
-                        query = "UPDATE server_processes SET sim_key = '" + sim_key + "' WHERE host = '" +
-                                SimulationServer.hostname + "'";
-                        this.dbConnector.execute(query, this);
+                        updateServerProcess(sim_key);
                         TPS_Main main = new TPS_Main(file, sim_key);
                         main.run(Runtime.getRuntime().availableProcessors());
-
                         if (main.getPersistenceManager().finish()) while (SimulationServer.shuttingDown) {
-                            System.out.println(sysoutPrefix + "Waiting for Shutdown procedure to finish...");
+                            System.out.println(sysoutPrefix + "Waiting for shutdown procedure to finish...");
                             Thread.sleep(1000);
                         }
                         main.getPersistenceManager().close();
-
-
                         TPS_Main.STATE.setFinished();
                     } else System.out.println("file is null");
                 } else {
                     if (printMessage) {
-                        System.out.println(sysoutPrefix + "Waiting for new Simulation");
+                        System.out.println(sysoutPrefix + "Waiting for new simulation");
                         //set sim_key in server_processes table to IDLE
-                        query = "UPDATE server_processes SET sim_key = 'IDLE' WHERE host = '" +
-                                SimulationServer.hostname + "'";
-                        SimulationServer.this.dbConnector.execute(query, this);
+                        updateServerProcess("IDLE");
                         printMessage = false;
                     }
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(3000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
