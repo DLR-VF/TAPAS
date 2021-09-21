@@ -93,7 +93,7 @@ public class ParamMatrixMapClass {
      *                          or the constant is not simulation type
      *                          dependent
      */
-    private Matrix getMatrixFromMap(ParamMatrixMap param, SimulationType type, int time) {
+    public Matrix getMatrixFromMap(ParamMatrixMap param, SimulationType type, int time) {
         if (this.paramMatrixMaps.get(param).getRight().length < 2) {
             throw new RuntimeException("Enum-Value is not simulation " + "type" + " dependent: " + this);
         }

@@ -12,6 +12,7 @@ import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.loc.Locatable;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Person;
+import de.dlr.ivf.tapas.util.Matrix;
 import de.dlr.ivf.tapas.util.TPS_Geometrics;
 import de.dlr.ivf.tapas.util.parameters.*;
 
@@ -22,6 +23,12 @@ import de.dlr.ivf.tapas.util.parameters.*;
  */
 public class TPS_NonMotorisedMode extends TPS_Mode {
 
+    private static int mycounter = 0;
+    private static int lasttime = 0;
+    private static Matrix tt_walk_lasttime = new Matrix(1);
+    private static Matrix tt_walk_lasttime_all = new Matrix(1);
+    private static ParamMatrixMapClass first_matrixmapclass;
+    private static TPS_ParameterClass first_parameterclass;
     /**
      * Calls super constructor with name
      *
@@ -75,25 +82,66 @@ public class TPS_NonMotorisedMode extends TPS_Mode {
 
                 int idStart = start.getTrafficAnalysisZone().getTAZId();
                 int idDest = end.getTrafficAnalysisZone().getTAZId();
+                Matrix tt_walk = this.getParameters().paramMatrixMapClass.getMatrixFromMap(
+                        ParamMatrixMap.TRAVEL_TIME_WALK, simType, time);
+                Matrix tt_walk_lasttime2 = this.getParameters().paramMatrixMapClass.getMatrixFromMap(
+                        ParamMatrixMap.TRAVEL_TIME_WALK, simType, lasttime);
+
+                if (idStart>1223 || idDest > 1223) {
+                    mycounter++;
+                    System.out.println("hi " + mycounter
+                                    + ", "+ tt_walk.toString()
+                            + ", "+ this.getParameters().paramMatrixMapClass.toString()
+                            + ", "+ first_matrixmapclass.toString()
+                            + ", "+ this.getParameters().toString()
+                            + ", "+ first_parameterclass.toString()
+                            + ", "+ tt_walk.getNumberOfRows()
+                            + ", "+ tt_walk.getNumberOfColums()
+                            +  ", " + idStart + ", " + idDest + ", " + simType + ", " + time + ", " + lasttime
+                            + ", "+ tt_walk_lasttime2.getNumberOfRows()
+                            + ", "+ tt_walk_lasttime2.getNumberOfColums());
+                    lasttime = time;
+                }
+                    System.out.println("Set first matrixmap and parametrclass");
+                    first_matrixmapclass = this.getParameters().paramMatrixMapClass;
+                    first_parameterclass = this.getParameters();
+
+                if (!first_matrixmapclass.equals(this.getParameters().paramMatrixMapClass)) {
+                    System.out.println(first_matrixmapclass.toString());
+                    System.out.println(this.getParameters().paramMatrixMapClass.toString());
+                    System.out.println(first_parameterclass.toString());
+                    System.out.println(this.getParameters().toString());
+                }
+                if ((idStart>1223 || idDest > 1223) & tt_walk.getNumberOfRows()< 1225){
+                    System.out.println("oh oh ");
+                }
                 if (idStart == idDest) {
                     // start and end locations are in the same traffic analysis zone
                     if (this.getParameters().isTrue(ParamFlag.FLAG_INTRA_INFOS_MATRIX)) {
                         // If there exists travel times inside a traffic
                         // analysis zone this value is used.
                         // if not use default tt
-                        tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_WALK, idStart,
-                                idDest, simType, time);
+//                        tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_WALK, idStart,
+//                                idDest, simType, time);
+                        tt = this.getParameters().paramMatrixMapClass.getMatrixFromMap(
+                                ParamMatrixMap.TRAVEL_TIME_WALK, simType, time).getValue(idStart, idDest);
                     }
                 } else {
                     // start and end locations are in different traffic analysis
                     // zones. The travel time is calculated by the travel
                     // time from a table and a factor retrieved by the beeline
                     // and the real distance.
-                    tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_WALK, idStart,
-                            idDest, simType, time);
+//                    tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_WALK, idStart,
+//                            idDest, simType, time);
+                    tt = this.getParameters().paramMatrixMapClass.getMatrixFromMap(
+                            ParamMatrixMap.TRAVEL_TIME_WALK, simType, time).getValue(idStart, idDest);
                     tt *= beelineDistance / this.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_BL,
                             idStart, idDest);
                 }
+                if (idStart>1223 || idDest > 1223) {
+                    tt_walk_lasttime = tt_walk;
+                }
+                tt_walk_lasttime_all = tt_walk;
                 if (this.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK) && simType.equals(
                         SimulationType.SCENARIO) || this.getParameters().isDefined(
                         ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE) && simType.equals(SimulationType.BASE))
