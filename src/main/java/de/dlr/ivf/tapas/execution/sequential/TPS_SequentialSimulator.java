@@ -77,24 +77,7 @@ public class TPS_SequentialSimulator implements Runnable{
      * @return a {@link TPS_Event} of type {@link TPS_EventType#SIMULATION_STEP} where its payload is equal to the time
      *         the first person is leaving the house.
      */
-
-    private TPS_Event initAndGetFirstSimulationTimeEvent(List<TPS_Plan> plans){
-
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Initializing first simulation event...");
-
-        AtomicInteger simulation_start_time = new AtomicInteger(0);
-
-        plans.stream().parallel()
-                .mapToInt(plan -> plan.getScheme().getSchemeParts().get(0).getFirstEpisode().getOriginalDuration())
-                .min()
-                .ifPresentOrElse( i -> simulation_start_time.set(FuncUtils.secondsToRoundedMinutes.apply(i)), () -> {throw new RuntimeException();});
-
-        TPS_Event first_simulation_event = new TPS_Event(TPS_EventType.SIMULATION_STEP,  simulation_start_time.get());
-
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "First simulation event is of type: "+first_simulation_event.getEventType()+" at time: "+first_simulation_event.getData());
-
-        return first_simulation_event;
-    }
+    
 
 //    /**
 //     * Creates a {@link TPS_StateMachine} with a set of states representing the behaviour for every {@link de.dlr.ivf.tapas.scheme.TPS_Episode}

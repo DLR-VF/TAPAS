@@ -1,6 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.util.StateMachineUtils;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.person.*;
@@ -9,19 +10,49 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
+/**
+ * The controller is being used to control all state machines that belong to the same household.
+ * As an {@link EventDelegator} it delegates external events to state machines that are part of this controller.
+ * It is a means to control the order in which every state machine is receiving the event. Depending on the implementation
+ * it can also be used to make an early transition of certain state machines.
+ *
+ */
 public class HouseholdBasedStateMachineController implements EventDelegator, ErrorHandler{
 
+    /**
+     * the household that is represented
+     */
     private TPS_Household hh;
 
+    /**
+     * A mapping between each {@link TPS_Person} and its corresponding {@link TPS_StateMachine}
+     */
     private SortedMap<TPS_Person,TPS_StateMachine> state_machines = new TreeMap<>(Comparator.comparingDouble(TPS_Person::primaryDriver).reversed());
 
+    /**
+     * This constructor with only {@link TPS_Person} and {@link TPS_StateMachine} mappings generates a controller
+     * with an empty household.
+     * @param state_machines
+     */
     public HouseholdBasedStateMachineController(Map<TPS_Person, TPS_StateMachine> state_machines){
-
-        this.state_machines.putAll(state_machines);
-
+        this(state_machines, StateMachineUtils.EmptyHouseHold());
     }
 
+    /**
+     * Sets up a controller with an associated household and person/state machine mappings.
+     * @param state_machines
+     * @param hh
+     */
+    public HouseholdBasedStateMachineController(Map<TPS_Person, TPS_StateMachine> state_machines, TPS_Household hh){
+
+        this.state_machines.putAll(state_machines);
+        this.hh = hh;
+    }
+
+    /**
+     * This method delegates an {@link TPS_Event} to every {@link TPS_StateMachine} that will accept it.
+     * @param event the event to be delegated
+     */
     @Override
     public void delegateEvent(TPS_Event event){
 
@@ -41,6 +72,11 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
                      .collect(Collectors.toList());
     }
 
+    /**
+     * Gets all {@link TPS_StateMachine} that will transition based on the {@link TPS_Event}.
+     * @param event
+     * @return a {@link Stream} of {@link TPS_StateMachine} that will transition.
+     */
     private Stream<Map.Entry<TPS_Person,TPS_StateMachine>> getTransitioningStateMachines(TPS_Event event){
 
         return state_machines.entrySet()
@@ -48,6 +84,11 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
                              .filter(entry -> entry.getValue().willHandleEvent(event));
     }
 
+    /**
+     *
+     * @return a {@link Stream} of {@link TPS_StateMachine} where the represented {@link TPS_Person} is a potential
+     * car driver.
+     */
     private Stream<Map.Entry<TPS_Person,TPS_StateMachine>> getCarDependantStateMachinesAtHome(){
 
         return state_machines.entrySet()
@@ -55,14 +96,31 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
                              .filter(entry -> entry.getKey().mayDriveACar());
     }
 
+    /**
+     * Returns the associated {@link TPS_Household}
+     * @return the household
+     */
     public TPS_Household getHousehold(){
         return this.hh;
     }
 
+    /**
+     *
+     * @return the count of unfinished {@link TPS_StateMachine}.
+     */
     public int getUnfinishedCount(){
-        return Math.toIntExact(this.state_machines.values().stream().filter(Predicate.not(TPS_StateMachine::hasFinished)).count());
+        return Math.toIntExact(this.state_machines.values()
+                                                  .stream()
+                                                  .filter(Predicate.not(TPS_StateMachine::hasFinished))
+                                                  .count()
+                              );
     }
 
+    /**
+     * This returns true if the controller has a {@link TPS_StateMachine} that will transition upon this event.
+     * @param simulation_event the event to be delegated
+     * @return true if at least one {@link TPS_StateMachine} will pass the event.
+     */
     @Override
     public boolean willPassEvent(TPS_Event simulation_event){
         return this.state_machines.values()
@@ -70,6 +128,12 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
                                   .anyMatch(state_machine -> state_machine.willHandleEvent(simulation_event));
     }
 
+    /**
+     * This method will be balled in case of an exception during a state machine transition. In its current
+     * implementation the state machine will transition to its error state.
+     * Other implementations could delegate the event to the erroneous {@link TPS_StateMachine} again.
+     * @param t the throwable that has been thrown elsewhere in the code
+     */
     @Override
     public void handleError(Throwable t) {
         if(t instanceof TPS_StateTransitionException){
@@ -80,7 +144,8 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.SEVERE, exception.getMessage());
             state_machine.transitionToErrorState();
         }else{
-            throw new RuntimeException("Did someone break LST?");
+            if(!(t instanceof RuntimeException))
+                throw new RuntimeException("Did someone break LST?!");
         }
     }
 }

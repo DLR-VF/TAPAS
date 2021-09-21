@@ -11,7 +11,7 @@ import java.util.Optional;
 public class TPS_ModeValidator {
 
     private final TazBasedCarSharingDelegator car_sharing_delegator;
-
+//todo emergency mode / taz based fallback
     public TPS_ModeValidator(TazBasedCarSharingDelegator car_sharing_mediator){
 
         this.car_sharing_delegator = car_sharing_mediator;

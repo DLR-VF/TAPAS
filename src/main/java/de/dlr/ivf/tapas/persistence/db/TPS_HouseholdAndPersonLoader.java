@@ -26,17 +26,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class handles the loading process of all households and persons from the database. It also assigns the cars to every household*
+ * This class handles the loading process of all households and persons from the database. It also assigns the cars to every household
  *
  */
 
 public class TPS_HouseholdAndPersonLoader {
 
     //The persistence manager
-    private TPS_DB_IOManager pm;
+    private final TPS_DB_IOManager pm;
 
     //the region we are simulating
-    private TPS_Region region;
+    private final TPS_Region region;
 
     public TPS_HouseholdAndPersonLoader(TPS_DB_IOManager pm) {
 

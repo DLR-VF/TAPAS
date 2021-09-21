@@ -33,13 +33,28 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class SequentialSimulator implements TPS_Simulator{
-
+    /**
+     * The TAPAS persistence manager
+     */
     private final TPS_PersistenceManager pm;
 
     public SequentialSimulator(TPS_PersistenceManager pm){
         this.pm = pm;
     }
 
+
+    /**
+     * This will set up all the needed parts for a sequential TAPAS simulation
+     *
+     * Steps in brief:
+     *  1. initializes the {@link TPS_HouseholdAndPersonLoader} and loads all households from the database.
+     *  2. Set up the preference models
+     *  3. generate {@link TPS_Plan}
+     *  4. determine trip count and simulation start time
+     *  5. set up
+     *
+     * @param num_threads thread count of worker threads
+     */
     @Override
     public void run(int num_threads) {
 
