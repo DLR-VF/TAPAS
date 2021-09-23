@@ -150,7 +150,7 @@ public enum ParamFlag {
      */
     FLAG_USE_TAXI,
     /**
-     * Flag, if the PT costs are fix or distance depending
+     * Flag, if the PT costs are fix or distance dependent
      */
     FLAG_FIX_PT_COSTS,
     /**

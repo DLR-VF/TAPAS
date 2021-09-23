@@ -43,7 +43,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             tmpFactor = (mcc.carForThisPlan.getCostPerKilometer(simType) +
                     mcc.carForThisPlan.getVariableCostPerKilometer(simType));
             //TODO: Bad hack to modify the costs according to the av-reduction!
-            if (mcc.carForThisPlan.getAutomation() >= mode.getParameters().getIntValue(
+            if (mcc.carForThisPlan.getAutomationLevel() >= mode.getParameters().getIntValue(
                     ParamValue.AUTOMATIC_VEHICLE_LEVEL) && SimulationType.SCENARIO.equals(simType)) {
                 //calculate time perception modification
                 double rampUp = mode.getParameters().getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_RAMP_UP_TIME);

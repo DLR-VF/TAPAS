@@ -115,6 +115,8 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.PTBIKE_COST_PER_KM, new MutablePair<>(ParamType.OPTIONAL, 0d));
         this.paramValues.put(ParamValue.PT_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.PTBIKE_COST_PER_KM_BASE, new MutablePair<>(ParamType.OPTIONAL, 0d));
+        this.paramValues.put(ParamValue.SHARED_MODE_COST_REDUCTION, new MutablePair<>(ParamType.OPTIONAL, 1d));
+        this.paramValues.put(ParamValue.LOW_INCOME_THRESHOLD, new MutablePair<>(ParamType.OPTIONAL, 0d));
         this.paramValues.put(ParamValue.RANDOM_SEED_NUMBER, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.REJUVENATE_BY_NB_YEARS, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.REJUVENATE_AGE, new MutablePair<>(ParamType.DEFAULT, 75));

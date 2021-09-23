@@ -905,7 +905,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 if (pc.carForThisPlan != null && // if there is an available car
                         !this.getPerson().mayDriveACar() && //but the person has no driver's license
                         // AND the available car is not automated (i.e. below the defined automation level)
-                        (pc.carForThisPlan.getAutomation() < this.getParameters().getIntValue(
+                        (pc.carForThisPlan.getAutomationLevel() < this.getParameters().getIntValue(
                                 ParamValue.AUTOMATIC_VEHICLE_LEVEL))) {
                     pc.carForThisPlan = null; //we make the car unavailable for the person
                 }

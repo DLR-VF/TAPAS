@@ -554,6 +554,27 @@ public enum ParamValue {
     PTBIKE_COST_PER_KM_BASE,
 
     /**
+     * Is a cost reduction factor for the public transport and other shared mobility modes like robotaxi, car sharing
+     * and (autonomous) ride pooling
+     * Double value should be between 0 and 1.
+     * May be used together with the LOW_INCOME_THRESHOLD .
+     * Note: The costs of the shared mobility modes should be MULTIPLIED by SHARED_MODE_COST_REDUCTION factor.
+     * Default: 1 (i.e. no reduction at all)
+     */
+    SHARED_MODE_COST_REDUCTION,
+
+    /**
+     * Low income threshold
+     * Depending on the utility function this is either a threshold for the total income of a household
+     * or a threshold for the equivalence income (see
+     * {@link de.dlr.ivf.tapas.person.TPS_Household}.getHouseholdEquivalenceIncome)
+     * Households below the threshold are considered to have a low income and may benefit of scenario measures
+     * like public transport cost reduction etc.
+     * Default=0, i.e. there is no consideration of low income households
+     */
+    LOW_INCOME_THRESHOLD,
+
+    /**
      * Random seed in the case the random number generator should be fixed
      */
     RANDOM_SEED_NUMBER,

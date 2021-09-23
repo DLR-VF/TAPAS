@@ -221,10 +221,8 @@ public class TPS_Household implements ExtendedWritable {
      * @return all household members
      */
     public Collection<TPS_Person> getMembers(Sorting e) {
-
         List<TPS_Person> agesortedPersons = new ArrayList<>(members.values());
         //TODO why is sorted by age? It isn't, right?
-
         switch (e) {
             case NONE:
             case COST_OPTIMUM:
@@ -248,7 +246,6 @@ public class TPS_Household implements ExtendedWritable {
                 break;
 
         }
-
         return agesortedPersons;
     }
 
@@ -306,6 +303,24 @@ public class TPS_Household implements ExtendedWritable {
     }
 
     /**
+     * Returns the household equivalence income by the new OECD scale
+     * The equivalence income is computed by the total income of the household divided by the sum of the person
+     * weights
+     * I.e. the first adult gets a person weight of 1,
+     * each additional person in the household who is 14 years or older gets a weight of 0.5,
+     * each child under 14 has a weight of 0.3.
+     *
+     * @return household equivalence income
+     */
+    public double getHouseholdEquivalenceIncome() {
+        // first sum all person weights of members with >=14 years of the household
+        // remember the first adult has weight 1, each additional adult (>=14) has weight 0.5
+        double personWeightSum = 1 + (this.members.values().stream().filter(p -> p.getAge() >= 14).count() - 1) * 0.5;
+        personWeightSum += 0.3 * this.members.values().stream().filter(p -> p.getAge() < 14).count();
+        return this.getIncome() / personWeightSum;
+    }
+
+    /**
      * Returns the number of members in this household
      *
      * @return
@@ -350,8 +365,8 @@ public class TPS_Household implements ExtendedWritable {
      */
     public String toString(String prefix) {
         return prefix + this.getClass().getSimpleName() + "[id=" + this.getId() + ", type=" + this.getType() +
-                ", members=" + this.members.size() + ", cars=" + this.getNumberOfCars() + ", income=" + this.getIncome() +
-                "]";
+                ", members=" + this.members.size() + ", cars=" + this.getNumberOfCars() + ", income=" +
+                this.getIncome() + "]";
     }
 
 

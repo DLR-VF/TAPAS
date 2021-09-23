@@ -8,6 +8,7 @@
 
 package de.dlr.ivf.tapas.modechoice;
 
+import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
@@ -34,6 +35,14 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
         double distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
                 mcc.carForThisPlan); //correct the distance to the actual value!
 
+        //if the household equivalence income is below the low income threshold then reduce the price of
+        // public transport, robotaxi, car sharing and autonomous ride pooling
+        double costReductionFactor = 1;
+        if (plan.getPerson().getHousehold().getHouseholdEquivalenceIncome() <
+                mode.getParameters().getDoubleValue(ParamValue.LOW_INCOME_THRESHOLD)) {
+            costReductionFactor = mode.getParameters().getDoubleValue(ParamValue.SHARED_MODE_COST_REDUCTION);
+        }
+
         switch (mode.getAttribute()) {
             case WALK:
                 cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
@@ -43,6 +52,15 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                 break;
             case MIT:
                 cost = costsForMIV(mode, plan, distanceNet, travelTime, mcc, simType);
+                //is car automated and target taz has parking fee?
+                TPS_TrafficAnalysisZone destTAZ = mcc.toStayLocation.getTrafficAnalysisZone();
+                if (mcc.carForThisPlan.getAutomationLevel() >= plan.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL)
+                        && destTAZ.hasParkingFee(simType)) {// scenario
+                    //remove parking fee which was added before
+                    cost -= destTAZ.getParkingFee(simType) * mcc.duration * 2.7777777777e-4;// stay
+                    //add one time drop off fee, i.e. 2.5 times the parking fee of one hour
+                    cost += 2.5*destTAZ.getParkingFee(simType);
+                }
                 break;
             case MIT_PASS:
                 if (mode.getParameters().isTrue(ParamFlag.FLAG_CHARGE_PASSENGERS_WITH_EVERYTHING)) {
@@ -52,8 +70,16 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                 }
                 break;
             case TAXI: //basically means Robotaxi
-                if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_ROBOTAXI))
+                if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_ROBOTAXI)) {
                     cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.TAXI_COST_PER_KM);
+                    //if the household equivalence income is below the low income threshold then reduce the price of
+                    // robotaxi
+                    cost*=costReductionFactor;
+                    if (mcc.toStayLocation.getTrafficAnalysisZone().hasParkingFee(simType)) {
+                        //add one time drop off fee, i.e. 2.5 times the parking fee of one hour
+                        cost += 2.5*mcc.toStayLocation.getTrafficAnalysisZone().getParkingFee(simType);
+                    }
+                }
                 else return Double.NaN;
                 break;
             case PT:
@@ -67,17 +93,26 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                         cost *= distanceNet * 0.001;
                     }
                 }
-                expInterChanges = TPS_FastMath.exp(mode.getParameters().paramMatrixMapClass
-                        .getValue(ParamMatrixMap.INTERCHANGES_PT, mcc.fromStayLocation.getTAZId(),
-                                mcc.toStayLocation.getTAZId(), mcc.startTime) * TPS_DB_IO.INTERCHANGE_FACTOR);
+                //if the household equivalence income is below the low income threshold then reduce the price of public
+                // transport
+                cost*=costReductionFactor;
+
+                expInterChanges = TPS_FastMath.exp(
+                        mode.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.INTERCHANGES_PT,
+                                mcc.fromStayLocation.getTAZId(), mcc.toStayLocation.getTAZId(), mcc.startTime) *
+                                TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
             case TRAIN: //automatic ride pooling vehicle-faker or car sharing in the reference scenario
                 if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_AUTOMATED_RIDE_POOLING))
-                    cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.RIDE_POOLING_COST_PER_KM);
+                    cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(
+                            ParamValue.RIDE_POOLING_COST_PER_KM);
                 else if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler())
                     cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.TRAIN_COST_PER_KM);
                 else return Double.NaN;
+                //if the household equivalence income is below the low income threshold then reduce the price of
+                // autonomous ride pooling or car sharing
+                cost*=costReductionFactor;
                 break;
 
         }
@@ -97,7 +132,9 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
         }
 
         boolean mayDriveCar = plan.getPerson().mayDriveACar();
-        mayDriveCar |= (mcc.carForThisPlan != null && mcc.carForThisPlan.getAutomation() >= plan.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL));
+        mayDriveCar |= (mcc.carForThisPlan != null &&
+                mcc.carForThisPlan.getAutomationLevel() >= plan.getParameters().getIntValue(
+                        ParamValue.AUTOMATIC_VEHICLE_LEVEL));
         return parameters[0] +  // mode constant
                 parameters[1] * travelTime + // beta travel time
                 parameters[2] * cost + // beta costs
