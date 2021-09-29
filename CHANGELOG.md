@@ -1,7 +1,7 @@
 #Changelog 
 
 This file contains all the changes in the upcoming releases.
-It will start at the release fo Version 1.0.1
+It will start at the release of Version 1.0.0
 
 ## [Unreleased]
 
