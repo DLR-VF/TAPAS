@@ -16,4 +16,4 @@ It will start at the release fo Version 1.0.1
 
 [unreleased]: https://github.com/DLR-VF/TAPAS/compare/1.0.1...master
 [1.0.1]: https://github.com/DLR-VF/TAPAS/tree/1.0.1
-[1.0.1]: https://github.com/DLR-VF/TAPAS/tree/1.0.0
+[1.0.0]: https://github.com/DLR-VF/TAPAS/tree/1.0.0
