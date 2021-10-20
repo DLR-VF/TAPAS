@@ -10,6 +10,7 @@ package de.dlr.ivf.tapas.persistence.db;
 
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.util.Matrix;
@@ -639,6 +640,25 @@ public class TPS_DB_Connector {
          * Administrator user
          */
         ADMIN
+    }
+
+    public Map<Integer,Integer> readCarSharingData(String car_sharing_data_table, String key){
+
+        Map<Integer,Integer> result = new HashMap<>();
+
+        String query = "SELECT ft_taz_id, car_sharing_capacity FROM "+car_sharing_data_table+" WHERE ft_name = '"+key+"'";
+
+        try(ResultSet rs = this.executeQuery(query,this)) {
+
+            while (rs.next()) {
+                result.put(rs.getInt("ft_taz_id"),rs.getInt("car_sharing_capacity"));
+            }
+        }catch (Exception e){
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, SeverenceLogLevel.SEVERE,"Error reading car sharing data.");
+        }
+
+        return result;
+
     }
 
 }

@@ -15,6 +15,7 @@ import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.util.FuncUtils;
 
 /**
  * This class is a data structure wrapper for all trips to be written to any output writer.
@@ -139,7 +140,7 @@ public class TPS_WritableTrip {
     }
 
     public int getStartTimeMin(){
-        return (int) ((plan.getPlannedTrip(trip).getStart() * 1.66666666e-2) + 0.5); //sec to min incl round
+        return FuncUtils.secondsToRoundedMinutes.apply(plan.getPlannedTrip(trip).getStart()); //sec to min incl round
     }
 
     public double getTravelTimeSec(){

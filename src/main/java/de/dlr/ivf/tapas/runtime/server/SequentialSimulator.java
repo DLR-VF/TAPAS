@@ -15,6 +15,7 @@ import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.mode.TPS_ModeValidator;
 import de.dlr.ivf.tapas.mode.TazBasedCarSharingDelegator;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_HouseholdAndPersonLoader;
 import de.dlr.ivf.tapas.persistence.db.TPS_PipedDbWriter;
@@ -23,6 +24,7 @@ import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.FuncUtils;
+import de.dlr.ivf.tapas.util.parameters.ParamString;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -37,9 +39,11 @@ public class SequentialSimulator implements TPS_Simulator{
      * The TAPAS persistence manager
      */
     private final TPS_PersistenceManager pm;
+    private final TPS_DB_Connector dbConnector;
 
-    public SequentialSimulator(TPS_PersistenceManager pm){
+    public SequentialSimulator(TPS_PersistenceManager pm, TPS_DB_Connector dbConnector){
         this.pm = pm;
+        this.dbConnector = dbConnector;
     }
 
 
@@ -169,7 +173,7 @@ public class SequentialSimulator implements TPS_Simulator{
 
     private Map<TPS_Household,List<TPS_Plan>> generatePlansAndGet(HouseholdBasedPlanGenerator plan_generator, List<TPS_Household> households){
 
-        return households.stream()
+        return households.stream()//.limit(1)
                          .collect(Collectors.toMap(
                                     Function.identity(),
                                     plan_generator::generatePersonPlansAndGet)
@@ -179,10 +183,15 @@ public class SequentialSimulator implements TPS_Simulator{
 
     private Map<Integer, SharingMediator<TPS_Car>> initCS(){
 
-        return this.pm.getRegion().getTrafficAnalysisZoneKeys()
-                                  .stream()
-                                  .collect(Collectors.toMap(Function.identity(),
-                                                            i -> new SimpleCarSharingOperator(50)));
+        //read car sharing capacities from database
+        String table_taz_fees_and_tolls = dbConnector.getParameters().getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS);
+        String key_taz_fees_and_tolls = dbConnector.getParameters().getString(ParamString.DB_NAME_FEES_TOLLS);
+        Map<Integer,Integer> car_sharing_data = this.dbConnector.readCarSharingData(table_taz_fees_and_tolls, key_taz_fees_and_tolls);
+
+        return car_sharing_data.entrySet()
+                               .stream()
+                               .collect(Collectors.toMap(Map.Entry::getKey,
+                                                         entry -> new SimpleCarSharingOperator(entry.getValue())));
     }
 
     private IntSummaryStatistics calcStatistics(Map<TPS_Household,List<TPS_Plan>> households_to_plans, ToIntFunction<TPS_Episode> collecting_function ){

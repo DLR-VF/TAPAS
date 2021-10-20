@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
+import de.dlr.ivf.tapas.execution.sequential.communication.EndOfSimulationCallback;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.util.StateMachineUtils;
 import de.dlr.ivf.tapas.log.TPS_Logger;
@@ -17,12 +18,14 @@ import java.util.stream.Stream;
  * it can also be used to make an early transition of certain state machines.
  *
  */
-public class HouseholdBasedStateMachineController implements EventDelegator, ErrorHandler{
+public class HouseholdBasedStateMachineController implements EventDelegator, ErrorHandler, EndOfSimulationCallback {
 
     /**
      * the household that is represented
      */
     private TPS_Household hh;
+
+    private List<TPS_StateMachine> call_backs = new ArrayList<>();
 
     /**
      * A mapping between each {@link TPS_Person} and its corresponding {@link TPS_StateMachine}
@@ -47,6 +50,8 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
 
         this.state_machines.putAll(state_machines);
         this.hh = hh;
+
+        state_machines.values().forEach(state_machine -> state_machine.setController(this));
     }
 
     /**
@@ -61,6 +66,9 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
                       .filter(state_machine -> state_machine.willHandleEvent(event))
                       .forEach(state_machine -> state_machine.handleEvent(event)
                       );
+
+        //now handle end of simulation callbacks
+        call_backs.forEach(TPS_StateMachine::transitionToEndState);
     }
 
     public List<TPS_StateMachine> requestTransitioningStateMachines(TPS_Event event){
@@ -129,7 +137,7 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
     }
 
     /**
-     * This method will be balled in case of an exception during a state machine transition. In its current
+     * This method will be called in case of an exception during a state machine transition. In its current
      * implementation the state machine will transition to its error state.
      * Other implementations could delegate the event to the erroneous {@link TPS_StateMachine} again.
      * @param t the throwable that has been thrown elsewhere in the code
@@ -147,5 +155,10 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
             if(!(t instanceof RuntimeException))
                 throw new RuntimeException("Did someone break LST?!");
         }
+    }
+
+    @Override
+    public void endOfSimulationFor(TPS_StateMachine state_machine) {
+        call_backs.add(state_machine);
     }
 }

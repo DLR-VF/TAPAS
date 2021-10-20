@@ -26,4 +26,8 @@ public class TPS_Simulation {
     public String getSimulationKey() {
         return this.sim_key;
     }
+
+    public TPS_DB_Connector getDbConnector(){
+        return this.dbConnector;
+    }
 }

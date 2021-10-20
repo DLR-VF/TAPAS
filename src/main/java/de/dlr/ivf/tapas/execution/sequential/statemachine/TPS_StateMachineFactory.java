@@ -44,6 +44,7 @@ public class TPS_StateMachineFactory {
         TPS_PlanState activity_state = new TPS_SimplePlanState("activity_"+identifier, stateMachine);
         TPS_PlanState trip_state = new TPS_SimplePlanState("trip_"+identifier, stateMachine);
         TPS_PlanState end_state = new TPS_SimplePlanState("END_"+identifier, stateMachine);
+        stateMachine.setEndState(end_state);
 
         stateMachine.setAllStates( List.of(activity_state, trip_state, end_state) );
 
@@ -53,10 +54,15 @@ public class TPS_StateMachineFactory {
         Guard activity_to_trip_guard = new Guard(getSimulationEntryTime(plan));
         Guard trip_to_activity_guard = new Guard(Integer.MAX_VALUE);
 
-        Supplier<List<TPS_PlanStateAction>> act2trip = () -> transition_actions_provider.getActivityToTripActions(plan_context,trip_to_activity_guard, stateMachine);
-        activity_state.addHandler(TPS_EventType.SIMULATION_STEP, trip_state, act2trip, activity_to_trip_guard);
+        //add guard and action supplier for activity to trip state transition
+        Supplier<List<TPS_PlanStateAction>> act2trip_actions = () -> transition_actions_provider.getActivityToTripActions(plan_context,trip_to_activity_guard, stateMachine);
+        activity_state.addHandler(TPS_EventType.SIMULATION_STEP, trip_state, act2trip_actions, activity_to_trip_guard);
 
-        trip_state.addHandler(TPS_EventType.SIMULATION_STEP, activity_state, () -> transition_actions_provider.getTripToActivityActions(plan_context,activity_to_trip_guard), trip_to_activity_guard);
+//        //add the transition to end state handler
+//        activity_state.addHandler(TPS_EventType.END_OF_SIMULATION, end_state,() -> Collections.emptyList(),new Guard(() -> !plan_context.getTourContext().isPresent()));
+
+        Supplier<List<TPS_PlanStateAction>> trip2act_actions = () -> transition_actions_provider.getTripToActivityActions(plan_context,activity_to_trip_guard, stateMachine);
+        trip_state.addHandler(TPS_EventType.SIMULATION_STEP, activity_state, trip2act_actions, trip_to_activity_guard);
 
         return stateMachine;
     }

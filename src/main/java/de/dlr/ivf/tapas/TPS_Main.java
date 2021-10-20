@@ -74,6 +74,7 @@ public class TPS_Main {
      * container which holds all parameter values
      */
     private final TPS_ParameterClass parameterClass;
+    private TPS_DB_Connector dbConnector;
 
     private TPS_Simulator simulator;
 
@@ -132,6 +133,7 @@ public class TPS_Main {
         TPS_InitializedSimulation sim_to_run = simulation.initialize();
         this.parameterClass = sim_to_run.getParameters();
         this.PM = initAndGetPersistenceManager(this.parameterClass);
+        this.dbConnector = simulation.getDbConnector();
     }
 
     /**
@@ -263,7 +265,7 @@ public class TPS_Main {
         initPM();
 
         if(this.parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) && this.parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
-            this.simulator = new SequentialSimulator(this.PM);
+            this.simulator = new SequentialSimulator(this.PM, this.dbConnector);
         }else{
             this.simulator = new HierarchicalSimulator(this.PM);
         }

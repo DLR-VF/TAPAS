@@ -1,7 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
-import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
@@ -25,17 +24,21 @@ public class UpdateTimeDeviationAndTimesAction implements TPS_PlanStateAction{
     @Override
     public void run() {
 
-        int delta_traveltime = next_planned_trip.getDuration() - next_trip.getOriginalDuration();
-
-        this.plan_context.updateTimeDeviation(delta_traveltime);
 
         int cumulative_delta_tt = this.plan_context.getTimeDeviation();
 
-        //now set start time summed with delta time
+        //the start time of the trip will be the current cumulative time offset towards the original plan plus the original start time of the trip
         int next_start_time = cumulative_delta_tt + next_planned_trip.getStart();
         next_planned_trip.setStart(next_start_time);
 
-        next_located_stay.setStart(next_start_time + next_planned_trip.getDuration());
+        //determine time difference between the planned trip duration and the trip duration according to plan
+        int delta_traveltime = next_planned_trip.getDuration() - next_trip.getOriginalDuration();
+
+        //add the time difference to the cumulative time offset
+        this.plan_context.updateTimeDeviation(delta_traveltime);
+
+        //Note: set the next activity start after updating the cumulative time offset with the travel time of the prior trip
+        next_located_stay.setStart(next_located_stay.getStart() + this.plan_context.getTimeDeviation());
 
     }
 }

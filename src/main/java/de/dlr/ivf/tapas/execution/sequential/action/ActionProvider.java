@@ -50,19 +50,16 @@ public class ActionProvider {
 
         plan_context
                 .getTourContext()
-                .ifPresentOrElse(
-                        tc -> transition_actions.addAll(generateAndGetActivityToTripActions(plan_context,tc, trip_to_activity_guard)),
-                        () -> transition_actions.add(new TransitionToEndstateAction(state_machine))
-                );
+                .ifPresent(tc -> transition_actions.addAll(generateAndGetActivityToTripActions(plan_context,tc, trip_to_activity_guard)));
 
       return transition_actions;
     }
 
-    public List<TPS_PlanStateAction> getTripToActivityActions(PlanContext plan_context, Guard activity_to_trip_guard){
+    public List<TPS_PlanStateAction> getTripToActivityActions(PlanContext plan_context, Guard activity_to_trip_guard, TPS_StateMachine state_machine){
 
         List<TPS_PlanStateAction> transition_actions = new ArrayList<>();
 
-        plan_context.getTourContext().ifPresent(tc -> transition_actions.addAll(generateAndGetTripToActivityActions(plan_context,tc,activity_to_trip_guard)));
+        plan_context.getTourContext().ifPresent(tc -> transition_actions.addAll(generateAndGetTripToActivityActions(plan_context,tc,activity_to_trip_guard, state_machine)));
 
         return transition_actions;
     }
@@ -121,7 +118,7 @@ public class ActionProvider {
         return transition_actions;
     }
 
-    public List<TPS_PlanStateAction> generateAndGetTripToActivityActions(PlanContext plan_context, TourContext tour_context, Guard activity_to_trip_guard){
+    public List<TPS_PlanStateAction> generateAndGetTripToActivityActions(PlanContext plan_context, TourContext tour_context, Guard activity_to_trip_guard, TPS_StateMachine state_machine){
 
         ArrayList<TPS_PlanStateAction> transition_actions = new ArrayList<>();
 
@@ -138,7 +135,6 @@ public class ActionProvider {
         transition_actions.add(new CheckInSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator));
 
         TPS_Stay next_stay = tour_context.getNextStay();
-      //  if(next_stay != null)
         transition_actions.add(new AdaptGuardAction(activity_to_trip_guard, guard_adaption_function, next_stay, plan_context::getTimeDeviation));
 
         List<ContextUpdateable> contexts_to_update = new ArrayList<>(List.of(tour_context, mode_context, location_context));
@@ -148,6 +144,9 @@ public class ActionProvider {
             contexts_to_update.add(plan_context);
 
         transition_actions.add(new UpdateContextsAction(contexts_to_update));
+
+        //this action will only transition the state machine to end state when the plan is finished
+        transition_actions.add(new TransitionToEndstateAction(state_machine,plan_context));
 
 
         return transition_actions;

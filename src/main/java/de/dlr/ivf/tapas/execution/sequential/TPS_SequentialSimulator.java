@@ -184,6 +184,9 @@ public class TPS_SequentialSimulator implements Runnable{
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, log_message);
 
+            //are all state machines finished?
+            all_finished = unfinished_state_machines_count == 0;
+
             //the position of the last published event
             long cursor = ring_buffer.getCursor();
 

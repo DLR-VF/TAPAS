@@ -1,6 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
 import de.dlr.ivf.tapas.execution.sequential.action.TPS_PlanStateAction;
+import de.dlr.ivf.tapas.execution.sequential.communication.EndOfSimulationCallback;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
 
 import java.util.List;
@@ -45,6 +46,8 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
      */
     private TPS_PlanState current_state;
 
+    private EndOfSimulationCallback controller;
+
     /**
      * a list containing all states
      */
@@ -74,6 +77,14 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
         this.states = states;
         this.name = name;
         this.end_state = end_state;
+    }
+
+    public void setController(EndOfSimulationCallback controller){
+        this.controller = controller;
+    }
+
+    public EndOfSimulationCallback getController(){
+        return this.controller;
     }
 
     /**
@@ -170,6 +181,7 @@ public class TPS_StateMachine implements TPS_PlanStatemachineEventHandler, Trans
     }
 
     public void transitionToEndState() {
+        this.current_state.exit();
         this.current_state = end_state;
     }
 

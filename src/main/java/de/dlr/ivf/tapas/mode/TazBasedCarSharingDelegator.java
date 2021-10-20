@@ -2,25 +2,17 @@ package de.dlr.ivf.tapas.mode;
 
 import de.dlr.ivf.tapas.execution.sequential.communication.SharingDelegator;
 import de.dlr.ivf.tapas.execution.sequential.communication.SharingMediator;
-import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 public class TazBasedCarSharingDelegator implements SharingDelegator<TPS_Car> {
-
-    private final NavigableSet<TPS_Car> available_cars = new TreeSet<>(Comparator.comparingDouble(TPS_Car::getRangeLeft));
-    private Map<Integer, AtomicInteger> destination_taz_counts = new HashMap<>();
-    private Map<Integer, AtomicInteger> source_taz_counts = new HashMap<>();
-    private TPS_Car random_car = new TPS_Car(-1);
 
     private Map<Integer, SharingMediator<TPS_Car>> car_sharing_mediators;
 
     public TazBasedCarSharingDelegator(Map<Integer, SharingMediator<TPS_Car>> car_sharing_mediators){
 
         this.car_sharing_mediators = car_sharing_mediators;
-
     }
 
     @Override
