@@ -1,7 +1,7 @@
-0	Fuß
+0	FuÃŸ
 1	Rad
 2	Auto
 3	Mitfahrer
 4	Taxi (abgeschaltet)
-5	ÖV
+5	Ã–V
 6	Carsharing

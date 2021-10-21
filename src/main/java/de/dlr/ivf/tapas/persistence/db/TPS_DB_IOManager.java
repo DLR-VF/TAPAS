@@ -216,7 +216,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                             pS.setInt(index++, -1);
                             pS.setBoolean(index++, false);
                         }
-                        pS.setInt(index++, p.getPersGroup().getCode());
+                        pS.setInt(index++, p.getPersonGroup().getCode());
                         pS.setInt(index++,
                                 prevLoc.getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystemType.FORDCP));
                         pS.setInt(index++, hh.getLocation().getTrafficAnalysisZone().getBbrType()

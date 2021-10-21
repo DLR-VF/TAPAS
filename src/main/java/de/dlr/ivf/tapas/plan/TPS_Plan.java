@@ -14,7 +14,6 @@ import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttri
 import de.dlr.ivf.tapas.constants.TPS_AgeClass.TPS_AgeCodeType;
 import de.dlr.ivf.tapas.constants.TPS_DrivingLicenseInformation;
 import de.dlr.ivf.tapas.constants.TPS_Income;
-import de.dlr.ivf.tapas.constants.TPS_PersonGroup.TPS_PersonGroupType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.LogHierarchy;
@@ -43,13 +42,9 @@ import java.util.stream.IntStream;
 /**
  * Class for a TAPAS plan.
  * Contains trips, budgets, and many more stuff for plan related work
- *
- * @author cyga_ri
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
-    /// Flag for DEBUG-Modus
-    private static final boolean DEBUG = false;
     /// The environment for this plan
     public TPS_PlanEnvironment pe;
     public List<TPS_Car> usedCars = new LinkedList<>();
@@ -98,8 +93,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         myAttributes.put(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE,
                 TPS_Income.getCode(person.getHousehold().getIncome()));
         myAttributes.put(TPS_Attribute.PERSON_AGE, person.getAge());
-        myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_PERSON_GROUP,
-                person.getPersGroup().getCode(TPS_PersonGroupType.TAPAS));
+        myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_PERSON_GROUP, person.getPersonGroup().getCode());
         myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_STBA, person.getAgeClass().getCode(TPS_AgeCodeType.STBA));
         int code;
         if (person.hasDrivingLicenseInformation()) {
@@ -121,7 +115,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_STBA, person.getAgeClass().getCode(TPS_AgeCodeType.STBA));
         myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, person.hasBike() ? 1 : 0);
         myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, person.getHousehold()
-                                                             .getCarNumber()); // TODO: note that this is set once again in selectLocationsAndModesAndTravelTimes
+                                                             .getNumberOfCars()); // TODO: note that this is set once again in selectLocationsAndModesAndTravelTimes
         myAttributes.put(TPS_Attribute.PERSON_SEX_CLASS_CODE, person.getSex().getCode());
 
         if (this.scheme != null) {
@@ -395,7 +389,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
 
                 out.add(Integer.toString(schemeID)); // SchemeID
 
-                out.add(Integer.toString(pe.getPerson().getPersGroup().getCode())); // job
+                out.add(Integer.toString(pe.getPerson().getPersonGroup().getCode())); // job
                 out.add(Integer.toString(mainActivity)); // actCode
 
                 // fahrten haben keine Aktivitätencodes! daher: Aktivitätencode der nächsten location
@@ -908,10 +902,14 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 pc.carForThisPlan = tourpart.getCar();
             } else if (!pc.influenceCarUsageInPlan) {
                 //check if a car could be used
-                if (this.getPerson().mayDriveACar()) {
-                    pc.carForThisPlan = TPS_Car.selectCar(this, tourpart);
-                } else {
-                    pc.carForThisPlan = null;
+                pc.carForThisPlan = TPS_Car.selectCar(this, tourpart);
+
+                if (pc.carForThisPlan != null && // if there is an available car
+                        !this.getPerson().mayDriveACar() && //but the person has no driver's license
+                        // AND the available car is not automated (i.e. below the defined automation level)
+                        (pc.carForThisPlan.getAutomationLevel() < this.getParameters().getIntValue(
+                                ParamValue.AUTOMATIC_VEHICLE_LEVEL))) {
+                    pc.carForThisPlan = null; //we make the car unavailable for the person
                 }
             }
 
@@ -925,7 +923,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
             if (pc.carForThisPlan == null) {
                 myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, 0);
             } else {
-                myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, this.getPerson().getHousehold().getCarNumber());
+                myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, this.getPerson().getHousehold().getNumberOfCars());
             }
 
             for (TPS_Stay stay : tourpart.getPriorisedStayIterable()) {
@@ -989,22 +987,16 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                     if (currentLocatedStay.getLocation() == null) {
                         TPS_Logger.log(SeverenceLogLevel.ERROR, "No Location found!");
                     }
-
-                    if (DEBUG) {
-                        if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                            String s = "gewählte Location zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
-                                    currentLocatedStay.getLocation().getId() + " in TAZ:" +
-                                    currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                    " in block: " +
-                                    (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                     .getBlock()
-                                                                                                     .getId() : -1) +
-                                    " via" + currentLocatedStay.getModeArr().getName() + "/" +
-                                    currentLocatedStay.getModeDep().getName();
-                            TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
-                        }
-                    }
                     if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
+                        String s = "gewählte Location zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
+                                currentLocatedStay.getLocation().getId() + " in TAZ:" +
+                                currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() + " in block: " +
+                                (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
+                                                                                                 .getBlock()
+                                                                                                 .getId() : -1) +
+                                " via" + currentLocatedStay.getModeArr().getName() + "/" +
+                                currentLocatedStay.getModeDep().getName();
+                        TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
                         TPS_Logger.log(SeverenceLogLevel.DEBUG,
                                 "Selected location (id=" + currentLocatedStay.getLocation().getId() +
                                         ") for stay (id=" + currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
@@ -1058,36 +1050,33 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                             myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, 0);
                         } else {
                             myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS,
-                                    this.getPerson().getHousehold().getCarNumber());
+                                    this.getPerson().getHousehold().getNumberOfCars());
                         }
                         myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
                     }
                 }
-                if (DEBUG) {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                        String s = "gewählter Modus zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
-                                currentLocatedStay.getModeArr() == null ? "NULL" :
-                                currentLocatedStay.getModeArr().getName() + " in TAZ:" +
-                                        currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                        " in block: " +
-                                        (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                         .getBlock()
-                                                                                                         .getId() : -1) +
-                                        " via" + currentLocatedStay.getModeArr().getName() + "/" +
-                                        currentLocatedStay.getModeDep().getName();
-                        TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
-                    }
-                }
                 if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
+                    String s = "Chosen mode of Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
+                            currentLocatedStay.getModeArr() == null ? "NULL" :
+                            currentLocatedStay.getModeArr().getName() + " in TAZ:" +
+                                    currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
+                                    " in block: " +
+                                    (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
+                                                                                                     .getBlock()
+                                                                                                     .getId() : -1) +
+                                    " via" + currentLocatedStay.getModeArr().getName() + "/" +
+                                    currentLocatedStay.getModeDep().getName();
+                    TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
                     TPS_Logger.log(SeverenceLogLevel.DEBUG,
                             "Selected mode (id=" + currentLocatedStay.getModeArr() == null ? "NULL" :
                                     currentLocatedStay.getModeArr().getName() + ") for stay (id=" +
                                             currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
                                             currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                            ") in block (id= " +
-                                            (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay
-                                                    .getLocation().getBlock().getId() : -1) + ") via modes " +
-                                            currentLocatedStay.getModeArr().getName() + "/" +
+                                            ") in block (id= " + (currentLocatedStay.getLocation()
+                                                                                    .hasBlock() ? currentLocatedStay.getLocation()
+                                                                                                                    .getBlock()
+                                                                                                                    .getId() : -1) +
+                                            ") via modes " + currentLocatedStay.getModeArr().getName() + "/" +
                                             currentLocatedStay.getModeDep().getName());
                 }
 
@@ -1290,7 +1279,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 out.write(Integer.toString(schemeID)); // SchemeID
                 out.write(", ");
 
-                out.write(Integer.toString(pe.getPerson().getPersGroup().getCode())); // job
+                out.write(Integer.toString(pe.getPerson().getPersonGroup().getCode())); // job
                 out.write(", ");
 
                 //hauptaktivität

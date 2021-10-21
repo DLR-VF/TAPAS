@@ -483,7 +483,10 @@ public class TPS_DB_Connector {
                     if(matrices[i] != null){
                         TPS_Logger.log(SeverenceLogLevel.INFO,
                                 "Loaded matrix from DB: " + matrix_names[i] + " End time: " + distribution[i] +
-                                        " Average value: " + matrices[i].getAverageValue(false, true));
+                                        " Average value: " + matrices[i].getAverageValue(false, true)+
+                                        " Size (Elements, Rows, Columns): " + matrices[i].getNumberOfElements() + ", "
+                                        + matrices[i].getNumberOfRows() + ", "
+                                        + matrices[i].getNumberOfColums());
                     } else {
                         throw new SQLException(
                                 "Couldn't load matrix " + matrix_names[i] + " form matrix map" + matrixName +

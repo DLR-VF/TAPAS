@@ -118,7 +118,7 @@ public class TPS_ModeSet implements ExtendedWritable {
         plan.setAttributeValue(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_TAPAS,
                 currentActCode.getCode(TPS_ActivityCodeType.TAPAS));
 
-        TPS_DiscreteDistribution<TPS_Mode> srcDis = TPS_Mode.getUtilityFunction(this.parameterClass).getDistributionSet(
+        TPS_DiscreteDistribution<TPS_Mode> srcDis = TPS_Mode.getUtilityFunction().getDistributionSet(
                 this, plan, distanceNet,
                 mcc);//locComingFrom, currentStayLocation, stay.getOriginalStart(), durationStay, car, fBike,stay);
         plan.removeAttribute(TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_MCT);

@@ -345,7 +345,7 @@ public class TPS_Car {
     /**
      * @return the automation
      */
-    public int getAutomation() {
+    public int getAutomationLevel() {
         return automationLevel;
     }
 

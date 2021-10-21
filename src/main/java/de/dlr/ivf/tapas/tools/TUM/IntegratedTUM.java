@@ -222,7 +222,7 @@ public abstract class IntegratedTUM extends SwingWorker<Void, String> {
                         if (!isCancelled()) {
                             publish(fail,
                                     MultilanguageSupport.getString("TUM_CONSOLE_TRIP_ERROR") + this.currenttripcnt +
-                                            "... " + MultilanguageSupport.getString("TUM_CONSOLE_SKIPEXCE"), summary);
+                                            "... " + MultilanguageSupport.getString("TUM_CONSOLE_SKIPEXCEL"), summary);
 
                             if (i < simcount - 1) publish(nextsim);
                         }

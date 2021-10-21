@@ -48,8 +48,8 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
         } else {
             tt2 = tt1;
         }
-        double cost1 = this.getCostOfMode(mode, plan, distanceNet, tt1, mcc, SimulationType.SCENARIO);
-        double cost2 = this.getCostOfMode(mode, plan, distanceNet, tt2, mcc, SimulationType.BASE);
+        double cost1 = this.getCostOfMode(mode, plan, tt1, mcc, SimulationType.SCENARIO);
+        double cost2 = this.getCostOfMode(mode, plan, tt2, mcc, SimulationType.BASE);
         if (Double.isNaN(cost1)) {
             return 0;
         }
@@ -64,11 +64,10 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
      * This method calculates the costs of the given mode.
      *
      * @param mode        The mode to calculate
-     * @param distanceNet The net distance
      * @param simType     The simulation type (BASE or SCENARIO)
      * @return The cost for the mode
      */
-    public abstract double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc/*TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike*/, SimulationType simType/*, TPS_Stay stay*/);
+    public abstract double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType);
 
     public TPS_DiscreteDistribution<TPS_Mode> getDistributionSet(TPS_ModeSet modeSet, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
         // init
@@ -93,7 +92,7 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
                     utilities[i] = minModeProbability;
                 } else {
                     //calc the value
-                    utilities[i] = this.getCostOfMode(mode, plan, distanceNet, travelTime, mcc,
+                    utilities[i] = this.getCostOfMode(mode, plan, travelTime, mcc,
                             SimulationType.SCENARIO);
                     if (Double.isNaN(utilities[i])) {
                         utilities[i] = minModeProbability;

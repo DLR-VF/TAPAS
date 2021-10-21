@@ -1,7 +1,8 @@
 /.gradle/
 /src/main/resources/buildnumber.properties
-/.gradle/
 /build/
+/base.properties
+/converter.properties
 /daemon.properties
 /client.properties
 /MultilanguageSupportUsers.properties

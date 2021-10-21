@@ -299,9 +299,6 @@ public class SimulationServer extends Thread {
                 }
             }
 
-            //the server has been shut down
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }

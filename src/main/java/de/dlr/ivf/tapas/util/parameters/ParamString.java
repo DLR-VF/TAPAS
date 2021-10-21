@@ -550,16 +550,16 @@ public enum ParamString {
     HOUSEHOLD_MEMBERSORTING,
 
     /**
-     * Level for class loging
+     * Level for class logging
      */
     LOG_CLASS,
     /**
-     * Level for all loging
+     * Level for all logging
      */
 
     LOG_LEVEL_ALL,
     /**
-     * Level for debuging
+     * Level for debugging
      */
     LOG_LEVEL_DEBUG,
     /**
@@ -573,16 +573,16 @@ public enum ParamString {
     LOG_LEVEL_FATAL,
 
     /**
-     * Level for fine loging
+     * Level for fine logging
      */
     LOG_LEVEL_FINE,
 
     /**
-     * Level for finer loging
+     * Level for finer logging
      */
     LOG_LEVEL_FINER,
     /**
-     * Level for finest loging
+     * Level for finest logging
      */
     LOG_LEVEL_FINEST,
     /**
@@ -678,6 +678,10 @@ public enum ParamString {
      * The key-name for the car fleet e.g. MID2008_Y2030
      */
     DB_CAR_FLEET_KEY,
+    /**
+     * The key-name for the person group division e.g. TAPAS or VISEVA, default is TAPAS
+     */
+    DB_PERSON_GROUP_KEY,
     /**
      * The key-name for the activity based search radius table e.g. default
      */

@@ -137,15 +137,12 @@ public abstract class TPS_Mode {
     }
 
     /**
-     * Method initializes and returns utility function
+     * Method returns utility function.
+     * Must be initialized first by the initUtilityFunction
      *
-     * @param parameterClass reference
      * @return utility function
      */
-    public static TPS_UtilityFunction getUtilityFunction(TPS_ParameterClass parameterClass) {
-        if (TPS_Mode.UTILITY_FUNCTION == null) {
-            TPS_Mode.initUtilityFunction(parameterClass);
-        }
+    public static TPS_UtilityFunction getUtilityFunction() {
         return UTILITY_FUNCTION;
     }
 
@@ -199,7 +196,7 @@ public abstract class TPS_Mode {
      * Gets the Delta of costs for this mode
      */
     double calculateDelta(TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
-        return TPS_Mode.getUtilityFunction(this.parameterClass).calculateDelta(this, plan, distanceNet, mcc);
+        return TPS_Mode.getUtilityFunction().calculateDelta(this, plan, distanceNet, mcc);
     }
 
     /**
@@ -276,9 +273,9 @@ public abstract class TPS_Mode {
     }
 
     /**
-     * * This method returns the cost factor for this mode for the specified Scenario case. It must be multiplied with a cost per km value.
+     * This method returns the cost factor for this mode for the specified Scenario case. It must be multiplied with a cost per km value.
      *
-     * @param simType Secario or base
+     * @param simType scenario or base
      * @return cost factor per km.
      */
     public double getCost_per_km(SimulationType simType) {

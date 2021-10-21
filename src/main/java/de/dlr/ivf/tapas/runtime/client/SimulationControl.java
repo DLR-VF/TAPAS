@@ -10,8 +10,6 @@ package de.dlr.ivf.tapas.runtime.client;
 
 import com.csvreader.CsvReader;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
 import de.dlr.ivf.tapas.runtime.server.SimulationData;
 import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
 import de.dlr.ivf.tapas.runtime.server.SimulationServerData;
