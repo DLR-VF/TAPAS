@@ -69,6 +69,9 @@ public class SequentialSimulator implements TPS_Simulator{
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.pm);
             List<TPS_Household> hhs = hh_pers_loader.initAndGetAllHouseholds();
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
+            int cnt_hh = hhs.size();
+            int cnt_person = Math.toIntExact(hhs.stream().mapToInt(TPS_Household::getNumberOfMembers).sum());
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loaded "+cnt_hh+" households and "+cnt_person+" persons");
 
             //setup preference models
             List<TPS_Preference> preference_models = generatePreferenceModels(hhs);
@@ -79,6 +82,7 @@ public class SequentialSimulator implements TPS_Simulator{
             HouseholdBasedPlanGenerator plan_generator = new HouseholdBasedPlanGenerator(this.pm, preference_models,preference_parameters);
 
             Map<TPS_Household,List<TPS_Plan>> households_to_plans = generatePlansAndGet(plan_generator,hhs);
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, " Generated "+households_to_plans.values().stream().mapToLong(List::size).sum()+" person plans");
 
             //set up entry time
             IntSummaryStatistics stats = calcStatistics(households_to_plans, TPS_Episode::getOriginalStart);
@@ -102,6 +106,11 @@ public class SequentialSimulator implements TPS_Simulator{
             //set up state machines
             TPS_StateMachineFactory state_machine_factory = new TPS_StateMachineFactory(transition_actions_provider);
             List<HouseholdBasedStateMachineController> statemachine_controllers = generateHouseholdStateMachineControllers(households_to_plans, state_machine_factory);
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,
+                    "Generated "+statemachine_controllers.size()+" state machine controllers with "
+                            +statemachine_controllers.stream().mapToInt(HouseholdBasedStateMachineController::getStateMachinesCount).sum()
+                            +" state machines | "+state_machine_factory.getImmediatelyFinishedStateMachineCnt()
+                            +" state machines immediately finished because the plan contained not trips");
 
 
             //now init the first event of the simulation
@@ -112,7 +121,7 @@ public class SequentialSimulator implements TPS_Simulator{
             persisting_thread.start();
 
             //set up the simulation thread
-            TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers, Math.max(1, num_threads / 2 - 2), (TPS_DB_IOManager) this.pm, writer,  1 << 20, first_simulation_event);
+            TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers, Math.max(1, num_threads / 2 - 3), (TPS_DB_IOManager) this.pm, writer,  1 << 20, first_simulation_event);
             Thread simulation_thread = new Thread(simulator);
             simulation_thread.start();
 
@@ -163,8 +172,7 @@ public class SequentialSimulator implements TPS_Simulator{
                                                                                 state_machine_factory::createStateMachineWithSimpleStates)
                                                                             );
 
-
-            controllers.add(new HouseholdBasedStateMachineController(state_machines));
+            controllers.add(new HouseholdBasedStateMachineController(state_machines, entry.getKey()));
 
         }
 

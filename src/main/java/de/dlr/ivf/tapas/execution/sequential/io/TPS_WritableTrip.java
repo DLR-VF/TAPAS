@@ -49,7 +49,7 @@ public class TPS_WritableTrip {
 
     private TPS_Car getUsedCar(TPS_Plan plan) {
         TPS_PlanningContext pc = plan.getPlanningContext();
-        return pc.getHouseHoldCar() == null ? pc.getCarSharingCar() == null ? null : pc.getCarSharingCar() : pc.getHouseHoldCar();
+        return pc.getHouseHoldCar() == null ? pc.getCarSharingCar() : pc.getHouseHoldCar();
     }
 
     public int getPersonId(){
@@ -205,7 +205,7 @@ public class TPS_WritableTrip {
     }
 
     public int getPersonGroup(){
-        return  plan.getPerson().getPersGroup().getCode();
+        return  plan.getPerson().getPersonGroup().getCode();
     }
 
     public int getTazBbrTypeStart(){

@@ -30,7 +30,7 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
     /**
      * A mapping between each {@link TPS_Person} and its corresponding {@link TPS_StateMachine}
      */
-    private SortedMap<TPS_Person,TPS_StateMachine> state_machines = new TreeMap<>(Comparator.comparingDouble(TPS_Person::primaryDriver).reversed());
+    private Map<TPS_Person,TPS_StateMachine> state_machines;
 
     /**
      * This constructor with only {@link TPS_Person} and {@link TPS_StateMachine} mappings generates a controller
@@ -41,6 +41,10 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
         this(state_machines, StateMachineUtils.EmptyHouseHold());
     }
 
+    public Collection<TPS_StateMachine> getStateMachines(){
+        return state_machines.values();
+    }
+
     /**
      * Sets up a controller with an associated household and person/state machine mappings.
      * @param state_machines
@@ -48,10 +52,10 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
      */
     public HouseholdBasedStateMachineController(Map<TPS_Person, TPS_StateMachine> state_machines, TPS_Household hh){
 
-        this.state_machines.putAll(state_machines);
+        this.state_machines = state_machines;
         this.hh = hh;
 
-        state_machines.values().forEach(state_machine -> state_machine.setController(this));
+        this.state_machines.values().forEach(state_machine -> state_machine.setController(this));
     }
 
     /**
@@ -134,6 +138,10 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
         return this.state_machines.values()
                                   .stream()
                                   .anyMatch(state_machine -> state_machine.willHandleEvent(simulation_event));
+    }
+
+    public int getStateMachinesCount(){
+        return this.state_machines.size();
     }
 
     /**

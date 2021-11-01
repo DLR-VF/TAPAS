@@ -77,7 +77,7 @@ public class TPS_HouseholdAndPersonLoader {
     private void initPersonParams(TPS_Person person, ResultSet rs) throws SQLException {
 
         if (this.pm.getParameters().isTrue(ParamFlag.FLAG_USE_DRIVING_LICENCE)) {
-            int licCode = rs.getInt("p_driver_license");
+            int licCode = rs.getInt("driver_license");
             if (licCode == 1) {
                 person.setDrivingLicenseInformation(TPS_DrivingLicenseInformation.CAR);
             } else {
@@ -172,6 +172,9 @@ public class TPS_HouseholdAndPersonLoader {
 
             rs.close();
 
+            //get hh sample size
+            household_count = (int) (household_count * this.pm.getParameters().getDoubleValue(ParamValue.DB_HH_SAMPLE_SIZE));
+
             households = household_count > 0 ? new ArrayList<>(household_count) : new ArrayList<>();
 
             /*
@@ -186,13 +189,12 @@ public class TPS_HouseholdAndPersonLoader {
                          2     |    4      | ...
              */
 
-            query = "SELECT households.hh_id, households.hh_cars, households.hh_car_ids, households.hh_income, households.hh_taz_id, households.hh_type, ST_X(households.hh_coordinate) as x, ST_Y(households.hh_coordinate) as y, " +
-                    "p_id, p_has_bike, p_sex, p_group, p_age, p_abo, p_budget_pt, p_budget_it, p_working, p_work_id, p_driver_license, p_hh_id, p_education FROM " + households_table + " households " +
-                    "INNER JOIN " + households_subset_table + " temp_households " +
-                    "ON households.hh_id = temp_households.hh_id " +
-                    "INNER JOIN " + persons_table + " persons ON temp_households.hh_id = persons.p_hh_id " +
-                    "WHERE households.hh_key = '" + household_and_person_key + "' " +
-                    "AND persons.p_key = '" + household_and_person_key + "' " +
+            query = "WITH households AS(" +
+                    "SELECT hh_id, hh_cars, hh_key, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y " +
+                    "FROM "+households_table+" WHERE hh_key ='"+household_and_person_key+"' LIMIT "+household_count+")" +
+                    "SELECT households.*, p_id, has_bike, sex, \"group\", age, pt_abo, budget_pt, status,budget_it, working, driver_license, education FROM households " +
+                    "INNER JOIN " + persons_table + " persons ON households.hh_id = persons.hh_id " +
+                    "AND persons.key = households.hh_key " +
                     "ORDER BY households.hh_id";
 
             //set fetching parameters
@@ -250,17 +252,20 @@ public class TPS_HouseholdAndPersonLoader {
                 }
 
                 //now add all persons to the household
-                boolean hasBike = rs.getBoolean("p_has_bike") && Randomizer.random() < this.pm.getParameters().getDoubleValue(
+                boolean hasBike = rs.getBoolean("has_bike") && Randomizer.random() < this.pm.getParameters().getDoubleValue(
                         ParamValue.AVAILABILITY_FACTOR_BIKE);
 
                 // a better model
-                double working = rs.getInt("p_working") / 100.0;
-                double budget = (rs.getInt("p_budget_it") + rs.getInt("p_budget_pt")) / 100.0;
+                double working = rs.getInt("working") / 100.0;
+                double budget = (rs.getInt("budget_it") + rs.getInt("budget_pt")) / 100.0;
 
-                TPS_Person person = new TPS_Person(rs.getInt("p_id"), TPS_Sex.getEnum(rs.getInt("p_sex")),
-                        TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroup.TPS_PersonGroupType.TAPAS, rs.getInt("p_group")),
-                        rs.getInt("p_age"), rs.getBoolean("p_abo"), hasBike, budget, working, false, rs.getInt("p_work_id"),
-                        rs.getInt("p_education"), this.pm.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
+                TPS_Person person = new TPS_Person(rs.getInt("p_id"),
+                        rs.getInt("group"),
+                        rs.getInt("status"),
+                        TPS_Sex.getEnum(rs.getInt("sex")),
+                        rs.getInt("age"),
+                        rs.getBoolean("pt_abo"), hasBike, budget, working, false,
+                        rs.getInt("education"), this.pm.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
 
                 initPersonParams(person, rs);
                 household_in_process.addMember(person);
@@ -269,7 +274,7 @@ public class TPS_HouseholdAndPersonLoader {
             rs.close();
             con.setAutoCommit(true);
         } catch (SQLException e) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL, e);
+            e.printStackTrace();
         }
         return households;
     }
@@ -283,7 +288,7 @@ public class TPS_HouseholdAndPersonLoader {
     private void assignCarsToHousehold(Map<Integer, TPS_Car> carMap, TPS_Household household) {
         if (household.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
             //get the car values
-            for (int i = 0; i < household.getCarNumber(); ++i) {
+            for (int i = 0; i < household.getNumberOfCars(); ++i) {
                 TPS_Car car = household.getCar(i);
                 if (carMap.containsKey(car.getId())) {
                     car.cloneCar(carMap.get(car.getId()));

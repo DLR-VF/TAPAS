@@ -173,7 +173,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         }
 
         if (!(TPS_Mode.getUtilityFunction() instanceof TPS_UtilityMNL)) { // no LogSum for non MNL-Models!
-            super.selectLocationFromChoiceSet(choiceSet, plan, pc, locatedStay);
+            super.selectLocationFromChoiceSet(choiceSet, plan, pc, locatedStay,coming_from,going_to);
         }
 
 

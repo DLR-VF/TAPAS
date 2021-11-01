@@ -29,7 +29,7 @@ public class UpdateLocationChoicePlanAttributesAction implements TPS_PlanStateAc
 
 
         plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.PERSON_HAS_BIKE, planning_context.isBikeAvailable ? 1 : 0);
-        plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.HOUSEHOLD_CARS, planning_context.carForThisPlan == null ? 0 : person.getHousehold().getCarNumber());
+        plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.HOUSEHOLD_CARS, planning_context.carForThisPlan == null ? 0 : person.getHousehold().getNumberOfCars());
         plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_TAPAS, next_stay.getActCode().getCode(TPS_ActivityConstant.TPS_ActivityCodeType.TAPAS));
     }
 }

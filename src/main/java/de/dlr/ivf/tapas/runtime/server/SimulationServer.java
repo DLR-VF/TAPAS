@@ -30,6 +30,7 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -145,8 +146,9 @@ public class SimulationServer extends Thread {
             String path = this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
             try {
                 String decodedPath = URLDecoder.decode(path, StandardCharsets.UTF_8);
+                SimulationServer.hashcode = "";
                 SimulationServer.hashcode = Checksum.generateFileChecksum(new File(decodedPath), HashType.SHA512);
-            } catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+            } catch (NoSuchAlgorithmException e) {
                 SimulationServer.hashcode = "";
                 e.printStackTrace();
             }
@@ -242,6 +244,7 @@ public class SimulationServer extends Thread {
             ResultSet rsGet, rs;
             boolean printMessage = true;
 
+
             //clean up broken households from simulations that are computed classically. The latter are those that do not have
             //an associated server in the "simulation_server" column
             String query = "SELECT * FROM " + this.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
@@ -280,7 +283,12 @@ public class SimulationServer extends Thread {
                     this.current_simulation_run = new TPS_Main(simulation);
 
                     //starting a simulation blocks this thread
-                    this.current_simulation_run.run(Runtime.getRuntime().availableProcessors());
+                    //it appears that on windows server this returns the physical core count
+                    int threads = Runtime.getRuntime().availableProcessors();
+                    if(SystemUtils.IS_OS_WINDOWS)
+                        threads = threads*2;
+
+                    this.current_simulation_run.run(threads);
                 } else {
 
                     if (printMessage) {

@@ -25,7 +25,7 @@ public class TPS_StateMachineFactory {
 
     private ActionProvider transition_actions_provider;
     private final TPS_SimplePlanState error_state = new TPS_SimplePlanState("error", null);
-
+    private int immediately_finished_sm_cnt = 0;
     public TPS_StateMachineFactory (ActionProvider transition_actions_provider){
 
         this.transition_actions_provider = transition_actions_provider;
@@ -37,19 +37,25 @@ public class TPS_StateMachineFactory {
 
         TPS_StateMachine stateMachine = new TPS_StateMachine("Person: "+identifier);
 
+        TPS_PlanState end_state = new TPS_SimplePlanState("END_" + identifier, stateMachine);
+        stateMachine.setEndState(end_state);
+        stateMachine.setErrorState(error_state);
+
+        if(plan.getScheme().getSchemeParts().size() == 1) {
+            stateMachine.setInitialStateAndReset(end_state);
+            immediately_finished_sm_cnt++;
+            return stateMachine;
+        }
+
         TPS_Household hh = plan.getPerson().getHousehold();
         LocationContext location_context = new LocationContext(hh.getLocation());
         PlanContext plan_context = new PlanContext(plan, hh.getCarMediator(), location_context);
 
-        TPS_PlanState activity_state = new TPS_SimplePlanState("activity_"+identifier, stateMachine);
-        TPS_PlanState trip_state = new TPS_SimplePlanState("trip_"+identifier, stateMachine);
-        TPS_PlanState end_state = new TPS_SimplePlanState("END_"+identifier, stateMachine);
-        stateMachine.setEndState(end_state);
+        TPS_PlanState activity_state = new TPS_SimplePlanState("activity_" + identifier, stateMachine);
+        TPS_PlanState trip_state = new TPS_SimplePlanState("trip_" + identifier, stateMachine);
 
-        stateMachine.setAllStates( List.of(activity_state, trip_state, end_state) );
-
+        stateMachine.setAllStates(List.of(activity_state, trip_state, end_state, error_state));
         stateMachine.setInitialStateAndReset(activity_state);
-        stateMachine.setErrorState(error_state);
 
         Guard activity_to_trip_guard = new Guard(getSimulationEntryTime(plan));
         Guard trip_to_activity_guard = new Guard(Integer.MAX_VALUE);
@@ -57,9 +63,6 @@ public class TPS_StateMachineFactory {
         //add guard and action supplier for activity to trip state transition
         Supplier<List<TPS_PlanStateAction>> act2trip_actions = () -> transition_actions_provider.getActivityToTripActions(plan_context,trip_to_activity_guard, stateMachine);
         activity_state.addHandler(TPS_EventType.SIMULATION_STEP, trip_state, act2trip_actions, activity_to_trip_guard);
-
-//        //add the transition to end state handler
-//        activity_state.addHandler(TPS_EventType.END_OF_SIMULATION, end_state,() -> Collections.emptyList(),new Guard(() -> !plan_context.getTourContext().isPresent()));
 
         Supplier<List<TPS_PlanStateAction>> trip2act_actions = () -> transition_actions_provider.getTripToActivityActions(plan_context,activity_to_trip_guard, stateMachine);
         trip_state.addHandler(TPS_EventType.SIMULATION_STEP, activity_state, trip2act_actions, trip_to_activity_guard);
@@ -76,6 +79,10 @@ public class TPS_StateMachineFactory {
         state_mappings.put(EpisodeType.ACTIVITY, new TPS_SimplePlanState("activity_"+identifier, state_machine));
 
         return state_mappings;
+    }
+
+    public int getImmediatelyFinishedStateMachineCnt(){
+        return this.immediately_finished_sm_cnt;
     }
 
     private int getSimulationEntryTime(TPS_Plan plan){

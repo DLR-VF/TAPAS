@@ -71,13 +71,6 @@ public class TPS_SequentialSimulator implements Runnable{
         this.simulation_time_stamp.set(next_simulation_event.getData());
     }
 
-    /**
-     * Extracts the start time for the simulation and generates the first {@link TPS_Event}.
-     * @param plans containing all {@link de.dlr.ivf.tapas.scheme.TPS_SchemePart}s and their {@link de.dlr.ivf.tapas.scheme.TPS_Episode}s
-     * @return a {@link TPS_Event} of type {@link TPS_EventType#SIMULATION_STEP} where its payload is equal to the time
-     *         the first person is leaving the house.
-     */
-    
 
 //    /**
 //     * Creates a {@link TPS_StateMachine} with a set of states representing the behaviour for every {@link de.dlr.ivf.tapas.scheme.TPS_Episode}
@@ -108,6 +101,7 @@ public class TPS_SequentialSimulator implements Runnable{
 //    }
 
     public void run(){
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Setting up "+worker_count+" workers...");
 
         //event factory for event pre-allocation on the ring
         EventFactory<TPS_StateMachineEvent> event_factory = TPS_StateMachineEvent::new;
@@ -145,7 +139,7 @@ public class TPS_SequentialSimulator implements Runnable{
 
 
         //start the simulation
-        while(!all_finished && simulation_time_stamp.get() < 2000){
+        while(!all_finished && simulation_time_stamp.get() < 3000){
 
             var event_count = 0;
             var current_iteration_start_time = System.currentTimeMillis();
