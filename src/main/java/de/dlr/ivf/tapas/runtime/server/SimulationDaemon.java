@@ -67,9 +67,7 @@ public final class SimulationDaemon implements Runnable{
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Starting TAPAS-Daemon...");
             Thread t = new Thread(daemon);
-           //t.setDaemon(true);
             t.start();
-            //t.join();
 
         }catch (Exception e){
             e.printStackTrace();
