@@ -1,25 +1,17 @@
 package de.dlr.ivf.tapas.runtime.server;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 public class TPS_Simulation {
 
     private final String sim_key;
-    private final TPS_DB_Connector dbConnector;
-    private boolean initialized = false;
+    private final TPS_ParameterClass simulation_parameters;
 
-    public TPS_Simulation(String sim_key, TPS_DB_Connector dbConnector){
+    public TPS_Simulation(String sim_key, TPS_ParameterClass simulation_parameters){
 
         this.sim_key = sim_key;
-        this.dbConnector = dbConnector;
-
-    }
-
-    public TPS_InitializedSimulation initialize(){
-
-        dbConnector.readRuntimeParametersFromDB(sim_key);
-
-        return new TPS_InitializedSimulation(this.sim_key, dbConnector.getParameters());
+        this.simulation_parameters = simulation_parameters;
     }
 
 
@@ -27,7 +19,8 @@ public class TPS_Simulation {
         return this.sim_key;
     }
 
-    public TPS_DB_Connector getDbConnector(){
-        return this.dbConnector;
+    public TPS_ParameterClass getParameters(){
+        return this.simulation_parameters;
     }
+
 }
