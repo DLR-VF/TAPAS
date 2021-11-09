@@ -201,7 +201,7 @@ public class SimulationControl {
         // Part 3: connecting to database
 
         try {
-            this.dbConnection = new TPS_DB_Connector(parameterClass);
+            this.dbConnection = TPS_DB_Connector.fromParameterClass(parameterClass);
         } catch (Exception e) {
             System.err.println("Exception thrown during establishing database connection!");
             e.printStackTrace();
@@ -212,11 +212,11 @@ public class SimulationControl {
 
         // Part 5: initialising the timer and all tasks
         this.timer = new Timer("Server & Simulation Update Timer");
-        this.timer.schedule(new TimeUpdateTask(), 0, 250);
+        this.timer.schedule(new TimeUpdateTask(dbConnection), 0, 1000);
         // this.simulationDataUpdateTask =new SimulationDataUpdateTask();
-        this.timer.schedule(new SimulationDataUpdateTask(), 75, 500);
-        this.timer.schedule(new SimulationServerDataUpdateTask(), 25, 1000);
-        this.timer.schedule(new ServerControlUpdateTask(), 0, 250);
+        this.timer.schedule(new SimulationDataUpdateTask(dbConnection, simulationDataMap,this), 75, 1000);
+        this.timer.schedule(new SimulationServerDataUpdateTask(dbConnection,simulationServerDataMap,this), 25, 1000);
+        this.timer.schedule(new ServerControlUpdateTask(this), 0, 1000);
         //this.timer.schedule(new ProgressUpdateTask(), 250, 250);
     }
 
@@ -624,6 +624,14 @@ public class SimulationControl {
         this.props.updateFile();
     }
 
+    public void updateServerData(SimulationServerData server_data){
+        this.gui.updateServerData(server_data);
+    }
+
+    public void updateSimulationData(SimulationData simulation_data){
+        this.gui.updateSimulationData(simulation_data);
+    }
+
     /**
      * This class provides a mechanism to test whether a SimulationServer is
      * online or not.
@@ -734,13 +742,23 @@ public class SimulationControl {
      */
     private class ServerControlUpdateTask extends TimerTask {
 
+        private final SimulationControl controller;
+
+        public ServerControlUpdateTask(SimulationControl controller){
+            this.controller = controller;
+        }
+
         @Override
         public void run() {
 
-            SimulationControl.this.gui.updateServerControl(simulationServerDataMap);
+            controller.updateServerControl(simulationServerDataMap);
         }
 
 
+    }
+
+    private void updateServerControl(Map<String, SimulationServerData> simulationServerDataMap) {
+        this.gui.updateServerControl(simulationServerDataMap);
     }
 
     /**
@@ -750,14 +768,15 @@ public class SimulationControl {
      */
     private class SimulationServerDataUpdateTask extends TimerTask {
 
-        public SimulationServerDataUpdateTask() {
+        private final TPS_DB_Connector db_connector;
+        private final SimulationControl controller;
+        private final Map<String, SimulationServerData> simulationServerDataMap;
 
-            // opens the connection to pass the connectiontest
-            try {
-                dbConnection.getConnection(this);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        public SimulationServerDataUpdateTask(TPS_DB_Connector db_connector, Map<String, SimulationServerData> simulationServerDataMap, SimulationControl controller) {
+
+            this.db_connector = db_connector;
+            this.controller = controller;
+            this.simulationServerDataMap =  simulationServerDataMap;
         }
 
         /*
@@ -769,26 +788,25 @@ public class SimulationControl {
         public void run() {
             // Select all available servers from the database
             SimulationServerData data;
-            if (!SimulationControl.this.dbConnection.checkConnection(this)) return;
 
-            String query = "SELECT * FROM " + SimulationControl.this.dbConnection.getParameters().getString(
+            String query = "SELECT * FROM " + this.db_connector.getParameters().getString(
                     ParamString.DB_TABLE_SERVERS) + " ORDER BY server_ip";
 
-            try (ResultSet rs = SimulationControl.this.dbConnection.executeQuery(query, this)) {
+            try (ResultSet rs = this.db_connector.executeQuery(query, this)) {
 
                 while (rs.next()) {
 
                     // receive or create SimulationServerData from database ResultSet
                     String hostname = rs.getString("server_name");
-                    if (SimulationControl.this.simulationServerDataMap.containsKey(hostname)) {
-                        data = SimulationControl.this.simulationServerDataMap.get(hostname);
+                    if (this.simulationServerDataMap.containsKey(hostname)) {
+                        data = this.simulationServerDataMap.get(hostname);
                         data.update(rs);
                     } else {
                         data = new SimulationServerData(rs);
-                        SimulationControl.this.simulationServerDataMap.put(hostname, data);
+                        this.simulationServerDataMap.put(hostname, data);
                     }
 
-                    SimulationControl.this.gui.updateServerData(data);
+                    controller.updateServerData(data);
                 }
 
             } catch (UnknownHostException | SQLException e) {
@@ -797,13 +815,13 @@ public class SimulationControl {
 
             query = "SELECT * FROM " + SimulationControl.this.dbConnection.getParameters().getString(
                     ParamString.DB_TABLE_PROCESSES) + " WHERE end_time IS NULL";
-            try (ResultSet rs = SimulationControl.this.dbConnection.executeQuery(query, this)) {
+            try (ResultSet rs = db_connector.executeQuery(query, this)) {
 
                 while (rs.next()) {
                     String hostname = rs.getString("host");
-                    if (SimulationControl.this.simulationServerDataMap.containsKey(hostname)) {
+                    if (this.simulationServerDataMap.containsKey(hostname)) {
 
-                        data = SimulationControl.this.simulationServerDataMap.get(hostname);
+                        data = simulationServerDataMap.get(hostname);
                         data.setServerProcessInfo(rs);
                         data.setServerState(
                                 rs.getBoolean("shutdown") ? ServerControlState.STOP : ServerControlState.BOOT);
@@ -823,13 +841,14 @@ public class SimulationControl {
      */
     private class SimulationDataUpdateTask extends TimerTask {
 
-        public SimulationDataUpdateTask() {
-            // opens the connection to pass the connectiontest
-            try {
-                dbConnection.getConnection(this);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+        private final TPS_DB_Connector db_connector;
+        private final Map<String, SimulationData> simulationDataMap;
+        private final SimulationControl controller;
+
+        public SimulationDataUpdateTask(TPS_DB_Connector db_connector, Map<String, SimulationData> simulationDataMap, SimulationControl controller){
+            this.db_connector = db_connector;
+            this.simulationDataMap = simulationDataMap;
+            this.controller = controller;
         }
 
         /*
@@ -849,29 +868,27 @@ public class SimulationControl {
                 }
             }
 
-            synchronized (SimulationControl.this.simulationDataMap) {
+            synchronized (this.simulationDataMap) {
                 String sim_key;
                 SimulationData simulationData;
                 Set<String> simKeyCollection = new HashSet<>(simulationDataMap.keySet());
                 try {
-                    if (!SimulationControl.this.dbConnection.checkConnection(this)) return;
                     // retrieve all simulation information from the database
-                    ResultSet rs = SimulationControl.this.dbConnection.executeQuery("SELECT * FROM " +
-                            SimulationControl.this.dbConnection.getParameters()
-                                                               .getString(ParamString.DB_TABLE_SIMULATIONS) +
+                    ResultSet rs = db_connector.executeQuery("SELECT * FROM " +
+                            db_connector.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
                             " ORDER BY timestamp_insert", this);
                     while (rs.next()) {
                         // update or create all SimulationData
                         sim_key = rs.getString("sim_key");
                         if (!simKeyCollection.remove(sim_key)) {
                             simulationData = new SimulationData(rs);
-                            SimulationControl.this.simulationDataMap.put(simulationData.getKey(), simulationData);
+                            this.simulationDataMap.put(simulationData.getKey(), simulationData);
                         } else {
-                            simulationData = SimulationControl.this.simulationDataMap.get(sim_key);
+                            simulationData = this.simulationDataMap.get(sim_key);
                             simulationData.update(rs);
                         }
 
-                        SimulationControl.this.gui.updateSimulationData(simulationData);
+                        controller.updateSimulationData(simulationData);
 
                     }
                     rs.close();
@@ -896,6 +913,12 @@ public class SimulationControl {
      */
     private class TimeUpdateTask extends TimerTask {
 
+        private final TPS_DB_Connector db_connector;
+
+        public TimeUpdateTask(TPS_DB_Connector db_connector){
+            this.db_connector = db_connector;
+        }
+
         /*
          * (non-Javadoc)
          *
@@ -904,7 +927,7 @@ public class SimulationControl {
         @Override
         public void run() {
             try {
-                ResultSet rs = SimulationControl.this.dbConnection.executeQuery("SELECT now() as ts", this);
+                ResultSet rs = db_connector.executeQuery("SELECT now() as ts", this);
                 if (rs.next()) {
                     SimulationControl.this.currentDatabaseTimestamp = rs.getTimestamp("ts");
                 }

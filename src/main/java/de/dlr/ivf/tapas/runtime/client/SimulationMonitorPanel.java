@@ -80,7 +80,7 @@ public class SimulationMonitorPanel extends JPanel {
         try {
             TPS_ParameterClass parameterClass = new TPS_ParameterClass();
             parameterClass.loadRuntimeParameters(new File(props.get(ClientControlPropKey.LOGIN_CONFIG)));
-            TPS_DB_Connector connection = new TPS_DB_Connector(parameterClass);
+            TPS_DB_Connector connection = TPS_DB_Connector.fromParameterClass(parameterClass);
             SimulationMonitorPanel panel = new SimulationMonitorPanel(connection, parameterClass);
 
             panel.setOpaque(true);
@@ -89,7 +89,7 @@ public class SimulationMonitorPanel extends JPanel {
             // frame.pack();
             frame.setVisible(true);
 
-        } catch (ClassNotFoundException | IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

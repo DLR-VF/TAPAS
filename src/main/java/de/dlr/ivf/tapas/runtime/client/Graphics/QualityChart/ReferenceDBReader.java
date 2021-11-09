@@ -47,8 +47,8 @@ public class ReferenceDBReader {
         try {
             TPS_ParameterClass parameterClass = new TPS_ParameterClass();
             parameterClass.loadRuntimeParameters(new File(loginInfo));
-            dbCon = new TPS_DB_Connector(parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
+            dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
+        } catch (IOException e) {
             throw e; // handle that outside of the class
         }
 
