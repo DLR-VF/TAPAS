@@ -8,184 +8,114 @@
 
 package de.dlr.ivf.tapas.runtime.server;
 
+import de.dlr.ivf.tapas.log.TPS_Logger;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
-import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties.DaemonControlPropKey;
-import de.dlr.ivf.tapas.runtime.util.IPInfo;
-import de.dlr.ivf.tapas.util.TPS_Argument;
+import de.dlr.ivf.tapas.runtime.TapasLogin;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.nio.file.Paths;
-import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 
-/**
- * @author mark_ma
- */
-public final class SimulationDaemon {
+public final class SimulationDaemon implements Runnable{
 
-    private final static String sysoutPrefix = "-- Daemon -- ";
-    /**
-     * Date format for the exception file appendix
-     */
-    private static final SimpleDateFormat SDF = new SimpleDateFormat("dd.MM.yyyy kk:mm:ss");
-    private static Process p;
-    private static SimulationDaemon daemon = null;
-    private static TPS_DB_Connector con = null;
-    private static final List<Process> processes = new ArrayList<>(); //for later use when the Daemon will be able to start multiple servers
-    /**
-     * Parameter array with all parameters for this main method.<br>
-     * PARAMETERS[0] = tapas network directory path
-     */
-    private static final TPS_ArgumentType<?>[] PARAMETERS = {new TPS_ArgumentType<>("tapas network directory path",
-            File.class)};
-    private String hostname;
-    private final String[] arguments;
-    private Timer timer;
+    private final TapasSimulationProvider simulation_provider;
+    private final TPS_DB_Connector db_connector;
+    private SimulationServer simulation_server;
+    private List<ShutDownable> shutdownable_services = new ArrayList<>();
 
-    /**
-     * This main method starts the {@link SimulationServer} and catches each exception which is thrown and stores it in a
-     * file with the current timestamp. After 2.5 seconds the simulation server is restarted.
-     *
-     * @param args
-     */
-    private SimulationDaemon(String[] args) {
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        try {
-            this.hostname = IPInfo.getHostname();
-            File propFile = new File("daemon.properties");
-            DaemonControlProperties prop = new DaemonControlProperties(propFile);
-            String runtimeConf = prop.get(DaemonControlPropKey.LOGIN_CONFIG);
-            if (runtimeConf == null || runtimeConf.length() == 0) {
-                runtimeConf = "runtime.csv";
-                prop.set(DaemonControlPropKey.LOGIN_CONFIG, runtimeConf);
-                prop.updateFile();
-            }
-            Object[] parameters = TPS_Argument.checkArguments(args, PARAMETERS);
 
-            File tapasNetworkDirectory = ((File) parameters[0]).getParentFile();
-
-            File runtimeFile = new File(new File(tapasNetworkDirectory, parameterClass.SIM_DIR), runtimeConf);
-            parameterClass.loadRuntimeParameters(runtimeFile);
-            parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tapasNetworkDirectory.getPath());
-
-            con = new TPS_DB_Connector(parameterClass);
-            con.executeUpdate("UPDATE " + parameterClass.getString(ParamString.DB_TABLE_SERVERS) +
-                    " SET remote_boot = true WHERE server_name = '" + hostname + "'", this);
-
-            this.timer = new Timer();
-            ServerProcessChecker spc = new ServerProcessChecker();
-            timer.schedule(spc, 10, 750);
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        this.arguments = args;
-        Runtime.getRuntime().addShutdownHook(new ShutDownProcedure());
+    public SimulationDaemon(TPS_DB_Connector dbConnector, TapasSimulationProvider simulation_provider) {
+        this.db_connector = dbConnector;
+        this.simulation_provider= simulation_provider;
     }
 
     public static void main(String[] args) {
 
+        if(!ArgumentInputHandler.validate(args)){
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+                    "The provided input arguments are invalid. Make sure that solely a single existing file is passed.");
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,
+                    "Closing the application...");
+            return;
+        }
+
         try {
-            //Set -Ddebug=true in the VM-options to enable debugging mode
-            String debugString = System.getProperty("debug");
 
-            if (debugString != null && debugString.equalsIgnoreCase("true")) SimulationServer.main(args);
-            else {
-                RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+            TPS_ParameterClass parameters = ArgumentInputHandler.readParameters(args).orElseThrow(
+                    () -> new IllegalArgumentException("The provided input file is not a valid parameter file."));
 
-                List<String> command = new ArrayList<>();
-                command.add("java");
-                command.addAll(runtime.getInputArguments());
-                command.add("-cp");
-                command.add(System.getProperty("java.class.path", "."));
-                command.add(SimulationServer.class.getName());
-                command.addAll(Arrays.asList(args));
+            TapasLogin tapas_login = TapasLogin.fromParameterClass(parameters).orElseThrow(
+                    () -> new IllegalArgumentException("The provided parameters file does not contain login credentials to the database."));
 
-                p = new ProcessBuilder(command).inheritIO().redirectErrorStream(true).start();
-                processes.add(p);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            try {
-                File f = new File(
-                        "SimulationDaemonException_" + LocalDateTime.now() + ".log");
-                if (!f.exists()) f.createNewFile();
-                PrintWriter pw = new PrintWriter(f);
-                pw.flush();
-                pw.close();
-                Thread.sleep(2500);
-                e.printStackTrace();
-            } catch (Exception e1) {
-                e1.printStackTrace();
-            }
-        }
-
-        if (daemon == null) daemon = new SimulationDaemon(args);
-    }
+            TPS_DB_Connector dbConnector = TPS_DB_Connector.fromTapasLoginCredentials(tapas_login, parameters).orElseThrow(
+                    () -> new RuntimeException("Cannot establish connection to database: "+tapas_login.getDatabase()+" on host: "+tapas_login.getHost()+" for user: "+tapas_login.getUser()));
 
 
-    public void startServer() {
+            String simulations_table = parameters.getString(ParamString.DB_TABLE_SIMULATIONS);
+            String simulation_parameter_table = parameters.getString(ParamString.DB_TABLE_SIMULATION_PARAMETERS);
 
-        if (!p.isAlive()) {
-            System.out.println(sysoutPrefix + "Launching Server...");
-            Runnable r = () -> main(arguments);
-            Thread t = new Thread(r);
+            TapasSimulationProvider simulation_provider = new TapasSimulationProvider(dbConnector, simulations_table, simulation_parameter_table);
+
+            SimulationDaemon daemon = new SimulationDaemon(dbConnector, simulation_provider);
+
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Starting TAPAS-Daemon...");
+            Thread t = new Thread(daemon);
+           //t.setDaemon(true);
             t.start();
-        } else System.out.println(sysoutPrefix + "Previous Process is still running...");
+            //t.join();
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
 
     }
 
-    /**
-     * Works as a shutdown hook and will block the cleanup procedure until its (if any) {@link SimulationServer} is shut down
-     *
-     * @author sche_ai
-     */
-    private class ShutDownProcedure extends Thread {
+    @Override
+    public void run() {
 
-        @Override
-        public void run() {
+        Runtime.getRuntime().addShutdownHook(new TapasShutDownProcedure(shutdownable_services));
+
+        SimulationServerContext server_context = SimulationServerContext.newLocalServerContext();
+        ShutDownable server_manager = new SimulationServerRegistrationManager(server_context, db_connector).start();
+
+        shutdownable_services.add(server_manager);
+
+
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Waiting for simulation to start...");
+
+        while(true) {
+            Optional<TPS_Simulation> tapas_simulation = simulation_provider.requestSimulation();
 
             try {
-                con.executeUpdate("UPDATE " + con.getParameters().getString(ParamString.DB_TABLE_SERVERS) +
-                                " SET remote_boot = false WHERE server_name = '" + hostname + "'",
-                        this); //shutting down the daemon means no remote server start up
-                if (p.isAlive()) {
-                    System.out.println(sysoutPrefix + "Waiting for Server to shut down...");
-                    con.executeUpdate("UPDATE " + con.getParameters().getString(ParamString.DB_TABLE_PROCESSES) +
-                                    " SET shutdown = true WHERE host = '" + hostname + "' AND end_time IS NULL",
-                            this);   //set the shutdown flag on the server process
+                if (tapas_simulation.isPresent()) {
+
+                    TPS_Simulation simulation = tapas_simulation.get();
+                    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Starting simulation: " + simulation.getSimulationKey());
+
+
+                    this.simulation_server = new SimulationServer(simulation, db_connector);
+                    shutdownable_services.add(this.simulation_server);
+                    server_context.setRunningServer(this.simulation_server);
+
+
+                    Thread t = new Thread(this.simulation_server);
+                    t.start();
+                    t.join();
+
+                    this.simulation_server = null;
                 }
-                while (p.isAlive()) Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+                Thread.sleep(5000);
 
-    private class ServerProcessChecker extends TimerTask {
-
-        @Override
-        public void run() {
-
-            try (ResultSet rs = con.executeQuery(
-                    "SELECT * FROM " + con.getParameters().getString(ParamString.DB_TABLE_SERVERS) +
-                            " WHERE server_name = '" + hostname + "'", this)) {
-                if (rs.next()) {
-                    boolean startup = rs.getBoolean("server_boot_flag");
-                    if (startup) startServer();
-                }
             } catch (Exception e) {
-                //nothing to do
+                e.printStackTrace();
             }
         }
     }

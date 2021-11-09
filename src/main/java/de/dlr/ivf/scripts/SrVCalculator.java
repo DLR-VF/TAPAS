@@ -103,7 +103,7 @@ public class SrVCalculator {
 
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(configFile);
-        SrVCalculator worker = new SrVCalculator(new TPS_DB_Connector(parameterClass));
+        SrVCalculator worker = new SrVCalculator(TPS_DB_Connector.fromParameterClass(parameterClass));
         System.out.println("Loading TAZ codes and statistical area codes");
         //if(worker.loadTAZToArea()){
         if (worker.loadTAZToMapping("Statistisches Gebiet zu TVZ 1223", "core.berlin_taz_1223",
