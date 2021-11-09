@@ -89,6 +89,7 @@ public class TPS_Main {
      *               logging, database, etc. information.
      * @param simKey key of the simulation
      */
+    @Deprecated
     public TPS_Main(File file, String simKey) {
         this.parameterClass = new TPS_ParameterClass();
 
@@ -96,7 +97,7 @@ public class TPS_Main {
         try {
             this.parameterClass.setString(ParamString.RUN_IDENTIFIER, simKey);
             this.parameterClass.loadRuntimeParameters(file);
-            TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
+//            TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
 
             File tmpFile = new File(file.getPath());
             while (!tmpFile.getPath().endsWith(
@@ -128,13 +129,13 @@ public class TPS_Main {
         }
     }
 
-    public TPS_Main(TPS_Simulation simulation) {
-
-        TPS_InitializedSimulation sim_to_run = simulation.initialize();
-        this.parameterClass = sim_to_run.getParameters();
-        this.PM = initAndGetPersistenceManager(this.parameterClass);
-        this.dbConnector = simulation.getDbConnector();
-    }
+//    public TPS_Main(TPS_Simulation simulation) {
+//
+////        TPS_InitializedSimulation sim_to_run = simulation.initialize();
+////        this.parameterClass = sim_to_run.getParameters();
+////        this.PM = initAndGetPersistenceManager(this.parameterClass);
+////        this.dbConnector = simulation.getDbConnector();
+//    }
 
     /**
      * The constructor builds a File from the given filename and calls TPS_Main(File, String).

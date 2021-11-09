@@ -753,6 +753,12 @@ public enum ParamValue {
     WEIGHT_WORKING_CHAINS,
 
     /**
+     * defines the count of workers that work on a simulation
+     * Note: it is recommended that worker count does not exceed physical cpu core counts.
+     */
+    WORKER_COUNT,
+
+    /**
      * The mode constant for using public transport in conjunction with a bike
      */
     PTBIKE_MODE_CONSTANT,

@@ -59,9 +59,8 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    public TPS_DB_IOManager(TPS_ParameterClass parameterClass) throws IOException, ClassNotFoundException {
-        this.dbConnector = new TPS_DB_Connector(parameterClass.getString(ParamString.DB_USER),
-                parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
+    public TPS_DB_IOManager(TPS_DB_Connector db_connector) {
+        this.dbConnector = db_connector;
         this.dbIO = new TPS_DB_IO(this);
     }
 

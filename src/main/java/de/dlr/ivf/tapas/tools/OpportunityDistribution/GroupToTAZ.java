@@ -35,14 +35,10 @@ public class GroupToTAZ {
      * Stand alone initializator, assumes that global TPS_Parameters contains the login information for the db
      */
     public GroupToTAZ(TPS_ParameterClass parameterClass) {
-        try {
-            //init db connection assuming that param-values are already set
-            dbCon = new TPS_DB_Connector(parameterClass);
-            initDB();
 
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        //init db connection assuming that param-values are already set
+        dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
+        initDB();
     }
 
     /**

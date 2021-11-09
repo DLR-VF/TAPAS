@@ -57,12 +57,12 @@ public class RieselTool {
             TPS_ParameterClass parameterClass = new TPS_ParameterClass();
             parameterClass.loadRuntimeParameters(new File(loginInfo));
             parameterClass.setValue("DB_DBNAME", "dlm");
-            TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+            TPS_DB_Connector dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
             RieselTool rt = new RieselTool(dbCon);
 
             rt.updateAll();
 
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

@@ -138,7 +138,7 @@ public class LocationProcessor {
                 // init and open files
                 TPS_ParameterClass parameterClass = new TPS_ParameterClass();
                 parameterClass.loadRuntimeParameters(new File(args[2]));
-                locationGenerator = new Locator(new TPS_DB_Connector(parameterClass),
+                locationGenerator = new Locator(TPS_DB_Connector.fromParameterClass(parameterClass),
                         Constants.ENABLE_CHANGES_OF_MARCO);
                 outRelocated = new FileWriter(args[1] + "_relocated.csv");
                 outRelocatedError = new FileWriter(args[1] + "_not_relocated.csv");

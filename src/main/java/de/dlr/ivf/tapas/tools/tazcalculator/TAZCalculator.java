@@ -37,7 +37,7 @@ public class TAZCalculator {
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(configFile);
         TAZCalculator worker = new TAZCalculator();
-        worker.manager = new TPS_DB_Connector(parameterClass);
+        worker.manager = TPS_DB_Connector.fromParameterClass(parameterClass);
         HashMap<Integer, Integer> mapping;
 //		worker.updateTAZ(region, 1);
 

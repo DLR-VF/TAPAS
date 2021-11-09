@@ -75,12 +75,10 @@ public class TPS_DB_IO {
      * @param pm the managing class for sql-commands
      * @throws IOException if the machine has no IP address, an exception is thrown.
      */
-    public TPS_DB_IO(TPS_DB_IOManager pm) throws IOException {
-        if (ADDRESS == null) {
-            ADDRESS = IPInfo.getEthernetInetAddress();
-        }
+    public TPS_DB_IO(TPS_DB_IOManager pm){
+
         this.PM = pm;
-        // TODO: use the defined number of threads
+
         if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
             numberToFetch = fetchSizePerProcessorPrefetchHouseholds * Runtime.getRuntime().availableProcessors();
         } else {

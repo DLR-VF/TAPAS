@@ -489,7 +489,7 @@ public class TPS_ParameterFileConverterGUI {
         Connection con = null;
         Statement statement = null;
         try {
-            TPS_DB_Connector db = new TPS_DB_Connector(this.parameterClass);
+            TPS_DB_Connector db = TPS_DB_Connector.fromParameterClass(this.parameterClass);
             con = db.getConnection(this);
 
             ResultSet resultSet;
@@ -580,7 +580,7 @@ public class TPS_ParameterFileConverterGUI {
 
         Connection con = null;
         try {
-            TPS_DB_Connector db = new TPS_DB_Connector(this.parameterClass);
+            TPS_DB_Connector db = TPS_DB_Connector.fromParameterClass(this.parameterClass);
             con = db.getConnection(this);
             updateConfigParamsInEnum();
             //TPS_Parameters.revertTemporaryParameters();

@@ -70,9 +70,9 @@ public class SumoDaemon extends Thread {
         try {
             this.parameterClass.loadRuntimeParameters(runtimeFile);
             this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, this.tapasNetworkDirectory.getPath());
-            this.manager = new TPS_DB_Connector(this.parameterClass);
+            this.manager = TPS_DB_Connector.fromParameterClass(this.parameterClass);
 
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

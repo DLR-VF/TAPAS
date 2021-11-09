@@ -75,7 +75,7 @@ public class TAZFilter {
         String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(new File(loginInfo));
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+        TPS_DB_Connector dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
 
         // TAZFilter filter = new TAZFilter(dbCon);
         String caller = "TAZFilter";

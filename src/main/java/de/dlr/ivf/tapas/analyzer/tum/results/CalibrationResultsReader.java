@@ -44,8 +44,8 @@ public class CalibrationResultsReader {
         try {
             TPS_ParameterClass parameterClass = new TPS_ParameterClass();
             parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-            dbCon = new TPS_DB_Connector(parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
+            dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
+        } catch (IOException  e) {
             throw e; // handle that outside of the class
         }
     }

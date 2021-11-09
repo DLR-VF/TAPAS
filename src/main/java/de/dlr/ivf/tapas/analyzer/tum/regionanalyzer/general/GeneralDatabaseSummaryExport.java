@@ -46,7 +46,7 @@ public class GeneralDatabaseSummaryExport {
     public GeneralDatabaseSummaryExport(Analyzer analyzer, String source) throws IOException, ClassNotFoundException {
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-        dbCon = new TPS_DB_Connector(parameterClass);
+        dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
         this.analyzer = analyzer;
         this.source = source;
 
@@ -98,7 +98,7 @@ public class GeneralDatabaseSummaryExport {
     public static void main(String[] args) throws ClassNotFoundException, IOException, SQLException {
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+        TPS_DB_Connector dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
 
         ModeAnalyzer mo = new ModeAnalyzer();
         TripIntentionAnalyzer ti = new TripIntentionAnalyzer();

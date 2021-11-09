@@ -33,7 +33,7 @@ public class TPS_SchemeClassCalculator {
 
     TPS_SchemeClassCalculator(TPS_ParameterClass parameterClass) throws IOException, SQLException, ClassNotFoundException {
         TPS_DB_Connector manager;
-        manager = new TPS_DB_Connector(parameterClass);
+        manager = TPS_DB_Connector.fromParameterClass(parameterClass);
         this.con = manager.getConnection(this);
         this.con.setAutoCommit(false);
         this.con.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);

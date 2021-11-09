@@ -123,7 +123,7 @@ public class DBTripReader implements TapasTripReader {
 
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(new File(loginInfo));
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+        TPS_DB_Connector dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
 
         DBTripReader tripReader = new DBTripReader("berlin_trips_2013y_01m_14d_09h_47m_38s_709ms", hhkey, schema,
                 region, null, null, dbCon, null);// small example
@@ -275,18 +275,15 @@ public class DBTripReader implements TapasTripReader {
             this.queue = q;
 
             dbCon = connection;
-            try {
 
-                // get settlement type parameters
-                TPS_DB_IOManager dbIOM = new TPS_DB_IOManager(dbCon.getParameters());
-                TPS_DB_IO dbIO = new TPS_DB_IO(dbIOM);
-                dbIO.initStart();
 
-                dbIO.readSettlementSystemCodes(FuncUtils.toRawSimKey.apply(this.simulation));
+            // get settlement type parameters
+            TPS_DB_IOManager dbIOM = new TPS_DB_IOManager(dbCon);
+            TPS_DB_IO dbIO = new TPS_DB_IO(dbIOM);
+            dbIO.initStart();
 
-            } catch (IOException | ClassNotFoundException e) {
-                throw e; // handle that outside of the class
-            }
+            dbIO.readSettlementSystemCodes(FuncUtils.toRawSimKey.apply(this.simulation));
+
 
             try {
                 fetchNext = dbCon.getConnection(this).prepareStatement(

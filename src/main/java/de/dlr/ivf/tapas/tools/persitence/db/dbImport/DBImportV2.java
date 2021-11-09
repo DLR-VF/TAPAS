@@ -1084,9 +1084,9 @@ public class DBImportV2 {
         try {
             TPS_ParameterClass parameterClass = new TPS_ParameterClass();
             parameterClass.loadRuntimeParameters(loginInfo);
-            dbCon = new TPS_DB_Connector(parameterClass);
+            dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
             return true;
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return false;

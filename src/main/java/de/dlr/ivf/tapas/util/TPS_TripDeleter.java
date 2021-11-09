@@ -64,7 +64,7 @@ public class TPS_TripDeleter {
         parameterClass.loadRuntimeParameters(configFile);
         TPS_DB_Connector manager;
 
-        manager = new TPS_DB_Connector(parameterClass);
+        manager = TPS_DB_Connector.fromParameterClass(parameterClass);
 
         TPS_TripDeleter worker = new TPS_TripDeleter(parameterClass);
         worker.setKey(runKey);

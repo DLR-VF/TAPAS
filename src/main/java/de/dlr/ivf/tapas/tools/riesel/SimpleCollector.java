@@ -53,7 +53,7 @@ public class SimpleCollector implements Runnable {
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(new File(loginInfo));
         parameterClass.setValue("DB_DBNAME", "tapas");
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+        TPS_DB_Connector dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
 
         SimpleCollector sc = new SimpleCollector(dbCon, "D:\\tmp\\berlin_blocks.csv");
 

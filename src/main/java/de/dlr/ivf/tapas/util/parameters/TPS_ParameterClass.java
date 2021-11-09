@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -86,6 +87,17 @@ public class TPS_ParameterClass {
         this.paramMatrixClass = new ParamMatrixClass();
         this.paramMatrixMapClass = new ParamMatrixMapClass();
         this.paramStringClass = new ParamStringClass();
+    }
+
+    public static Optional<TPS_ParameterClass> of(File parameter_file){
+        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+        try {
+            parameterClass.loadRuntimeParameters(parameter_file);
+            return Optional.of(parameterClass);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 
     /**

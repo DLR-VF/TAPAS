@@ -74,11 +74,9 @@ public class DBSimulationChooserPanel extends JPanel {
             // Part 2: loading runtime file
             TPS_ParameterClass parameterClass = new TPS_ParameterClass();
             parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-            dbCon = new TPS_DB_Connector(parameterClass);
+            dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
         } catch (IOException e) {
             // TODO handle no loginInfo file found
-        } catch (ClassNotFoundException e) {
-            // should not happen
         }
 
         createContents(title);

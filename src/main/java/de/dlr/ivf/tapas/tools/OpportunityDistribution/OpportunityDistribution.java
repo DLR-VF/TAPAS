@@ -24,7 +24,7 @@ public class OpportunityDistribution {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(new File("T:\\Simulationen\\runtime.csv"));
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+        TPS_DB_Connector dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
         //GroupToTAZ grouper = new GroupToTAZ(dbCon);
         //grouper.importData("12 Bezirke", "berlin", "D:\\tmp\\OpportunityDistribution\\bezirkeToTAZ.csv");
         GroupToDistribute worker = new GroupToDistribute(dbCon, args[0]);

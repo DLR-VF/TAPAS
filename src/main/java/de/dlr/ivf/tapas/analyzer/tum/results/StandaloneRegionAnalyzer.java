@@ -78,7 +78,7 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
         String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(new File(loginInfo));
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+        TPS_DB_Connector dbCon = TPS_DB_Connector.fromParameterClass(parameterClass);
 
         HashSet<Integer> acceptedTAZs = null;
         String sim = "2013y_03m_18d_11h_43m_32s_420ms";

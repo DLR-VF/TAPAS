@@ -207,7 +207,7 @@ public class DBImportController {
                 control.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
                 try {
-                    TPS_DB_Connector db = new TPS_DB_Connector("daniel", "daniel", control.getParameters());
+                    TPS_DB_Connector db = TPS_DB_Connector.fromParameterClass(control.getParameters());
 
 
                     control.getParameters().setString(ParamString.DB_SCHEMA_CORE, control.getSchema() + ".");

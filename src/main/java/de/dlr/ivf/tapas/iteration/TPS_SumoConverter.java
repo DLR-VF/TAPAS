@@ -122,7 +122,7 @@ public class TPS_SumoConverter {
             parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getParent());
 
             //ty to load parameters from db
-            this.dbManager = new TPS_DB_Connector(parameterClass);
+            this.dbManager = TPS_DB_Connector.fromParameterClass(parameterClass);
             String query = "SELECT * FROM " + parameterClass.getString(ParamString.DB_TABLE_SIMULATION_PARAMETERS) +
                     " WHERE sim_key = '" + simKey + "'";
             ResultSet rs = dbManager.executeQuery(query, this);

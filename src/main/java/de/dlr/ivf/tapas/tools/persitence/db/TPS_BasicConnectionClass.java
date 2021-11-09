@@ -40,8 +40,8 @@ public class TPS_BasicConnectionClass {
         this.parameterClass = new TPS_ParameterClass();
         try {
             this.parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-            dbCon = new TPS_DB_Connector(this.parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
+            dbCon = TPS_DB_Connector.fromParameterClass(this.parameterClass);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -50,8 +50,8 @@ public class TPS_BasicConnectionClass {
         this.parameterClass = parameterClass;
         try {
             this.parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-            dbCon = new TPS_DB_Connector(this.parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
+            dbCon = TPS_DB_Connector.fromParameterClass(this.parameterClass);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -63,8 +63,8 @@ public class TPS_BasicConnectionClass {
         this.parameterClass = new TPS_ParameterClass();
         try {
             this.parameterClass.loadRuntimeParameters(new File(loginFile));
-            dbCon = new TPS_DB_Connector(this.parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
+            dbCon = TPS_DB_Connector.fromParameterClass(this.parameterClass);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -76,8 +76,8 @@ public class TPS_BasicConnectionClass {
         this.parameterClass = parameterClass;
         try {
             this.parameterClass.loadRuntimeParameters(new File(loginFile));
-            dbCon = new TPS_DB_Connector(this.parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
+            dbCon = TPS_DB_Connector.fromParameterClass(this.parameterClass);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

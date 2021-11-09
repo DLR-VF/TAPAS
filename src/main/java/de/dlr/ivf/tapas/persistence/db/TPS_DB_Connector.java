@@ -13,6 +13,7 @@ import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.runtime.TapasLogin;
 import de.dlr.ivf.tapas.util.Matrix;
 import de.dlr.ivf.tapas.util.MatrixMap;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
@@ -25,6 +26,7 @@ import java.net.UnknownHostException;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * This class provides in general two services. After you built one instance you
@@ -37,6 +39,7 @@ import java.util.Map;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class TPS_DB_Connector {
 
+    private final TapasLogin tapas_login;
     public TPS_ParameterClass parameterClass;
     private String myUserName;
     private String myUserPwd;
@@ -45,31 +48,34 @@ public class TPS_DB_Connector {
      * established in the constructor and closed when the application exits, via
      * a shutdown hook.
      */
-    private final Map<Object, Connection> connections;
+    private final Map<Object, Connection> connections = new HashMap<>();
 
     /**
      * The constructor has three parts. Fist of all the database properties are
      * read from a file. Then these properties are checked if they have correct
      * values. The connections are opened in the TPS_DB_Connector#getConnection(Object) routine.
      *
-     * @param password
-     * @param username
      * @throws ClassNotFoundException This exception is thrown if the driver in
      *                                ParamString.DB_DRIVER was not found
      * @throws UnknownHostException   This exception is thrown if the host in ParamString.DB_HOST
      *                                was not found
      */
-    public TPS_DB_Connector(String username, String password, TPS_ParameterClass parameterClass) throws UnknownHostException, ClassNotFoundException {
-        this.myUserName = username;
-        this.myUserPwd = password;
-        this.parameterClass = parameterClass;
-        checkProperties(this.parameterClass);
-        this.connections = new HashMap<>();
-    }
+//    public TPS_DB_Connector(String username, String password, TPS_ParameterClass parameterClass) throws UnknownHostException, ClassNotFoundException {
+//        this.myUserName = username;
+//        this.myUserPwd = password;
+//
+//        this.tapas_login = TapasLogin.fromParameterClass(parameterClass).get();
+//        this.parameterClass = parameterClass;
+//        checkProperties(this.parameterClass);
+//    }
+//
+//    public TPS_DB_Connector(TPS_ParameterClass parameterClass) throws UnknownHostException, ClassNotFoundException {
+//        this.tapas_login = TapasLogin.fromParameterClass(parameterClass).get();
+//    }
 
-    public TPS_DB_Connector(TPS_ParameterClass parameterClass) throws UnknownHostException, ClassNotFoundException {
-        this(parameterClass.getString(ParamString.DB_USER), parameterClass.getString(ParamString.DB_PASSWORD),
-                parameterClass);
+    private TPS_DB_Connector(TapasLogin tapas_login, TPS_ParameterClass parameters) {
+        this.tapas_login = tapas_login;
+        this.parameterClass = parameters;
     }
 
     /**
@@ -408,36 +414,35 @@ public class TPS_DB_Connector {
      *                      database)
      */
     private Connection openConnection() throws SQLException {
-        String url = "jdbc:" + this.parameterClass.getString(ParamString.DB_TYPE) + "://" +
-                this.parameterClass.getString(ParamString.DB_HOST) + ":" + this.parameterClass.getIntValue(
-                ParamValue.DB_PORT) + "/" + this.parameterClass.getString(ParamString.DB_DBNAME);
+        String url = "jdbc:" + tapas_login.getDbType() + "://" +
+                tapas_login.getHost() + ":" + tapas_login.getPort() + "/" + tapas_login.getDatabase();
 
+//todo drop the below
+//        if (this.myUserName == null) {
+//            if (this.parameterClass.isDefined(ParamString.DB_USER)) {
+//                this.myUserName = this.parameterClass.getString(ParamString.DB_USER);
+//            } else {
+//                JLabel label = new JLabel("Please enter database user:");
+//                JTextField jtf = new JTextField();
+//                JOptionPane.showConfirmDialog(null, new Object[]{label, jtf}, "Password:",
+//                        JOptionPane.OK_CANCEL_OPTION);
+//                this.myUserName = jtf.getText();
+//            }
+//        }
+//
+//        if (this.myUserPwd == null) {
+//            if (this.parameterClass.isDefined(ParamString.DB_PASSWORD)) {
+//                this.myUserPwd = this.parameterClass.getString(ParamString.DB_PASSWORD);
+//            } else {
+//                JLabel label = new JLabel("Please enter password for database user '" + this.myUserName + "':");
+//                JPasswordField jpf = new JPasswordField();
+//                JOptionPane.showConfirmDialog(null, new Object[]{label, jpf}, "Password:",
+//                        JOptionPane.OK_CANCEL_OPTION);
+//                this.myUserPwd = new String(jpf.getPassword());
+//            }
+//        }
 
-        if (this.myUserName == null) {
-            if (this.parameterClass.isDefined(ParamString.DB_USER)) {
-                this.myUserName = this.parameterClass.getString(ParamString.DB_USER);
-            } else {
-                JLabel label = new JLabel("Please enter database user:");
-                JTextField jtf = new JTextField();
-                JOptionPane.showConfirmDialog(null, new Object[]{label, jtf}, "Password:",
-                        JOptionPane.OK_CANCEL_OPTION);
-                this.myUserName = jtf.getText();
-            }
-        }
-
-        if (this.myUserPwd == null) {
-            if (this.parameterClass.isDefined(ParamString.DB_PASSWORD)) {
-                this.myUserPwd = this.parameterClass.getString(ParamString.DB_PASSWORD);
-            } else {
-                JLabel label = new JLabel("Please enter password for database user '" + this.myUserName + "':");
-                JPasswordField jpf = new JPasswordField();
-                JOptionPane.showConfirmDialog(null, new Object[]{label, jpf}, "Password:",
-                        JOptionPane.OK_CANCEL_OPTION);
-                this.myUserPwd = new String(jpf.getPassword());
-            }
-        }
-
-        Connection con = DriverManager.getConnection(url, this.myUserName, this.myUserPwd);
+        Connection con = DriverManager.getConnection(url, tapas_login.getUser(), tapas_login.getPassword());
         con.setAutoCommit(true);
         con.setHoldability(ResultSet.CLOSE_CURSORS_AT_COMMIT);
 
@@ -662,6 +667,36 @@ public class TPS_DB_Connector {
 
         return result;
 
+    }
+
+    public static Optional<TPS_DB_Connector> fromTapasLoginCredentials(TapasLogin tapas_credentials, TPS_ParameterClass parameters){
+
+        TPS_DB_Connector db_connector = new TPS_DB_Connector(tapas_credentials, parameters);
+
+        try {
+            db_connector.openConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
+
+        return Optional.of(db_connector);
+
+    }
+
+    public static TPS_DB_Connector fromParameterClass(TPS_ParameterClass parameters){
+        Optional<TapasLogin> tapas_login = TapasLogin.fromParameterClass(parameters);
+
+        if (tapas_login.isPresent())
+            return new TPS_DB_Connector(tapas_login.get(), parameters);
+        else
+            return null;
+
+
+    }
+
+    public String getHostName(){
+        return this.tapas_login == null ? "" : this.tapas_login.getHost();
     }
 
 }

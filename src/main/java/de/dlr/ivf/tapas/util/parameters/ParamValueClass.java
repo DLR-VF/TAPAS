@@ -162,6 +162,7 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME_HOME, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.LOGSUM_CALIB_MISC, new MutablePair<>(ParamType.OPTIONAL, 1.));
+        this.paramValues.put(ParamValue.WORKER_COUNT, new MutablePair<>(ParamType.OPTIONAL,1));
 
 
     }

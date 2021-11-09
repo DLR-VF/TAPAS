@@ -66,7 +66,7 @@ public class TPS_PTScoreCalculator {
 
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(configFile);
-        TPS_PTScoreCalculator worker = new TPS_PTScoreCalculator(new TPS_DB_Connector(parameterClass));
+        TPS_PTScoreCalculator worker = new TPS_PTScoreCalculator(TPS_DB_Connector.fromParameterClass(parameterClass));
         worker.readDatabase(args[0]);
         worker.readStationsBVG(args[1]);
         worker.readStationsSBahn(args[2]);
