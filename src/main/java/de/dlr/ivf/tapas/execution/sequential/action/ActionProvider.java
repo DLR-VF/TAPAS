@@ -52,7 +52,6 @@ public class ActionProvider {
         this.guard_adaption_function = guard_adaption_function;
         this.mode_validator = mode_validator;
         this.car_sharing_delegator = car_sharing_delegator;
-
     }
 
     /**
