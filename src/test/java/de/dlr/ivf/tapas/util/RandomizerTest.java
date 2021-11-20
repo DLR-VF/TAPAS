@@ -26,16 +26,16 @@ class RandomizerTest {
     @Test
     void randomGaussianDistributionValidStd() {
         assertThrows(IllegalArgumentException.class,
-                () -> Randomizer.randomGaussianDistribution(() -> Randomizer.randomGaussian(), 1, -1));
+                () -> Randomizer.randomGaussianDistribution(Randomizer::randomGaussian, 1, -1));
     }
 
     @Test
     void randomGumbelDistributionAlphaTest() {
 
         assertThrows(IllegalArgumentException.class,
-                () -> Randomizer.randomGumbelDistribution(() -> Randomizer.random(), 1, -1));
+                () -> Randomizer.randomGumbelDistribution(Randomizer::random, 1, -1));
         assertThrows(IllegalArgumentException.class,
-                () -> Randomizer.randomGumbelDistribution(() -> Randomizer.random(), 1, 0));
+                () -> Randomizer.randomGumbelDistribution(Randomizer::random, 1, 0));
     }
 
     //should we be using an accepted margin of error due to floating point precisions?

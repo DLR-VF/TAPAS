@@ -1,11 +1,14 @@
 package de.dlr.ivf.tapas.runtime.server;
 
+import de.dlr.ivf.tapas.log.TPS_Logger;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Optional;
 
 public class TapasSimulationProvider {
@@ -31,7 +34,9 @@ public class TapasSimulationProvider {
 
             String lock = "LOCK TABLE " + simulations_table + " IN ACCESS EXCLUSIVE MODE;";
 
-            connection.createStatement().execute(lock);
+            Statement st = connection.createStatement();
+            st.setQueryTimeout(1000);
+            st.execute(lock);
 
             String available_simulations = "SELECT * FROM " + simulations_table +
                     " WHERE sim_finished = false" +
@@ -39,6 +44,8 @@ public class TapasSimulationProvider {
                     " AND sim_started = true" +
                     " AND (simulation_server IS NULL OR simulation_server = '')" +
                     " ORDER BY timestamp_insert LIMIT 1";
+
+
 
             ResultSet available_simulation = connection.createStatement().executeQuery(available_simulations);
 
@@ -67,8 +74,7 @@ public class TapasSimulationProvider {
             connection.setAutoCommit(true);
 
         } catch (SQLException e) {
-            //nothing to do...
-            e.printStackTrace();
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.WARN,"Unable to request next simulation!");
         }
 
         return Optional.ofNullable(simulation);
