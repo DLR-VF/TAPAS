@@ -823,8 +823,12 @@ public enum ParamValue {
     /**
      * The calibration factor misc for logsum
      */
-    LOGSUM_CALIB_MISC
+    LOGSUM_CALIB_MISC,
 
+    /**
+     * The maximum time a sequential simulation should run
+     */
+    SIMULATION_END_TIME
 }
 
 

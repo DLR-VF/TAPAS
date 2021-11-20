@@ -43,7 +43,7 @@ public class SimulationServer implements Runnable, ShutDownable {
         if(simulation_parameters.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) &&
                 simulation_parameters.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
 
-            this.simulator = new SequentialSimulator(pm, db_connector);
+            this.simulator = new SequentialSimulator(pm, db_connector, simulation);
         }else {
             this.simulator = new HierarchicalSimulator(pm);
         }

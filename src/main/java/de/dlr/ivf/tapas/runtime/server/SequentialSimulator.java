@@ -25,6 +25,7 @@ import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.ParamValue;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,10 +39,12 @@ public class SequentialSimulator implements TPS_Simulator{
      */
     private final TPS_PersistenceManager pm;
     private final TPS_DB_Connector dbConnector;
+    private final TPS_Simulation simulation;
 
-    public SequentialSimulator(TPS_PersistenceManager pm, TPS_DB_Connector dbConnector){
+    public SequentialSimulator(TPS_PersistenceManager pm, TPS_DB_Connector dbConnector, TPS_Simulation simulation){
         this.pm = pm;
         this.dbConnector = dbConnector;
+        this.simulation = simulation;
     }
 
 
@@ -64,7 +67,7 @@ public class SequentialSimulator implements TPS_Simulator{
 
             //load households, persons and assign cars
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loading all households, persons and cars");
-            TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.pm);
+            TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader(dbConnector, simulation.getParameters(), pm.getRegion());
             List<TPS_Household> hhs = hh_pers_loader.initAndGetAllHouseholds();
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
             int cnt_hh = hhs.size();
@@ -119,7 +122,12 @@ public class SequentialSimulator implements TPS_Simulator{
             persisting_thread.start();
 
             //set up the simulation thread
-            TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers, Math.max(1, num_threads / 2 - 3), (TPS_DB_IOManager) this.pm, writer,  1 << 20, first_simulation_event);
+            int simulation_end_time = pm.getParameters().getIntValue(ParamValue.SIMULATION_END_TIME);
+            int worker_count = pm.getParameters().getIntValue(ParamValue.WORKER_COUNT);
+            TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers,
+                                                                            worker_count, (TPS_DB_IOManager) this.pm,
+                                                                            writer,  1 << 20,
+                                                                            first_simulation_event, simulation_end_time);
             Thread simulation_thread = new Thread(simulator);
             simulation_thread.start();
 

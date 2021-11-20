@@ -55,6 +55,7 @@ import java.util.stream.IntStream;
  *
  * @author mark_ma
  */
+@Deprecated
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class TPS_Main {
 
@@ -266,7 +267,7 @@ public class TPS_Main {
         initPM();
 
         if(this.parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) && this.parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
-            this.simulator = new SequentialSimulator(this.PM, this.dbConnector);
+            this.simulator = new SequentialSimulator(this.PM, this.dbConnector, null);
         }else{
             this.simulator = new HierarchicalSimulator(this.PM);
         }

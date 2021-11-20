@@ -41,6 +41,7 @@ import java.util.stream.IntStream;
  */
 
 public class TPS_SequentialSimulator implements Runnable{
+    private final int simulation_end_time;
     private int worker_count;
     private int buffer_size;
     private TPS_DB_IOManager pm;
@@ -59,7 +60,7 @@ public class TPS_SequentialSimulator implements Runnable{
      * @param writer that handles persisting the data
      * @param buffer_size of the {@link RingBuffer}. Must be a power of 2.
      */
-    public TPS_SequentialSimulator(List<HouseholdBasedStateMachineController> state_machine_controllers, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer, int buffer_size, TPS_Event start_event){
+    public TPS_SequentialSimulator(List<HouseholdBasedStateMachineController> state_machine_controllers, int worker_count, TPS_DB_IOManager pm, TPS_TripWriter writer, int buffer_size, TPS_Event start_event, int simulation_end_time){
 
         this.worker_count = worker_count;
         this.buffer_size = buffer_size;
@@ -69,36 +70,8 @@ public class TPS_SequentialSimulator implements Runnable{
         this.state_machine_controllers = state_machine_controllers;
         this.next_simulation_event = start_event;
         this.simulation_time_stamp.set(next_simulation_event.getData());
+        this.simulation_end_time = simulation_end_time;
     }
-
-
-//    /**
-//     * Creates a {@link TPS_StateMachine} with a set of states representing the behaviour for every {@link de.dlr.ivf.tapas.scheme.TPS_Episode}
-//     * inside a {@link TPS_Plan}.
-//     * @param plans that need to be represented as a {@link TPS_StateMachine}
-//     * @param writer for the {@link TripPersistenceAction}s
-//     * @return a list of {@link TPS_StateMachine}s
-//     */
-//
-//    private List<TPS_StateMachine> createAndGetStateMachines(List<TPS_Plan> plans, TPS_TripWriter writer) {
-//
-//        var plan_count = plans.size();
-//        var state_machines = new ArrayList<TPS_StateMachine>(plan_count);
-//
-//        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Generating "+plan_count+" state machines...");
-//
-//        plans.forEach(plan -> state_machines.add(TPS_StateMachineFactory.createStateMachineWithSimpleStates(plan, writer, pm, carsharing_mediators)));
-//
-//        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "All state machines ready...");
-//
-//        return state_machines;
-//    }
-
-//    private List<HouseholdBasedStateMachineController> createAndGetHouseholdControllers(List<TPS_Household> households, TPS_TripWriter writer) {
-//
-//        return households.stream().map(hh -> new HouseholdBasedStateMachineController(hh)).collect(Collectors.toList());
-//
-//    }
 
     public void run(){
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Setting up "+worker_count+" workers...");
@@ -138,8 +111,8 @@ public class TPS_SequentialSimulator implements Runnable{
         int total_event_count = 0;
 
 
-        //start the simulation
-        while(!all_finished && simulation_time_stamp.get() < 3000){
+        //start the iteration process
+        while(!all_finished && simulation_time_stamp.get() <= simulation_end_time){
 
             var event_count = 0;
             var current_iteration_start_time = System.currentTimeMillis();

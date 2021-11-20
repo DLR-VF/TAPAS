@@ -7,6 +7,7 @@ import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
@@ -22,24 +23,19 @@ import de.dlr.ivf.tapas.util.FuncUtils;
  */
 
 public class TPS_WritableTrip {
-    private TPS_PersistenceManager pm;
-    private PlanContext plan_context;
-    private TourContext tour_context;
-    private TPS_Plan plan;
-    private TPS_Trip trip;
-    private TPS_Car used_car;
-    private TPS_Stay nextStay;
-    private TPS_Location prevLoc;
-    private TPS_LocatedStay nextStayLocated;
-    private TPS_Location nextLoc;
+    private final TPS_PersistenceManager pm;
+    private final TPS_Plan plan;
+    private final TPS_Trip trip;
+    private final TPS_Car used_car;
+    private final TPS_Stay nextStay;
+    private final TPS_Location prevLoc;
+    private final TPS_LocatedStay nextStayLocated;
+    private final TPS_Location nextLoc;
 
     public TPS_WritableTrip(PlanContext plan_context, TourContext tour_context, TPS_PersistenceManager pm){
         this.pm = pm;
-        this.plan_context = plan_context;
-        this.tour_context = tour_context;
         this.plan = plan_context.getPlan();
         this.used_car = getUsedCar(plan);
-        TPS_Stay prevStay = tour_context.getCurrentStay();
         this.nextStay = tour_context.getNextStay();
         this.prevLoc = tour_context.getCurrentLocation();
         this.nextStayLocated = this.plan.getLocatedStay(nextStay);
@@ -157,7 +153,12 @@ public class TPS_WritableTrip {
     }
 
     public int getCarType(){
-        return this.used_car == null ? -1 : used_car.getId();
+        TPS_Mode.ModeType mode = plan.getPlannedTrip(trip).getMode().primary.getModeType();
+
+        if(mode == TPS_Mode.ModeType.MIT || mode == TPS_Mode.ModeType.CAR_SHARING)
+            return this.used_car == null ? 99999 : used_car.getId();
+        else
+            return 99999;
     }
 
     public double getDistanceBlMeter(){
@@ -197,7 +198,7 @@ public class TPS_WritableTrip {
     }
 
     public int getCarIndex(){
-        return used_car != null ? used_car.index : -1;
+        return used_car != null ? used_car.getId() : 99999;
     }
 
     public boolean getIsRestrictedCar(){
