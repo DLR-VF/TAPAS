@@ -27,10 +27,8 @@ import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -191,6 +189,9 @@ public class SequentialSimulator implements TPS_Simulator{
 
     private Map<Integer, SharingMediator<TPS_Car>> initCS(){
 
+        AtomicInteger id = new AtomicInteger(0);
+        IntSupplier id_provider = id::incrementAndGet;
+
         //read car sharing capacities from database
         String table_taz_fees_and_tolls = dbConnector.getParameters().getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS);
         String key_taz_fees_and_tolls = dbConnector.getParameters().getString(ParamString.DB_NAME_FEES_TOLLS);
@@ -199,7 +200,7 @@ public class SequentialSimulator implements TPS_Simulator{
         return car_sharing_data.entrySet()
                                .stream()
                                .collect(Collectors.toMap(Map.Entry::getKey,
-                                                         entry -> new SimpleCarSharingOperator(entry.getValue())));
+                                                         entry -> new SimpleCarSharingOperator(entry.getValue(),id_provider, dbConnector.getParameters())));
     }
 
     private IntSummaryStatistics calcStatistics(Map<TPS_Household,List<TPS_Plan>> households_to_plans, ToIntFunction<TPS_Episode> collecting_function ){

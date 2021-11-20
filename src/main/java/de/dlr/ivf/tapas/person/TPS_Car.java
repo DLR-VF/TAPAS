@@ -77,6 +77,8 @@ public class TPS_Car {
     private double cost_per_kilometer;
     private TPS_ParameterClass parameterClass;
 
+    private long entry_time;
+
     /**
      * Constructor class for a new car.
      *
@@ -777,6 +779,14 @@ public class TPS_Car {
             success = true;
         }
         return success;
+    }
+
+    public void setEntryTime(long entry_time) {
+        this.entry_time  = entry_time;
+    }
+
+    public long getEntryTime(){
+        return this.entry_time;
     }
 
 
