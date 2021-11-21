@@ -9,7 +9,7 @@ import java.util.Optional;
 public class ArgumentInputHandler {
 
     public static boolean validate(String[] args){
-        return args.length == 1 && Files.exists(Paths.get(args[0]));
+        return args.length == 1 && Files.exists(Paths.get(args[0])) && !Files.isDirectory(Paths.get(args[0]));
     }
 
     public static Optional<TPS_ParameterClass> readParameters(String[] args){

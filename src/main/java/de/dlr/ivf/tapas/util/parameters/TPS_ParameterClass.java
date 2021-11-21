@@ -574,9 +574,6 @@ public class TPS_ParameterClass {
         }
 
         generateTemporaryParameters();
-
-        if (this.isDefined(ParamString.LOG_CLASS)) TPS_Logger.setLoggingClass(this.getString(ParamString.LOG_CLASS),
-                this);
     }
 
     /**

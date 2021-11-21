@@ -12,16 +12,10 @@ import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.runtime.TapasLogin;
-import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
-
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public final class SimulationDaemon implements Runnable{
 
@@ -38,12 +32,11 @@ public final class SimulationDaemon implements Runnable{
 
     public static void main(String[] args) {
 
+
         if(!ArgumentInputHandler.validate(args)){
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.FATAL,
-                    "The provided input arguments are invalid. Make sure that solely a single existing file is passed.");
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.INFO,
-                    "Closing the application...");
-            return;
+            throw new IllegalArgumentException("The provided input arguments are invalid: "+
+                    Arrays.stream(args).collect(Collectors.joining(",\n\t","\n-\t","\n"))+
+                    "TAPAS currently accepts a single parameters file as input.");
         }
 
         try {
@@ -56,6 +49,13 @@ public final class SimulationDaemon implements Runnable{
 
             TPS_DB_Connector dbConnector = TPS_DB_Connector.fromTapasLoginCredentials(tapas_login, parameters).orElseThrow(
                     () -> new RuntimeException("Cannot establish connection to database: "+tapas_login.getDatabase()+" on host: "+tapas_login.getHost()+" for user: "+tapas_login.getUser()));
+
+            //set up the logger
+            if (parameters.isDefined(ParamString.LOG_CLASS))
+                TPS_Logger.setLoggingClass(parameters.getString(ParamString.LOG_CLASS), parameters);
+            else
+                System.out.println("NO LOGGER defined in input parameters.");
+
 
 
             String simulations_table = parameters.getString(ParamString.DB_TABLE_SIMULATIONS);
@@ -86,7 +86,6 @@ public final class SimulationDaemon implements Runnable{
 
         shutdownable_services.add(server_manager);
 
-
         TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Waiting for simulation to start...");
 
         while(true) {
@@ -110,6 +109,7 @@ public final class SimulationDaemon implements Runnable{
 
                     this.simulation_server = null;
                 }
+                //we request a new simulation every 5 seconds
                 Thread.sleep(5000);
 
             } catch (Exception e) {
