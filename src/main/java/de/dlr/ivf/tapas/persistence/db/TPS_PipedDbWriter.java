@@ -44,6 +44,8 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
     private String copy_string;
 
+    private final String sim_key;
+
     /**
      *
      * @param pm the persistence manager
@@ -64,6 +66,7 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
         char csv_delimiter = ';';
 
         TPS_ParameterClass simulation_parameter = simulation.getParameters();
+        this.sim_key = simulation.getSimulationKey();
         String trip_table_name = simulation_parameter.getString(ParamString.DB_TABLE_TRIPS)+"_"+simulation.getSimulationKey();
         this.copy_string = String.format("COPY %s FROM STDIN (FORMAT TEXT, ENCODING 'UTF-8', DELIMITER '"+ csv_delimiter +"', HEADER false)",trip_table_name);
 
