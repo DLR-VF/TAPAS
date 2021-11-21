@@ -41,6 +41,8 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
     private String copy_string;
 
+    private final String trip_table_name;
+
     /**
      *
      * @param pm the persistence manager
@@ -48,17 +50,18 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
      * @param buffer_size original size of the {@link RingBuffer}. Must be a power of 2!
      */
 
-    public TPS_PipedDbWriter(TPS_PersistenceManager pm, long total_trip_count, int buffer_size){
+    public TPS_PipedDbWriter(TPS_PersistenceManager pm, long total_trip_count, int buffer_size, String trip_table_name){
 
         this.pm = (TPS_DB_IOManager) pm;
         this.buffer_size = buffer_size;
+        this.trip_table_name = trip_table_name;
         try {
             this.connection = this.pm.getDbConnector().getConnection(this);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         char csv_delimiter = ';';
-        this.copy_string = String.format("COPY %s FROM STDIN (FORMAT TEXT, ENCODING 'UTF-8', DELIMITER '"+ csv_delimiter +"', HEADER false)",pm.getParameters().getString(ParamString.DB_TABLE_TRIPS));
+        this.copy_string = String.format("COPY %s FROM STDIN (FORMAT TEXT, ENCODING 'UTF-8', DELIMITER '"+ csv_delimiter +"', HEADER false)",trip_table_name);
 
         this.total_trip_count = total_trip_count;
         init();

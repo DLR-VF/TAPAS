@@ -26,6 +26,7 @@ import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -94,7 +95,9 @@ public class SequentialSimulator implements TPS_Simulator{
             TazBasedCarSharingDelegator car_sharing_delegator = new TazBasedCarSharingDelegator(initCS());
 
             //set up the writer
-            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(pm, trip_count, 1 << 19);
+            TPS_ParameterClass simulation_parameters = simulation.getParameters();
+            String trips_output_table = simulation_parameters.getString(ParamString.DB_TABLE_TRIPS)+"_"+simulation.getSimulationKey();
+            TPS_PipedDbWriter writer = new TPS_PipedDbWriter(pm, trip_count, 1 << 19,trips_output_table);
 
             //set up handlers for transition actions
             TPS_ModeValidator mode_validator = new TPS_ModeValidator(car_sharing_delegator);
