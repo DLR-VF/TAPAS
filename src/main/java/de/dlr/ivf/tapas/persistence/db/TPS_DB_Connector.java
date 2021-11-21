@@ -634,6 +634,10 @@ public class TPS_DB_Connector {
         return this.executeUpdate(query, this); // affected rows
     }
 
+    public void setParameters(TPS_ParameterClass simulation_parameters) {
+        this.parameterClass = simulation_parameters;
+    }
+
     /**
      * User types for the database
      *
@@ -676,7 +680,6 @@ public class TPS_DB_Connector {
         try {
             db_connector.openConnection();
         } catch (SQLException e) {
-            e.printStackTrace();
             return Optional.empty();
         }
 
