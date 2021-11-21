@@ -42,6 +42,7 @@ public class SimulationServer implements Runnable, ShutDownable {
         // This is based on mixed responsibilities inside the underlying classes and their original implementation
         db_connector.setParameters(simulation_parameters);
         this.pm = new TPS_DB_IOManager(db_connector);
+        this.pm.init();
 
         if(simulation_parameters.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) &&
                 simulation_parameters.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
