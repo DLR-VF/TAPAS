@@ -38,9 +38,6 @@ public class SimulationServer implements Runnable, ShutDownable {
             worker_count = simulation_parameters.getIntValue(ParamValue.WORKER_COUNT);
 
         //init the pm
-        //Note: we have to set the parameters again manually.
-        // This is based on mixed responsibilities inside the underlying classes and their original implementation
-        db_connector.setParameters(simulation_parameters);
         this.pm = new TPS_DB_IOManager(db_connector);
         this.pm.init();
 

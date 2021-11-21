@@ -98,7 +98,7 @@ public final class SimulationDaemon implements Runnable{
                     TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Starting simulation: " + simulation.getSimulationKey());
 
 
-                    this.simulation_server = new SimulationServer(simulation, db_connector);
+                    this.simulation_server = new SimulationServer(simulation, TPS_DB_Connector.fromParameterClass(simulation.getParameters()));
                     shutdownable_services.add(this.simulation_server);
                     server_context.setRunningServer(this.simulation_server);
 

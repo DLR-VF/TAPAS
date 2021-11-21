@@ -1740,7 +1740,7 @@ public class TPS_DB_IO {
             }
         }
         //now update the occupancy values from the temporary table
-        this.updateOccupancyTable(region);
+        //this.updateOccupancyTable(region);
         if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
                     "Total number of locations: " + numOfLocations + " capacity sum: " + totalCapacity);
