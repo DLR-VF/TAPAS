@@ -39,9 +39,9 @@ public final class SimulationDaemon implements Runnable{
     public static void main(String[] args) {
 
         if(!ArgumentInputHandler.validate(args)){
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.FATAL,
                     "The provided input arguments are invalid. Make sure that solely a single existing file is passed.");
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,
+            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.INFO,
                     "Closing the application...");
             return;
         }
@@ -65,7 +65,7 @@ public final class SimulationDaemon implements Runnable{
 
             SimulationDaemon daemon = new SimulationDaemon(dbConnector, simulation_provider);
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Starting TAPAS-Daemon...");
+
             Thread t = new Thread(daemon);
             t.start();
 
@@ -78,7 +78,7 @@ public final class SimulationDaemon implements Runnable{
 
     @Override
     public void run() {
-
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Starting TAPAS-Daemon...");
         Runtime.getRuntime().addShutdownHook(new TapasShutDownProcedure(shutdownable_services));
 
         SimulationServerContext server_context = SimulationServerContext.newLocalServerContext();
@@ -87,7 +87,7 @@ public final class SimulationDaemon implements Runnable{
         shutdownable_services.add(server_manager);
 
 
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Waiting for simulation to start...");
+        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Waiting for simulation to start...");
 
         while(true) {
             Optional<TPS_Simulation> tapas_simulation = simulation_provider.requestSimulation();
@@ -96,7 +96,7 @@ public final class SimulationDaemon implements Runnable{
                 if (tapas_simulation.isPresent()) {
 
                     TPS_Simulation simulation = tapas_simulation.get();
-                    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Starting simulation: " + simulation.getSimulationKey());
+                    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.APPLICATION, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Starting simulation: " + simulation.getSimulationKey());
 
 
                     this.simulation_server = new SimulationServer(simulation, db_connector);
