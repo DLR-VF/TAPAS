@@ -5,7 +5,9 @@ import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.execution.sequential.io.TPS_WritableTrip;
+import de.dlr.ivf.tapas.runtime.server.TPS_Simulation;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import org.postgresql.core.BaseConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -25,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
+    private final TPS_Simulation simulation;
     private long total_trip_count;
 
     private AtomicInteger registered_trips = new AtomicInteger(0);
@@ -41,8 +44,6 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
 
     private String copy_string;
 
-    private final String trip_table_name;
-
     /**
      *
      * @param pm the persistence manager
@@ -50,17 +51,20 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
      * @param buffer_size original size of the {@link RingBuffer}. Must be a power of 2!
      */
 
-    public TPS_PipedDbWriter(TPS_PersistenceManager pm, long total_trip_count, int buffer_size, String trip_table_name){
+    public TPS_PipedDbWriter(TPS_PersistenceManager pm, long total_trip_count, int buffer_size, TPS_Simulation simulation){
 
         this.pm = (TPS_DB_IOManager) pm;
         this.buffer_size = buffer_size;
-        this.trip_table_name = trip_table_name;
+        this.simulation = simulation;
         try {
             this.connection = this.pm.getDbConnector().getConnection(this);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         char csv_delimiter = ';';
+
+        TPS_ParameterClass simulation_parameter = simulation.getParameters();
+        String trip_table_name = simulation_parameter.getString(ParamString.DB_TABLE_TRIPS)+"_"+simulation.getSimulationKey();
         this.copy_string = String.format("COPY %s FROM STDIN (FORMAT TEXT, ENCODING 'UTF-8', DELIMITER '"+ csv_delimiter +"', HEADER false)",trip_table_name);
 
         this.total_trip_count = total_trip_count;
