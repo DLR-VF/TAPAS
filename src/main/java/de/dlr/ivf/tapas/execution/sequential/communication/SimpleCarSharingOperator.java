@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.execution.sequential.communication;
 
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.runtime.server.SimTimeProvider;
+import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
@@ -30,10 +31,10 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
     }
 
 
-    private TPS_Car generateSimpleCar(IntSupplier id_provider, double cost_per_km) {
+    private TPS_Car generateSimpleCar(IntSupplier id_provider, double cost_per_km, int entry_time) {
 
         TPS_Car car = new TPS_Car(-id_provider.getAsInt(),0,cost_per_km,false,0);
-        car.setEntryTime(System.currentTimeMillis());
+        car.setEntryTime(entry_time);
         return car;
     }
 
@@ -41,7 +42,9 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
 
         double cost_per_km = parameters.getDoubleValue(ParamValue.CAR_SHARING_COST_PER_KM);
 
-        IntStream.range(0,initial_fleet_size).forEach(i -> fleet.put(generateSimpleCar(id_provider, cost_per_km), new AtomicBoolean(false)));
+        int entry_time = parameters.isDefined(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) ? 0 - FuncUtils.secondsToRoundedMinutes.apply(parameters.getIntValue(ParamValue.CAR_SHARING_CHECKOUT_PENALTY)) : 0;
+
+        IntStream.range(0,initial_fleet_size).forEach(i -> fleet.put(generateSimpleCar(id_provider, cost_per_km, entry_time), new AtomicBoolean(false)));
     }
 
     @Override

@@ -35,16 +35,12 @@ public class TPS_ModeValidator {
 
     private void validateCarSharing(TPS_PlanningContext planning_context, TPS_ExtMode chosen_mode, TPS_Location start_location, TPS_Location end_location, Predicate<TPS_Car> car_filter) {
 
-        if(planning_context.isCarSharingUser()) {
-            Optional<TPS_Car> car_sharing_car = this.car_sharing_delegator.request(start_location.getTAZId(), end_location.getTAZId(), car_filter);
+        Optional<TPS_Car> car_sharing_car = this.car_sharing_delegator.request(start_location.getTAZId(), end_location.getTAZId(), car_filter);
 
-            car_sharing_car.ifPresentOrElse(
-                    car -> planning_context.setCarSharingCar(car),
-                     () -> chosen_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT)
-            );
-        }else{
-            chosen_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT);
-        }
+        car_sharing_car.ifPresentOrElse(
+                car -> planning_context.setCarSharingCar(car),
+                () -> chosen_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT)
+        );
     }
 
     private void validateBikeWithChosenMode(boolean isBikeAvailable, TPS_ExtMode chosen_mode) {
