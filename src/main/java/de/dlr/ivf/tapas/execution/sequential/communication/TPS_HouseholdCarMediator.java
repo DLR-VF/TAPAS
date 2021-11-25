@@ -27,7 +27,7 @@ public class TPS_HouseholdCarMediator implements SharingMediator<TPS_Car> {
     }
 
     @Override
-    public Optional<TPS_Car> request(Predicate<TPS_Car> filter) {
+    public Optional<TPS_Car> request(Predicate<TPS_Car> external_filter) {
         return this.car_occupancy_map
                 .entrySet()
                 .stream()

@@ -8,15 +8,13 @@ import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_PipedDbWriter;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.execution.sequential.event.*;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
-import de.dlr.ivf.tapas.util.FuncUtils;
+import de.dlr.ivf.tapas.runtime.server.SimTimeProvider;
 
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
@@ -40,7 +38,7 @@ import java.util.stream.IntStream;
  *
  */
 
-public class TPS_SequentialSimulator implements Runnable{
+public class TPS_SequentialSimulator implements Runnable, SimTimeProvider {
     private final int simulation_end_time;
     private int worker_count;
     private int buffer_size;
@@ -196,11 +194,8 @@ public class TPS_SequentialSimulator implements Runnable{
         ring_buffer.publish(sequenceId);
     }
 
-//    private Map<Integer, TazBasedCarSharingDelegator> createCarSharingMediators(Collection<Integer> taz_ids, TPS_Car random_car){
-//        Map<Integer, TazBasedCarSharingDelegator> result_sharing_mediators = new HashMap<>(taz_ids.size());
-//
-//        taz_ids.forEach(taz_id -> result_sharing_mediators.put(taz_id, new TazBasedCarSharingDelegator(100,taz_ids, random_car)));
-//
-//        return result_sharing_mediators;
-//    }
+    @Override
+    public int getSimTime() {
+        return this.simulation_time_stamp.get();
+    }
 }

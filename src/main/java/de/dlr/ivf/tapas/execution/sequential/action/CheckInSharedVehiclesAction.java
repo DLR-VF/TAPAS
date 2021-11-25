@@ -9,6 +9,7 @@ import de.dlr.ivf.tapas.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.runtime.server.SimTimeProvider;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 
 /**
@@ -19,6 +20,7 @@ public class CheckInSharedVehiclesAction implements TPS_PlanStateAction{
     private final TPS_PlanningContext planning_context;
     private final TourContext tour_context;
     private final SharingDelegator<TPS_Car> car_sharing_delegator;
+    private final SimTimeProvider sim_time_provider;
 
     /**
      *
@@ -27,11 +29,12 @@ public class CheckInSharedVehiclesAction implements TPS_PlanStateAction{
      * @param tour_context the tour context
      * @param car_sharing_delegator the managing car sharing instance
      */
-    public CheckInSharedVehiclesAction(TPS_HouseholdCarMediator householdCarProvider, TPS_PlanningContext pc, TourContext tour_context, SharingDelegator<TPS_Car> car_sharing_delegator){
+    public CheckInSharedVehiclesAction(TPS_HouseholdCarMediator householdCarProvider, TPS_PlanningContext pc, TourContext tour_context, SharingDelegator<TPS_Car> car_sharing_delegator, SimTimeProvider sim_time_provider){
         this.household_car_provider = householdCarProvider;
         this.planning_context = pc;
         this.tour_context = tour_context;
         this.car_sharing_delegator = car_sharing_delegator;
+        this.sim_time_provider = sim_time_provider;
     }
 
     /**

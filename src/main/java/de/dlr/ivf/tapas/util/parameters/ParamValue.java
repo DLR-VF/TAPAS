@@ -828,7 +828,12 @@ public enum ParamValue {
     /**
      * The maximum time a sequential simulation should run
      */
-    SIMULATION_END_TIME
+    SIMULATION_END_TIME,
+
+    /**
+     * The time that a car sharing car has to be checked before it can be requested again in seconds
+     */
+    CAR_SHARING_CHECKOUT_PENALTY;
 }
 
 

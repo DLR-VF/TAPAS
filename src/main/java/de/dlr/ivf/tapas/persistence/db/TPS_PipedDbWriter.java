@@ -83,7 +83,7 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
             copy_manager.copyIn(copy_string,this.ring_buffer,written_trips);
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Closing database pipeline with "+ registered_trips.get()+" written trips.");
 
-            String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+            String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+sim_key + "'";
             pm.execute(query);
 
             TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Closing the writer...");
@@ -158,7 +158,8 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
     public void startSimulationProgressUpdateTask(){
         if(this.update_task == null) {
             Runnable task = () -> {
-                String query = "UPDATE " + this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) + " SET sim_started= true, sim_progress = " + written_trips.get() + ", sim_total = " + total_trip_count + " WHERE sim_key = '" + this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
+                String query = "UPDATE " + this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) + " SET sim_started= true, sim_progress = " + written_trips.get() + ", sim_total = " + total_trip_count + " WHERE sim_key = '" + sim_key
+                        + "'";
                 pm.execute(query);
             };
             this.update_task = Executors.newSingleThreadScheduledExecutor();

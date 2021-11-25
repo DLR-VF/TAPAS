@@ -1,6 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.communication;
 
 import de.dlr.ivf.tapas.person.TPS_Car;
+import de.dlr.ivf.tapas.runtime.server.SimTimeProvider;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
@@ -17,6 +18,7 @@ import java.util.stream.IntStream;
 public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
 
     private final Map<TPS_Car, AtomicBoolean> fleet = new ConcurrentHashMap<>();
+    private SimTimeProvider sim_time_provider;
 
     /**
      * @param initial_fleet_size size of the fleet at start of a simulation
@@ -43,11 +45,12 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
     }
 
     @Override
-    public Optional<TPS_Car> request(Predicate<TPS_Car> filter) {
+    public Optional<TPS_Car> request(Predicate<TPS_Car> external_filter) {
 
         return fleet.entrySet()
                     .stream()
                     .sorted(Map.Entry.comparingByKey(Comparator.comparing(TPS_Car::getEntryTime).reversed())) //sort before filtering otherwise we lose lazy evaluation and all cars will be marked as requested
+                    .filter(entry -> external_filter.test(entry.getKey()))
                     .filter(Predicate.not(entry -> entry.getValue().getAndSet(true))) //find those that have not been requested yet
                     .map(Map.Entry::getKey)
                     .findFirst();
@@ -56,7 +59,7 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
     @Override
     public void checkIn(TPS_Car used_vehicle) {
 
-        used_vehicle.setEntryTime(System.currentTimeMillis());
+        used_vehicle.setEntryTime(sim_time_provider.getSimTime());
         this.fleet.put(used_vehicle, new AtomicBoolean(false));
     }
 
@@ -69,5 +72,9 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
     public void release(TPS_Car requested_vehicle) {
         if(!this.fleet.get(requested_vehicle).getAndSet(false))
             throw new IllegalArgumentException("Car has not been requested before so we cannot release it");
+    }
+
+    public void setSimTimeProvider(SimTimeProvider sim_time_provider){
+        this.sim_time_provider = sim_time_provider;
     }
 }

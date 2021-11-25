@@ -26,6 +26,7 @@ import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,7 +92,8 @@ public class SequentialSimulator implements TPS_Simulator{
             int simulation_start_time_minute = FuncUtils.secondsToRoundedMinutes.apply(Math.toIntExact(stats.getMin()));
 
             //set up sharing delegators
-            TazBasedCarSharingDelegator car_sharing_delegator = new TazBasedCarSharingDelegator(initCS());
+            Map<Integer, SharingMediator<TPS_Car>> car_sharing_operators = initCS();
+            TazBasedCarSharingDelegator car_sharing_delegator = new TazBasedCarSharingDelegator(car_sharing_operators);
 
             //set up the writer
             TPS_PipedDbWriter writer = new TPS_PipedDbWriter(pm, trip_count, 1 << 19,simulation);
@@ -126,8 +128,21 @@ public class SequentialSimulator implements TPS_Simulator{
             int worker_count = pm.getParameters().getIntValue(ParamValue.WORKER_COUNT);
             TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers,
                                                                             worker_count, (TPS_DB_IOManager) this.pm,
-                                                                            writer,  1 << 20,
+                                                                            writer,  1 << 19,
                                                                             first_simulation_event, simulation_end_time);
+
+            TPS_ParameterClass sim_parameters = simulation.getParameters();
+            int car_sharing_checkout_delay = sim_parameters.isDefined(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) ? sim_parameters.getIntValue(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) : 0;
+
+            Predicate<TPS_Car> car_sharing_filter = car -> car.getEntryTime() + FuncUtils.secondsToRoundedMinutes.apply(car_sharing_checkout_delay) <= simulator.getSimTime();
+            transition_actions_provider.setCarFilter(car_sharing_filter);
+            transition_actions_provider.setSimTimeProvider(simulator);
+
+            car_sharing_operators.values()
+                                 .stream()
+                                 .map(SimpleCarSharingOperator.class::cast)
+                                 .forEach(operator -> operator.setSimTimeProvider(simulator));
+
             Thread simulation_thread = new Thread(simulator);
             simulation_thread.start();
 

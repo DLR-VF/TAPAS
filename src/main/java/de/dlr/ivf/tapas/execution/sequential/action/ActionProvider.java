@@ -11,11 +11,13 @@ import de.dlr.ivf.tapas.mode.*;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
+import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.runtime.server.SimTimeProvider;
 import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -35,6 +38,8 @@ public class ActionProvider {
     private final BiFunction<TPS_Episode, Supplier<Integer>, Integer> guard_adaption_function;
     private final TPS_ModeValidator mode_validator;
     private final TazBasedCarSharingDelegator car_sharing_delegator;
+    private Predicate<TPS_Car> car_filter;
+    private SimTimeProvider sim_time_provider;
 
     /**
      *
@@ -119,7 +124,7 @@ public class ActionProvider {
         transition_actions.add(new SelectLocationAction(tour_context, location_context, plan_context));
         transition_actions.add(new UpdateModeChoicePlanAttributesAction(plan, next_located_stay));
         transition_actions.add(new SelectModeAction(tour_context, plan_context, mode_set));
-        transition_actions.add(new ValidateModeAction(mode_validator, tour_context, pc, plan.getPlannedTrip(next_trip)));
+        transition_actions.add(new ValidateModeAction(mode_validator, tour_context, pc, plan.getPlannedTrip(next_trip),this.car_filter));
         transition_actions.add(new UpdateDepartureAndArrivalModesAction(current_located_stay,next_located_stay, mode_context.getNextMode()));
         transition_actions.add(new CalculateTravelTimeAction(current_located_stay, next_located_stay, next_planned_trip));
         transition_actions.add(new UpdateTimeDeviationAndTimesAction(next_trip, next_planned_trip, plan_context, next_located_stay));
@@ -160,7 +165,7 @@ public class ActionProvider {
 
         TPS_PlanningContext pc = plan_context.getPlan().getPlanningContext();
 
-        transition_actions.add(new CheckInSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator));
+        transition_actions.add(new CheckInSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator, sim_time_provider));
 
         TPS_Stay next_stay = tour_context.getNextStay();
         transition_actions.add(new AdaptGuardAction(activity_to_trip_guard, guard_adaption_function, next_stay, plan_context::getTimeDeviation));
@@ -177,6 +182,14 @@ public class ActionProvider {
         transition_actions.add(new TransitionToEndstateAction(state_machine,plan_context));
 
         return transition_actions;
+    }
+
+    public void setCarFilter(Predicate<TPS_Car> car_filter) {
+        this.car_filter = car_filter;
+    }
+
+    public void setSimTimeProvider(SimTimeProvider sim_time_provider) {
+        this.sim_time_provider = sim_time_provider;
     }
 }
 
