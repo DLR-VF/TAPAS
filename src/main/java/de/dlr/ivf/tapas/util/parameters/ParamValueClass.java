@@ -164,8 +164,7 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.LOGSUM_CALIB_MISC, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.WORKER_COUNT, new MutablePair<>(ParamType.OPTIONAL,1));
         this.paramValues.put(ParamValue.SIMULATION_END_TIME, new MutablePair<>(ParamType.OPTIONAL, 1440));
-
-
+        this.paramValues.put(ParamValue.CAR_SHARING_CHECKOUT_PENALTY, new MutablePair<>(ParamType.OPTIONAL,0));
     }
 
     /**
