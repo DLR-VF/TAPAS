@@ -48,14 +48,14 @@ public class CheckInSharedVehiclesAction implements TPS_PlanStateAction{
         ModeContext mode_context = tour_context.getModeContext();
         TPS_ExtMode arriving_mode = mode_context.getNextMode();
 
-        if(household_car_provider != null && arriving_stay.isAtHome()) {
+        //if(household_car_provider != null && arriving_stay.isAtHome()) {
 
-            if (arriving_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.MIT)) {
-                household_car_provider.checkIn(planning_context.getHouseHoldCar());
-                planning_context.setHouseHoldCar(null);
-                return;
-            }
+        if (arriving_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.MIT) && arriving_stay.isAtHome()) {
+            household_car_provider.checkIn(planning_context.getHouseHoldCar());
+            planning_context.setHouseHoldCar(null);
+            return;
         }
+        //}
 
 
         if(arriving_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.CAR_SHARING)){

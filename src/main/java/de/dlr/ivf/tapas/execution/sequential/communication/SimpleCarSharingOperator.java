@@ -7,7 +7,9 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.util.*;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.IntSupplier;
 import java.util.function.Predicate;
@@ -18,7 +20,8 @@ import java.util.stream.IntStream;
  */
 public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
 
-    private final Map<TPS_Car, AtomicBoolean> fleet = new ConcurrentHashMap<>();
+    //private final Map<TPS_Car, AtomicBoolean> fleet = new ConcurrentHashMap<>();
+    private final BlockingDeque<TPS_Car> fleet = new LinkedBlockingDeque<>();
     private SimTimeProvider sim_time_provider;
 
     /**
@@ -42,28 +45,50 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
 
         double cost_per_km = parameters.getDoubleValue(ParamValue.CAR_SHARING_COST_PER_KM);
 
-        int entry_time = parameters.isDefined(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) ? 0 - FuncUtils.secondsToRoundedMinutes.apply(parameters.getIntValue(ParamValue.CAR_SHARING_CHECKOUT_PENALTY)) : 0;
+        int entry_time = parameters.isDefined(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) ? -FuncUtils.secondsToRoundedMinutes.apply(parameters.getIntValue(ParamValue.CAR_SHARING_CHECKOUT_PENALTY)) : 0;
 
-        IntStream.range(0,initial_fleet_size).forEach(i -> fleet.put(generateSimpleCar(id_provider, cost_per_km, entry_time), new AtomicBoolean(false)));
+        try {
+            for (int i = 0; i < initial_fleet_size; i++) {
+                fleet.put(generateSimpleCar(id_provider, cost_per_km, entry_time));
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+
+        //IntStream.range(0,initial_fleet_size).forEach(i -> fleet.put(generateSimpleCar(id_provider, cost_per_km, entry_time), new AtomicBoolean(false)));
     }
 
     @Override
     public Optional<TPS_Car> request(Predicate<TPS_Car> external_filter) {
 
-        return fleet.entrySet()
-                    .stream()
-                    .sorted(Map.Entry.comparingByKey(Comparator.comparing(TPS_Car::getEntryTime).reversed())) //sort before filtering otherwise we lose lazy evaluation and all cars will be marked as requested
-                    .filter(entry -> external_filter.test(entry.getKey()))
-                    .filter(Predicate.not(entry -> entry.getValue().getAndSet(true))) //find those that have not been requested yet
-                    .map(Map.Entry::getKey)
-                    .findFirst();
+        TPS_Car available_car = null;
+
+        synchronized (fleet){
+
+            Iterator<TPS_Car> car_iterator = fleet.descendingIterator();
+
+            while(available_car == null && car_iterator.hasNext()){
+                TPS_Car potential_car = car_iterator.next();
+
+                if(external_filter.test(potential_car)){
+                    available_car = potential_car;
+
+                    if(!fleet.remove(potential_car))
+                        throw new RuntimeException("An error occured when trying to remove a car sharing car.");
+                }
+            }
+        }
+        return Optional.ofNullable(available_car);
     }
 
     @Override
     public void checkIn(TPS_Car used_vehicle) {
 
         used_vehicle.setEntryTime(sim_time_provider.getSimTime());
-        this.fleet.put(used_vehicle, new AtomicBoolean(false));
+        synchronized (fleet) {
+            this.fleet.add(used_vehicle);
+        }
     }
 
     @Override
@@ -73,8 +98,7 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car>{
 
     @Override
     public void release(TPS_Car requested_vehicle) {
-        if(!this.fleet.get(requested_vehicle).getAndSet(false))
-            throw new IllegalArgumentException("Car has not been requested before so we cannot release it");
+
     }
 
     public void setSimTimeProvider(SimTimeProvider sim_time_provider){

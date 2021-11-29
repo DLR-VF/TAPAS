@@ -59,12 +59,5 @@ public class CheckOutSharedVehiclesAction implements TPS_PlanStateAction {
                 }
             }
         }
-
-
-        if(next_chosen_mode.primary == TPS_Mode.get(TPS_Mode.ModeType.CAR_SHARING)){
-             TPS_Location current_location = tour_context.getCurrentLocation();
-             car_sharing_delegator.checkOut(current_location.getTAZId(), planning_context.getCarSharingCar());
-        }
-
     }
 }
