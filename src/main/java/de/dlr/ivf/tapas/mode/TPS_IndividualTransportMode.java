@@ -148,7 +148,7 @@ public class TPS_IndividualTransportMode extends TPS_Mode {
             }
         }
 
-        if (car != null && car.getAutomation() >= this.getParameters().getIntValue(
+        if (car != null && car.getAutomationLevel() >= this.getParameters().getIntValue(
                 ParamValue.AUTOMATIC_VEHICLE_LEVEL) && SimulationType.SCENARIO.equals(simType)) {
             //calculate time perception modification
             double rampUp = this.getParameters().getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_RAMP_UP_TIME);
@@ -177,7 +177,7 @@ public class TPS_IndividualTransportMode extends TPS_Mode {
             egr = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.EGRESS_MIT, idStart, idDest, simType,
                     time);
 
-        if (car != null && car.getAutomation() >= this.getParameters().getIntValue(
+        if (car != null && car.getAutomationLevel() >= this.getParameters().getIntValue(
                 ParamValue.AUTOMATIC_VALET_PARKING)) {
             // calculate access modification
             acc = Math.min(acc, this.getParameters().getDoubleValue(ParamValue.AUTOMATIC_PARKING_ACCESS));

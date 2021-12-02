@@ -27,11 +27,11 @@ import de.dlr.ivf.tapas.util.parameters.SimulationType;
 
 public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
 
-    private double costsForMIV(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
-        double cost = 0;
+    double costsForMIV(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
+        double cost;
         TPS_TrafficAnalysisZone comingFromTVZ;
         TPS_TrafficAnalysisZone goingToTVZ;
-        double tmpFactor = 1;
+        double tmpFactor;
         comingFromTVZ = mcc.fromStayLocation.getTrafficAnalysisZone();
         goingToTVZ = mcc.toStayLocation.getTrafficAnalysisZone();
         //fuel cost per km
@@ -43,7 +43,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             tmpFactor = (mcc.carForThisPlan.getCostPerKilometer(simType) +
                     mcc.carForThisPlan.getVariableCostPerKilometer(simType));
             //TODO: Bad hack to modify the costs according to the av-reduction!
-            if (mcc.carForThisPlan.getAutomation() >= mode.getParameters().getIntValue(
+            if (mcc.carForThisPlan.getAutomationLevel() >= mode.getParameters().getIntValue(
                     ParamValue.AUTOMATIC_VEHICLE_LEVEL) && SimulationType.SCENARIO.equals(simType)) {
                 //calculate time perception modification
                 double rampUp = mode.getParameters().getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_RAMP_UP_TIME);
@@ -60,7 +60,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             boolean carIsRestricted = true;
             if (Randomizer.random() < mode.getParameters().getDoubleValue(ParamValue.PASS_PROBABILITY_HOUSEHOLD_CAR)) {
                 TPS_Car coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
-                if (coDriver != null) { //does the household has a car???
+                if (coDriver != null) { //does the household have a car???
                     carIsRestricted = plan.getPerson().getHousehold().getLeastRestrictedCar().isRestricted();
                 } else {
                     carIsRestricted = Randomizer.random() < mode.getParameters().getDoubleValue(
@@ -116,17 +116,15 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
     }
 
     @Override
-
     /**
      * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm. See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
-     * @author hein_mh
      *
-     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc,/*TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike,*/ SimulationType simType/*, TPS_Stay stay*/) {
+     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
         double cost = 0;
         double[] parameters = this.parameterMap.get(mode);
 
         double expInterChanges = 0;
-        distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
+        double distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
                 mcc.carForThisPlan); //correct the distance to the actual value!
 
         switch (mode.getAttribute()) {
@@ -176,9 +174,10 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                     }
                 }
 
-                expInterChanges = TPS_FastMath.exp(mode.getParameters().paramMatrixMapClass
-                        .getValue(ParamMatrixMap.INTERCHANGES_PT, mcc.fromStayLocation.getTAZId(),
-                                mcc.toStayLocation.getTAZId(), mcc.startTime) * TPS_DB_IO.INTERCHANGE_FACTOR);
+                expInterChanges = TPS_FastMath.exp(
+                        mode.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.INTERCHANGES_PT,
+                                mcc.fromStayLocation.getTAZId(), mcc.toStayLocation.getTAZId(), mcc.startTime) *
+                                TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
             case TRAIN: //car sharing-faker
@@ -226,7 +225,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                 parameters[2] * cost + // beta costs
                 parameters[3] * plan.getPerson().getAge() + //alter
                 parameters[4] * plan.getPerson().getAge() * plan.getPerson().getAge() + //quadratisches alter
-                parameters[5] * plan.getPerson().getHousehold().getCarNumber() + // anzahl autos
+                parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 //ab jetzt binär-Betas, also Ja/nein
                 (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein

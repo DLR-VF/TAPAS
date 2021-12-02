@@ -35,14 +35,14 @@ import java.util.*;
 
 /**
  * This class represents a complete region for a TAPAS simulation. A region can be Berlin. The region contains all
- * traffic analysis zones. Furthermore the values of time and the cfn values are connected to this class.
+ * traffic analysis zones. Furthermore, the values of time and the cfn values are connected to this class.
  * <p>
  * The class provides a basic method selectLocation in which for a specific stay a location from the region is selected.
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
 public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysisZone> {
     /// The reference to the persistence manager
-    private TPS_PersistenceManager PM = null;
+    private TPS_PersistenceManager PM;
 
     /// All CFN values for this region
     private TPS_CFN cfn;
@@ -73,6 +73,8 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
     public TPS_Region(TPS_PersistenceManager pm) {
         this.TAZ_Map = new TreeMap<>();
         this.PM = pm;
+        initLocationSelectModel();
+        initLocationChoiceSet();
     }
 
     /**
@@ -200,17 +202,21 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
         return this.locations.get(id);
     }
 
+    /**
+     * Returns the location choice set
+     * Must be initialized by the initLocationChoiceSet method first
+     * @return
+     */
     public TPS_LocationChoiceSet getLocationChoiceSet() {
-        if (LOCATION_CHOICE_SET == null) {
-            initLocationChoiceSet();
-        }
         return LOCATION_CHOICE_SET;
     }
 
+    /**
+     * Returns the location select model
+     * Must be initialized by the initLocationSelectModel method first
+     * @return
+     */
     public TPS_LocationSelectModel getLocationSelectModel() {
-        if (LOCATION_SELECT_MODEL == null) {
-            initLocationSelectModel();
-        }
         return LOCATION_SELECT_MODEL;
     }
 

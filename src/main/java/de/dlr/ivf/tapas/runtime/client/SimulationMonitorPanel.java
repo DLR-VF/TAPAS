@@ -177,8 +177,8 @@ public class SimulationMonitorPanel extends JPanel {
         table.initTableColumn(SIM_INDEX.COUNT.ordinal(), 125, new AlignmentRenderer(JLabel.RIGHT, true), null);
         table.initTableColumn(SIM_INDEX.KEY.ordinal(), 0, new AlignmentRenderer(JLabel.LEFT, true), null);
         table.initTableColumn(SIM_INDEX.FINISHED.ordinal(), 21, new ColorRenderer(true), null);
-        table.initTableColumn(SIM_INDEX.FILE.ordinal(), 0, new LongTextRenderer(JLabel.LEFT, true),
-                new TextPopupEditor());
+        table.initTableColumn(SIM_INDEX.DESCRIPTION.ordinal(), 0, new LongTextRenderer(JLabel.LEFT, true), new TextPopupEditor());
+        table.initTableColumn(SIM_INDEX.FILE.ordinal(), 0, new LongTextRenderer(JLabel.LEFT, true), null);
         table.initTableColumn(SIM_INDEX.STOPPED.ordinal(), 21, new ColorRenderer(true), null);
         table.initTableColumn(SIM_INDEX.STARTED.ordinal(), 21, new ColorRenderer(true), null);
         table.initTableColumn(SIM_INDEX.ESTIMATED.ordinal(), 75, new AlignmentRenderer(JLabel.RIGHT, true), null);
@@ -757,8 +757,10 @@ public class SimulationMonitorPanel extends JPanel {
                     switch (key) {
                         case KEY:
                             return simulation.getKey();
+                        case DESCRIPTION:
+                            return simulation.getDescription();
                         case FILE:
-                            simulation.getDescription();
+                            return simulation.getRelativeFileName();
                         case STOPPED:
                             return simulation.minimumState(TPS_SimulationState.STOPPED);
                         case STARTED:

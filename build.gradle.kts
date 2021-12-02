@@ -8,6 +8,10 @@
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Do not forget to set the PROJECT_NUMBER in the tapas.doxyfile
+// also create a release tag "1.0.1" or similar afterwards
+project.version = "1.0.1"
+
 plugins {
     // Apply the java plugin to add support for Java
     java
@@ -16,15 +20,12 @@ plugins {
     application
 
     //plugin for creating a fat jar (called shadow jar) with all dependencies included
-    id("com.github.johnrengelman.shadow") version "5.1.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 
     // javafx plugin to handle javafx dependencies
     id("org.openjfx.javafxplugin") version "0.0.8"
 
     `maven-publish`
-
-    // git versioning plugin
-    id("org.ajoberstar.reckon") version "0.13.0"
 }
 
 
@@ -69,26 +70,6 @@ javafx {
     modules("javafx.controls", "javafx.fxml", "javafx.swing")
 }
 
-// One can change the reckoned version through
-// -Preckon.scope=TAPAS_SCOPE -Preckon.stage=TAPAS_STAGE
-// where TAPAS_COPE is one of major, minor or patch (defaults to minor)
-// and TAPAS_STAGE is one of snapshot and final (defaults to snapshot)
-// Example: ./gradlew build -Preckon.scope=major -Preckon.stage=final
-reckon {
-    scopeFromProp()
-    snapshotFromProp()
-}
-
-// task for checking the git status
-// useful for reckoning a "final" release
-// necessary because of differences between c git and jgit
-task("gitstatus") {
-    doLast {
-        println(grgit.status())
-    }
-}
-
-
 // This is for publishing a package to GitHub
 publishing {
     repositories {
@@ -96,8 +77,11 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/DLR-VF/TAPAS")
             credentials {
+                // set your environment variables GITHUB_USER and GITHUB_TOKEN
+                // don't forget to create an access token in GitHub
+                // for more information see the documentation
                 username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USER")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }
@@ -107,14 +91,13 @@ publishing {
             artifactId = "tapas"
             version = project.version.toString()
             from(components["java"])
-            artifact(tasks["shadowJar"])
         }
     }
 }
 
 application {
     // Define the main class for the application
-    mainClassName = "de.dlr.ivf.tapas.runtime.client.SimulationControl"
+    getMainClass().set("de.dlr.ivf.tapas.runtime.client.SimulationControl")
 }
 
 
@@ -146,7 +129,7 @@ task("SimulationDaemon", JavaExec::class) {
     group = "runnables"
     description = "Runs the SimulationDaemon"
     // Define the main class for the application
-    main = "de.dlr.ivf.tapas.runtime.server.SimulationDaemon"
+    getMainClass().set("de.dlr.ivf.tapas.runtime.server.SimulationDaemon")
     classpath = sourceSets["main"].runtimeClasspath
     args = listOf("data/Simulations")
 //    jvmArgs = listOf("-Xmx8g")
@@ -157,7 +140,7 @@ task("SimulationControl", JavaExec::class) {
     group = "runnables"
     description = "Starts the SimulationControl app"
     // Define the main class for the application
-    main = "de.dlr.ivf.tapas.runtime.client.SimulationControl"
+    getMainClass().set("de.dlr.ivf.tapas.runtime.client.SimulationControl")
     classpath = sourceSets["main"].runtimeClasspath
 }
 
@@ -167,7 +150,7 @@ task("Installer", JavaExec::class) {
     description = "Starts the installation script"
     classpath = sourceSets["main"].runtimeClasspath
     // Define the main class for the application
-    main = "de.dlr.ivf.tapas.installer.Installer"
+    getMainClass().set("de.dlr.ivf.tapas.installer.Installer")
 //    set arguments like in the line below
 //    args = mutableListOf("--dbserver=localhost","--dbname=my_tapas_db_name","--dbuser=my_already_existing_tapas_db_user","--dbpassword=my_db_password")
 }

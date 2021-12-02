@@ -159,8 +159,8 @@ public class TPS_DB_IO {
         for (int j = 0; j < size; ++j) {
             buffer = new StringBuilder();
             for (int k = 0; k < size; ++k) {
-                buffer.append(new BigDecimal(array.getValue(j+array.sIndex, k+array.sIndex)).setScale(decimalPlaces, RoundingMode.HALF_UP))
-                      .append(",");
+                buffer.append(new BigDecimal(array.getValue(j + array.sIndex, k + array.sIndex))
+                        .setScale(decimalPlaces, RoundingMode.HALF_UP)).append(",");
             }
             if (j < size - 1) totalBuffer.append(buffer);
             else totalBuffer.append(buffer.substring(0, buffer.length() - 1)).append("]");
@@ -177,29 +177,18 @@ public class TPS_DB_IO {
      * @throws SQLException
      */
     private TPS_Person addPersonToHousehold(ResultSet pRs) throws SQLException {
-        boolean hasBike = pRs.getBoolean("p_has_bike") && Randomizer.random() < this.PM.getParameters().getDoubleValue(
+        boolean hasBike = pRs.getBoolean("has_bike") && Randomizer.random() < this.PM.getParameters().getDoubleValue(
                 ParamValue.AVAILABILITY_FACTOR_BIKE);// TODO: make
         // a better model
-        double working = pRs.getInt("p_working") / 100.0;
-        double budget = (pRs.getInt("p_budget_it") + pRs.getInt("p_budget_pt")) / 100.0;
+        double working = pRs.getDouble("working");
+        double budget = (pRs.getDouble("budget_it") + pRs.getDouble("budget_pt")) / 100.0;
 
-        int pGroupNumber = 0;
-        if(pRs.getInt("p_group")>=0){
-            pGroupNumber = pRs.getInt("p_group");
-        }
-        else{
-            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN)) {
-                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN,
-                        "Unknown person group "+pRs.getInt("p_group"));
-            }
-        }
-        TPS_Person person = new TPS_Person(pRs.getInt("p_id"), TPS_Sex.getEnum(pRs.getInt("p_sex")),
-                TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroupType.TAPAS, pGroupNumber),
-                pRs.getInt("p_age"), pRs.getBoolean("p_abo"), hasBike, budget, working, false, pRs.getInt("p_work_id"),
-                pRs.getInt("p_education"), this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
+        TPS_Person person = new TPS_Person(pRs.getInt("p_id"), pRs.getInt("group"), pRs.getInt("status"), TPS_Sex.getEnum(pRs.getInt("sex")), pRs.getInt("age"),
+                pRs.getBoolean("pt_abo"), hasBike, budget, working, false,
+                pRs.getInt("education"), this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
 
         if (this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_DRIVING_LICENCE)) {
-            int licCode = pRs.getInt("p_driver_license");
+            int licCode = pRs.getInt("driver_license");
             if (licCode == 1) {
                 person.setDrivingLicenseInformation(TPS_DrivingLicenseInformation.CAR);
             } else {
@@ -219,7 +208,7 @@ public class TPS_DB_IO {
         }
         person.setCarPooler(isCarPooler);
         //
-        TPS_Household hh = houseHoldMap.get(pRs.getInt("p_hh_id"));
+        TPS_Household hh = houseHoldMap.get(pRs.getInt("hh_id"));
         hh.addMember(person);
         return person;
     }
@@ -602,11 +591,11 @@ public class TPS_DB_IO {
                         }
                     }
                     // read other attributes
-                    int tazID= hRs.getInt("hh_taz_id");
+                    int tazID = hRs.getInt("hh_taz_id");
                     TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(tazID);
-                    if(taz==null){
+                    if (taz == null) {
                         TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
-                                "No taz found for household " +id+" hh_taz_id "+ tazID);
+                                "No taz found for household " + id + " hh_taz_id " + tazID);
                         throw new RuntimeException(); //we cannot proceed with such faulty data!
                     }
 
@@ -626,10 +615,10 @@ public class TPS_DB_IO {
                     }
                     int chunks = 10; //avoid big fetches! the modulo operation is quite fast and scales very well
                     for (int i = 0; i < chunks; ++i) {
-                        query = "SELECT p_id, p_has_bike, p_sex, p_group, p_age, p_abo, p_budget_pt, p_budget_it, " +
-                                "p_working, p_work_id, p_driver_license, p_hh_id, p_education FROM " + persTable +
-                                " WHERE p_key='" + this.PM.getParameters().getString(
-                                ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'and p_hh_id%" + chunks + "=" + i;
+                        query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
+                                "working, driver_license, hh_id, education FROM " + persTable +
+                                " WHERE key='" + this.PM.getParameters().getString(
+                                ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'and hh_id%" + chunks + "=" + i;
                         pRs = PM.executeQuery(query);
                         while (pRs.next()) {
                             this.addPersonToHousehold(pRs);
@@ -657,10 +646,10 @@ public class TPS_DB_IO {
 
                         }
                         sb.setCharAt(sb.length() - 1, ']');
-                        query = "SELECT p_id, p_has_bike, p_sex, p_group, p_age, p_abo, p_budget_pt, p_budget_it, " +
-                                "p_working, p_work_id, p_driver_license, p_hh_id, p_education FROM " + persTable +
-                                " WHERE p_hh_id = ANY(" + sb.toString() + ") " + " AND p_hh_id>=" + min +
-                                " AND p_hh_id <= " + max + " AND p_key='" + this.PM.getParameters().getString(
+                        query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
+                                "working, driver_license, hh_id, education FROM " + persTable +
+                                " WHERE hh_id = ANY(" + sb.toString() + ") " + " AND hh_id>=" + min +
+                                " AND hh_id <= " + max + " AND key='" + this.PM.getParameters().getString(
                                 ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
                         pRs = PM.executeQuery(query);
                         while (pRs.next()) {
@@ -695,7 +684,7 @@ public class TPS_DB_IO {
                     for (TPS_Household ihh : this.houseHoldMap.values()) {
                         if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
                             //get the cars
-                            for (int i = 0; i < ihh.getCarNumber(); ++i) {
+                            for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
                                 if (!carIDs.contains(ihh.getCar(i).getId())) {
                                     sb.append(ihh.getCar(i).getId() + ",");
                                     carIDs.add(ihh.getCar(i).getId());
@@ -740,7 +729,7 @@ public class TPS_DB_IO {
                 for (TPS_Household ihh : houseHoldMap.values()) {
                     if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
                         //get the car values
-                        for (int i = 0; i < ihh.getCarNumber(); ++i) {
+                        for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
                             TPS_Car car = ihh.getCar(i);
                             if (carMap.containsKey(car.getId())) {
                                 car.cloneCar(carMap.get(car.getId()));
@@ -782,8 +771,8 @@ public class TPS_DB_IO {
      */
     private void readActivity2LocationCodes() {
         String query = "SELECT * FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) +  " where key='" +
-                this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY)+ "'";
+                ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " where key='" + this.PM.getParameters().getString(
+                ParamString.DB_ACTIVITY_2_LOCATION_KEY) + "'";
         TPS_ActivityConstant actCode;
         int ac;
         TPS_LocationConstant locCode;
@@ -916,7 +905,7 @@ public class TPS_DB_IO {
         this.readLocationConstantCodes();
         this.readModes();
         this.readPersonGroupCodes();
-        this.readSettlementSystemCodes();
+        this.readSettlementSystemCodes("");
         this.readSexCodes();
 
         //must be after reading of activities and locations because they are used in it
@@ -1360,7 +1349,10 @@ public class TPS_DB_IO {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.WARN, "No matrix found for query: " + query);
         }
         TPS_Logger.log(SeverenceLogLevel.INFO, "Loaded matrix from DB: " + matrixName + " Average value: " +
-                this.PM.getParameters().getMatrix(matrix).getAverageValue(false, true));
+                this.PM.getParameters().getMatrix(matrix).getAverageValue(false, true) +
+                " Size (Elements, Rows, Columns): " + this.PM.getParameters().getMatrix(matrix).getNumberOfElements() + ", "
+                + this.PM.getParameters().getMatrix(matrix).getNumberOfRows() + ", "
+                + this.PM.getParameters().getMatrix(matrix).getNumberOfColums());
         rs.close();
     }
 
@@ -1482,15 +1474,18 @@ public class TPS_DB_IO {
      * Example: (3, (RoP65-74, 12, VISEVA_R), 6, ,1, 2, RETIREE)
      */
     private void readPersonGroupCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_PERSON);
+        // set the flag in the TPS_PERSON_GROUP class to decide if the (person) group column is used or the attributes
+        // like sex, age, cars, children and status are used to determine the person group of a person
+        TPS_PersonGroup.USE_GROUP_COLUMN_FOR_PERSON_GROUPS = this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS);
+        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_PERSON) +
+                " where key='" + this.PM.getParameters().getString(ParamString.DB_PERSON_GROUP_KEY)+"'";
         try (ResultSet rs = PM.executeQuery(query)) {
             TPS_PersonGroup tpg;
             while (rs.next()) {
-                String[] attributes = new String[rs.getMetaData().getColumnCount() - 3];
-                for (int i = 0; i < attributes.length; i++) {
-                    attributes[i] = rs.getString(i + 4);
-                }
-                tpg = new TPS_PersonGroup(rs.getInt("code"), attributes);
+                tpg = new TPS_PersonGroup(rs.getInt("code"), rs.getString("description"), rs.getString("work_status"),
+                        rs.getInt("min_age"), rs.getInt("max_age"),
+                        rs.getInt("code_cars"), rs.getInt("code_sex"), rs.getString("person_type"),
+                        rs.getString("has_child"));
                 // add person group object to a global static map which is a collection of all person groups
                 tpg.addPersonGroupToMap();
             }
@@ -1563,7 +1558,7 @@ public class TPS_DB_IO {
             potential.addToCFN4Map(reg, key, val);
             if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
                 TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
-                        "Found a location choice parameter (region, key, value): " + reg + " "+ key+ " " +val);
+                        "Found a location choice parameter (region, key, value): " + reg + " " + key + " " + val);
             }
         }
         rsCFN4.close();
@@ -1689,7 +1684,8 @@ public class TPS_DB_IO {
         // read locations
         query = "SELECT loc_id, loc_group_id, loc_code, loc_taz_id, loc_blk_id, loc_has_fix_capacity, loc_capacity, ST_X(loc_coordinate) as x,ST_Y(loc_coordinate) as y FROM " +
                 this.PM.getParameters().getString(ParamString.DB_TABLE_LOCATION) +
-                " WHERE loc_capacity >0 and key = '" + this.PM.getParameters().getString(ParamString.DB_LOCATION_KEY) + "'";  // do not add zero capacity locations
+                " WHERE loc_capacity >0 and key = '" + this.PM.getParameters().getString(ParamString.DB_LOCATION_KEY) +
+                "'";  // do not add zero capacity locations
         ResultSet rsLoc = PM.executeQuery(query);
 
         double totalCapacity = 0;
@@ -1766,8 +1762,9 @@ public class TPS_DB_IO {
 
         // build the schemes, assigning them to the right scheme classes
         Map<Integer, TPS_Scheme> schemeMap = new HashMap<>();
-        rs = PM.executeQuery("SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME) +
-                " where key = '" + this.PM.getParameters().getString(ParamString.DB_SCHEME_KEY) + "'");
+        rs = PM.executeQuery(
+                "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME) + " where key = '" +
+                        this.PM.getParameters().getString(ParamString.DB_SCHEME_KEY) + "'");
         while (rs.next()) {
             TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(rs.getInt("scheme_class_id"));
             TPS_Scheme scheme = schemeClass.getScheme(rs.getInt("scheme_id"), this.PM.getParameters());
@@ -1777,8 +1774,8 @@ public class TPS_DB_IO {
         // read the episodes the schemes are made of and add them to the respective schemes
         // we read them into a temporary storage first
         rs = PM.executeQuery("SELECT scheme_id, act_code_zbe, home, start, duration, tournumber FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_EPISODE) + " where key = '"
-                + this.PM.getParameters().getString(ParamString.DB_EPISODE_KEY) + "' ORDER BY scheme_id, start");
+                this.PM.getParameters().getString(ParamString.DB_TABLE_EPISODE) + " where key = '" +
+                this.PM.getParameters().getString(ParamString.DB_EPISODE_KEY) + "' ORDER BY scheme_id, start");
         int counter = 1;
         HashMap<Integer, Vector<TPS_Episode>> episodesMap = new HashMap<>();
         TPS_Episode lastEpisode = null;
@@ -1830,10 +1827,10 @@ public class TPS_DB_IO {
 
 
         // read the mapping from person group to scheme classes
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION) +
-                " WHERE name='" + this.PM.getParameters().getString(ParamString.DB_NAME_SCHEME_CLASS_DISTRIBUTION) +
-                "' and key = '" + this.PM.getParameters().getString(ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY) +
-                "' ORDER BY person_group, scheme_class_id";
+        String query = "SELECT * FROM " + this.PM.getParameters().getString(
+                ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION) + " WHERE name='" + this.PM.getParameters().getString(
+                ParamString.DB_NAME_SCHEME_CLASS_DISTRIBUTION) + "' and key = '" + this.PM.getParameters().getString(
+                ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY) + "' ORDER BY person_group, scheme_class_id";
         rs = PM.executeQuery(query);
 
 
@@ -1847,7 +1844,7 @@ public class TPS_DB_IO {
                     rs.getDouble("probability"));
         }
         for (Integer key : personGroupSchemeProbabilityMap.keySet()) { //add distributions to the schemeSet
-            schemeSet.addDistribution(TPS_PersonGroup.getPersonGroupByTypeAndCode(TPS_PersonGroupType.TAPAS, key),
+            schemeSet.addDistribution(TPS_PersonGroup.getPersonGroupByCode(key),
                     new TPS_DiscreteDistribution<>(personGroupSchemeProbabilityMap.get(key)));
         }
 
@@ -1861,8 +1858,19 @@ public class TPS_DB_IO {
      * A SettlementSystem has the form (id, 3-tuples of (name, code, type))
      * Example: (7, ("R1, K1, Kernstadt > 500000", "1", "FORDCP"))
      */
-    public void readSettlementSystemCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT);
+    public void readSettlementSystemCodes(String simulation) {
+
+        String settlement_systems_table = "";
+
+        if (simulation.equals("")) settlement_systems_table = this.PM.getParameters().getString(
+                ParamString.DB_TABLE_CONSTANT_SETTLEMENT);
+        else settlement_systems_table = this.PM.getDbConnector().readSingleParameter(simulation,
+                ParamString.DB_TABLE_CONSTANT_SETTLEMENT.toString());
+
+        if (!settlement_systems_table.startsWith("core."))
+            settlement_systems_table = "core." + settlement_systems_table;
+
+        String query = "SELECT * FROM " + settlement_systems_table;
         try (ResultSet rs = PM.executeQuery(query)) {
             TPS_SettlementSystem tss;
             while (rs.next()) {
@@ -1947,11 +1955,12 @@ public class TPS_DB_IO {
                         this.PM.getParameters().getString(ParamString.DB_NAME_MODEL_PARAMETERS) +
                         " WHERE utility_function_class='" + utilityFunctionName + "' and key='" +
                         this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_KEY) + "'");
+        //now init the utility function
+        TPS_Mode.initUtilityFunction(this.PM.getParameters());
         while (rs.next()) {
             String mode = rs.getString("mode_class");
             double[] parameters = extractDoubleArray(rs, "parameters");
-            TPS_Mode.getUtilityFunction(this.PM.getParameters()).setParameterSet(TPS_Mode.get(ModeType.valueOf(mode)),
-                    parameters);
+            TPS_Mode.getUtilityFunction().setParameterSet(TPS_Mode.get(ModeType.valueOf(mode)), parameters);
         }
         rs.close();
 

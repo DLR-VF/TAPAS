@@ -11,8 +11,6 @@ package de.dlr.ivf.tapas.util.parameters;
 /**
  * This class provides all flag (boolean) enums which determine the name of
  * parameters available in the application
- *
- * @author radk_an
  */
 
 public enum ParamFlag {
@@ -121,7 +119,7 @@ public enum ParamFlag {
      */
     FLAG_USE_EXIT_MAUT,
     /**
-     * Flag, whether tolls and fees should be charged to the passengers aswell
+     * Flag, whether tolls and fees should be charged to the passengers as well
      */
     FLAG_CHARGE_PASSENGERS_WITH_EVERYTHING,
     /**
@@ -152,13 +150,22 @@ public enum ParamFlag {
      */
     FLAG_USE_TAXI,
     /**
-     * Flag, if the PT costs are fix or distance depending
+     * Flag, if the PT costs are fix or distance dependent
      */
     FLAG_FIX_PT_COSTS,
     /**
      * Flag, whether taxi should be enabled
      */
-    FLAG_USE_LOCATION_GROUPS
+    FLAG_USE_LOCATION_GROUPS,
+    /**
+     * Flag, whether the "group" column is used for indicating the person groups (true) or attributes like sex, age, cars, children, status (false)
+     * default false
+     */
+    FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS,
 
+    /**
+     * Flag whether automated ride pooling services are used, default false
+     */
+    FLAG_USE_AUTOMATED_RIDE_POOLING
 }
 

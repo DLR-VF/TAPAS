@@ -22,7 +22,7 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
-public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeigthBased {
+public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBased {
 
 
     public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {

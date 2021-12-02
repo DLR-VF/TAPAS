@@ -28,7 +28,7 @@ import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public abstract class TPS_SelectLocationWeigthBased extends TPS_LocationSelectModel {
+public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectModel {
     abstract public WeightedResult createLocationOption(Result result, double travelTime, double parameter);
 
     /**
