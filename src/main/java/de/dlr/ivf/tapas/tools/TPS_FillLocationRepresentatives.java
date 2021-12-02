@@ -34,7 +34,7 @@ public class TPS_FillLocationRepresentatives extends TPS_BasicConnectionClass {
             return;
         }
         TPS_FillLocationRepresentatives worker = new TPS_FillLocationRepresentatives(
-                "T:\\Simulationen\\runtime_herakles_admin.csv");
+                "T:\\Simulationen\\runtime_athene_admin.csv");
         worker.readTazes(args[0]);
         worker.readRepresentatives(args[1], args[0], Integer.parseInt(args[3]));
         worker.createRepresentativesTable(args[2]);
