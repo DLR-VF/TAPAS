@@ -61,7 +61,7 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
         //all the parameters for the import run
         String visumPath = "V:\\Projekte-Berlin\\EvoBus\\Szenarien\\Basisszenario 2030\\Kenngrößen\\1-0_1_%02d-%02d_%d_Kenngrößen\\";
         String visumFile = "1-0_1_%02d-%02d_%d.";
-        String matrixName = "PT_VISUM_1223_ANT2020_%02d_%02d_";
+        String matrixName = "PT_VISUM_1223_Automover_%02d_%02d_";
         int[] start = {6, 10, 16, 19}, end = {9, 16, 19, 23}, runNo = {31, 61, 29, 30}, cappaAddon = {0, 0, 0, 0};
         boolean[] fixPJT = {false, false, false, false};
 //		String visumPath = "V:\\Projekte-Berlin\\EvoBus\\Szenarien\\Basisszenario 2030\\Kenngr��en\\1-0_1_%02d-%02d_%d_Kenngr��en\\";
@@ -72,10 +72,10 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
         //int[] start= {19}, end= {23}, runNo= {62},cappaAddon={0};
         //boolean[] fixPJT = {true};
 
-        boolean usePercievedJourneyTime = true, storeInDB = true, calcDiagonal = false;
-        String loginFile = "T:\\Simulationen\\runtime_herakles_admin.csv";
+        boolean usePercievedJourneyTime = false, storeInDB = true, calcDiagonal = false;
+        String loginFile = "T:\\Simulationen\\runtime_athene_admin.csv";
         String matrixTableName = "core.berlin_matrices";
-        String tazMultilineName = "core.berlin_taz_1223_umland";
+        String tazMultilineName = "core.berlin_taz_1223";
         int constantInitialWaiting = -1; //-1 used frequency-based aproach, otherwise a constant time in minutes
         int maxTransferTime = -1; //-1 use transfer time form visum , otherwise use this time in seconds times transfer at max
         double top3Weight = 0.8; // weighting for top3-approach to fill the diagonal
@@ -152,15 +152,15 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
 
             //store in db
             if (storeInDB) {
-                importer.storeInDB(basename + "DIS", importer.getMatrixForField(PTNodeField.JRD), 0);
-                importer.storeInDB(basename + "ACT", importer.getMatrixForField(PTNodeField.ACT), 0);
-                importer.storeInDB(basename + "EGT", importer.getMatrixForField(PTNodeField.EGT), 0);
+                //importer.storeInDB(basename + "DIS", importer.getMatrixForField(PTNodeField.JRD), 0);
+                //importer.storeInDB(basename + "ACT", importer.getMatrixForField(PTNodeField.ACT), 0);
+                //importer.storeInDB(basename + "EGT", importer.getMatrixForField(PTNodeField.EGT), 0);
                 //importer.storeInDB(basename+"TT", importer.getMatrixForField(PTNodeField.IVT), 0);
-                importer.storeInDB(basename + "IWT", importer.getMatrixForField(PTNodeField.SWT), 0);
-                //importer.storeInDB(basename+"TWT", importer.getMatrixForField(PTNodeField.TWT), 0);
-                importer.storeInDB(basename + "BDH", importer.getMatrixForField(PTNodeField.BDH), 0);
-                importer.storeInDB(basename + "NTR", importer.getMatrixForField(PTNodeField.NTR), 0);
-                importer.storeInDB(basename + "SUM_TT", importer.getMatrixForField(PTNodeField.SUMTT), 0);
+                //importer.storeInDB(basename + "IWT", importer.getMatrixForField(PTNodeField.SWT), 0);
+                importer.storeInDB(basename+"TWT", importer.getMatrixForField(PTNodeField.TWT), 0);
+                //importer.storeInDB(basename + "BDH", importer.getMatrixForField(PTNodeField.BDH), 0);
+                //importer.storeInDB(basename + "NTR", importer.getMatrixForField(PTNodeField.NTR), 0);
+                //importer.storeInDB(basename + "SUM_TT", importer.getMatrixForField(PTNodeField.SUMTT), 0);
             }
         }
     }
