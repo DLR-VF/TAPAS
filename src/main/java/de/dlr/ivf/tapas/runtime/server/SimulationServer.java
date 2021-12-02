@@ -287,7 +287,7 @@ public class SimulationServer extends Thread {
                             Thread.sleep(1000);
                         }
                         main.getPersistenceManager().close();
-
+                        System.gc();
 
                         TPS_Main.STATE.setFinished();
                     } else System.out.println("file is null");
