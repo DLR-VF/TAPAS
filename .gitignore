@@ -8,3 +8,7 @@
 /data/Log/
 /.idea/
 /docs/
+
+/base.properties
+/converter.properties
+/crusingspeed.properties
