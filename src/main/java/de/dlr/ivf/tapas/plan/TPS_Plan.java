@@ -906,8 +906,12 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 pc.carForThisPlan = tourpart.getCar();
             } else if (!pc.influenceCarUsageInPlan) {
                 //check if a car could be used
-                if (this.getPerson().mayDriveACar()) {
-                    pc.carForThisPlan = TPS_Car.selectCar(this, tourpart);
+                TPS_Car tmpCar = TPS_Car.selectCar(this, tourpart);
+                if (this.getPerson().mayDriveACar() ||
+                        (tmpCar.getAutomation()<= this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL) &&
+                                this.getPerson().getAge() >= this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE))
+                    ) {
+                    pc.carForThisPlan = tmpCar;
                 } else {
                     pc.carForThisPlan = null;
                 }
