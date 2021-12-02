@@ -36,7 +36,7 @@ public class SelectLocationAction implements TPS_PlanStateAction{
                     .ifPresentOrElse(
                             location -> updateContextAndStayLocation(location,next_located_stay),
                             () -> {
-                                next_located_stay.selectLocation(plan, plan.getPlanningContext(), tour_context::getCurrentStay, tour_context::getLastStay);
+                                next_located_stay.selectLocation(plan, plan.getPlanningContext(), tour_context::getCurrentStay, tour_context.getNextHomeStay());
                                 location_context.setNextLocation(next_located_stay.getLocation());
                             }
                     );

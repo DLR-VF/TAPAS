@@ -191,7 +191,7 @@ public class TPS_HouseholdAndPersonLoader {
 
             query = "WITH households AS(" +
                     "SELECT hh_id, hh_cars, hh_key, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y " +
-                    "FROM "+households_table+" WHERE hh_key ='"+household_and_person_key+"' LIMIT "+household_count+")" +
+                    "FROM "+households_table+" WHERE hh_key ='"+household_and_person_key+"' ORDER BY RANDOM() LIMIT "+household_count+")" +
                     "SELECT households.*, p_id, has_bike, sex, \"group\", age, pt_abo, budget_pt, status,budget_it, working, driver_license, education FROM households " +
                     "INNER JOIN " + persons_table + " persons ON households.hh_id = persons.hh_id " +
                     "AND persons.key = households.hh_key " +

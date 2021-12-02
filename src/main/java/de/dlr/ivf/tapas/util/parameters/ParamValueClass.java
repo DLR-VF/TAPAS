@@ -136,8 +136,8 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.TOLL_CAT_2_BASE, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.TOLL_CAT_3, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.TOLL_CAT_3_BASE, new MutablePair<>(ParamType.RUN, null));
-        this.paramValues.put(ParamValue.CAR_SHARING_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
-        this.paramValues.put(ParamValue.CAR_SHARING_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, null));
+        this.paramValues.put(ParamValue.CAR_SHARING_COST_PER_KM, new MutablePair<>(ParamType.RUN, 0.64));
+        this.paramValues.put(ParamValue.CAR_SHARING_COST_PER_KM_BASE, new MutablePair<>(ParamType.RUN, 0.64));
         this.paramValues.put(ParamValue.RIDE_POOLING_COST_PER_KM, new MutablePair<>(ParamType.RUN, null));
         this.paramValues.put(ParamValue.VELOCITY_BIKE, new MutablePair<>(ParamType.DEFAULT, null));
         this.paramValues.put(ParamValue.VELOCITY_CAR, new MutablePair<>(ParamType.DEFAULT, null));
@@ -162,7 +162,8 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME_HOME, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.LOGSUM_CALIB_FREETIME, new MutablePair<>(ParamType.OPTIONAL, 1.));
         this.paramValues.put(ParamValue.LOGSUM_CALIB_MISC, new MutablePair<>(ParamType.OPTIONAL, 1.));
-
+        this.paramValues.put(ParamValue.SIMULATION_END_TIME, new MutablePair<>(ParamType.OPTIONAL, 1440));
+        this.paramValues.put(ParamValue.CAR_SHARING_CHECKOUT_PENALTY, new MutablePair<>(ParamType.OPTIONAL,0));
 
     }
 

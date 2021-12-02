@@ -14,22 +14,19 @@ import java.util.stream.Collectors;
 
 public class TPS_HouseholdCarMediator implements SharingMediator<TPS_Car> {
 
-    private SortedMap<TPS_Car, AtomicBoolean> car_occupancy_map;
+    private Map<TPS_Car, AtomicBoolean> car_occupancy_map;
 
     public TPS_HouseholdCarMediator(TPS_Household hh){
-
-        Supplier<TreeMap<TPS_Car, AtomicBoolean>> map_supplier = () -> new TreeMap<>(Comparator.comparing(TPS_Car::getFixCostPerKilometer));
 
         car_occupancy_map = Arrays.stream(hh.getAllCars())
                                   .collect(Collectors.toMap(
                                            Function.identity(),
-                                           car -> new AtomicBoolean(false),
-                                           (car1, car2) -> car1,
-                                           map_supplier));
+                                           car -> new AtomicBoolean(false)
+                                          ));
     }
 
     @Override
-    public Optional<TPS_Car> request(Predicate<TPS_Car> filter) {
+    public Optional<TPS_Car> request(Predicate<TPS_Car> infilter) {
         return this.car_occupancy_map
                 .entrySet()
                 .stream()

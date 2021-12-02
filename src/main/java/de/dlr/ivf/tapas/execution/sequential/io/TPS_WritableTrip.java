@@ -7,6 +7,8 @@ import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
@@ -157,7 +159,11 @@ public class TPS_WritableTrip {
     }
 
     public int getCarType(){
-        return this.used_car == null ? -1 : used_car.getId();
+        TPS_Mode.ModeType mode = plan.getPlannedTrip(trip).getMode().primary.getModeType();
+        if(mode == TPS_Mode.ModeType.MIT || mode == TPS_Mode.ModeType.CAR_SHARING)
+            return this.used_car == null ? -1 : used_car.getId();
+        else
+            return 9999999;
     }
 
     public double getDistanceBlMeter(){
@@ -197,7 +203,7 @@ public class TPS_WritableTrip {
     }
 
     public int getCarIndex(){
-        return used_car != null ? used_car.index : -1;
+        return used_car != null ? used_car.getId() : 99999;
     }
 
     public boolean getIsRestrictedCar(){

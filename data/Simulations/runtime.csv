@@ -1,5 +1,5 @@
 name,value,comment
-DB_DBNAME,tapas_new,database name
+DB_DBNAME,tapas,database name
 DB_DRIVER,org.postgresql.Driver,driver class for connection
 DB_TYPE,postgresql,type of the database
 DB_HOST,localhost,

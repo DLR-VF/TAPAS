@@ -22,5 +22,7 @@ public class UpdateModeChoicePlanAttributesAction implements TPS_PlanStateAction
                 next_located_stay.getLocation().getTrafficAnalysisZone().getBbrType()
                         .getCode(TPS_SettlementSystem.TPS_SettlementSystemType.TAPAS));
 
+        //todo distance category from actual loc to dest location
+
     }
 }

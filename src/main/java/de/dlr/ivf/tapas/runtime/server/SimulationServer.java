@@ -285,8 +285,6 @@ public class SimulationServer extends Thread {
                     //starting a simulation blocks this thread
                     //it appears that on windows server this returns the physical core count
                     int threads = Runtime.getRuntime().availableProcessors();
-                    if(SystemUtils.IS_OS_WINDOWS)
-                        threads = threads*2;
 
                     this.current_simulation_run.run(threads);
                 } else {
@@ -483,7 +481,7 @@ public class SimulationServer extends Thread {
             //take manual control over the transaction
             connection.setAutoCommit(false);
 
-            String lock = "LOCK TABLE " + simulations_table_name + " IN ACCESS EXCLUSIVE MODE;";
+            String lock = "LOCK TABLE " + simulations_table_name + " IN ROW EXCLUSIVE MODE;";
 
             connection.createStatement().execute(lock);
 

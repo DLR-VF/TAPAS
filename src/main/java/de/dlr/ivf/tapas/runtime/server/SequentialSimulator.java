@@ -25,12 +25,14 @@ import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.ToIntFunction;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -90,7 +92,8 @@ public class SequentialSimulator implements TPS_Simulator{
             int simulation_start_time_minute = FuncUtils.secondsToRoundedMinutes.apply(Math.toIntExact(stats.getMin()));
 
             //set up sharing delegators
-            TazBasedCarSharingDelegator car_sharing_delegator = new TazBasedCarSharingDelegator(initCS());
+            Map<Integer, SharingMediator<TPS_Car>> car_sharing_operators = initCS();
+            TazBasedCarSharingDelegator car_sharing_delegator = new TazBasedCarSharingDelegator(car_sharing_operators);
 
             //set up the writer
             TPS_PipedDbWriter writer = new TPS_PipedDbWriter(pm, trip_count, 1 << 19);
@@ -121,7 +124,26 @@ public class SequentialSimulator implements TPS_Simulator{
             persisting_thread.start();
 
             //set up the simulation thread
-            TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers, Math.max(1, num_threads / 2 - 3), (TPS_DB_IOManager) this.pm, writer,  1 << 20, first_simulation_event);
+
+            int simulation_end_time = pm.getParameters().getIntValue(ParamValue.SIMULATION_END_TIME);
+
+            TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers,
+                    Math.max(1, num_threads / 2 - 3), (TPS_DB_IOManager) this.pm,
+                    writer,  1 << 19,
+                    first_simulation_event, simulation_end_time);
+
+            TPS_ParameterClass sim_parameters = pm.getParameters();
+            int car_sharing_checkout_delay = sim_parameters.isDefined(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) ? sim_parameters.getIntValue(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) : 0;
+
+            Predicate<TPS_Car> car_sharing_filter = car -> car.getEntryTime() + FuncUtils.secondsToRoundedMinutes.apply(car_sharing_checkout_delay) <= simulator.getSimTime();
+            transition_actions_provider.setCarFilter(car_sharing_filter);
+            transition_actions_provider.setSimTimeProvider(simulator);
+
+            car_sharing_operators.values()
+                    .stream()
+                    .map(SimpleCarSharingOperator.class::cast)
+                    .forEach(operator -> operator.setSimTimeProvider(simulator));
+
             Thread simulation_thread = new Thread(simulator);
             simulation_thread.start();
 
@@ -191,15 +213,18 @@ public class SequentialSimulator implements TPS_Simulator{
 
     private Map<Integer, SharingMediator<TPS_Car>> initCS(){
 
+        AtomicInteger id = new AtomicInteger(0);
+        IntSupplier id_provider = id::incrementAndGet;
+
         //read car sharing capacities from database
         String table_taz_fees_and_tolls = dbConnector.getParameters().getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS);
         String key_taz_fees_and_tolls = dbConnector.getParameters().getString(ParamString.DB_NAME_FEES_TOLLS);
         Map<Integer,Integer> car_sharing_data = this.dbConnector.readCarSharingData(table_taz_fees_and_tolls, key_taz_fees_and_tolls);
 
         return car_sharing_data.entrySet()
-                               .stream()
-                               .collect(Collectors.toMap(Map.Entry::getKey,
-                                                         entry -> new SimpleCarSharingOperator(entry.getValue())));
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        entry -> new SimpleCarSharingOperator(entry.getValue(),id_provider, dbConnector.getParameters())));
     }
 
     private IntSummaryStatistics calcStatistics(Map<TPS_Household,List<TPS_Plan>> households_to_plans, ToIntFunction<TPS_Episode> collecting_function ){

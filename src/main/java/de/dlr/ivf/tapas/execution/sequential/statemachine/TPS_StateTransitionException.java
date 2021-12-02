@@ -19,7 +19,7 @@ public class TPS_StateTransitionException extends RuntimeException {
 
     @Override
     public String getMessage() {
-        return message;
+        return message+" \n Reason:  "+throwable.getMessage();
     }
 
     public TPS_StateMachine getStateMachine(){

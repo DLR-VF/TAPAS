@@ -17,6 +17,9 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
+import java.time.LocalTime;
+import java.time.temporal.TemporalField;
+
 
 /**
  * Class for different car types#
@@ -45,6 +48,8 @@ public class TPS_Car {
      * this car size
      */
     private int kbaNo;
+
+    private long entry_time = 0;
     /**
      * this car id
      */
@@ -778,6 +783,37 @@ public class TPS_Car {
         }
         return success;
     }
+
+    //the entry time is used to form a stack
+    public void setEntryTime(long entry_time){
+        this.entry_time = entry_time;
+    }
+
+    public long getEntryTime(){
+        return this.entry_time;
+    }
+
+
+
+//    @Override
+//    public int compareTo(TPS_Car car) {
+//        int result = 0;
+//        if(this.isRestricted() != car.isRestricted()){ //is there a difference between the cars in terms of restriction
+//            result = this.isRestricted() ? -1 : 1;
+//        }else{ //both cars have same functionality
+//            if(this.cost_per_kilometer != car.cost_per_kilometer){ //is there a diff. in the costs
+//                result = this.cost_per_kilometer < car.cost_per_kilometer ? 1 : -1;
+//            }else{//both cars have same cost
+//                if(this.rangeLeft != car.rangeLeft){ //diff. in range?
+//                    result = this.rangeLeft < car.rangeLeft ? -1 : 1;
+//                }else{
+//                    //now shoot
+//                    result = ((Object)this).toString().compareTo(((Object) car).toString());
+//                }
+//            }
+//        }
+//        return result;
+//    }
 
 
     /**
