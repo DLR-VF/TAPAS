@@ -65,12 +65,12 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
      */
     public static void main(String[] args) {
 
-        SumoMatrixImporter worker = new SumoMatrixImporter("T:\\Simulationen\\runtime_perseus.csv",
-                "T:\\Simulationen\\Berlin\\DB_Test\\full_test_perseus\\db_Run_full_new.csv");
+        SumoMatrixImporter worker = new SumoMatrixImporter("T:\\Simulationen\\runtime_athene_admin.csv",
+                "T:\\Simulationen\\DB_Produktiv\\Berlin\\Urmo Digital\\db_Run_full_new.csv");
 
-        worker.readSumoValues("temp", "sumo_od_empty_net");
-        worker.writeMatrix(worker.travelTime, "SUMO_1193_MIV_TT_T0_20151026");
-        worker.writeMatrix(worker.distance, "SUMO_1193_dist_T0_20151026");
+        worker.readSumoValues("temp", "sumo_od_entry_2021y_06m_04d_11h_04m_34s_855ms_car", "sumo_od_2021y_06m_04d_11h_04m_34s_855ms_car",86400);
+        worker.writeMatrix(worker.travelTime, "SUMO_1223_MIV_TT_T0_20211005");
+        worker.writeMatrix(worker.distance, "SUMO_1223_DIST_T0_20211005");
 
 
     }
@@ -79,13 +79,14 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
      * Method to read the values from a given table. It determines the taz-structure, initializes the output matrices and fills them with values.
      *
      * @param schema the schema where sumo stores the values , usualy "temp"
-     * @param table  the tablename to read
+     * @param tableODEntries  the tablename to read
      */
-    public void readSumoValues(String schema, String table) {
+    public void readSumoValues(String schema, String tableODEntries, String relationEntries, double intervalEnd) {
         String query = "";
         try {
-            String tableName = schema + "." + table;
-            double tt, dist;
+            String tableNameODEntries = schema + "." + tableODEntries;
+            String tableNameRelations = schema + "." + relationEntries;
+            double[] tt, dist;
             ResultSet rs;
             //read min and max taz values
 
@@ -106,18 +107,31 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
             distance = new Matrix(numOfTAZ, numOfTAZ);
 
             //get the values
-            query = "SELECT taz_id_start, taz_id_end, travel_time_sec, distance_real from " + tableName;
+            int chunks = 100;
+            for( int i=0; i< chunks; i++){
+                query = "SELECT taz_id_start, taz_id_end, travel_time_sec, distance_real " +
+                        "FROM " + tableNameODEntries + " AS od " +
+                        "JOIN " + tableNameRelations + " AS rel on od.entry_id = rel.entry_id " +
+                        "WHERE interval_end = " + intervalEnd + " AND od.entry_id%" + chunks + " = " + i;
 
-            int from, to;
-            rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                from = this.tazMap.get(rs.getInt("taz_id_start"));
-                to = this.tazMap.get(rs.getInt("taz_id_end"));
-                tt = rs.getDouble("travel_time_sec");
-                dist = rs.getDouble("distance_real");
-
-                travelTime.setValue(from, to, Math.round(tt));
-                distance.setValue(from, to, Math.round(dist));
+                int from, to;
+                rs = dbCon.executeQuery(query, this);
+                while (rs.next()) {
+                    from = this.tazMap.get(rs.getInt("taz_id_start"));
+                    to = this.tazMap.get(rs.getInt("taz_id_end"));
+                    tt = TPS_DB_IO.extractDoubleArray(rs, "travel_time_sec");
+                    dist = TPS_DB_IO.extractDoubleArray(rs, "distance_real");
+                    if(tt != null  && tt.length == 3 && dist != null && dist.length == 3) {
+                        travelTime.setValue(from, to, Math.round(tt[2]));
+                        distance.setValue(from, to, Math.round(dist[2]));
+                    }
+                    else{
+                        System.err.println(
+                                this.getClass().getCanonicalName() + " readSumoValues: unexpected db entry: F: "
+                                        + from + " T: "+to +" TT: "+tt+" dist: " + dist);
+                    }
+                }
+                rs.close();
             }
 
             double[][] valuesTT = new double[numOfTAZ][numOfTAZ];

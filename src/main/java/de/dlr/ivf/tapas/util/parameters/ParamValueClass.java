@@ -20,6 +20,9 @@ public class ParamValueClass {
         this.paramValues.put(ParamValue.AVERAGE_DISTANCE_PT_STOP, new MutablePair<>(ParamType.TMP, 0d));
         this.paramValues.put(ParamValue.AUTOMATIC_VEHICLE_LEVEL,
                 new MutablePair<>(ParamType.OPTIONAL, (Integer.MAX_VALUE - 1)));
+        this.paramValues.put(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE,
+                new MutablePair<>(ParamType.OPTIONAL, 999));
+
         this.paramValues.put(ParamValue.AUTOMATIC_VALET_PARKING,
                 new MutablePair<>(ParamType.OPTIONAL, (Integer.MAX_VALUE - 1)));
         this.paramValues.put(ParamValue.GLOBAL_AUTOMATION_PROBABILITY, new MutablePair<>(ParamType.OPTIONAL, -1));

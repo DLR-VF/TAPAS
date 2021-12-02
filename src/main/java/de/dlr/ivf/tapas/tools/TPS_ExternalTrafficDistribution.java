@@ -467,55 +467,6 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
         }
     }
 
-    public void loadCordonDistrictsKoFIF(String tableName, String dmod, int berlinId) {
-        String query = "";
-        try {
-            int id, taz;
-            double sLon, sLat, dLon, dLat;
-
-            //load the external mapping
-            query = "SELECT st_X(st_transform(st_centroid(z.the_geom),4326)) as lon," +
-                    "st_Y(st_transform(st_centroid(z.the_geom),4326)) as lat, kgs8, kgs22, wq_id as tapas_taz_id " +
-
-                    "z.vbz_no, vbz_6561, z.nuts_id ISNULL as isberlin, " +
-                    "  from " + tableName + " as z join " +
-                    dmod + " as d on z.vbz_no=d.ver_nr";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                if (!rs.getBoolean("isberlin")) {
-                    id = (int) (rs.getDouble("vbz_6561") + 0.1);
-                    sLat = rs.getDouble("lat");
-                    sLon = rs.getDouble("lon");
-                    dLat = rs.getDouble("lat");
-                    dLon = rs.getDouble("lon");
-                    taz = rs.getInt("tapas_taz_id");
-                    dModellZonen.put(id, taz);
-
-                    //create point informations
-                    TAZ entry = new TAZ();
-                    //now convert this id to a zone of the above mapping
-                    entry.id = taz;
-                    entry.taz_id = taz;
-                    entry.coordSource.setValues(sLon, sLat);
-                    entry.coordDestination.setValues(dLon, dLat);
-                    entry.cappa = 0;
-                    this.externalOrigins.put(entry.id, entry);
-                    this.internalDestinations.put(entry.id, entry);
-                }
-            }
-            rs.close();
-
-
-            System.out.println("found " + this.externalOrigins.size() + " origin entires");
-            berlinZone = berlinId;
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
-    }
-
     public void loadDayDistribution() {
 //
 //		/*
@@ -836,7 +787,7 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
         int i, fromTVZ, toTVZ, berlinInBound, berlinOutBound;
         double volume;
         boolean stringChanged;
-        String[] delimiter = {" ", "\t", ";"}; //It try and I try and I try! I can't get no  ... satisfaction!
+        String[] delimiter = {" ", "\t", ";"}; //I try and I try and I try! I can't get no  ... satisfaction!
         String line2;
         int totalVolume = 0;
         String[] tok;

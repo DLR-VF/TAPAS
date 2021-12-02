@@ -253,10 +253,15 @@ public class GridResultsPreparator extends TPS_BasicConnectionClass {
      */
     public static void main(String[] args) {
         GridResultsPreparator worker = new GridResultsPreparator();
-        String[] results={"ramona_s3_trips_georeferenced_autogen","ramona_s3a_trips_georeferenced_autogen"};
-        String[] sims={"berlin_trips_2020y_11m_18d_10h_11m_18s_042ms","berlin_trips_2020y_11m_18d_17h_07m_19s_860ms"};
+        String[] results={"urmo_digital_2030_base_trips_georeferenced_autogen","urmo_digital_2030_senario_trips_georeferenced_autogen"};
+        String[] sims={"berlin_trips_2021y_11m_17d_01h_58m_53s_943ms","berlin_trips_2021y_11m_17d_15h_00m_55s_483ms"};
 
 
+        args = new String[6];
+        args[2]= "quesadillas.grid_laea_1km_land_codes";
+        args[3]= "quesadillas.grid_laea_500m_land_codes";
+        args[4]= "quesadillas.grid_laea_1km_d_land_codes";
+        args[5]= "quesadillas.grid_laea_500m_d_land_codes";
 
         for(int i=0; i < results.length;++i) {
             worker.trips.clear();

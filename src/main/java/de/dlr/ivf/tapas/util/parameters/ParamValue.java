@@ -30,6 +30,11 @@ public enum ParamValue {
     AUTOMATIC_VEHICLE_LEVEL,
 
     /**
+     * age to drive an automatic vehicle
+     */
+    AUTOMATIC_VEHICLE_MIN_DRIVER_AGE,
+
+    /**
      * level for automatic vehicle to activate valet parking
      */
     AUTOMATIC_VALET_PARKING,

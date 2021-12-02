@@ -49,10 +49,10 @@ public class TPS_SpeedAndDistanceValidator extends TPS_BasicConnectionClass {
         //String distMatrix = "MIV_braunschweig_rnb3_DIST";
         //String distMatrix = "RW_Braunschweig_2030";
         //String distMatrix = "CAR_1193TAZ_DIST_NEW";
-        String distMatrix = "PT_VISUM_1223_BASIS_2017_NTR";
+        String distMatrix = "SUMO_1223_DIST_T0_20211005";
         //String timeMatrix = "CAR_1193_2030_ANA3_T0_TT_TOP3";
         //String timeMatrix = "CAR_1193_2010_T0_TT_TOP3";
-        String timeMatrix = "PT_VISUM_1223_2030_HF60_1_SUM_TT";
+        String timeMatrix = "SUMO_1223_MIV_TT_T0_20211005";//""SUMO_1223_MIV_TT_T0_20211005";
         //String accessName = "OEV_Zugang_BS_2030_Basis_HDB";
         //String egressName = "OEV_Abgang_BS_2030_Basis_HDB";
         String accessName = null;
@@ -72,15 +72,16 @@ public class TPS_SpeedAndDistanceValidator extends TPS_BasicConnectionClass {
         System.out.format("Speed:\t%6.2f\t%6.2f\t%6.2f\t%6.2f\n", speedStat[STATVAL.MIN.ordinal()],
                 speedStat[STATVAL.MAX.ordinal()], speedStat[STATVAL.AVG.ordinal()],
                 speedStat[STATVAL.STDDEV.ordinal()]);
-        Collection<ScatterData> data = worker.calchScatterPlotData(10, 10, false);
+        Collection<ScatterData> data = worker.calchScatterPlotData(1, 10, true);
+        worker.writeScatterData("T:\\temp\\t-d-" + region + "_" + timeMatrix + "_" + distMatrix + ".csv", data);
         List<OutlierEntry> outliers = worker.findOutliers(2);
 
         for (OutlierEntry o : outliers) {
             System.out.println("TAZ: " + o.taz + " num: " + o.count + " ratio: " + o.ratio);
         }
 
-        //Collection<ScatterData> data = worker.calchAVGSpeedScatterPlotData(100);
-        worker.writeScatterData("T:\\temp\\" + region + "_" + timeMatrix + "_" + distMatrix + ".csv", data);
+        Collection<ScatterData> data2 = worker.calchAVGSpeedScatterPlotData(100);
+        worker.writeScatterData("T:\\temp\\avgSpeed-" + region + "_" + timeMatrix + "_" + distMatrix + ".csv", data2);
         //worker.writeScatterData("T:\\temp\\"+region+"_bs_txt_time_bs_txt_dist_MIV2030.csv", 1, 500);
 
 //		double min= 1;
@@ -331,7 +332,7 @@ public class TPS_SpeedAndDistanceValidator extends TPS_BasicConnectionClass {
         String query = "";
         ResultSet rs;
         try {
-            query = "SELECT taz_id, st_x(taz_coordinate), st_y(taz_coordinate) from " + table + " order by taz_id";
+            query = "SELECT taz_id, st_x(taz_coordinate) as x, st_y(taz_coordinate) as y from " + table + " order by taz_id";
             rs = this.dbCon.executeQuery(query, this);
             int num = 0;
             while (rs.next()) {

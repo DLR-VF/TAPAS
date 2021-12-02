@@ -42,9 +42,13 @@ import java.util.stream.IntStream;
 /**
  * Class for a TAPAS plan.
  * Contains trips, budgets, and many more stuff for plan related work
+ *
+ * @author cyga_ri
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
+    /// Flag for DEBUG-Modus
+    private static final boolean DEBUG = false;
     /// The environment for this plan
     public TPS_PlanEnvironment pe;
     public List<TPS_Car> usedCars = new LinkedList<>();
@@ -902,14 +906,14 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 pc.carForThisPlan = tourpart.getCar();
             } else if (!pc.influenceCarUsageInPlan) {
                 //check if a car could be used
-                pc.carForThisPlan = TPS_Car.selectCar(this, tourpart);
-
-                if (pc.carForThisPlan != null && // if there is an available car
-                        !this.getPerson().mayDriveACar() && //but the person has no driver's license
-                        // AND the available car is not automated (i.e. below the defined automation level)
-                        (pc.carForThisPlan.getAutomationLevel() < this.getParameters().getIntValue(
-                                ParamValue.AUTOMATIC_VEHICLE_LEVEL))) {
-                    pc.carForThisPlan = null; //we make the car unavailable for the person
+                TPS_Car tmpCar = TPS_Car.selectCar(this, tourpart);
+                if (this.getPerson().mayDriveACar() ||
+                        (tmpCar.getAutomation()<= this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL) &&
+                                this.getPerson().getAge() >= this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE))
+                    ) {
+                    pc.carForThisPlan = tmpCar;
+                } else {
+                    pc.carForThisPlan = null;
                 }
             }
 

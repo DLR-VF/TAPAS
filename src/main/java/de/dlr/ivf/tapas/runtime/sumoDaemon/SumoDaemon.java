@@ -268,6 +268,9 @@ public class SumoDaemon extends Thread {
             while (rs.next()) {
                 taz_num_start = rs.getInt("taz_id_start");
                 taz_num_end = rs.getInt("taz_id_end");
+                if(!tazMap.containsKey(taz_num_start) || !tazMap.containsKey(taz_num_end)){ //no key for this lock!
+                    continue;
+                }
                 tazStart = tazMap.get(taz_num_start);
                 tazEnd = tazMap.get(taz_num_end);
                 tt = rs.getDouble("tt");
