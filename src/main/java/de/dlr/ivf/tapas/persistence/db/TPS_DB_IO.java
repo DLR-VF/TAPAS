@@ -11,7 +11,7 @@ package de.dlr.ivf.tapas.persistence.db;
 import de.dlr.ivf.tapas.constants.*;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_LocationConstant.TPS_LocationCodeType;
-import de.dlr.ivf.tapas.constants.TPS_PersonGroup.TPS_PersonGroupType;
+//import de.dlr.ivf.tapas.constants.TPS_PersonGroup.TPS_PersonGroupType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.loc.*;
