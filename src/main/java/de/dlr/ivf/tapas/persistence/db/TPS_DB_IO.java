@@ -1490,7 +1490,7 @@ public class TPS_DB_IO {
                 for (int i = 0; i < attributes.length; i++) {
                     attributes[i] = rs.getString(i + 4);
                 }
-                tpg = new TPS_PersonGroup(rs.getInt("id"), attributes);
+                tpg = new TPS_PersonGroup(rs.getInt("code"), attributes);
                 // add person group object to a global static map which is a collection of all person groups
                 tpg.addPersonGroupToMap();
             }
