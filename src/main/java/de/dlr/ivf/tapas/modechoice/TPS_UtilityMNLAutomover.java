@@ -131,10 +131,7 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
             leisure = tourPart.hasLeisureActivity;
         }
 
-        boolean mayDriveCar = plan.getPerson().mayDriveACar();
-        mayDriveCar |= (mcc.carForThisPlan != null &&
-                mcc.carForThisPlan.getAutomationLevel() >= plan.getParameters().getIntValue(
-                        ParamValue.AUTOMATIC_VEHICLE_LEVEL));
+        boolean mayDriveCar = plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan);
         return parameters[0] +  // mode constant
                 parameters[1] * travelTime + // beta travel time
                 parameters[2] * cost + // beta costs

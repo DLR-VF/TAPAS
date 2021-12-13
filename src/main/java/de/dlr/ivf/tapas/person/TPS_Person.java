@@ -15,6 +15,7 @@ import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
 import de.dlr.ivf.tapas.constants.TPS_Sex;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Preference.PreferenceSet;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingClass;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceAccessibility;
@@ -24,6 +25,7 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
+import de.dlr.ivf.tapas.util.parameters.ParamValue;
 
 import java.util.Map;
 
@@ -403,9 +405,17 @@ public class TPS_Person implements ExtendedWritable {
      *
      * @return true if the person may drive a car; false else
      */
-    public boolean mayDriveACar() {
-        return (hasDrivingLicenseInformation() && hasDrivingLicense()) ||
-                (!hasDrivingLicenseInformation() && getAge() >= 18);
+    public boolean mayDriveACar(TPS_PersistenceManager PM,TPS_Car car) {
+        boolean mayDriveCar = false;
+
+
+        mayDriveCar |= (hasDrivingLicenseInformation() && hasDrivingLicense()) ;
+        mayDriveCar |= (!hasDrivingLicenseInformation() && getAge() >= 18);
+        if(PM !=null && car !=null && !mayDriveCar){
+            mayDriveCar |= this.getAge() >= PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE) &&
+                    car.getAutomationLevel() >= PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL);
+        }
+        return mayDriveCar;
     }
 
     /**

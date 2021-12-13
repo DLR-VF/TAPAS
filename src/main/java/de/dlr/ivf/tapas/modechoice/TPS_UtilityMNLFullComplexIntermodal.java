@@ -150,7 +150,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                 // !!!
                 // TODO: check what "Hauptzweck" is; should be the part of the tour with the highest priority
                 // !!!
-                if (mcc.isBikeAvailable || (mcc.carForThisPlan != null && plan.getPerson().mayDriveACar())) {
+                if (mcc.isBikeAvailable || (mcc.carForThisPlan != null && plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan))) {
                     if (mcc.toStay.getSchemePart().isTourPart()) { // homeparts do not have attributes listed below!
                         TPS_TourPart tourPart = (TPS_TourPart) mcc.toStay.getSchemePart();
                         sizeT = 0.;//(double) tourPart.size();
@@ -227,7 +227,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                 // Car+ÖPNV_TAPAS_ÖPNV_B
                 double pCombineWithCar = 0;
                 int ptCarAccessTAZId = -1;
-                if (mcc.carForThisPlan != null && plan.getPerson().mayDriveACar()) {
+                if (mcc.carForThisPlan != null && plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan)) {
                     ptCarAccessTAZId = (int) mode.getParameters().paramMatrixMapClass.getValue(
                             ParamMatrixMap.PTCAR_ACCESS_TAZ, mcc.fromStayLocation.getTrafficAnalysisZone().getTAZId(),
                             mcc.toStayLocation.getTrafficAnalysisZone().getTAZId(), mcc.startTime);
@@ -236,7 +236,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                         ptCarAccessTAZId = -1;
                     }
                     if (ptCarAccessTAZId > 0) {
-                        double combinesWithCarB = 0.473495331672679 * (plan.getPerson().mayDriveACar() ? 1. : 0.) +
+                        double combinesWithCarB = 0.473495331672679 * (plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan) ? 1. : 0.) +
                                 -2.46390987118912 * (plan.getPerson().getHousehold().getNumberOfCars() == 0 ? 1. : 0.) +
                                 // !!! prüfen
                                 -0.295204809067696 * (plan.getPerson().hasAbo() ? 1. : 0.) +
@@ -275,7 +275,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                         pCombineWithCar = 1. / (1. + Math.exp(-combinesWithCarB));
                     }
                 }
-                if (writeStats) sb.append(mcc.carForThisPlan != null && plan.getPerson().mayDriveACar()).append(';')
+                if (writeStats) sb.append(mcc.carForThisPlan != null && plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan)).append(';')
                                   .append(pCombineWithCar).append(';').append(ptCarAccessTAZId).append(';');
 
                 double val = Math.random();
@@ -528,7 +528,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
                 parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 // ab jetzt binär-Betas, also Ja/nein
-                (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein
+                (plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan) ? parameters[7] : 0) + //führerschein
                 (plan.getPerson().hasAbo() ? parameters[8] : 0) + //Öffi -abo
                 (work ? parameters[9] : 0) + //tourpart mit Arbeit
                 (education ? parameters[10] : 0) + //tourpart mit Bildung

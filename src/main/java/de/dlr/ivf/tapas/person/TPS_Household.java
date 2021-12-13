@@ -270,7 +270,7 @@ public class TPS_Household implements ExtendedWritable {
     public int getNumCarDrivers() {
         int sum = 0;
         for (TPS_Person p : members.values()) {
-            if (p.mayDriveACar()) {
+            if (p.mayDriveACar(null,null)) {
                 ++sum;
             }
         }

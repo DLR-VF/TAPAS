@@ -32,7 +32,6 @@ import de.dlr.ivf.tapas.util.Timeline;
 import de.dlr.ivf.tapas.util.parameters.*;
 
 import java.io.IOException;
-import java.io.PipedInputStream;
 import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
@@ -134,7 +133,6 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 } else {
                     TPS_Trip trip = (TPS_Trip) e;
                     this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip, this.getPM().getParameters()));
-
                 }
             }
         }
@@ -793,7 +791,6 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         }
     }
 
-
     /**
      * Determines whether a stay has been located
      *
@@ -906,14 +903,15 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 pc.carForThisPlan = tourpart.getCar();
             } else if (!pc.influenceCarUsageInPlan) {
                 //check if a car could be used
+                pc.carForThisPlan = null; // will be overwritten, if a car can be used
                 TPS_Car tmpCar = TPS_Car.selectCar(this, tourpart);
-                if (tmpCar != null && (this.getPerson().mayDriveACar() ||
-                        (tmpCar.getAutomationLevel()<= this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL) &&
-                                this.getPerson().getAge() >= this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE)))
-                    ) {
-                    pc.carForThisPlan = tmpCar;
-                } else {
-                    pc.carForThisPlan = null;
+                if(tmpCar != null) {
+                    if (this.getPerson().mayDriveACar(this.PM,tmpCar)){
+                        pc.carForThisPlan = tmpCar; // this person can use this car
+                        myAttributes.put(TPS_Attribute.PERSON_DRIVING_LICENSE_CODE,
+                                TPS_DrivingLicenseInformation.CAR.getCode());   //update this attribute because
+                                                                                //an automated car may have changed it
+                    }
                 }
             }
 

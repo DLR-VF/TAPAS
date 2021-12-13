@@ -11,7 +11,6 @@ package de.dlr.ivf.tapas.persistence.db;
 import de.dlr.ivf.tapas.constants.*;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_LocationConstant.TPS_LocationCodeType;
-//import de.dlr.ivf.tapas.constants.TPS_PersonGroup.TPS_PersonGroupType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.loc.*;
@@ -215,7 +214,7 @@ public class TPS_DB_IO {
         if (this.PM.getParameters().isFalse(ParamFlag.FLAG_USE_ROBOTAXI)) {
             // no robotaxis: must be able to drive a car and be older than MIN_AGE_CARSHARING
             isCarPooler &= person.getAge() >= this.PM.getParameters().getIntValue(ParamValue.MIN_AGE_CARSHARING) &&
-                    person.mayDriveACar();
+                    person.mayDriveACar(null,null);
         }
         person.setCarPooler(isCarPooler);
         //
@@ -388,7 +387,6 @@ public class TPS_DB_IO {
             return this.prefetchedHouseholds.poll();
         }
     }
-
 
     /**
      * @return The number of households fetched in this round.

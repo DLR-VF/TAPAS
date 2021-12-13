@@ -315,9 +315,14 @@ public class TPS_Worker implements Callable<Exception> {
         } else {
             // determine who may drive a car and how many cars exist
             int numCarsInHH = hh.getNumberOfCars();
+            // check car
+            TPS_Car leastLimitedCar = null;
+            if (hh.getNumberOfCars() > 0) {
+                leastLimitedCar = hh.getCar(0); // TODO: get the car that poses the least limitations
+            }
             Vector<TPS_Person> competingCarDrivers = new Vector<>();
             for (TPS_Person person : hh.getMembers(sortAlgo)) {
-                if (person.mayDriveACar()) {
+                if (person.mayDriveACar(this.PM, leastLimitedCar)) {
                     competingCarDrivers.add(person);
                 }
             }
@@ -332,11 +337,7 @@ public class TPS_Worker implements Callable<Exception> {
                 carAssignmentNecessary = false;
                 competingCarDrivers.clear();
             }
-            // check car
-            TPS_Car leastLimitedCar = null;
-            if (hh.getNumberOfCars() > 0) {
-                leastLimitedCar = hh.getCar(0); // TODO: get the car that poses the least limitations
-            }
+
             // allocate plan storages
             HashMap<TPS_Person, TPS_PlanEnvironment> driverPlanEnvironments = new HashMap<>();
             HashMap<TPS_Person, TPS_Plan> bestPlans = new HashMap<>();
@@ -366,7 +367,7 @@ public class TPS_Worker implements Callable<Exception> {
                 }
                 // check car
                 TPS_Car carDummy = null;
-                if (person.mayDriveACar()) {
+                if (person.mayDriveACar(this.PM,leastLimitedCar)) {
                     carDummy = leastLimitedCar;
                 }
 

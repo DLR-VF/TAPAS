@@ -228,7 +228,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                 parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 //ab jetzt binär-Betas, also Ja/nein
-                (plan.getPerson().mayDriveACar() ? parameters[7] : 0) + //führerschein
+                (plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan) ? parameters[7] : 0) + //führerschein
                 (plan.getPerson().hasAbo() ? parameters[8] : 0) + //Öffi -abo
                 (work ? parameters[9] : 0) + //tourpart mit Arbeit
                 (education ? parameters[10] : 0) + //tourpart mit Bildung
