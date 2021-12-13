@@ -8,18 +8,34 @@
 
 package de.dlr.ivf.tapas;
 
+import de.dlr.ivf.tapas.execution.sequential.action.ActionProvider;
+import de.dlr.ivf.tapas.execution.sequential.communication.SharingMediator;
+import de.dlr.ivf.tapas.execution.sequential.communication.SimpleCarSharingOperator;
+import de.dlr.ivf.tapas.execution.sequential.io.HouseholdBasedPlanGenerator;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineGenerator;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachineFactory;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
+import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.mode.TPS_ModeValidator;
+import de.dlr.ivf.tapas.mode.TazBasedCarSharingDelegator;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.person.TPS_Worker;
+import de.dlr.ivf.tapas.persistence.db.*;
+import de.dlr.ivf.tapas.person.*;
+import de.dlr.ivf.tapas.execution.sequential.TPS_SequentialSimulator;
+import de.dlr.ivf.tapas.plan.TPS_Plan;
+import de.dlr.ivf.tapas.runtime.server.*;
+import de.dlr.ivf.tapas.scheme.TPS_Episode;
+import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
+import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
@@ -28,9 +44,10 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * This class is the main entry point into a TAPAS simulation. It provides a main method which can start in different
@@ -57,6 +74,11 @@ public class TPS_Main {
      * container which holds all parameter values
      */
     private final TPS_ParameterClass parameterClass;
+    private TPS_DB_Connector dbConnector;
+
+    private TPS_Simulator simulator;
+
+    private boolean external_shutdown_received = false;
 
     /**
      * This constructor reads all parameters and tries to initialise all data which is available via the
@@ -99,13 +121,19 @@ public class TPS_Main {
             //  this.parameterClass.checkParameters();
 
             dbConnector.closeConnection(this);
-            Class<?> clazz = Class.forName(this.parameterClass.getString(ParamString.CLASS_DATA_SCOURCE_ORIGIN));
-            PM = (TPS_PersistenceManager) clazz.getConstructor(TPS_ParameterClass.class).newInstance(
-                    this.parameterClass);
+            this.PM = initAndGetPersistenceManager(this.parameterClass);
         } catch (Exception e) {
             TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
         }
+    }
+
+    public TPS_Main(TPS_Simulation simulation) {
+
+        TPS_InitializedSimulation sim_to_run = simulation.initialize();
+        this.parameterClass = sim_to_run.getParameters();
+        this.PM = initAndGetPersistenceManager(this.parameterClass);
+        this.dbConnector = simulation.getDbConnector();
     }
 
     /**
@@ -190,6 +218,21 @@ public class TPS_Main {
         }
     }
 
+    public void initShutdown(){
+        this.external_shutdown_received = true;
+        TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,"Server shutdown initiated, shutting down simulator...");
+        this.simulator.shutdown();
+        while(simulator.isRunningSimulation()){
+            TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,"Waiting for workers to finish remaining work...");
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * @return persistence manager of the whole simulation run
      */
@@ -215,58 +258,43 @@ public class TPS_Main {
      * @param threads amount of parallel threads.
      */
     public void run(int threads) {
-        long t0, t1;
-        actStats.clear();
-        try {
-            waitForMe = true;
-            // initialise persistence manager
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize Persistence Manager ...");
-            }
-            t0 = System.currentTimeMillis();
-            PM.init();
-            t1 = System.currentTimeMillis();
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "... finished in " + (t1 - t0) * 0.001 + "s");
-            }
-            if (DEBUG) {
-                threads = 1;
-            }
-            threads = Math.min(48, threads); // limit to 48 cores
-            // now update the costs variables for the modes, which are not initialized again!
-            this.updateCosts();
-
-            // start worker threads
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize " + threads + " working threads ...");
-            }
-
-
-            ExecutorService es = Executors.newFixedThreadPool(threads);
-            List<Future<Exception>> col = new LinkedList<>();
-            for (int activeThreads = 0; activeThreads < threads; activeThreads++) {
-                col.add(es.submit(new TPS_Worker(this.PM)));
-            }
-
-            // wait for worker threads
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "... wait for all working threads ...");
-            }
-
-            for (Future<Exception> future : col) {
-                future.get();
-            }
-            es.shutdown();
-            // reset unfinished households
-            //PM.resetUnfinishedHouseholds();
-
-            waitForMe = false;
-        } catch (Exception e) {
-            waitForMe = false;
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+        if (DEBUG) {
+            threads = 1;
         }
-        TPS_Logger.closeLoggers();
+
+        initPM();
+
+        if(this.parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) && this.parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
+            this.simulator = new SequentialSimulator(this.PM, this.dbConnector);
+        }else{
+            this.simulator = new HierarchicalSimulator(this.PM);
+        }
+
+        this.simulator.run(threads); //this will block
+
+        if(!external_shutdown_received)
+            finish();
     }
+
+    public boolean isRunningSimulation(){
+        return this.simulator.isRunningSimulation();
+    }
+
+    private void initPM() {
+        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+            TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize Persistence Manager ...");
+        }
+        long t0 = System.currentTimeMillis();
+
+        PM.init();
+
+        long t1 = System.currentTimeMillis();
+        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
+            TPS_Logger.log(SeverenceLogLevel.INFO, "... finished in " + (t1 - t0) * 0.001 + "s");
+        }
+    }
+
+
 
     private void updateCosts() {
 
@@ -306,11 +334,11 @@ public class TPS_Main {
         mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.PT_COST_PER_KM_BASE);
         mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
 
-        mode = TPS_Mode.get(ModeType.TRAIN);
-        mode.velocity = ParamValue.VELOCITY_TRAIN;
-        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM);
-        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
+        mode = TPS_Mode.get(ModeType.CAR_SHARING);
+        mode.velocity = ParamValue.VELOCITY_CAR;
+        mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM);
+        mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
 
         mode = TPS_Mode.get(ModeType.WALK);
         mode.velocity = ParamValue.VELOCITY_FOOT;
@@ -426,5 +454,17 @@ public class TPS_Main {
                 }
             }
         }
+    }
+
+    private TPS_PersistenceManager initAndGetPersistenceManager(TPS_ParameterClass parameters){
+
+        try {
+            Class<?> clazz = Class.forName(parameters.getString(ParamString.CLASS_DATA_SCOURCE_ORIGIN));
+            return (TPS_PersistenceManager) clazz.getConstructor(TPS_ParameterClass.class).newInstance(parameters);
+        } catch (Exception e) {
+            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            throw new RuntimeException(e);
+        }
+
     }
 }

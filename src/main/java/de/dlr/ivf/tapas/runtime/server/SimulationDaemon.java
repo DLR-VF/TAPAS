@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
+import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -113,9 +115,10 @@ public final class SimulationDaemon {
                 processes.add(p);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             try {
                 File f = new File(
-                        "SimulationDaemonException_" + SDF.format(new Date(System.currentTimeMillis()) + ".log"));
+                        "SimulationDaemonException_" + LocalDateTime.now() + ".log");
                 if (!f.exists()) f.createNewFile();
                 PrintWriter pw = new PrintWriter(f);
                 pw.flush();

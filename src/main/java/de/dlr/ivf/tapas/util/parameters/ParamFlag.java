@@ -11,6 +11,8 @@ package de.dlr.ivf.tapas.util.parameters;
 /**
  * This class provides all flag (boolean) enums which determine the name of
  * parameters available in the application
+ *
+ * @author radk_an
  */
 
 public enum ParamFlag {
@@ -89,6 +91,12 @@ public enum ParamFlag {
      * a car, others)
      */
     FLAG_SELECT_LOCATIONS_DIFF_PERSON_GROUP,
+
+    /**
+     * Determines whether a simulation should be run sequentially
+     */
+
+    FLAG_SEQUENTIAL_EXECUTION,
     /**
      * Boolean, determines whether the location choice for shopping
      * should be differentiated by type of motive

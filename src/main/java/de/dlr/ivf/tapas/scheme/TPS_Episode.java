@@ -10,6 +10,7 @@ package de.dlr.ivf.tapas.scheme;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
+import de.dlr.ivf.tapas.execution.sequential.statemachine.EpisodeType;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
@@ -248,8 +249,8 @@ public abstract class TPS_Episode implements ExtendedWritable {
     /**
      * @return Get the original end in minutes after midnight
      */
-    public double getOriginalEnd() {
-        return (originalStart + originalDuration);
+    public int getOriginalEnd() {
+        return (originalStart + originalDuration );
     }
 
     /**
@@ -375,5 +376,7 @@ public abstract class TPS_Episode implements ExtendedWritable {
                 this.getActCode().getCode(TPS_ActivityCodeType.ZBE) + ", start=" + this.getOriginalStart() +
                 ", duration=" + this.getOriginalDuration() + "]";
     }
+
+    public abstract EpisodeType getEpisodeType();
 
 }

@@ -41,7 +41,7 @@ import java.util.EnumMap;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
 public abstract class TPS_Mode {
 
-    public static ModeType[] MODE_TYPE_ARRAY = new ModeType[]{ModeType.WALK, ModeType.BIKE, ModeType.MIT, ModeType.MIT_PASS, ModeType.TAXI, ModeType.PT, ModeType.TRAIN};
+    public static ModeType[] MODE_TYPE_ARRAY = new ModeType[]{ModeType.WALK, ModeType.BIKE, ModeType.MIT, ModeType.MIT_PASS, ModeType.TAXI, ModeType.PT, ModeType.CAR_SHARING};
     public static double NO_CONNECTION = -1;
     public static double VISUM_NO_CONNECTION = 99999.0;
     /**
@@ -249,11 +249,11 @@ public abstract class TPS_Mode {
                 this.cost_per_km_base = this.parameterClass.getDoubleValue(ParamValue.PT_COST_PER_KM_BASE);
                 this.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
                 break;
-            case TRAIN:
-                this.velocity = ParamValue.VELOCITY_TRAIN;
-                this.cost_per_km = this.parameterClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM);
-                this.cost_per_km_base = this.parameterClass.getDoubleValue(ParamValue.TRAIN_COST_PER_KM_BASE);
-                this.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE);
+            case CAR_SHARING:
+                this.velocity = ParamValue.VELOCITY_CAR;
+                this.cost_per_km = this.parameterClass.getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM);
+                this.cost_per_km_base = this.parameterClass.getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM_BASE);
+                this.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
                 break;
             case WALK:
                 this.velocity = ParamValue.VELOCITY_FOOT;
@@ -470,7 +470,7 @@ public abstract class TPS_Mode {
         //FIXME order is critical and must match the order in the modechoice parameter and expert knowledge arrays!
         WALK(ParamValue.BEELINE_FACTOR_FOOT), BIKE(ParamValue.BEELINE_FACTOR_BIKE), MIT(
                 ParamValue.BEELINE_FACTOR_MIT), MIT_PASS(ParamValue.BEELINE_FACTOR_MIT), TAXI(
-                ParamValue.BEELINE_FACTOR_MIT), PT(ParamValue.BEELINE_FACTOR_PT), TRAIN(ParamValue.BEELINE_FACTOR_PT);
+                ParamValue.BEELINE_FACTOR_MIT), PT(ParamValue.BEELINE_FACTOR_PT), CAR_SHARING(ParamValue.BEELINE_FACTOR_MIT);
 
         private final ParamValue beelineFactor;
 

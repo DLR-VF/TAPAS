@@ -699,13 +699,13 @@ public enum ParamValue {
      * costs of using the the train in the scenario in € / Kilometer;
      * category train contains "other" as ferry, plane, train, ...
      */
-    TRAIN_COST_PER_KM,
+    CAR_SHARING_COST_PER_KM,
 
     /**
      * costs of using the the train in the base scenario in € / Kilometer;
      * category train contains "other" as ferry, plane, train, ...
      */
-    TRAIN_COST_PER_KM_BASE,
+    CAR_SHARING_COST_PER_KM_BASE,
 
     /**
      * average speed on bike in m/s
@@ -822,7 +822,17 @@ public enum ParamValue {
     /**
      * The calibration factor misc for logsum
      */
-    LOGSUM_CALIB_MISC
+    LOGSUM_CALIB_MISC,
+
+    /**
+     * The maximum time a sequential simulation should run
+     */
+    SIMULATION_END_TIME,
+
+    /**
+     * The time that a car sharing car has to be checked before it can be requested again in seconds
+     */
+    CAR_SHARING_CHECKOUT_PENALTY;
 
 }
 

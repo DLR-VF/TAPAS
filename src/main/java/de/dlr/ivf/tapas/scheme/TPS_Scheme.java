@@ -155,7 +155,7 @@ public class TPS_Scheme implements Iterable<TPS_SchemePart>, ExtendedWritable {
      * @param schemePart current scheme part
      * @return next scheme part to the given one
      */
-    TPS_SchemePart getNextSchemePart(TPS_SchemePart schemePart) {
+    public TPS_SchemePart getNextSchemePart(TPS_SchemePart schemePart) {
         int index = this.schemeParts.indexOf(schemePart);
         TPS_SchemePart nextSchemePart = null;
         if (index + 1 < this.schemeParts.size()) {

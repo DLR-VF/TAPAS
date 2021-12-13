@@ -73,6 +73,10 @@ public class TapasTrip {
      */
     public TapasTrip() {
     }
+    public TapasTrip(int i, int z) {
+        this.mode = i;
+        this.pId = z;
+    }
 
     // final da diese Objekte nicht geändert werden können, keine Attribute
     // auslassen, um "Verschiebefehler" schnell zu finden

@@ -35,6 +35,7 @@ public class ParamFlagClass {
                 new MutablePair<>(ParamType.DEFAULT, false));
         this.paramFlags.put(ParamFlag.FLAG_SELECT_LOCATIONS_DIFF_PERSON_GROUP,
                 new MutablePair<>(ParamType.DEFAULT, false));
+        this.paramFlags.put(ParamFlag.FLAG_SEQUENTIAL_EXECUTION, new MutablePair<>(ParamType.RUN,false));
         this.paramFlags.put(ParamFlag.FLAG_USE_SHOPPING_MOTIVES, new MutablePair<>(ParamType.DEFAULT, false));
         this.paramFlags.put(ParamFlag.FLAG_FILTER_SHOPPING_CHOICE_SET, new MutablePair<>(ParamType.DEFAULT, true));
         this.paramFlags.put(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS, new MutablePair<>(ParamType.RUN, true));

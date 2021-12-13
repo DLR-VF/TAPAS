@@ -106,6 +106,7 @@ public abstract class TPS_SchemePart implements Iterable<TPS_Episode>, ExtendedW
      * @return last episode
      */
     public TPS_Episode getLastEpisode() {
+
         return episodes.get(this.episodes.size() - 1);
     }
 
@@ -314,6 +315,11 @@ public abstract class TPS_SchemePart implements Iterable<TPS_Episode>, ExtendedW
      */
     public Iterator<TPS_Episode> iterator() {
         return this.episodes.iterator();
+    }
+
+
+    public List<TPS_Episode> getEpisodes(){
+        return this.episodes;
     }
 
     /**

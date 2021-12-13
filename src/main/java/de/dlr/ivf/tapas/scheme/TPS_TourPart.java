@@ -31,7 +31,7 @@ import java.util.*;
  * @author mark_ma
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
-public class TPS_TourPart extends TPS_SchemePart {
+public class TPS_TourPart extends TPS_SchemePart{
 
     public boolean hasWorkActivity = false;
     public boolean hasEducationActivity = false;
@@ -214,6 +214,12 @@ public class TPS_TourPart extends TPS_SchemePart {
             }
         }
         return sum;
+    }
+
+
+    public int getTotalTourPartDurationSeconds(){
+
+        return getLastEpisode().getOriginalEnd() - getFirstEpisode().getOriginalStart();
     }
 
     /**
@@ -467,6 +473,16 @@ public class TPS_TourPart extends TPS_SchemePart {
         }
     }
 
+    public TPS_Stay getNextFixStay(TPS_Stay stay){
+
+        return (TPS_Stay) this.getEpisodes()
+                              .stream()
+                              .filter(episode -> episode.isStay() && stay.getOriginalStart() < episode.getOriginalStart() && episode.getActCode().isFix())
+                              .findFirst()
+                              .orElseGet(() -> this.getLastEpisode());
+
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -529,6 +545,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      *
      * @param plan
      */
+    //fixme travel durations and travel distances should be switched and we need to take a deep look into the functionality
     public void updateActualTravelDurations(TPS_Plan plan) {
         this.tourPartDistance = 0;
         for (TPS_Trip trip : this.getTripIterator()) {
@@ -541,6 +558,7 @@ public class TPS_TourPart extends TPS_SchemePart {
             }
         }
     }
+
 
     /**
      * Structure to store the complete arrival and departure duration for one stay in the tour part.<br>
@@ -737,5 +755,6 @@ public class TPS_TourPart extends TPS_SchemePart {
         public void remove() {
             throw new RuntimeException("This method is not implemented");
         }
+
     }
 }
