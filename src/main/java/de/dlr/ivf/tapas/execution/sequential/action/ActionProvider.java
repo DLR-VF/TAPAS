@@ -119,7 +119,7 @@ public class ActionProvider {
 
         List<TPS_PlanStateAction> transition_actions = new ArrayList<>();
 
-        transition_actions.add(new SetupAvailableModesAction(tour_context, plan_context.getHouseholdCarProvider(), person, pc));
+        transition_actions.add(new SetupAvailableModesAction(tour_context, plan_context.getHouseholdCarProvider(), person, pc,pm));
         transition_actions.add(new UpdateLocationChoicePlanAttributesAction(plan,person,pc, next_stay));
         transition_actions.add(new SelectLocationAction(tour_context, location_context, plan_context));
         transition_actions.add(new UpdateModeChoicePlanAttributesAction(plan, next_located_stay));

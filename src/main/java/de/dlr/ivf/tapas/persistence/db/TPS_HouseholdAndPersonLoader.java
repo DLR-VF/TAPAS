@@ -93,7 +93,7 @@ public class TPS_HouseholdAndPersonLoader {
         if (this.pm.getParameters().isFalse(ParamFlag.FLAG_USE_ROBOTAXI)) {
             // no robotaxis: must be able to drive a car and be older than MIN_AGE_CARSHARING
             isCarPooler &= person.getAge() >= this.pm.getParameters().getIntValue(ParamValue.MIN_AGE_CARSHARING) &&
-                    person.mayDriveACar();
+                    person.mayDriveACar(pm,null);
         }
         person.setCarPooler(isCarPooler);
     }

@@ -75,15 +75,6 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
         call_backs.forEach(TPS_StateMachine::transitionToEndState);
     }
 
-    public List<TPS_StateMachine> requestTransitioningStateMachines(TPS_Event event){
-
-        return Stream.concat(getCarDependantStateMachinesAtHome(),getTransitioningStateMachines(event))
-                     .distinct()
-                     .sorted(Map.Entry.comparingByKey(Comparator.comparingDouble(TPS_Person::primaryDriver).reversed()))
-                     .map(Map.Entry::getValue)
-                     .collect(Collectors.toList());
-    }
-
     /**
      * Gets all {@link TPS_StateMachine} that will transition based on the {@link TPS_Event}.
      * @param event
@@ -94,18 +85,6 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
         return state_machines.entrySet()
                              .stream()
                              .filter(entry -> entry.getValue().willHandleEvent(event));
-    }
-
-    /**
-     *
-     * @return a {@link Stream} of {@link TPS_StateMachine} where the represented {@link TPS_Person} is a potential
-     * car driver.
-     */
-    private Stream<Map.Entry<TPS_Person,TPS_StateMachine>> getCarDependantStateMachinesAtHome(){
-
-        return state_machines.entrySet()
-                             .stream()
-                             .filter(entry -> entry.getKey().mayDriveACar());
     }
 
     /**
