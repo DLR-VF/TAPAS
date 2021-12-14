@@ -14,6 +14,7 @@ import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanEnvironment;
@@ -51,14 +52,19 @@ public class TPS_Worker implements Callable<Exception> {
     //  The reference to the persistence manager
     private TPS_PersistenceManager PM = null;
 
+    private boolean should_finish = false;
+
+    private final String name;
+
     /**
      * Standard constructor.
      *
      * @param pm a reference to the persistence manager to be able to read some data
      */
-    public TPS_Worker(TPS_PersistenceManager pm) {
+    public TPS_Worker(TPS_PersistenceManager pm, String name) {
         this.PM = pm;
         this.prefParams.readParams();
+        this.name = name;
     }
 
     /**
@@ -135,13 +141,17 @@ public class TPS_Worker implements Callable<Exception> {
         // run iterates over the households
         TPS_Household hh = null;
         try {
-            while (TPS_Main.STATE.isRunning() && (hh = PM.getNextHousehold()) != null) {
+            while (!this.should_finish && (hh = PM.getNextHousehold()) != null) {
                 if (TPS_Logger.isLogging(HierarchyLogLevel.HOUSEHOLD, SeverenceLogLevel.DEBUG)) {
                     TPS_Logger.log(HierarchyLogLevel.HOUSEHOLD, SeverenceLogLevel.DEBUG,
                             "Working on household: " + hh.toString());
                 }
                 processHousehold(hh);
                 PM.returnHousehold(hh);
+            }
+
+            if(should_finish){
+                TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,name+" has finished remaining work, shutting down...");
             }
         } catch (Exception e) {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.ERROR, e.getMessage(), e);
@@ -548,4 +558,8 @@ public class TPS_Worker implements Callable<Exception> {
     }
 
 
+    public void finish() {
+        TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,name+" finishing remaining work...");
+        this.should_finish = true;
+    }
 }

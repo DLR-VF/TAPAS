@@ -212,12 +212,34 @@ public class TPS_Location implements Locatable {
      * A location may allow different activities. The location's weight has therefore to be adapted for
      * all supported activity types.
      *
-     * @param occupancy This location's new occupancy
+     * @param deltaOccupancy This location's new occupancy
      */
-    public void updateOccupancy(int occupancy) {
+    public void updateOccupancy(int deltaOccupancy) {
         if (this.data != null && this.activities != null) {
             double oldWeight = this.data.getWeight();
-            this.data.setOccupancy(occupancy);
+            this.data.changeOccupancy(deltaOccupancy);
+            double newWeight = this.data.getWeight();
+            for (TPS_ActivityConstant actCode : this.activities) {
+                if (!this.taz.allowsActivity(actCode)) {
+                    throw new RuntimeException("");
+                }
+                this.taz.updateActivityOccupancy(actCode, oldWeight, newWeight);
+            }
+        }
+    }
+
+    /**
+     * Updates the occupancy of this location
+     * <p>
+     * A location may allow different activities. The location's weight has therefore to be adapted for
+     * all supported activity types.
+     *
+     * @param newOccupancy This location's new occupancy
+     */
+    public void setOccupancy(int newOccupancy) {
+        if (this.data != null && this.activities != null) {
+            double oldWeight = this.data.getWeight();
+            this.data.setOccupancy(newOccupancy);
             double newWeight = this.data.getWeight();
             for (TPS_ActivityConstant actCode : this.activities) {
                 if (!this.taz.allowsActivity(actCode)) {
@@ -230,7 +252,7 @@ public class TPS_Location implements Locatable {
 
     public class TPS_LocationData {
         /// Capacity of the location
-        private int capacity;
+        private int capacity = 0;
 
         /**
          * This flag indicates if the location has a fixed capacity, i.e.
@@ -238,7 +260,7 @@ public class TPS_Location implements Locatable {
          * is false more people can choose this location than its capacity
          * provides (e.g. parks, museums, shops, etc.).
          */
-        private boolean fixCapacity;
+        private boolean fixCapacity = true;
 
         /// number of persons that chose that location
         private int occupancy = 0;
@@ -350,6 +372,20 @@ public class TPS_Location implements Locatable {
             }
         }
 
+
+        /**
+         * Alters an occupancy
+         *
+         * @param deltaValue The delta to change
+         */
+        public void changeOccupancy(int deltaValue) {
+            synchronized (this) {
+                this.occupancy += deltaValue;
+                if (this.parameterClass.isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS)) {
+                    this.calculateWeight();
+                }
+            }
+        }
 
         /**
          * Returns this object's string representation

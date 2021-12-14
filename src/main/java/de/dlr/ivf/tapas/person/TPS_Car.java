@@ -17,6 +17,9 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
+import java.time.LocalTime;
+import java.time.temporal.TemporalField;
+
 
 /**
  * Class for different car types#
@@ -37,7 +40,7 @@ public class TPS_Car {
      * indicates if this car is available (standing in front of the home)
      */
     private Timeline availability;
-    /**
+    /**N
      * this fuel type
      */
     private FuelType type;
@@ -45,6 +48,8 @@ public class TPS_Car {
      * this car size
      */
     private int kbaNo;
+
+    private long entry_time = 0;
     /**
      * this car id
      */
@@ -74,6 +79,7 @@ public class TPS_Car {
      * fix costs, eg. insurance, tax, parking-zone in Euro
      */
     private double fixCosts = 0.0;
+    private double cost_per_kilometer;
     private TPS_ParameterClass parameterClass;
 
     /**
@@ -377,6 +383,10 @@ public class TPS_Car {
         }
     }
 
+    public double getFixCostPerKilometer(){
+        return this.cost_per_kilometer;
+    }
+
     /**
      * @return the engineClass
      */
@@ -642,6 +652,14 @@ public class TPS_Car {
         this.index = index;
     }
 
+    public TPS_Car(int id, double fix_cost, double cost_per_kilometer, boolean is_restricted, double initial_range){
+        this.id = id;
+        this.fixCosts = fix_cost;
+        this.cost_per_kilometer = cost_per_kilometer;
+        this.restricted = is_restricted;
+        this.rangeLeft = initial_range;
+    }
+
     /**
      * checks if this car is available and standing at home
      *
@@ -696,7 +714,6 @@ public class TPS_Car {
         } else {
             return false;
         }
-
     }
 
     /**
@@ -767,26 +784,65 @@ public class TPS_Car {
         return success;
     }
 
+    //the entry time is used to form a stack
+    public void setEntryTime(long entry_time){
+        this.entry_time = entry_time;
+    }
+
+    public long getEntryTime(){
+        return this.entry_time;
+    }
+
+
+
+//    @Override
+//    public int compareTo(TPS_Car car) {
+//        int result = 0;
+//        if(this.isRestricted() != car.isRestricted()){ //is there a difference between the cars in terms of restriction
+//            result = this.isRestricted() ? -1 : 1;
+//        }else{ //both cars have same functionality
+//            if(this.cost_per_kilometer != car.cost_per_kilometer){ //is there a diff. in the costs
+//                result = this.cost_per_kilometer < car.cost_per_kilometer ? 1 : -1;
+//            }else{//both cars have same cost
+//                if(this.rangeLeft != car.rangeLeft){ //diff. in range?
+//                    result = this.rangeLeft < car.rangeLeft ? -1 : 1;
+//                }else{
+//                    //now shoot
+//                    result = ((Object)this).toString().compareTo(((Object) car).toString());
+//                }
+//            }
+//        }
+//        return result;
+//    }
+
 
     /**
      * This enum represents all known fuel types of TAPAS
      */
     public enum FuelType {
-        BENZINE(ParamValue.MIT_GASOLINE_COST_PER_KM, ParamValue.MIT_GASOLINE_COST_PER_KM_BASE,
+        BENZINE(
+                ParamValue.MIT_GASOLINE_COST_PER_KM, ParamValue.MIT_GASOLINE_COST_PER_KM_BASE,
                 ParamValue.MIT_VARIABLE_COST_PER_KM, ParamValue.MIT_VARIABLE_COST_PER_KM_BASE,
-                ParamValue.MIT_RANGE_CONVENTIONAL, ParamValue.MIT_RANGE_CONVENTIONAL), DIESEL(
+                ParamValue.MIT_RANGE_CONVENTIONAL, ParamValue.MIT_RANGE_CONVENTIONAL),
+        DIESEL(
                 ParamValue.MIT_DIESEL_COST_PER_KM, ParamValue.MIT_DIESEL_COST_PER_KM_BASE,
                 ParamValue.MIT_VARIABLE_COST_PER_KM, ParamValue.MIT_VARIABLE_COST_PER_KM_BASE,
-                ParamValue.MIT_RANGE_CONVENTIONAL, ParamValue.MIT_RANGE_CONVENTIONAL), GAS(
+                ParamValue.MIT_RANGE_CONVENTIONAL, ParamValue.MIT_RANGE_CONVENTIONAL),
+        GAS(
                 ParamValue.MIT_GAS_COST_PER_KM, ParamValue.MIT_GAS_COST_PER_KM_BASE,
                 ParamValue.MIT_VARIABLE_COST_PER_KM, ParamValue.MIT_VARIABLE_COST_PER_KM_BASE,
-                ParamValue.MIT_RANGE_CONVENTIONAL, ParamValue.MIT_RANGE_CONVENTIONAL), EMOBILE(
+                ParamValue.MIT_RANGE_CONVENTIONAL, ParamValue.MIT_RANGE_CONVENTIONAL),
+        EMOBILE(
                 ParamValue.MIT_ELECTRO_COST_PER_KM, ParamValue.MIT_ELECTRO_COST_PER_KM_BASE,
                 ParamValue.MIT_VARIABLE_COST_PER_KM, ParamValue.MIT_VARIABLE_COST_PER_KM_BASE,
-                ParamValue.MIT_RANGE_EMOBILE, ParamValue.MIT_RANGE_EMOBILE), PLUGIN(ParamValue.MIT_PLUGIN_COST_PER_KM,
+                ParamValue.MIT_RANGE_EMOBILE, ParamValue.MIT_RANGE_EMOBILE),
+        PLUGIN(
+                ParamValue.MIT_PLUGIN_COST_PER_KM,
                 ParamValue.MIT_PLUGIN_COST_PER_KM_BASE, ParamValue.MIT_VARIABLE_COST_PER_KM,
                 ParamValue.MIT_VARIABLE_COST_PER_KM_BASE, ParamValue.MIT_RANGE_PLUGIN,
-                ParamValue.MIT_RANGE_PLUGIN), FUELCELL(ParamValue.MIT_FUELCELL_COST_PER_KM,
+                ParamValue.MIT_RANGE_PLUGIN),
+        FUELCELL(
+                ParamValue.MIT_FUELCELL_COST_PER_KM,
                 ParamValue.MIT_FUELCELL_COST_PER_KM_BASE, ParamValue.MIT_VARIABLE_COST_PER_KM,
                 ParamValue.MIT_VARIABLE_COST_PER_KM_BASE, ParamValue.MIT_RANGE_CONVENTIONAL,
                 ParamValue.MIT_RANGE_CONVENTIONAL),LPG(

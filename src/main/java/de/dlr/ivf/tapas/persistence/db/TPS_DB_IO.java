@@ -57,7 +57,7 @@ public class TPS_DB_IO {
     /// The ip address of this machine
     private static InetAddress ADDRESS = null;
     /// The number of households to fetch per cpu
-    private final int numberToFetch;
+    private int numberToFetch;
     Map<Integer, TPS_Household> houseHoldMap = new TreeMap<>();
     Map<Integer, TPS_Car> carMap = new HashMap<>();
     /// The reference to the persistence manager
@@ -118,6 +118,17 @@ public class TPS_DB_IO {
      */
     public static int[] extractIntArray(ResultSet rs, String index) throws SQLException {
         Object array = rs.getArray(index).getArray();
+        if (array instanceof int[]) {
+            return (int[]) array;
+        } else if (array instanceof Integer[]) {
+            return ArrayUtils.toPrimitive((Integer[]) array); // like casting Integer[] to int[]
+        } else {
+            throw new SQLException("Cannot cast to int array");
+        }
+    }
+
+    public static int[] extractIntArray(Object array) throws SQLException {
+
         if (array instanceof int[]) {
             return (int[]) array;
         } else if (array instanceof Integer[]) {
@@ -2040,7 +2051,7 @@ public class TPS_DB_IO {
                 while (rsOcc.next()) {
                     TPS_Location loc = region.getLocation(rsOcc.getInt("loc_id"));
                     if (loc != null) {
-                        loc.updateOccupancy(rsOcc.getInt("loc_occupancy"));
+                        loc.setOccupancy(rsOcc.getInt("loc_occupancy"));
                     } else if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
                         TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
                                 "Location " + rsOcc.getInt("loc_id") + " not found!");

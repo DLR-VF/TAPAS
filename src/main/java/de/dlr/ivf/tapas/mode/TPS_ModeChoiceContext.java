@@ -8,9 +8,17 @@
 
 package de.dlr.ivf.tapas.mode;
 
+import de.dlr.ivf.tapas.execution.sequential.communication.CarRequestHandler;
+import de.dlr.ivf.tapas.execution.sequential.communication.SharingMediator;
+import de.dlr.ivf.tapas.execution.sequential.communication.SimpleCarSharingOperator;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.person.TPS_Car;
+import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
+
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 public class TPS_ModeChoiceContext {
 
@@ -22,7 +30,31 @@ public class TPS_ModeChoiceContext {
     public TPS_Car carForThisPlan;
     public int startTime;
     public TPS_Mode combinedMode = null;
-    public TPS_ModeChoiceContext() {
+    private TPS_Car car_sharing_car;
+
+    private TPS_Mode current_mode = null;
+
+    public TPS_ModeChoiceContext() {}
+
+    public void setCar(TPS_Car car){
+        this.carForThisPlan = car;
+    }
+
+    public void setBikeAvailability(boolean is_bike_available){
+        this.isBikeAvailable = is_bike_available;
+    }
+
+    public void setCurrentMode(TPS_Mode mode){
+        this.current_mode = mode;
+    }
+
+    public TPS_Car getCarSharingCar(){
+        return this.car_sharing_car;
+    }
+
+    public void setCarSharingCar(TPS_Car car){
+
+        this.car_sharing_car = car;
     }
 
 }

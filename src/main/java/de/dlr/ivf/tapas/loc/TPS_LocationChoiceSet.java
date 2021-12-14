@@ -14,7 +14,10 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.function.Supplier;
 
 public abstract class TPS_LocationChoiceSet {
 
@@ -31,7 +34,7 @@ public abstract class TPS_LocationChoiceSet {
      * @return instance of {@link TPS_RegionResultSet} with all reachable traffic analysis zone and location representants
      */
 
-    abstract public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass);
+    abstract public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to);
 
     /**
      * This method sets the needed references to the classes we need

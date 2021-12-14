@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 /**
  * Class for a TAPAS plan.
@@ -72,6 +74,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
     private int adapt = 0;
     /// variable for time adaptation differenceanalysis
     private int adaptAbsSum = 0;
+    private TPS_PlanningContext pc;
 
     /**
      * Constructor for this class
@@ -86,11 +89,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         this.PM = pm;
 
         this.locatedStays = new HashMap<>();
-        this.plannedTrips = new TreeMap<>(new Comparator<TPS_Trip>() {
-            public int compare(TPS_Trip trip1, TPS_Trip trip2) {
-                return trip1.getOriginalStart() - trip2.getOriginalStart();
-            }
-        });
+        this.plannedTrips = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
 
         this.scheme = schemeIn.clone();
 
@@ -968,7 +967,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                 this.fixLocations.get(currentActCode).getTrafficAnalysisZone()
                                                  .isRestricted()) // we have a restricted car wanting to go to a restricted area! -> BAD!
                         {
-                            currentLocatedStay.selectLocation(this, pc);
+                            currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getPrevStay(), () -> tourpart.getStayHierarchy(stay).getNextStay());
                             if (currentActCode.isFix()) {
                                 this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
                             }
@@ -981,7 +980,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                     "Set location from fix locations");
                         }
                     } else {
-                        currentLocatedStay.selectLocation(this, pc);
+                        currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getPrevStay(), () -> tourpart.getStayHierarchy(stay).getNextStay());
                         if (currentActCode.isFix()) {
                             this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
                         }
@@ -1014,7 +1013,9 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 }
                 // fetch previous and next stay
                 TPS_Stay prevStay = tourpart.getStayHierarchy(stay).getPrevStay();
+                Supplier<TPS_Stay> prevStaySupplier = () -> tourpart.getStayHierarchy(stay).getPrevStay();
                 TPS_Stay goingTo = tourpart.getStayHierarchy(stay).getNextStay();
+                Supplier<TPS_Stay> goingToSupplier = () -> tourpart.getStayHierarchy(stay).getNextStay();
                 if (currentLocatedStay.getModeArr() == null || currentLocatedStay.getModeDep() == null) {
                     if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
                         TPS_Logger.log(SeverenceLogLevel.FINE,
@@ -1032,7 +1033,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                         pLocGoingTo.getTrafficAnalysisZone().isRestricted())) {
                             pc.carForThisPlan = null;
                         }
-                        PM.getModeSet().selectMode(this, prevStay, currentLocatedStay, goingTo, pc);
+                        PM.getModeSet().selectMode(this, prevStaySupplier, currentLocatedStay, goingToSupplier, pc);
                         pc.carForThisPlan = tmpCar;
                         //set the mode and car (if used)
                         tourpart.setUsedMode(currentLocatedStay.getModeDep(), pc.carForThisPlan);
@@ -1414,5 +1415,68 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         }
         out.flush();
     }
+
+    public void setPlanningContext(TPS_PlanningContext pc){
+        this.pc = pc;
+    }
+
+    public TPS_PlanningContext getPlanningContext(){
+        return this.pc;
+    }
+    public Map<TPS_ActivityConstant, TPS_Location> getFixLocations(){
+        return this.fixLocations;
+    }
+
+    public Optional<TPS_TourPart> getNextTourPart(TPS_TourPart tour_part){
+
+        //what is the position of the current tour part in our scheme parts
+        int index = this.scheme.getSchemeParts().indexOf(tour_part);
+
+        //check if there actually is one more tour part after the current one
+        if(index + 2 < this.scheme.getSchemeParts().size())
+            return Optional.of((TPS_TourPart) this.scheme.getSchemeParts().get(index + 2));
+        else
+            return Optional.empty();
+
+
+
+    }
+    /*
+        returns the next home part stay after this tour part
+     */
+    public TPS_Stay getNextHomeStay(TPS_TourPart tour_part){
+        int tour_part_index = this.scheme.getSchemeParts().indexOf(tour_part);
+        TPS_SchemePart sp = null;
+
+        Optional<TPS_SchemePart> optional_home_part = IntStream.range(tour_part_index,this.scheme.getSchemeParts().size())
+                                                               .mapToObj(i -> this.scheme.getSchemeParts().get(i))
+                                                               .filter(TPS_SchemePart::isHomePart)
+                                                               .findFirst();
+        if(optional_home_part.isPresent()){
+            sp = optional_home_part.get();
+        }else { //this case should not happen but if it does we simply return the last home stay
+            for (int i = this.scheme.getSchemeParts().size() - 1; i >= 0; i--) {
+                if (this.scheme.getSchemeParts().get(i).isHomePart()) {
+                    sp = this.scheme.getSchemeParts().get(i);
+                    break;
+                }
+            }
+        }
+        return (TPS_Stay) sp.getFirstEpisode();
+    }
+
+
+    public TPS_HomePart getHomePartPriorToTourPart(TPS_TourPart tour_part){
+
+        int tour_part_index = this.getScheme().getSchemeParts().indexOf(tour_part);
+        return (TPS_HomePart) this.getScheme().getSchemeParts().get(tour_part_index-1);
+    }
+
+    public TPS_HomePart getHomePartAfterTourPart(TPS_TourPart tour_part){
+
+        int tour_part_index = this.getScheme().getSchemeParts().indexOf(tour_part);
+        return (TPS_HomePart) this.getScheme().getSchemeParts().get(tour_part_index+1);
+    }
+
 
 }

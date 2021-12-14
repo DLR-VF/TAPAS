@@ -17,7 +17,7 @@ import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
  * @author mark_ma
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
-public class TPS_HomePart extends TPS_SchemePart {
+public class TPS_HomePart extends TPS_SchemePart{
 
     /**
      * Calls super constructor with 0

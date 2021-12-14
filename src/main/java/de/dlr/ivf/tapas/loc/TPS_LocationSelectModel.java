@@ -13,6 +13,9 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.scheme.TPS_Stay;
+
+import java.util.function.Supplier;
 
 
 public abstract class TPS_LocationSelectModel {
@@ -27,7 +30,7 @@ public abstract class TPS_LocationSelectModel {
      * @return the picked location.
      */
 
-    abstract public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay);
+    abstract public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to);
 
     /**
      * This method sets the needed references to the classes we need

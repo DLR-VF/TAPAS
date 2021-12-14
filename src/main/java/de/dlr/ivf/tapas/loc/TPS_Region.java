@@ -23,6 +23,8 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_VariableMap;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
@@ -32,6 +34,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * This class represents a complete region for a TAPAS simulation. A region can be Berlin. The region contains all
@@ -434,7 +437,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
      * @param locatedStay the stay for this location
      * @return a default activity location
      */
-    TPS_Location selectDefaultLocation(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay) {
+    TPS_Location selectDefaultLocation(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         TPS_ActivityConstant actCode = locatedStay.getEpisode().getActCode();
         if (actCode.hasAttribute(TPS_ActivityConstantAttribute.DEFAULT)) {
             TPS_Logger.log(SeverenceLogLevel.ERROR,
@@ -445,7 +448,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
         }
         // if no location for the act type can be found; the search is done again with a default act type
         locatedStay.getEpisode().setActCode(TPS_ActivityConstant.DEFAULT_ACTIVITY);
-        TPS_Location loc = selectLocation(plan, pc, locatedStay);
+        TPS_Location loc = selectLocation(plan, pc, locatedStay, coming_from, going_to);
         locatedStay.getEpisode().setActCode(actCode);
         return loc;
     }
@@ -475,7 +478,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
      * @param locatedStay the located stay we are coming from
      * @return the selected location
      */
-    public TPS_Location selectLocation(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay) {
+    public TPS_Location selectLocation(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         //if this is a working trip and the location is given select it!
         int primaryLocId = plan.getPerson().getWorkLocationID();
         TPS_ActivityConstant actCode = locatedStay.getStay().getActCode();
@@ -498,15 +501,18 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
             TPS_Logger.log(SeverenceLogLevel.SEVERE,
                     "No location codes for activity code " + actCode.getId() + " " + "(ZBE:" +
                             actCode.getCode(TPS_ActivityCodeType.ZBE) + ") found");
-            return this.selectDefaultLocation(plan, pc, locatedStay);
+            return this.selectDefaultLocation(plan, pc, locatedStay,coming_from,going_to);
         }
 
         // get the location choice set
+        TPS_TourPart tour_part = (TPS_TourPart) locatedStay.getStay().getSchemePart();
+        //Supplier<TPS_Stay> coming_from = () -> tour_part.getStayHierarchy(locatedStay.getStay()).getPrevStay();
+       // Supplier<TPS_Stay> going_to = () -> tour_part.getStayHierarchy(locatedStay.getStay()).getNextStay();
         TPS_RegionResultSet resultSet = this.getLocationChoiceSet().getLocationRepresentatives(plan, pc, locatedStay,
-                this.PM.getParameters());
+                this.PM.getParameters(),coming_from,going_to);
         //locComingFrom, td.getArrivalDuration(), locGoingTo, td.getDepartureDuration(), actCode,tourpart);
         //select a location from the choice set
-        return this.getLocationSelectModel().selectLocationFromChoiceSet(resultSet, plan, pc, locatedStay);
+        return this.getLocationSelectModel().selectLocationFromChoiceSet(resultSet, plan, pc, locatedStay, coming_from, going_to);
     }
 
     /**

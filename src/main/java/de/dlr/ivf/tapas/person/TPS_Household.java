@@ -12,6 +12,8 @@ import de.dlr.ivf.tapas.constants.TPS_Sex;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.plan.TPS_Plan;
+import de.dlr.ivf.tapas.execution.sequential.communication.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 
 import java.util.*;
@@ -44,6 +46,16 @@ public class TPS_Household implements ExtendedWritable {
     private boolean leastRestrictedCarInitialized = false;
 
     private TPS_Car leastRestrictedCar = null;
+
+    public TPS_HouseholdCarMediator getCarMediator() {
+        return car_mediator;
+    }
+
+    public void setCarMediator(TPS_HouseholdCarMediator car_mediator) {
+        this.car_mediator = car_mediator;
+    }
+
+    private TPS_HouseholdCarMediator car_mediator = null;
 
 
     /**
@@ -107,6 +119,12 @@ public class TPS_Household implements ExtendedWritable {
      */
     public TPS_Car[] getAvailableCars(double start, double end) {
         return this.getAvailableCars((int) (start + 0.5), (int) (end + 0.5)); //incl. rounding
+    }
+
+
+    public void initializeCarMediator(TPS_Household household, List<TPS_Plan> household_plans){
+        if(this.car_mediator == null)
+            this.car_mediator = new TPS_HouseholdCarMediator(household);
     }
 
     /**

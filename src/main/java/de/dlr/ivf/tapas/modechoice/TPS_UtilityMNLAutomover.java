@@ -103,12 +103,12 @@ public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
                                 TPS_DB_IO.INTERCHANGE_FACTOR);
 
                 break;
-            case TRAIN: //automatic ride pooling vehicle-faker or car sharing in the reference scenario
+            case CAR_SHARING: //automatic ride pooling vehicle-faker or car sharing in the reference scenario
                 if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_AUTOMATED_RIDE_POOLING))
                     cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(
                             ParamValue.RIDE_POOLING_COST_PER_KM);
                 else if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler())
-                    cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.TRAIN_COST_PER_KM);
+                    cost = distanceNet * 0.001 * mode.getParameters().getDoubleValue(ParamValue.CAR_SHARING_COST_PER_KM);
                 else return Double.NaN;
                 //if the household equivalence income is below the low income threshold then reduce the price of
                 // autonomous ride pooling or car sharing

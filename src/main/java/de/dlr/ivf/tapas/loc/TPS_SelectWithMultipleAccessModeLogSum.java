@@ -39,6 +39,7 @@ import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 
 public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultipleAccessMode {
 
@@ -159,7 +160,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
     }
 
     @Override
-    public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay) {
+    public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         if (this.PM == null) {
             TPS_Logger.log(SeverenceLogLevel.FATAL,
                     "TPS_LocationSelectModel not properly initialized! Persistance manager is null?!?! Driving home!");
@@ -172,15 +173,15 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         }
 
         if (!(TPS_Mode.getUtilityFunction() instanceof TPS_UtilityMNL)) { // no LogSum for non MNL-Models!
-            super.selectLocationFromChoiceSet(choiceSet, plan, pc, locatedStay);
+            super.selectLocationFromChoiceSet(choiceSet, plan, pc, locatedStay,coming_from,going_to);
         }
 
 
         TPS_Stay stay = locatedStay.getStay();
         TPS_ActivityConstant actCode = stay.getActCode();
         TPS_TourPart tourpart = (TPS_TourPart) locatedStay.getStay().getSchemePart();
-        TPS_Stay comingFrom = tourpart.getStayHierarchy(stay).getPrevStay();
-        TPS_Stay goingTo = tourpart.getStayHierarchy(stay).getNextStay();
+        TPS_Stay comingFrom = coming_from.get();
+        TPS_Stay goingTo = going_to.get();
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
         TPS_SettlementSystem regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();
@@ -301,7 +302,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         } else {
             TPS_Logger.log(SeverenceLogLevel.WARN,
                     "No specific location found for activity " + actCode.getCode(TPS_ActivityCodeType.ZBE));
-            return region.selectDefaultLocation(plan, pc, locatedStay);
+            return region.selectDefaultLocation(plan, pc, locatedStay,coming_from,going_to);
         }
         return locRepresentant;
     }

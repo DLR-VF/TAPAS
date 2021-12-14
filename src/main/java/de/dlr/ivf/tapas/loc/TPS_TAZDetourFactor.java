@@ -12,7 +12,10 @@ import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import java.util.function.Supplier;
 
 
 public class TPS_TAZDetourFactor extends TPS_LocationChoiceSet {
@@ -25,7 +28,8 @@ public class TPS_TAZDetourFactor extends TPS_LocationChoiceSet {
      * @param locatedStay
      * @return
      */
-    public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass) {
+    @Override
+    public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
 
 
 		/*
@@ -39,5 +43,8 @@ public class TPS_TAZDetourFactor extends TPS_LocationChoiceSet {
 
         return new TPS_RegionResultSet();
     }
+
+
+
 
 }
