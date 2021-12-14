@@ -43,7 +43,7 @@ repositories {
 dependencies {
     // These dependencies are used by the application.
     implementation("net.sourceforge.javacsv:javacsv:2.0")
-    implementation("org.apache.logging.log4j:log4j:2.15.0")
+    implementation("org.apache.logging.log4j:log4j:2.16.0")
     implementation("org.postgresql:postgresql:42.2.8.jre7")
     implementation("org.apache.commons:commons-lang3:3.9")
     implementation("org.apache.commons:commons-collections4:4.4")
@@ -131,7 +131,7 @@ task("SimulationDaemon", JavaExec::class) {
     // Define the main class for the application
     getMainClass().set("de.dlr.ivf.tapas.runtime.server.SimulationDaemon")
     classpath = sourceSets["main"].runtimeClasspath
-    args = listOf("data/Simulations")
+    args = listOf("T:\\Simulations")
 //    jvmArgs = listOf("-Xmx8g")
     jvmArgs = listOf("-Ddebug=true", "-Xmx8g")
 }
