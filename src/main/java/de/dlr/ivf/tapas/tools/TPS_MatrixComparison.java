@@ -29,15 +29,15 @@ public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
 
     public static void main(String[] args) {
         String table = "core.region_niedersachsen_matrices";
-        String trips = "region_niedersachsen_trips_2021y_11m_10d_13h_12m_30s_478ms ";
-        int[] modes = {5};
+        String trips = "region_niedersachsen_trips_2022y_01m_03d_10h_49m_05s_057ms";
+        int[] modes = {2};
         int binSize = 60;
         int binSizeTransfer = 10;
         String matrix1, matrix2, pattern1, pattern2;
         TPS_MatrixComparison worker = new TPS_MatrixComparison();
         String path = "T:\\Runs\\diff_trips_";
         pattern1 = "urmoac_5locrepr_car_tt";
-        pattern2 = "urmoac_5locrepr_car_tt_2021y_11m_10d_13h_12m_30s_478ms_IT_0";
+        pattern2 = "urmoac_5locrepr_car_tt_2022y_01m_03d_10h_49m_05s_057ms_IT_2";
 
         worker.analyzeThis(table, pattern1, pattern2, path, binSize);
 

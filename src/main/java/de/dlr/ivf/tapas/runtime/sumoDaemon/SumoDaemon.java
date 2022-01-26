@@ -263,7 +263,7 @@ public class SumoDaemon extends Thread {
             table = this.parameterClass.getString(ParamString.DB_SCHEMA_TEMP) + "sumo_od_" + this.actualKey;
             entryTable = this.parameterClass.getString(ParamString.DB_SCHEMA_TEMP) + "sumo_od_entry_" + this.actualKey;
             query = "SELECT t.taz_id_start, t.taz_id_end, t.interval_end, e.travel_time_sec[3] as tt FROM " + table +
-                    " as t join " + entryTable + " as e on t.entry_id = e.entry_id";
+                    " as t join " + entryTable + " as e on t.entry_id = e.entry_id WHERE (e.realtrip_count+e.representative_count) >0";
             rs = this.manager.executeQuery(query, this);
             while (rs.next()) {
                 taz_num_start = rs.getInt("taz_id_start");
@@ -408,7 +408,7 @@ public class SumoDaemon extends Thread {
                     String mapName = this.parameterClass.getString(ParamString.DB_NAME_MATRIX_TT_MIT);
                     String newName = this.updateStringIter(mapName);
 
-                    MatrixMap mivTT = this.loadSumoValues(mapName, 0.33);
+                    MatrixMap mivTT = this.loadSumoValues(mapName, 0.75);
                     List<String> matrixNames = this.createNewMatrixMap(mapName, newName);
                     this.saveMatrices(mivTT, matrixNames);
                     this.manager.updateSingleParameter(this.actualKey, "DB_NAME_MATRIX_TT_MIT", newName);
