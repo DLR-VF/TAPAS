@@ -566,14 +566,12 @@ public class TPS_ParameterFileConverterGUI {
     }
 
     private void revertTemporaryParametersInMap(Map<String, String> configMap2) {
-        String tmp;
+        String tmp, suffix="_trips";
         configMap2.remove("DB_TABLE_LOCATION_TMP");
         configMap2.remove("DB_TABLE_HOUSEHOLD_TMP");
         tmp = configMap2.get("DB_TABLE_TRIPS");
-        if (tmp.lastIndexOf("_") != tmp.indexOf("_")) {
-            tmp = tmp.substring(0, tmp.lastIndexOf("_"));
-            configMap2.put("DB_TABLE_TRIPS", tmp);
-        }
+        tmp = tmp.substring(0, tmp.lastIndexOf(suffix)+suffix.length()); // forget everything after the suffix
+        configMap2.put("DB_TABLE_TRIPS", tmp);
     }
 
     private void saveConfigInDatabase() {
