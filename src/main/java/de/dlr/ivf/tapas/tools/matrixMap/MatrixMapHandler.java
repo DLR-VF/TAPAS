@@ -90,7 +90,7 @@ public class MatrixMapHandler {
      */
     public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 
-        UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        //UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         MatrixMapHandler controlGUI = new MatrixMapHandler();
         controlGUI.createAndShowGUI();
         controlGUI.controlInstance.setVisible(true);
