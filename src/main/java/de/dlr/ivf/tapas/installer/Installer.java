@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -236,7 +237,7 @@ public class Installer {
      */
     private static void executeDir(String dir) {
         try {
-            Files.walk(Paths.get(dir)).filter(Files::isRegularFile).forEach(Installer::executeFile);
+            Files.walk(Paths.get(dir)).filter(Files::isRegularFile).sorted(Comparator.naturalOrder()).forEach(Installer::executeFile);
         } catch (IOException e) {
             exitAndCleanUp(e, true);
         }
