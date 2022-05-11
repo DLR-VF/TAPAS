@@ -32,7 +32,7 @@ For more information see the [TAPAS Wiki](https://github.com/DLR-VF/TAPAS/wiki) 
     
 ## Download
 [Here](https://github.com/orgs/DLR-VF/packages?repo_name=TAPAS). 
-The tapas-<version>-all.jar is a fat jar with all dependencies included. The tapas-<version>.jar only contains the compiled TAPAS code without dependencies.
+The tapas-x.y.z-all.jar is a fat jar with all dependencies included. The tapas-x.y.z.jar only contains the compiled TAPAS code without dependencies.
 
 ## Install
 
