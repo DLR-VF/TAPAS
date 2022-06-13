@@ -13,38 +13,24 @@ import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 
+import java.util.TreeSet;
+
 /**
  * This class represents a time line. It is possible to add entries from a start to an end point. These entries build up a
  * linked list in both directions. The time line holds the entries consistent, i.e. there can be no entries added which
  * overlaps already added entries.
  *
- * @author mark_ma
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class Timeline {
 
-    /**
-     * The entrance entry
-     */
-    private final Entry entrance;
-    /**
-     * Internal storage for a pair of references
-     */
-    private final Entry[] entries;
-    /**
-     * The exit entry
-     */
-    private final Entry exit;
+    private final TreeSet<Entry> entries;
 
     /**
      * The Constructor initialises the member values
      */
     public Timeline() {
-        this.entries = new Entry[2];
-        this.entrance = new Entry(Integer.MIN_VALUE, Integer.MIN_VALUE);
-        this.exit = new Entry(Integer.MAX_VALUE, Integer.MAX_VALUE);
-        this.entrance.next = this.exit;
-        this.exit.previous = this.entrance;
+        entries = new TreeSet<>();
     }
 
     /**
@@ -54,6 +40,18 @@ public class Timeline {
      */
     public static void main(String[] args) {
         Timeline t = new Timeline();
+
+        System.out.println(t.add(10, 20));
+        System.out.println(t.contains(10,20));
+        System.out.println(t.contains(10,30));
+        System.out.println(t.contains(5,20));
+
+        System.out.println(t.add(10, 30));
+        System.out.println(t.add(5, 20));
+        System.out.println(t.add(21, 22));
+        System.out.println(t.add(25, 30));
+        System.out.println(t.add(22, 24));
+
 
         t.clash(3, 5);
         t.add(2, 8);
@@ -100,23 +98,21 @@ public class Timeline {
      * @throws IllegalArgumentException when start >= end
      */
     public boolean add(int start, int end) {
-        if (start > end) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN,
-                        "Start is greater or equal to end (start=" + start + ", end=" + end + ")");
-            }
-            return false;
-        }
-        Entry[] entryArray = getSurroundingEntries(start, end);
-        if (entryArray == null) {
-            return false;
-        }
-        Entry entry = new Entry(start, end);
-        entryArray[0].next = entry;
-        entry.previous = entryArray[0];
-        entryArray[1].previous = entry;
-        entry.next = entryArray[1];
-        return true;
+        return add(new Entry(start, end));
+    }
+
+    public boolean add(Entry newElement){
+        if (isItPossibleToAddElement(newElement)) return entries.add(newElement);
+        else return false;
+    }
+
+    public boolean isItPossibleToAddElement(Entry newElement){
+        if (entries.contains(newElement)) return false;
+        Entry floor = entries.floor(newElement);
+        Entry higher = entries.higher(newElement);
+
+        // if floor and/or higher are null they will not overlap with newElement and therefore the new element can be added
+        return !newElement.overlaps(floor) && !newElement.overlaps(higher);
     }
 
     /**
@@ -127,7 +123,7 @@ public class Timeline {
      * @return true if the intervals overlaps
      */
     public boolean clash(int start, int end) {
-        return getSurroundingEntries(start, end) == null;
+        return !isItPossibleToAddElement(new Entry(start, end));
     }
 
     /**
@@ -139,40 +135,11 @@ public class Timeline {
      */
 
     public boolean contains(int start, int end) {
-        boolean entryFound = false;
-
-        for (Entry e = entrance.next; e != this.exit; e = e.next) {
-            if (e.start == start && e.end == end) {
-                entryFound = true;
-                break;
-            }
-        }
-
-        return entryFound;
+        return contains(new Entry(start, end));
     }
 
-    /**
-     * This method returns the surrounding entries to the given interval. When the interval don't overlaps another one, then
-     * the next and the previous interval is returned.
-     *
-     * @param start
-     * @param end
-     * @return next and previous entry to the given interval
-     */
-    private Entry[] getSurroundingEntries(int start, int end) {
-        Entry e;
-        this.entries[0] = null;
-        this.entries[1] = null;
-        for (e = entrance; e != null && (this.entries[0] == null || this.entries[1] == null); e = e.next) {
-            if (this.entries[0] == null && e.end <= start && e.next.start >= end) this.entries[0] = e;
-            if (this.entries[1] == null && e.start >= end && e.previous.end <= start) this.entries[1] = e;
-        }
-
-        if (this.entries[0] == null || this.entries[1] == null || this.entries[0].next != this.entries[1]) {
-            return null;
-        }
-
-        return this.entries;
+    public boolean contains(Entry e){
+        return entries.contains(e);
     }
 
     /**
@@ -184,18 +151,11 @@ public class Timeline {
      */
 
     public boolean remove(int start, int end) {
-        boolean entryRemoved = false;
+        return remove(new Entry(start,end));
+    }
 
-        for (Entry e = entrance.next; e != this.exit && !entryRemoved; e = e.next) {
-            if (e.start == start && e.end == end) {
-                //unlink this element from the list
-                e.previous.next = e.next;
-                e.next.previous = e.previous;
-                entryRemoved = true;
-            }
-        }
-
-        return entryRemoved;
+    public boolean remove(Entry e){
+        return entries.remove(e);
     }
 
     /*
@@ -205,36 +165,19 @@ public class Timeline {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(this.getClass().getSimpleName() + "{");
-        for (Entry e = entrance.next; e != this.exit; e = e.next) {
-            sb.append("[" + e.start + "," + e.end + "]");
-        }
-        sb.append("}");
-        return sb.toString();
+        return entries.toString();
     }
 
     /**
      * This class represents an entry of the time line. It refers to the next and the previous entry and stores the start and
      * the end time of the entry.
-     *
-     * @author mark_ma
      */
-    private class Entry {
+    private class Entry implements Comparable<Entry>{
 
         /**
          * end time
          */
         public int end;
-
-        /**
-         * reference to the next entry
-         */
-        public Entry next = null;
-
-        /**
-         * reference to the previous entry
-         */
-        public Entry previous = null;
 
         /**
          * start time
@@ -247,9 +190,43 @@ public class Timeline {
          * @param start
          * @param end
          */
-        public Entry(int start, int end) {
+        public Entry(int start, int end) throws IllegalArgumentException{
+            if (start > end) {
+                if (TPS_Logger.isLogging(SeverenceLogLevel.ERROR)) {
+                    TPS_Logger.log(SeverenceLogLevel.ERROR,
+                            "Start is greater or equal to end (start=" + start + ", end=" + end + ")");
+                }
+                throw new IllegalArgumentException();
+            }
             this.start = start;
             this.end = end;
+        }
+
+        @Override
+        public int compareTo(Entry entry) {
+            if (start-entry.start != 0) return start-entry.start;
+            else return end-entry.end;
+        }
+
+        /**
+         * Checks if two intervals/entries overlap
+         * We consider two elements not overlapping if one of them is null
+         *
+         * @param entry
+         * @return
+         */
+        public boolean overlaps(Entry entry) {
+            if (entry == null) return false;
+            if (this.compareTo(entry) == 0 ) {
+                return true;
+            }
+            else if (this.compareTo(entry) < 0 ) {
+                return this.end >= entry.start;
+            }
+            else if (this.compareTo(entry) > 0 ) {
+                return entry.end >= this.start;
+            }
+            return false;
         }
     }
 }
