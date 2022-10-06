@@ -8,31 +8,16 @@
 
 package de.dlr.ivf.tapas;
 
-import de.dlr.ivf.tapas.execution.sequential.action.ActionProvider;
-import de.dlr.ivf.tapas.execution.sequential.communication.SharingMediator;
-import de.dlr.ivf.tapas.execution.sequential.communication.SimpleCarSharingOperator;
-import de.dlr.ivf.tapas.execution.sequential.io.HouseholdBasedPlanGenerator;
-import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
-import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineGenerator;
-import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
-import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachineFactory;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
-import de.dlr.ivf.tapas.mode.TPS_ModeValidator;
-import de.dlr.ivf.tapas.mode.TazBasedCarSharingDelegator;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.persistence.db.*;
-import de.dlr.ivf.tapas.person.*;
-import de.dlr.ivf.tapas.execution.sequential.TPS_SequentialSimulator;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.runtime.server.*;
-import de.dlr.ivf.tapas.scheme.TPS_Episode;
-import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
@@ -44,10 +29,6 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * This class is the main entry point into a TAPAS simulation. It provides a main method which can start in different
@@ -258,9 +239,9 @@ public class TPS_Main {
      * @param threads amount of parallel threads.
      */
     public void run(int threads) {
-        if (DEBUG) {
-            threads = 1;
-        }
+        //if (DEBUG) {
+        //    threads = 1;
+        //}
 
         initPM();
 
