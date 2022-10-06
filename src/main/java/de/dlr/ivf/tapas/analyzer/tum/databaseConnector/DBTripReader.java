@@ -387,10 +387,10 @@ public class DBTripReader implements TapasTripReader {
                             " p_id, hh_id, p_group, t_duration,t_start_time, t_mode, t_distance_bl, " +
                             " t_distance_real, t_activity, t_activity_start_min, t_activity_duration_min, t_is_home,t_taz_id_start,t_taz_id_end,t_loc_id_start,t_loc_id_end" +
                             ") " + " SELECT " +
-                            " ps.p_id, ts.hh_id, ps.p_group, ts.travel_time_sec, ts.start_time_min, ts.mode, ts.distance_bl_m, " +
+                            " ps.p_id, ts.hh_id, ps.group, ts.travel_time_sec, ts.start_time_min, ts.mode, ts.distance_bl_m, " +
                             " ts.distance_real_m, ts.activity, ts.activity_start_min, ts.activity_duration_min, ts.is_home, ts.taz_id_start, ts.taz_id_end, ts.loc_id_start, ts.loc_id_end " +
                             " FROM %tablename% ts " +
-                            " INNER JOIN %schemaname%.%region%_persons ps ON ts.p_id  = ps.p_id and ts.hh_id = ps.p_hh_id AND '%p_hh_key%' = ps.p_key";
+                            " INNER JOIN %schemaname%.%region%_persons ps ON ts.p_id  = ps.p_id and ts.hh_id = ps.hh_id AND '%p_hh_key%' = ps.key";
                     updateBBRStart = "UPDATE tt_%tablename% as tt set taz_bbr_type_start = " +
                             "(select taz_bbr_type from %schemaname%.%region%_taz as taz where taz.taz_id= tt.t_taz_id_start)";
                     updateBBRHome = "UPDATE tt_%tablename% as tt set bbr_type_home = " +
