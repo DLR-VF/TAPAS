@@ -21,7 +21,7 @@ import java.util.List;
 public class TriasScripter extends TPS_BasicConnectionClass {
 
     private final static String HOST = "http://v1.api.efa.de";
-    private final static String FILEPATH = "T:\\Daten\\Trias_BSW\\output";
+    private final static String FILEPATH = "T:\\Daten\\Trias_BSW\\2output";
     private final static String REGION = "braunschweig";
     private final static String REQ_TIME = "2017-08-01T12:00:00";
 

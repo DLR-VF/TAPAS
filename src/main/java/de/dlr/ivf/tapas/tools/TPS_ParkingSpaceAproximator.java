@@ -14,9 +14,7 @@ import de.dlr.ivf.tapas.util.Matrix;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
 
@@ -32,19 +30,21 @@ public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
     double minAccess = Integer.MAX_VALUE;
 
     public static void main(String[] args) {
-        String key = "VEU2_MID2008_Y2010_REF";
+        String key = "VMO4Orte_SZEN_1";
+        String hhKey= "UD_MID2017_Y2017_BASE";
         String accessName = "MIT_ACCESS_1223_" + key;
         String egressName = "MIT_EGRESS_1223_" + key;
         String region = "berlin";
         //lets boogie!
         TPS_ParkingSpaceAproximator worker = new TPS_ParkingSpaceAproximator();
         System.out.println("Loading tazes and areas for region " + region);
-        worker.loadTazArea("core." + region + "_taz_1223_multiline");
+        worker.loadTazArea("core." + region + "_taz_multiline");
         System.out.println("Found " + worker.numberOfTaz + " tazes!");
 
         System.out.println("Loading households and cars for key " + key);
-        worker.loadPersonsAndCars("core." + region + "_households_1223", key);
+        worker.loadPersonsAndCars("core.view_" + region + "_households", hhKey);
         System.out.println("Calc parking times");
+        worker.modifyCarsForVMo4Orte();
         worker.calcParkingTimes(10, 1000, 2.8, 100, 1, 0.9);
         System.out.println("Access min/max: " + worker.minAccess + "/" + worker.maxAccess);
         System.out.println("Egress min/max: " + worker.minEgress + "/" + worker.maxEgress);
@@ -52,6 +52,27 @@ public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
         worker.storeSQLMatrix("core." + region + "_matrices", egressName, accessName);
         System.out.println("Finished");
 
+
+    }
+
+    void modifyCarsForVMo4Orte(){
+
+        List<Integer> regionToModify = new ArrayList<>();
+        double modificationFactor = 2;
+
+        regionToModify.add(136);
+        regionToModify.add(137);
+        regionToModify.add(138);
+        regionToModify.add(139);
+        regionToModify.add(140);
+
+
+        for (Integer taz : regionToModify){
+            int carsPerTaz = this.carsPerTaz.get(taz);
+            System.out.println("Taz: "+taz+" cars (old): "+carsPerTaz);
+            carsPerTaz *= modificationFactor;
+            this.carsPerTaz.put(taz,carsPerTaz);
+        }
 
     }
 

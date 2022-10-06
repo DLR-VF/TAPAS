@@ -36,11 +36,12 @@ public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
         String matrix1, matrix2, pattern1, pattern2;
         TPS_MatrixComparison worker = new TPS_MatrixComparison();
         String path = "T:\\Runs\\diff_trips_";
-        pattern1 = "urmoac_5locrepr_car_tt";
-        pattern2 = "urmoac_5locrepr_car_tt_2022y_01m_03d_10h_49m_05s_057ms_IT_2";
-
-        worker.analyzeThis(table, pattern1, pattern2, path, binSize);
-
+        pattern1 = "urmoac_5locrepr_car_tt_2022y_01m_26d_14h_31m_26s_378ms_IT_0";
+        pattern2 = "urmoac_5locrepr_car_tt_2022y_06m_17d_11h_33m_34s_337ms_IT_0";
+//urmoac_5locrepr_car_tt_2022y_01m_26d_14h_32m_41s_339ms_IT_0
+//urmoac_5locrepr_car_tt_2022y_06m_17d_11h_33m_34s_337ms_IT_0
+        //worker.analyzeThis(table, pattern1, pattern2, path, binSize);
+        worker.calcAndWriteTAZdifferences(table, pattern1, pattern2,path);
 
         //		matrix1= "PT_VISUM_1223__2030_HOCHFEIN60_6_9_IT0_ACT";
 //		matrix2= "PT_VISUM_1223_2030_HF20_1_ACT";
@@ -54,6 +55,55 @@ public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
 //		matrix2= "PT_VISUM_1223_2030_HF20_1_SUM_TT";
 //		worker.analyzeThis(table, matrix1, matrix2);
 
+    }
+
+    public void calcAndWriteTAZdifferences(String table, String matrixName1, String matrixName2,String path){
+        this.loadMatrixces(table, matrixName1, matrixName2);
+        String filename = path+matrixName1+"_"+matrixName2+".csv";
+        if (matrix1.length != matrix2.length) return;
+        if (matrix1[0].length != matrix2[0].length) return;
+        FileWriter fw;
+        try {
+            fw = new FileWriter(new File(filename));
+
+            fw.write("TAZ\tAVG\tMin\tMax\trun\n");
+            int absMin = Integer.MAX_VALUE, absMax = Integer.MIN_VALUE, oMin =-1, dMin=-1,oMax=-1, dMax=-1;
+
+            for (int i = 0; i < matrix1.length; ++i) {
+                int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE, val,num=0;
+                double avg = 0;
+                for (int j = 0; j < matrix1[i].length; ++j) {
+                    if(matrix1[i][j]>=0 && matrix2[i][j]>=0){
+                        val = matrix1[i][j] - matrix2[i][j];
+                        avg += val;
+                        min = Math.min(min, val);
+                        max = Math.max(max, val);
+                        num++;
+                        if(max>absMax && i<289 && j<289){
+                            absMax=max;
+                            oMax=i;
+                            dMax=j;
+                        }
+                        if(min<absMin && i<289 && j<289){
+                            absMin=min;
+                            oMin=i;
+                            dMin=j;
+                        }
+                    }
+                }
+                if(num>0) {
+                    avg /= num;
+                    fw.write("" + (i + 1) + "\t" + avg + "\t" + min + "\t" + max + "\tREF_IT1-HIGHTECH+\n");
+                }
+            }
+            System.out.println("Absolute max o d:"+absMax+" "+oMax+" "+dMax);
+            System.out.println("Absolute min o d:"+absMin+" "+oMin+" "+dMin);
+
+            fw.close();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
     }
 
     public void analyze(int radix) {
