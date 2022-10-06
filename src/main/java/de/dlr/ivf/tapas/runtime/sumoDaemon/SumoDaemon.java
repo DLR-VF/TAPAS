@@ -274,10 +274,12 @@ public class SumoDaemon extends Thread {
                 tazStart = tazMap.get(taz_num_start);
                 tazEnd = tazMap.get(taz_num_end);
                 tt = rs.getDouble("tt");
-                timeslot = rs.getDouble("interval_end");
-                Matrix tmp = newM.getMatrix((int) timeslot);
-                weightedTT = tmp.getValue(tazStart, tazEnd) * weightOld + tt * weight; //weight the new value
-                tmp.setValue(tazStart, tazEnd, weightedTT);
+                if(tt>=0) {
+                    timeslot = rs.getDouble("interval_end");
+                    Matrix tmp = newM.getMatrix((int) timeslot);
+                    weightedTT = tmp.getValue(tazStart, tazEnd) * weightOld + tt * weight; //weight the new value
+                    tmp.setValue(tazStart, tazEnd, weightedTT);
+                }
             }
 
             rs.close();
