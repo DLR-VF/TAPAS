@@ -201,7 +201,8 @@ In the Gradle menu in IntelliJ (either on the right side or press double shift -
 #### Import Project via Eclipse
 
 Recent Eclipse releases have the Buildship extension for Gradle included by default. To verify it is available, choose Help -> About Eclipse IDE and look for 
-the Buildship logo (a gray elephant).
+the Buildship logo (a gray elephant). Be sure to use a Java JDK version which is compatible with the Gradle wrapper shipped with TAPAS. You can find the used 
+Gradle version in the file `gradle/wrapper/gradle-wrapper.properties`.
 
 File -> Import -> Gradle -> Existing Gradle Project -> select the build.gradle.kts file to import the project.
 
