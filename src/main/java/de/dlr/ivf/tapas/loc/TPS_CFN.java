@@ -16,7 +16,6 @@ import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.util.TPS_VariableMap;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,12 +38,6 @@ public class TPS_CFN {
      * cfnX values depending on settlement system
      */
     private final Map<TPS_SettlementSystem, Double> defaultCFNXMap = new HashMap<>();
-
-
-    /**
-     * cfn4 values depending on settlement system, time and work
-     */
-    private TPS_VariableMap specialCFN4Map;
 
     /**
      * Settlement type
@@ -135,6 +128,6 @@ public class TPS_CFN {
      */
     @Override
     public String toString() {
-        return this.cfn4Map.toString() + "\n" + this.specialCFN4Map + "\n" + this.defaultCFNXMap;
+        return this.cfn4Map + "\n" + this.defaultCFNXMap;
     }
 }

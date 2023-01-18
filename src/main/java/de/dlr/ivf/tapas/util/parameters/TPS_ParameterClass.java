@@ -481,6 +481,10 @@ public class TPS_ParameterClass {
         return this.paramFlagClass.isTrue(param);
     }
 
+    public boolean getFlag(ParamFlag param) {
+        return this.paramFlagClass.getFlag(param);
+    }
+
     /**
      * This method opens the file and stores all key value pairs in a property
      * instance. If the file is in csv format the key is in the first column and

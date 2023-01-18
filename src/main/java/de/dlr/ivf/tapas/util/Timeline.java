@@ -24,7 +24,7 @@ import java.util.TreeSet;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class Timeline {
 
-    private final TreeSet<Entry> entries;
+    private final TreeSet<Timespan> entries;
 
     /**
      * The Constructor initialises the member values
@@ -53,10 +53,10 @@ public class Timeline {
         System.out.println(t.add(22, 24));
 
 
-        t.clash(3, 5);
+        t.isItPossibleToAddTimespan(3, 5);
         t.add(2, 8);
         System.out.println(t);
-        t.clash(3, 5);
+        t.isItPossibleToAddTimespan(3, 5);
         t.add(6, 9);
         System.out.println(t);
         t.add(8, 9);
@@ -98,21 +98,21 @@ public class Timeline {
      * @throws IllegalArgumentException when start >= end
      */
     public boolean add(int start, int end) {
-        return add(new Entry(start, end));
+        return add(new Timespan(start, end));
     }
 
-    public boolean add(Entry newElement){
-        if (isItPossibleToAddElement(newElement)) return entries.add(newElement);
+    public boolean add(Timespan newElement){
+        if (isItPossibleToAddTimespan(newElement)) return entries.add(newElement);
         else return false;
     }
 
-    public boolean isItPossibleToAddElement(Entry newElement){
-        if (entries.contains(newElement)) return false;
-        Entry floor = entries.floor(newElement);
-        Entry higher = entries.higher(newElement);
+    public boolean isItPossibleToAddTimespan(Timespan newTimespan){
+        if (entries.contains(newTimespan)) return false;
+        Timespan floor = entries.floor(newTimespan);
+        Timespan higher = entries.higher(newTimespan);
 
-        // if floor and/or higher are null they will not overlap with newElement and therefore the new element can be added
-        return !newElement.overlaps(floor) && !newElement.overlaps(higher);
+        // if floor and/or higher are null they will not overlap with newTimespan and therefore the new element can be added
+        return !newTimespan.overlaps(floor) && !newTimespan.overlaps(higher);
     }
 
     /**
@@ -122,8 +122,8 @@ public class Timeline {
      * @param end
      * @return true if the intervals overlaps
      */
-    public boolean clash(int start, int end) {
-        return !isItPossibleToAddElement(new Entry(start, end));
+    public boolean isItPossibleToAddTimespan(int start, int end) {
+        return isItPossibleToAddTimespan(new Timespan(start, end));
     }
 
     /**
@@ -135,10 +135,10 @@ public class Timeline {
      */
 
     public boolean contains(int start, int end) {
-        return contains(new Entry(start, end));
+        return contains(new Timespan(start, end));
     }
 
-    public boolean contains(Entry e){
+    public boolean contains(Timespan e){
         return entries.contains(e);
     }
 
@@ -151,10 +151,10 @@ public class Timeline {
      */
 
     public boolean remove(int start, int end) {
-        return remove(new Entry(start,end));
+        return remove(new Timespan(start,end));
     }
 
-    public boolean remove(Entry e){
+    public boolean remove(Timespan e){
         return entries.remove(e);
     }
 
@@ -172,7 +172,7 @@ public class Timeline {
      * This class represents an entry of the time line. It refers to the next and the previous entry and stores the start and
      * the end time of the entry.
      */
-    private class Entry implements Comparable<Entry>{
+    private class Timespan implements Comparable<Timespan>{
 
         /**
          * end time
@@ -190,7 +190,7 @@ public class Timeline {
          * @param start
          * @param end
          */
-        public Entry(int start, int end) throws IllegalArgumentException{
+        public Timespan(int start, int end) throws IllegalArgumentException{
             if (start > end) {
                 if (TPS_Logger.isLogging(SeverenceLogLevel.ERROR)) {
                     TPS_Logger.log(SeverenceLogLevel.ERROR,
@@ -203,28 +203,28 @@ public class Timeline {
         }
 
         @Override
-        public int compareTo(Entry entry) {
-            if (start-entry.start != 0) return start-entry.start;
-            else return end-entry.end;
+        public int compareTo(Timespan timespan) {
+            if (start- timespan.start != 0) return start- timespan.start;
+            else return end- timespan.end;
         }
 
         /**
          * Checks if two intervals/entries overlap
          * We consider two elements not overlapping if one of them is null
          *
-         * @param entry
+         * @param timespan
          * @return
          */
-        public boolean overlaps(Entry entry) {
-            if (entry == null) return false;
-            if (this.compareTo(entry) == 0 ) {
+        public boolean overlaps(Timespan timespan) {
+            if (timespan == null) return false;
+            if (this.compareTo(timespan) == 0 ) {
                 return true;
             }
-            else if (this.compareTo(entry) < 0 ) {
-                return this.end >= entry.start;
+            else if (this.compareTo(timespan) < 0 ) {
+                return this.end >= timespan.start;
             }
-            else if (this.compareTo(entry) > 0 ) {
-                return entry.end >= this.start;
+            else if (this.compareTo(timespan) > 0 ) {
+                return timespan.end >= this.start;
             }
             return false;
         }

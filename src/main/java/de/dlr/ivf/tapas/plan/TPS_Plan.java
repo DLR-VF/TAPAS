@@ -142,8 +142,8 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
     public TPS_Plan(TPS_Plan src) {
         this.pe = src.pe;
         this.PM = src.PM;
-        src.usedCars.addAll(this.usedCars);
-
+//        src.usedCars.addAll(this.usedCars);
+        this.usedCars.addAll(src.usedCars);
         this.locatedStays = new HashMap<>();
         this.plannedTrips = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
         // same as(trip1, trip2) -> trip1.getOriginalStart() - trip2.getOriginalStart()
@@ -1476,6 +1476,25 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
 
         int tour_part_index = this.getScheme().getSchemeParts().indexOf(tour_part);
         return (TPS_HomePart) this.getScheme().getSchemeParts().get(tour_part_index+1);
+    }
+
+    /**
+     * Method to assign a car to a given plan. The car can not be used during this period of time by someone else.
+     */
+    public void assignCarToPlan() {
+        // pick cars used for this plan
+        for (TPS_SchemePart schemePart : this.getScheme()) {
+            if (!schemePart.isHomePart()) { // are we leaving home?
+                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
+                if (tourpart.getCar() != null) { // do we use a car?
+                    TPS_AdaptedEpisode startEpisode = (this.getAdaptedEpisode(tourpart.getFirstEpisode()));
+                    TPS_AdaptedEpisode endEpisode = (this.getAdaptedEpisode(tourpart.getLastEpisode()));
+                    tourpart.getCar().pickCar(startEpisode.getStart(), endEpisode.getEnd(),
+                            tourpart.getTourpartDistance(), this.mustPayToll || tourpart.getCar().hasPaidToll); // pick
+                    // car;
+                }
+            }
+        }
     }
 
 

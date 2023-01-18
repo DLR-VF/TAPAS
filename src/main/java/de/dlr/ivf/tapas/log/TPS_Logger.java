@@ -17,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Basic class for the TAPAS loging functionality.
+ * Basic class for the TAPAS logging functionality.
  *
  * @author hein_mh
  */

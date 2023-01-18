@@ -17,9 +17,6 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.SimulationType;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
-import java.time.LocalTime;
-import java.time.temporal.TemporalField;
-
 
 /**
  * Class for different car types#
@@ -35,11 +32,11 @@ public class TPS_Car {
     public static FuelType[] FUEL_TYPE_ARRAY = new FuelType[]{FuelType.BENZINE, FuelType.DIESEL, FuelType.GAS, FuelType.EMOBILE, FuelType.PLUGIN, FuelType.FUELCELL, FuelType.LPG};
     public static EmissionClass[] EMISSION_TYPE_ARRAY = new EmissionClass[]{EmissionClass.EURO_0, EmissionClass.EURO_1, EmissionClass.EURO_2, EmissionClass.EURO_3, EmissionClass.EURO_4, EmissionClass.EURO_5, EmissionClass.EURO_6};
     public boolean hasPaidToll = false;
-    public int index = -1; // index of this car in the household entry
+    public int indexInHousehold = -1; // index of this car in the household entry
     /**
      * indicates if this car is available (standing in front of the home)
      */
-    private Timeline availability;
+    private Timeline carBookingTimeline;
     /**N
      * this fuel type
      */
@@ -83,12 +80,41 @@ public class TPS_Car {
     private TPS_ParameterClass parameterClass;
 
     /**
-     * Constructor class for a new car.
+     * Initialisies this instance
      *
-     * @param id of this car
+     * @param type           fuel type of this car
+     * @param kba            the kba type of this car
+     * @param emissionClass  the emission class of this car (Euro0-6)
+     * @param fixCosts       the fix costs for this car, e.g. taxes, insurance
+     * @param companyCar     flag if this is a company car or not. Company cars do not produce individual costs
+     * @param isRestricted   flag to indicate that this car is restricted for entering certain areas
+     * @param parameterClass parameter class reference
      */
-    public TPS_Car(int id) {
+    public TPS_Car(int id, FuelType type, int kba, EmissionClass emissionClass, double fixCosts, boolean companyCar, boolean isRestricted, TPS_ParameterClass parameterClass, int indexInHousehold) {
+        this(id, type, kba, emissionClass, fixCosts, companyCar, isRestricted, parameterClass, indexInHousehold, -1);
+    }
+
+    public TPS_Car(int id, FuelType type, int kba, EmissionClass emissionClass, double fixCosts, boolean companyCar, boolean isRestricted, TPS_ParameterClass parameterClass, int indexInHousehold, int automationlevel) {
         this.id = id;
+        this.type = type;
+        this.emissionClass = emissionClass;
+        this.fixCosts = fixCosts;
+        this.companyCar = companyCar;
+        this.kbaNo = kba;
+        this.restricted = isRestricted;
+        this.carBookingTimeline = new Timeline();
+        this.parameterClass = parameterClass;
+        this.rangeLeft = this.parameterClass.getDoubleValue(this.type.getRange(SimulationType.SCENARIO));
+        this.indexInHousehold = indexInHousehold;
+        this.automationLevel = automationlevel;
+    }
+
+    public TPS_Car(int id, double fix_cost, double cost_per_kilometer, boolean is_restricted, double initial_range){
+        this.id = id;
+        this.fixCosts = fix_cost;
+        this.cost_per_kilometer = cost_per_kilometer;
+        this.restricted = is_restricted;
+        this.rangeLeft = initial_range;
     }
 
     /**
@@ -627,47 +653,8 @@ public class TPS_Car {
                 this.getKBAVariableCostPerKilometerFactor();
     }
 
-    /**
-     * Initialisies this instance
-     *
-     * @param type           fuel type of this car
-     * @param kba            the kba type of this car
-     * @param emissionClass  the emission class of this car (Euro0-6)
-     * @param fixCosts       the fix costs for this car, e.g. taxes, insurance
-     * @param companyCar     flag if this is a company car or not. Company cars do not produce individual costs
-     * @param isRestricted   flag to indicate that this car is restricted for entering certain areas
-     * @param parameterClass parameter class reference
-     */
 
-    public void init(FuelType type, int kba, EmissionClass emissionClass, double fixCosts, boolean companyCar, boolean isRestricted, TPS_ParameterClass parameterClass, int index) {
-        this.type = type;
-        this.emissionClass = emissionClass;
-        this.fixCosts = fixCosts;
-        this.companyCar = companyCar;
-        this.kbaNo = kba;
-        this.restricted = isRestricted;
-        this.availability = new Timeline();
-        this.parameterClass = parameterClass;
-        this.rangeLeft = this.parameterClass.getDoubleValue(this.type.getRange(SimulationType.SCENARIO));
-        this.index = index;
-    }
 
-    public TPS_Car(int id, double fix_cost, double cost_per_kilometer, boolean is_restricted, double initial_range){
-        this.id = id;
-        this.fixCosts = fix_cost;
-        this.cost_per_kilometer = cost_per_kilometer;
-        this.restricted = is_restricted;
-        this.rangeLeft = initial_range;
-    }
-
-    /**
-     * checks if this car is available and standing at home
-     *
-     * @return returns the availability status
-     */
-    public boolean isAvailable(double start, double end) {
-        return !availability.clash((int) (start + 0.5), (int) (end + 0.5));
-    }
 
     /**
      * checks if this car is available and standing at home
@@ -675,7 +662,7 @@ public class TPS_Car {
      * @return returns the availability status
      */
     public boolean isAvailable(int start, int end) {
-        return !availability.clash(start, end);
+        return carBookingTimeline.isItPossibleToAddTimespan(start, end);
     }
 
     public boolean isCompanyCar() {
@@ -708,7 +695,7 @@ public class TPS_Car {
      * @return success of this action
      */
     public boolean pickCar(double start, double end, double distance, boolean payToll) {
-        if (pickCar((int) (start + 0.5), (int) (end + 0.5), payToll)) {
+        if (pickCar((int) Math.round(start), (int) Math.round(end), payToll)) {
             this.rangeLeft -= distance;
             return true;
         } else {
@@ -728,7 +715,7 @@ public class TPS_Car {
         boolean success = false;
 
         if (isAvailable(start, end)) {
-            success = availability.add(start, end);
+            success = carBookingTimeline.add(start, end);
         }
         this.hasPaidToll = payToll;
         return success;
@@ -777,8 +764,8 @@ public class TPS_Car {
      */
     public boolean unPickCar(int start, int end) {
         boolean success = false;
-        if (availability.remove(start,
-                end)) { //remove returns true if a timeline-entry with the given start and end existed and was removed
+        //remove returns true if a timeline-entry with the given start and end existed and was removed
+        if (carBookingTimeline.remove(start,end)) {
             success = true;
         }
         return success;

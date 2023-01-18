@@ -111,26 +111,7 @@ public class TPS_Worker implements Callable<Exception> {
         return allList;
     }
 
-    /**
-     * Function to assign a car to a given plan. The car can not be used during this period of time by someone else.
-     *
-     * @param plan
-     */
-    private void assignCarToPlan(TPS_Plan plan) {
-        // pick cars used for this plan
-        for (TPS_SchemePart schemePart : plan.getScheme()) {
-            if (!schemePart.isHomePart()) { // are we leaving home?
-                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
-                if (tourpart.getCar() != null) { // do we use a car?
-                    TPS_AdaptedEpisode startEpisode = (plan.getAdaptedEpisode(tourpart.getFirstEpisode()));
-                    TPS_AdaptedEpisode endEpisode = (plan.getAdaptedEpisode(tourpart.getLastEpisode()));
-                    tourpart.getCar().pickCar(startEpisode.getStart(), endEpisode.getEnd(),
-                            tourpart.getTourpartDistance(), plan.mustPayToll || tourpart.getCar().hasPaidToll); // pick
-                    // car;
-                }
-            }
-        }
-    }
+
 
     /*
      * (non-Javadoc)
@@ -144,8 +125,9 @@ public class TPS_Worker implements Callable<Exception> {
             while (!this.should_finish && (hh = PM.getNextHousehold()) != null) {
                 if (TPS_Logger.isLogging(HierarchyLogLevel.HOUSEHOLD, SeverenceLogLevel.DEBUG)) {
                     TPS_Logger.log(HierarchyLogLevel.HOUSEHOLD, SeverenceLogLevel.DEBUG,
-                            "Working on household: " + hh.toString());
+                            "Working on household: " + hh);
                 }
+                if (hh.getNumberOfCars() <2) continue; //TODO FIXME remove
                 processHousehold(hh);
                 PM.returnHousehold(hh);
             }
@@ -173,11 +155,8 @@ public class TPS_Worker implements Callable<Exception> {
      */
     private void createPersonPlans(TPS_PlanEnvironment pe, TPS_Car carDummy) {
         long time = System.currentTimeMillis();
-        TPS_Household.Sorting sortAlgo = TPS_Household.Sorting.AGE;
-        if (this.getParameters().isDefined(ParamString.HOUSEHOLD_MEMBERSORTING)) {
-            sortAlgo = TPS_Household.Sorting.valueOf(
-                    this.getParameters().getString(ParamString.HOUSEHOLD_MEMBERSORTING));
-        }
+        TPS_Household.Sorting sortAlgo = TPS_Household.Sorting.valueOf(this.getParameters().getString(ParamString.HOUSEHOLD_MEMBERSORTING));
+
         TPS_Person person = pe.getPerson();
         boolean isBikeAvailable = person.hasBike();
         boolean finished = false;
@@ -271,12 +250,7 @@ public class TPS_Worker implements Callable<Exception> {
                 person.preferenceValues.computePreferences(prefParams, person);
             }
         }
-        TPS_Household.Sorting sortAlgo = TPS_Household.Sorting.AGE;
-        if (this.getParameters().isDefined(ParamString.HOUSEHOLD_MEMBERSORTING)) {
-            sortAlgo = TPS_Household.Sorting.valueOf(
-                    this.getParameters().getString(ParamString.HOUSEHOLD_MEMBERSORTING));
-        }
-
+        TPS_Household.Sorting sortAlgo = TPS_Household.Sorting.valueOf(this.getParameters().getString(ParamString.HOUSEHOLD_MEMBERSORTING));
 
         if (!sortAlgo.equals(TPS_Household.Sorting.COST_OPTIMUM)) {
             for (TPS_Person person : hh.getMembers(sortAlgo)) {
@@ -444,11 +418,14 @@ public class TPS_Worker implements Callable<Exception> {
                 Integer[] solution = new Integer[0];
                 for (Integer[] vector : permutationsl) {
                     //see if the plans are filled:  non existing plans have a index of -1!
+//                    boolean evaluationNecessary = true;
                     for (Integer integer : vector) {
                         if (integer < 0) {
+//                            evaluationNecessary = false;
                             continue; //TODO is this continue meant to be for the outer for loop?
                         }
                     }
+//                    if (!evaluationNecessary) continue;
                     //first sum up the scores to see if it is a candidate
                     tmpScore = 0;
                     for (int i = 0; i < vector.length; ++i) {
@@ -469,7 +446,8 @@ public class TPS_Worker implements Callable<Exception> {
                                 numOfCarPlans++;
                             }
                         }
-
+                        if (numOfCarPlans == 2 && numCarsInHH == 2)
+                            System.out.println("sad");
                         //see if the set of plans is feasible
                         if (numOfCarPlans > numCarsInHH) { // too much cars used?
                             continue; //too many cars! -> next set of plans
@@ -516,10 +494,10 @@ public class TPS_Worker implements Callable<Exception> {
                         //now assign the cars
                         for (TPS_Plan actPlan : localPlanList) {
                             TPS_Car tmpCar = null;
-                            int indexOfCar = 0;
+                            int indexOfCar = localCarList.size()-1;
                             //find an unrestricted car for a restrited plan. restricted plans come first!
                             if (actPlan.entersRestrictedAreas()) {
-                                for (int i = 0; i < localCarList.size(); i++) {
+                                for (int i = localCarList.size()-1; i >= 0; i--) {
                                     if (!localCarList.get(i).isRestricted()) { //not restricted?
                                         indexOfCar = i; //take it!
                                         break;
@@ -551,7 +529,7 @@ public class TPS_Worker implements Callable<Exception> {
             // write obtained results
             for (TPS_Person person : bestPlans.keySet()) {
                 TPS_Plan plan = bestPlans.get(person);
-                this.assignCarToPlan(plan); //TODO: isn't it too late here?
+                plan.assignCarToPlan(); //TODO: isn't it too late here?
                 PM.writePlan(plan);
             }
         }

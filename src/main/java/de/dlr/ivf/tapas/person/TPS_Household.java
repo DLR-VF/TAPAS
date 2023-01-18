@@ -118,7 +118,7 @@ public class TPS_Household implements ExtendedWritable {
      * @return an array of available cars, null if no cars are available
      */
     public TPS_Car[] getAvailableCars(double start, double end) {
-        return this.getAvailableCars((int) (start + 0.5), (int) (end + 0.5)); //incl. rounding
+        return this.getAvailableCars((int) Math.round(start), (int) Math.round(end)); //incl. rounding
     }
 
 
@@ -135,21 +135,22 @@ public class TPS_Household implements ExtendedWritable {
      * @return an array of available cars, null if no cars are available
      */
     public TPS_Car[] getAvailableCars(int start, int end) {
-        int availableCars = 0;
-        if (this.cars == null) return null;
-        for (TPS_Car car : this.cars) {
-            if (car.isAvailable(start, end)) {
-                availableCars++;
-            }
-        }
-        if (availableCars == 0) return null;
-        TPS_Car[] available = new TPS_Car[availableCars];
-        for (int i = 0, j = 0; i < this.cars.length && j < availableCars; ++i) {
-            if (this.cars[i].isAvailable(start, end)) {
-                available[j++] = this.cars[i];
-            }
-        }
-        return available;
+        return Arrays.stream(this.cars).filter(car -> car.isAvailable(start, end)).toArray(TPS_Car[]::new);
+//        int availableCars = 0;
+//        if (this.cars == null) return null;
+//        for (TPS_Car car : this.cars) {
+//            if (car.isAvailable(start, end)) {
+//                availableCars++;
+//            }
+//        }
+//        if (availableCars == 0) return null;
+//        TPS_Car[] available = new TPS_Car[availableCars];
+//        for (int i = 0, j = 0; i < this.cars.length && j < availableCars; ++i) {
+//            if (this.cars[i].isAvailable(start, end)) {
+//                available[j++] = this.cars[i];
+//            }
+//        }
+//        return available;
     }
 
     /**
@@ -266,6 +267,7 @@ public class TPS_Household implements ExtendedWritable {
         }
         return agesortedPersons;
     }
+
 
     public int getNumCarDrivers() {
         int sum = 0;

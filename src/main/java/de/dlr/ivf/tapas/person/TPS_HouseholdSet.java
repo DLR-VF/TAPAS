@@ -11,10 +11,9 @@ package de.dlr.ivf.tapas.person;
 import de.dlr.ivf.tapas.log.LogHierarchy;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
+import javafx.print.Collation;
 
-import java.util.Iterator;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * Set with all households
@@ -37,19 +36,23 @@ public class TPS_HouseholdSet implements Iterable<TPS_Household>, ExtendedWritab
     }
 
     /**
-     * This method creates a new household and adds it to the set of households.
+     * This method adds a household to the set of households.
      *
-     * @param id
+     * @param household
      * @return the household with its id
      * @throws RuntimeException this exception is thrown if the household already exist
      */
-    public TPS_Household addHousehold(Integer id) {
+    public TPS_Household addHousehold(TPS_Household household) {
+        int id = household.getId();
         if (this.containsHousehold(id)) {
             throw new RuntimeException("Household already exists: " + id + " " + this.households.keySet());
         }
-        TPS_Household hh = new TPS_Household(id);
-        this.households.put(hh.getId(), hh);
-        return hh;
+        this.households.put(id, household);
+        return household;
+    }
+
+    public int getNumberOfHouseholds(){
+        return this.households.size();
     }
 
     /**
@@ -70,6 +73,18 @@ public class TPS_HouseholdSet implements Iterable<TPS_Household>, ExtendedWritab
      */
     public TPS_Household getHousehold(Integer id) {
         return households.get(id);
+    }
+
+    public Collection<TPS_Household> getHouseholds(){
+        return this.households.values();
+    }
+
+    public void clearAllHouseholds() {
+        this.households.clear();
+    }
+
+    public boolean isEmpty(){
+        return this.households.isEmpty();
     }
 
     /*

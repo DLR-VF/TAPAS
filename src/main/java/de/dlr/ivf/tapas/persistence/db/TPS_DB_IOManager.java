@@ -210,7 +210,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                         }
                         pS.setInt(index++, (int) ((duration * 1.66666666e-2) + 0.5)); // secs to min incl round
                         if (tp.getCar() != null) {
-                            pS.setInt(index++, tp.getCar().index);
+                            pS.setInt(index++, tp.getCar().indexInHousehold);
                             pS.setBoolean(index++, tp.getCar().isRestricted());
                         } else {
                             pS.setInt(index++, -1);

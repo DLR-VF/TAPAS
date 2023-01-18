@@ -42,11 +42,7 @@ public class HouseholdBasedPlanGenerator {
                 person.preferenceValues.computePreferences(preference_parameters, person);
             }
         }
-        TPS_Household.Sorting sortAlgo = TPS_Household.Sorting.AGE;
-        if (pm.getParameters().isDefined(ParamString.HOUSEHOLD_MEMBERSORTING)) {
-            sortAlgo = TPS_Household.Sorting.valueOf(
-                    pm.getParameters().getString(ParamString.HOUSEHOLD_MEMBERSORTING));
-        }
+        TPS_Household.Sorting sortAlgo = TPS_Household.Sorting.valueOf(pm.getParameters().getString(ParamString.HOUSEHOLD_MEMBERSORTING));
 
         for (TPS_Person person : household.getMembers(sortAlgo)) {
 

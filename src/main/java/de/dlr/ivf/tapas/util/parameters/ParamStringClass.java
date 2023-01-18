@@ -128,7 +128,7 @@ public class ParamStringClass {
         this.paramStrings.put(ParamString.FILE_PARENT_PROPERTIES, new MutablePair<>(ParamType.TMP, null));
         this.paramStrings.put(ParamString.FILE_WORKING_DIRECTORY, new MutablePair<>(ParamType.EXEC, null));
         this.paramStrings.put(ParamString.HIERARCHY_LOG_LEVEL_MASK, new MutablePair<>(ParamType.LOG, null));
-        this.paramStrings.put(ParamString.HOUSEHOLD_MEMBERSORTING, new MutablePair<>(ParamType.OPTIONAL, null));
+        this.paramStrings.put(ParamString.HOUSEHOLD_MEMBERSORTING, new MutablePair<>(ParamType.OPTIONAL, "AGE"));
         this.paramStrings.put(ParamString.LOG_CLASS, new MutablePair<>(ParamType.LOG, null));
         this.paramStrings.put(ParamString.LOG_LEVEL_ALL, new MutablePair<>(ParamType.LOG, null));
         this.paramStrings.put(ParamString.LOG_LEVEL_DEBUG, new MutablePair<>(ParamType.LOG, null));

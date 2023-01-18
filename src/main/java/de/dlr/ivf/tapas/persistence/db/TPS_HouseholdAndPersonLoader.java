@@ -118,22 +118,21 @@ public class TPS_HouseholdAndPersonLoader {
 
         try (ResultSet rs = pm.executeQuery(query)) {
             while (rs.next()) {
-                TPS_Car tmp = new TPS_Car(rs.getInt("car_id"));
+                TPS_Car tmp = null;
                 int engineType = rs.getInt("engine_type");
                 int emissionType = rs.getInt("emission_type");
-                if (engineType >= 0 && engineType < TPS_Car.FUEL_TYPE_ARRAY.length && emissionType >= 0 &&
-                        emissionType < TPS_Car.EMISSION_TYPE_ARRAY.length) {
-                    tmp.init(TPS_Car.FUEL_TYPE_ARRAY[engineType], rs.getInt("kba_no"),
-                            TPS_Car.EMISSION_TYPE_ARRAY[emissionType], rs.getDouble("fix_costs"),
-                            rs.getBoolean("is_company_car"), rs.getBoolean("restriction"),
-                            this.pm.getParameters(), -1);
-                }
                 int automationLevel = rs.getInt("automation_level");
                 if (this.pm.getParameters().getDoubleValue(ParamValue.GLOBAL_AUTOMATION_PROBABILITY) >
                         Math.random()) {
                     automationLevel = this.pm.getParameters().getIntValue(ParamValue.GLOBAL_AUTOMATION_LEVEL);
                 }
-                tmp.setAutomation(automationLevel);
+                if (engineType >= 0 && engineType < TPS_Car.FUEL_TYPE_ARRAY.length && emissionType >= 0 &&
+                        emissionType < TPS_Car.EMISSION_TYPE_ARRAY.length) {
+                    tmp = new TPS_Car(rs.getInt("car_id"), TPS_Car.FUEL_TYPE_ARRAY[engineType], rs.getInt("kba_no"),
+                            TPS_Car.EMISSION_TYPE_ARRAY[emissionType], rs.getDouble("fix_costs"),
+                            rs.getBoolean("is_company_car"), rs.getBoolean("restriction"),
+                            this.pm.getParameters(), -1, automationLevel);
+                }
                 car_map.put(tmp.getId(), tmp);
             }
         } catch (SQLException e) {
@@ -231,9 +230,7 @@ public class TPS_HouseholdAndPersonLoader {
                         // init the cars
                         cars = new TPS_Car[carId.length];
                         for (int i = 0; i < cars.length; ++i) {
-                            cars[i] = new TPS_Car(carId[i]);
-                            //store default values
-                            cars[i].init(TPS_Car.FUEL_TYPE_ARRAY[1], 1, TPS_Car.EMISSION_TYPE_ARRAY[1], 0.0, false,
+                            cars[i] = new TPS_Car(carId[i], TPS_Car.FUEL_TYPE_ARRAY[1], 1, TPS_Car.EMISSION_TYPE_ARRAY[1], 0.0, false,
                                     false, this.pm.getParameters(), i);
                         }
                     }

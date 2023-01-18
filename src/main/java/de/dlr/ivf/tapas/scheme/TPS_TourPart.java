@@ -182,7 +182,7 @@ public class TPS_TourPart extends TPS_SchemePart{
     public void setCar(TPS_Car car) {
         this.car = car;
         lastMode = TPS_ExtMode.simpleMIT;
-        //this.car.pickCar(this.start, this.end);
+//        this.car.pickCar(this.start, this.end);
     }
 
     /**

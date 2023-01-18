@@ -29,6 +29,7 @@ import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
+import de.dlr.ivf.tapas.person.TPS_HouseholdSet;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.runtime.util.IPInfo;
 import de.dlr.ivf.tapas.scheme.*;
@@ -58,7 +59,7 @@ public class TPS_DB_IO {
     private static InetAddress ADDRESS = null;
     /// The number of households to fetch per cpu
     private int numberToFetch;
-    Map<Integer, TPS_Household> houseHoldMap = new TreeMap<>();
+    TPS_HouseholdSet householdSet = new TPS_HouseholdSet();
     Map<Integer, TPS_Car> carMap = new HashMap<>();
     /// The reference to the persistence manager
     private final TPS_DB_IOManager PM;
@@ -186,8 +187,8 @@ public class TPS_DB_IO {
      * @return
      * @throws SQLException
      */
-    private TPS_Person addPersonToHousehold(ResultSet pRs) throws SQLException {
-        boolean hasBike = pRs.getBoolean("has_bike") && Randomizer.random() < this.PM.getParameters().getDoubleValue(
+    private void addPersonToHousehold(ResultSet pRs, TPS_ParameterClass parameters) throws SQLException {
+        boolean hasBike = pRs.getBoolean("has_bike") && Randomizer.random() < parameters.getDoubleValue(
                 ParamValue.AVAILABILITY_FACTOR_BIKE);// TODO: make
         // a better model
         double working = pRs.getDouble("working");
@@ -195,9 +196,9 @@ public class TPS_DB_IO {
 
         TPS_Person person = new TPS_Person(pRs.getInt("p_id"), pRs.getInt("group"), pRs.getInt("status"), TPS_Sex.getEnum(pRs.getInt("sex")), pRs.getInt("age"),
                 pRs.getBoolean("pt_abo"), hasBike, budget, working, false,
-                pRs.getInt("education"), this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
+                pRs.getInt("education"), parameters.getFlag(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
 
-        if (this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_DRIVING_LICENCE)) {
+        if (parameters.isTrue(ParamFlag.FLAG_USE_DRIVING_LICENCE)) {
             int licCode = pRs.getInt("driver_license");
             if (licCode == 1) {
                 person.setDrivingLicenseInformation(TPS_DrivingLicenseInformation.CAR);
@@ -209,18 +210,17 @@ public class TPS_DB_IO {
         }
 
         // case for robotaxis: all if wanted
-        boolean isCarPooler = Randomizer.random() < this.PM.getParameters().getDoubleValue(
+        boolean isCarPooler = Randomizer.random() < parameters.getDoubleValue(
                 ParamValue.AVAILABILITY_FACTOR_CARSHARING);
-        if (this.PM.getParameters().isFalse(ParamFlag.FLAG_USE_ROBOTAXI)) {
+        if (parameters.isFalse(ParamFlag.FLAG_USE_ROBOTAXI)) {
             // no robotaxis: must be able to drive a car and be older than MIN_AGE_CARSHARING
-            isCarPooler &= person.getAge() >= this.PM.getParameters().getIntValue(ParamValue.MIN_AGE_CARSHARING) &&
+            isCarPooler &= person.getAge() >= parameters.getIntValue(ParamValue.MIN_AGE_CARSHARING) &&
                     person.mayDriveACar(null,null);
         }
         person.setCarPooler(isCarPooler);
         //
-        TPS_Household hh = houseHoldMap.get(pRs.getInt("hh_id"));
+        TPS_Household hh = householdSet.getHousehold(pRs.getInt("hh_id"));
         hh.addMember(person);
-        return person;
     }
 
     /**
@@ -336,7 +336,7 @@ public class TPS_DB_IO {
 
                 List<TPS_Household> hhs;
                 if (hIDs.size() == 0) {
-                    this.houseHoldMap.clear();
+                    this.householdSet.clearAllHouseholds();
                 } else {
                     hhs = this.loadHouseholds(region, hIDs);
                     for (TPS_Household hh : hhs) {
@@ -531,239 +531,287 @@ public class TPS_DB_IO {
      */
     public void initStart() {
         this.numberOfFetchedHouseholds = -1;
-        this.houseHoldMap.clear(); //just in case...
+        this.householdSet.clearAllHouseholds(); //just in case...
     }
+
+    private ResultSet queryHouseholds(List<Integer> hIDs, String hhtable, String dbHouseholdAndPersonKey, boolean flagPrefetchAllHouseholds){
+        String query;
+        StringBuilder sb;
+        ResultSet hRs;
+
+        if (flagPrefetchAllHouseholds) {
+            query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
+                    hhtable + " WHERE hh_key='" + dbHouseholdAndPersonKey + "'";
+        } else {
+            Collections.sort(hIDs); //VERY IMPORTANT! Otherwise, the person fetch will be HUGE!
+            sb = new StringBuilder("ARRAY[");
+            for (Integer hID : hIDs) {
+                sb.append(hID).append(",");
+            }
+            sb.setCharAt(sb.length() - 1, ']');
+            query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
+                    hhtable + " WHERE hh_id = ANY(" + sb + ") AND hh_key='" +
+                    dbHouseholdAndPersonKey + "'";
+        }
+        hRs = PM.executeQuery(query);
+        return hRs;
+    }
+
+    private TPS_Household readHouseholdResult(ResultSet hRs, TPS_Region region) throws SQLException {
+
+        // read cars
+        int id = hRs.getInt("hh_id");
+        int carNum = hRs.getInt("hh_cars");
+        TPS_Car[] cars = null;
+        if (carNum > 0) {
+            int[] carId = extractIntArray(hRs, "hh_car_ids");
+            if (carNum != carId.length) {
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
+                        "HH_id: " + id + " expected cars: " + carNum + " found cars: " + carId.length);
+            }
+            // init the cars
+            cars = new TPS_Car[carId.length];
+            for (int i = 0; i < cars.length; ++i) {
+                cars[i] = new TPS_Car(carId[i], TPS_Car.FUEL_TYPE_ARRAY[1], 1, TPS_Car.EMISSION_TYPE_ARRAY[1], 0.0, false,
+                        false, this.PM.getParameters(), i);
+
+            }
+        }
+        // read other attributes
+        int tazID = hRs.getInt("hh_taz_id");
+        TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(tazID);
+        if (taz == null) {
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
+                    "No taz found for household " + id + " hh_taz_id " + tazID);
+            throw new RuntimeException(); //we cannot proceed with such faulty data!
+        }
+
+        int income = hRs.getInt("hh_income"); // TODO: why int?
+        int type = hRs.getInt("hh_type");
+        TPS_Location loc = new TPS_Location(-1 * id, -1, TPS_LocationConstant.HOME, hRs.getDouble("x"),
+                hRs.getDouble("y"), taz, null, this.PM.getParameters());
+        loc.initCapacity(0, false);
+        return new TPS_Household(id, income, type, loc, cars);
+    }
+
+    public int readPersonsFromDB(List<Integer> hIDs, String personTable, boolean flagPrefetchAllHouseholds) throws SQLException {
+        String query;
+        StringBuilder sb;
+        ResultSet pRs;
+        int sumPersons = 0;
+        int id;
+        if (flagPrefetchAllHouseholds) {
+            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                        "Prefetching persons for all " + householdSet.getNumberOfHouseholds() + " households");
+            }
+            int chunks = 10; //avoid big fetches! the modulo operation is quite fast and scales very well
+            for (int i = 0; i < chunks; ++i) {
+                query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
+                        "working, driver_license, hh_id, education FROM " + personTable +
+                        " WHERE key='" + this.PM.getParameters().getString(
+                        ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'and hh_id%" + chunks + "=" + i;
+                pRs = PM.executeQuery(query);
+                sumPersons += addPersonsToHouseholds(pRs, this.PM.getParameters());
+                pRs.close();
+            }
+        } else { //chunky way
+            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                        "Fetching persons for " + householdSet.getNumberOfHouseholds() + " households");
+            }
+
+            List<Integer> copyOfhIDs = new ArrayList<>(hIDs);
+
+            final int chunkSize = 1000;
+            while (!copyOfhIDs.isEmpty()) {
+                sb = new StringBuilder("ARRAY[");
+                int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+                for (int i = 0; i < chunkSize && !copyOfhIDs.isEmpty(); i++) {
+                    id = copyOfhIDs.remove(0); //handy: remove returns the removed element
+                    min = Math.min(id, min);
+                    max = Math.max(max, id);
+                    sb.append(id).append(",");
+
+                }
+                sb.setCharAt(sb.length() - 1, ']');
+                query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
+                        "working, driver_license, hh_id, education FROM " + personTable +
+                        " WHERE hh_id = ANY(" + sb + ") " + " AND hh_id>=" + min +
+                        " AND hh_id <= " + max + " AND key='" + this.PM.getParameters().getString(
+                        ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
+
+                pRs = PM.executeQuery(query);
+                sumPersons += addPersonsToHouseholds(pRs, this.PM.getParameters());
+                pRs.close();
+            }
+        }
+        return sumPersons;
+    }
+
+    public int addPersonsToHouseholds(ResultSet pRs, TPS_ParameterClass parameters) throws SQLException {
+        int sumPersons = 0;
+        while (pRs.next()) {
+            this.addPersonToHousehold(pRs, parameters);
+            sumPersons++;
+        }
+        return sumPersons;
+    }
+
+
+    public ResultSet queryCars(String carsTable, String dbCarFleetKet, boolean flagPrefetchAllHouseholds){
+        String query;
+        StringBuilder sb;
+        ResultSet cRs;
+
+        if (flagPrefetchAllHouseholds) {
+            if (this.carMap.isEmpty()) {
+                //load all cars
+                query = "SELECT car_id,kba_no, fix_costs, engine_type, is_company_car, emission_type, " +
+                        "restriction,automation_level FROM " + carsTable + " WHERE car_key='" +
+                        dbCarFleetKet + "'";
+            } else { //nothing to do!
+                query = "";
+            }
+
+        } else {
+            this.carMap.clear();
+            //scrap needed car ids
+            sb = new StringBuilder("ARRAY[");
+            List<Integer> carIDs = new ArrayList<>();
+            for (TPS_Household ihh : this.householdSet.getHouseholds()) {
+                if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
+                    //get the cars
+                    for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
+                        if (!carIDs.contains(ihh.getCar(i).getId())) {
+                            sb.append(ihh.getCar(i).getId()).append(",");
+                            carIDs.add(ihh.getCar(i).getId());
+                        }
+                    }
+                }
+            }
+            sb.setCharAt(sb.length() - 1, ']');
+            query = "SELECT car_id,kba_no, fix_costs, engine_type, is_company_car, emission_type, " +
+                    "restriction,automation_level FROM " + carsTable + " WHERE car_id = ANY(" + sb +
+                    ") AND car_key='" + dbCarFleetKet + "'";
+        }
+
+
+        cRs = query.length() > 0 ? PM.executeQuery(query) : null;
+        return cRs;
+    }
+
+    public TPS_Car readCarResult(ResultSet cRs) throws SQLException {
+        TPS_Car car = null;
+        int engineType = cRs.getInt("engine_type");
+        int emissionType = cRs.getInt("emission_type");
+        int automationLevel = cRs.getInt("automation_level");
+        if (this.PM.getParameters().getDoubleValue(ParamValue.GLOBAL_AUTOMATION_PROBABILITY) >
+                Math.random()) {
+            automationLevel = this.PM.getParameters().getIntValue(ParamValue.GLOBAL_AUTOMATION_LEVEL);
+        }
+        if (engineType >= 0 && engineType < TPS_Car.FUEL_TYPE_ARRAY.length && emissionType >= 0 &&
+                emissionType < TPS_Car.EMISSION_TYPE_ARRAY.length) {
+            car = new TPS_Car(cRs.getInt("car_id"), TPS_Car.FUEL_TYPE_ARRAY[engineType], cRs.getInt("kba_no"),
+                    TPS_Car.EMISSION_TYPE_ARRAY[emissionType], cRs.getDouble("fix_costs"),
+                    cRs.getBoolean("is_company_car"), cRs.getBoolean("restriction"),
+                    this.PM.getParameters(), -1, automationLevel);
+        }
+        return car;
+    }
+
+    private void assignCarsToHouseholds() {
+        for (TPS_Household ihh : householdSet.getHouseholds()) {
+            if (ihh.getNumberOfMembers() > 0) {
+                //get the car values
+                for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
+                    TPS_Car car = ihh.getCar(i);
+                    if (carMap.containsKey(car.getId())) {
+                        car.cloneCar(carMap.get(car.getId()));
+                    } else {
+                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN)) {
+                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN,
+                                    "Unknown car id " + car.getId() + " in household " + ihh.getId());
+                        }
+                    }
+                }
+            } else {
+                this.returnHousehold(ihh);
+            }
+        }
+    }
+
+
 
     /**
      * Here we load the households, persons and car data from the DB for a given list of household ids!
-     * First we look at our household-map if the house hold is already loaded (prefetched).
+     * First we look at our household-map if the household is already loaded (prefetched).
      * If we do not find it, we load it with all attributes, cars and persons.
-     * Finally we store the households in a list and return this list.
+     * Finally, we store the households in a list and return this list.
      *
      * @param region in which the households are
      * @param hIDs   list of household ids
      * @return list of loaded households
      */
     private List<TPS_Household> loadHouseholds(TPS_Region region, List<Integer> hIDs) {
-        String hhtable = this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD);
-        String persTable = this.PM.getParameters().getString(ParamString.DB_TABLE_PERSON);
-        String carsTable = this.PM.getParameters().getString(ParamString.DB_TABLE_CARS);
-        String query = "";
-        int id, sumPersons = 0;
+        int sumPersons;
         List<TPS_Household> fetchedHouseholds = new ArrayList<>();
 
         ResultSet hRs;
-        ResultSet pRs;
         ResultSet cRs;
-        StringBuffer sb;
 
         //clear household map if necessary
         if (this.PM.getParameters().isFalse(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-            this.houseHoldMap.clear();
+            this.householdSet.clearAllHouseholds();
         }
         try {
-            if (houseHoldMap.isEmpty()) {
-                if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
-                            hhtable + " WHERE hh_key='" + this.PM.getParameters().getString(
-                            ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
-                } else {
-                    Collections.sort(hIDs); //VERY IMPORTANT! Otherwise the person fetch will be HUGE!
-                    sb = new StringBuffer("ARRAY[");
-                    for (Integer hID : hIDs) {
-                        sb.append(hID + ",");
-                    }
-                    sb.setCharAt(sb.length() - 1, ']');
-                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
-                            hhtable + " WHERE hh_id = ANY(" + sb.toString() + ") AND hh_key='" +
-                            this.PM.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
-                }
-                hRs = PM.executeQuery(query);
+            if (householdSet.isEmpty()) {
+
+                //read households
+                hRs = queryHouseholds(hIDs, this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD),
+                        this.PM.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY),
+                        this.PM.getParameters().getFlag(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS));
+
                 while (hRs.next()) {
-                    // read cars
-                    id = hRs.getInt("hh_id");
-                    int carNum = hRs.getInt("hh_cars");
-                    TPS_Car[] cars = null;
-                    if (carNum > 0) {
-                        int[] carId = extractIntArray(hRs, "hh_car_ids");
-                        if (carNum != carId.length) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
-                                    "HH_id: " + id + " expected cars: " + carNum + " found cars: " + carId.length);
-                        }
-                        // init the cars
-                        cars = new TPS_Car[carId.length];
-                        for (int i = 0; i < cars.length; ++i) {
-                            cars[i] = new TPS_Car(carId[i]);
-                            //store default values
-                            cars[i].init(TPS_Car.FUEL_TYPE_ARRAY[1], 1, TPS_Car.EMISSION_TYPE_ARRAY[1], 0.0, false,
-                                    false, this.PM.getParameters(), i);
-
-                        }
-                    }
-                    // read other attributes
-                    int tazID = hRs.getInt("hh_taz_id");
-                    TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(tazID);
-                    if (taz == null) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
-                                "No taz found for household " + id + " hh_taz_id " + tazID);
-                        throw new RuntimeException(); //we cannot proceed with such faulty data!
-                    }
-
-                    int income = hRs.getInt("hh_income"); // TODO: why int?
-                    int type = hRs.getInt("hh_type");
-                    TPS_Location loc = new TPS_Location(-1 * id, -1, TPS_LocationConstant.HOME, hRs.getDouble("x"),
-                            hRs.getDouble("y"), taz, null, this.PM.getParameters());
-                    loc.initCapacity(0, false);
-                    TPS_Household hh = new TPS_Household(id, income, type, loc, cars);
-                    houseHoldMap.put(id, hh);
+                    TPS_Household hh = readHouseholdResult(hRs, region);
+                    householdSet.addHousehold(hh);
                 }
                 hRs.close();
-                if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
-                                "Prefetching persons for all " + houseHoldMap.size() + " households");
-                    }
-                    int chunks = 10; //avoid big fetches! the modulo operation is quite fast and scales very well
-                    for (int i = 0; i < chunks; ++i) {
-                        query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
-                                "working, driver_license, hh_id, education FROM " + persTable +
-                                " WHERE key='" + this.PM.getParameters().getString(
-                                ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'and hh_id%" + chunks + "=" + i;
-                        pRs = PM.executeQuery(query);
-                        while (pRs.next()) {
-                            this.addPersonToHousehold(pRs);
-                            sumPersons++;
-                        }
-                        pRs.close();
-                    }
-                } else { //chunky way
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
-                                "Fetching persons for " + houseHoldMap.size() + " households");
-                    }
 
-                    List<Integer> copyOfhIDs = new ArrayList<>(hIDs);
-
-                    final int chunkSize = 1000;
-                    while (!copyOfhIDs.isEmpty()) {
-                        sb = new StringBuffer("ARRAY[");
-                        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-                        for (int i = 0; i < chunkSize && !copyOfhIDs.isEmpty(); i++) {
-                            id = copyOfhIDs.remove(0); //handy: remove returns the removed element
-                            min = Math.min(id, min);
-                            max = Math.max(max, id);
-                            sb.append(id + ",");
-
-                        }
-                        sb.setCharAt(sb.length() - 1, ']');
-                        query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
-                                "working, driver_license, hh_id, education FROM " + persTable +
-                                " WHERE hh_id = ANY(" + sb.toString() + ") " + " AND hh_id>=" + min +
-                                " AND hh_id <= " + max + " AND key='" + this.PM.getParameters().getString(
-                                ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
-                        pRs = PM.executeQuery(query);
-                        while (pRs.next()) {
-                            this.addPersonToHousehold(pRs);
-                            sumPersons++;
-                        }
-                        pRs.close();
-                    }
-                }
+                // read person table
+                sumPersons = readPersonsFromDB(hIDs, this.PM.getParameters().getString(ParamString.DB_TABLE_PERSON), this.PM.getParameters().getFlag(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS));
 
                 if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
                     TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
                             "Fetched " + sumPersons + " persons");
                     TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Fetching car types");
                 }
+                // read cars
+                cRs = queryCars(this.PM.getParameters().getString(ParamString.DB_TABLE_CARS),
+                        this.PM.getParameters().getString(ParamString.DB_CAR_FLEET_KEY),
+                        this.PM.getParameters().getFlag(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS));
 
-                if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    if (this.carMap.isEmpty()) {
-                        //load all cars
-                        query = "SELECT car_id,kba_no, fix_costs, engine_type, is_company_car, emission_type, " +
-                                "restriction,automation_level FROM " + carsTable + " WHERE car_key='" +
-                                this.PM.getParameters().getString(ParamString.DB_CAR_FLEET_KEY) + "'";
-                    } else { //nothing to do!
-                        query = "";
-                    }
-
-                } else {
-                    this.carMap.clear();
-                    //scrap needed car ids
-                    sb = new StringBuffer("ARRAY[");
-                    List<Integer> carIDs = new ArrayList<>();
-                    for (TPS_Household ihh : this.houseHoldMap.values()) {
-                        if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
-                            //get the cars
-                            for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
-                                if (!carIDs.contains(ihh.getCar(i).getId())) {
-                                    sb.append(ihh.getCar(i).getId() + ",");
-                                    carIDs.add(ihh.getCar(i).getId());
-                                }
-                            }
-                        }
-                    }
-                    sb.setCharAt(sb.length() - 1, ']');
-                    query = "SELECT car_id,kba_no, fix_costs, engine_type, is_company_car, emission_type, " +
-                            "restriction,automation_level FROM " + carsTable + " WHERE car_id = ANY(" + sb.toString() +
-                            ") AND car_key='" + this.PM.getParameters().getString(ParamString.DB_CAR_FLEET_KEY) + "'";
-                }
-
-                if (query.length() > 0) {// we have to fill the car-map
-                    cRs = PM.executeQuery(query);
+                if (cRs != null ) {// we have to fill the car-map
                     while (cRs.next()) {
-                        TPS_Car tmp = new TPS_Car(cRs.getInt("car_id"));
-                        int engineType = cRs.getInt("engine_type");
-                        int emissionType = cRs.getInt("emission_type");
-                        if (engineType >= 0 && engineType < TPS_Car.FUEL_TYPE_ARRAY.length && emissionType >= 0 &&
-                                emissionType < TPS_Car.EMISSION_TYPE_ARRAY.length) {
-                            tmp.init(TPS_Car.FUEL_TYPE_ARRAY[engineType], cRs.getInt("kba_no"),
-                                    TPS_Car.EMISSION_TYPE_ARRAY[emissionType], cRs.getDouble("fix_costs"),
-                                    cRs.getBoolean("is_company_car"), cRs.getBoolean("restriction"),
-                                    this.PM.getParameters(), -1);
-                        }
-                        int automationLevel = cRs.getInt("automation_level");
-                        if (this.PM.getParameters().getDoubleValue(ParamValue.GLOBAL_AUTOMATION_PROBABILITY) >
-                                Math.random()) {
-                            automationLevel = this.PM.getParameters().getIntValue(ParamValue.GLOBAL_AUTOMATION_LEVEL);
-                        }
-                        tmp.setAutomation(automationLevel);
-                        carMap.put(tmp.getId(), tmp);
+                        TPS_Car car = readCarResult(cRs);
+                        carMap.put(car.getId(), car);
                     }
                     cRs.close();
                 }
 
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Assigning cars to households");
-                }
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Assigning cars to households");
+                assignCarsToHouseholds();
 
-                for (TPS_Household ihh : houseHoldMap.values()) {
-                    if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
-                        //get the car values
-                        for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
-                            TPS_Car car = ihh.getCar(i);
-                            if (carMap.containsKey(car.getId())) {
-                                car.cloneCar(carMap.get(car.getId()));
-                            } else {
-                                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN)) {
-                                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN,
-                                            "Unknown car id " + car.getId() + " in household " + ihh.getId());
-                                }
-                            }
-                        }
-                    } else {
-                        this.returnHousehold(ihh);
-                    }
-                }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in sqlStatement " + query, e);
+            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in sqlStatement ", e);
             TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception: ", e.getNextException());
         } catch (Exception e) {
             TPS_Logger.log(SeverenceLogLevel.ERROR, "Unknown Error in loadHouseholds!", e);
 
         }
         for (Integer hid : hIDs) {
-            TPS_Household ihh = this.houseHoldMap.get(hid);
+            TPS_Household ihh = this.householdSet.getHousehold(hid);
             if (ihh != null) {
                 fetchedHouseholds.add(ihh);
             } else {
@@ -772,6 +820,8 @@ public class TPS_DB_IO {
         }
         return fetchedHouseholds;
     }
+
+
 
     /**
      * Reads and assigns activities to locations and vice versa
