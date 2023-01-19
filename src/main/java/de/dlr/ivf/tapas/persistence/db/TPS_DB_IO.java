@@ -59,7 +59,7 @@ public class TPS_DB_IO {
     private static InetAddress ADDRESS = null;
     /// The number of households to fetch per cpu
     private int numberToFetch;
-    TPS_HouseholdSet householdSet = new TPS_HouseholdSet();
+    TreeMap<Integer, TPS_Household> householdSet = new TreeMap<>();
     Map<Integer, TPS_Car> carMap = new HashMap<>();
     /// The reference to the persistence manager
     private final TPS_DB_IOManager PM;
@@ -219,7 +219,7 @@ public class TPS_DB_IO {
         }
         person.setCarPooler(isCarPooler);
         //
-        TPS_Household hh = householdSet.getHousehold(pRs.getInt("hh_id"));
+        TPS_Household hh = householdSet.get(pRs.getInt("hh_id"));
         hh.addMember(person);
     }
 
@@ -336,7 +336,7 @@ public class TPS_DB_IO {
 
                 List<TPS_Household> hhs;
                 if (hIDs.size() == 0) {
-                    this.householdSet.clearAllHouseholds();
+                    this.householdSet.clear();
                 } else {
                     hhs = this.loadHouseholds(region, hIDs);
                     for (TPS_Household hh : hhs) {
@@ -531,7 +531,7 @@ public class TPS_DB_IO {
      */
     public void initStart() {
         this.numberOfFetchedHouseholds = -1;
-        this.householdSet.clearAllHouseholds(); //just in case...
+        this.householdSet.clear(); //just in case...
     }
 
     private ResultSet queryHouseholds(List<Integer> hIDs, String hhtable, String dbHouseholdAndPersonKey, boolean flagPrefetchAllHouseholds){
@@ -603,7 +603,7 @@ public class TPS_DB_IO {
         if (flagPrefetchAllHouseholds) {
             if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
                 TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
-                        "Prefetching persons for all " + householdSet.getNumberOfHouseholds() + " households");
+                        "Prefetching persons for all " + householdSet.size() + " households");
             }
             int chunks = 10; //avoid big fetches! the modulo operation is quite fast and scales very well
             for (int i = 0; i < chunks; ++i) {
@@ -618,7 +618,7 @@ public class TPS_DB_IO {
         } else { //chunky way
             if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
                 TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
-                        "Fetching persons for " + householdSet.getNumberOfHouseholds() + " households");
+                        "Fetching persons for " + householdSet.size() + " households");
             }
 
             List<Integer> copyOfhIDs = new ArrayList<>(hIDs);
@@ -679,7 +679,7 @@ public class TPS_DB_IO {
             //scrap needed car ids
             sb = new StringBuilder("ARRAY[");
             List<Integer> carIDs = new ArrayList<>();
-            for (TPS_Household ihh : this.householdSet.getHouseholds()) {
+            for (TPS_Household ihh : this.householdSet.values()) {
                 if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
                     //get the cars
                     for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
@@ -721,7 +721,7 @@ public class TPS_DB_IO {
     }
 
     private void assignCarsToHouseholds() {
-        for (TPS_Household ihh : householdSet.getHouseholds()) {
+        for (TPS_Household ihh : householdSet.values()) {
             if (ihh.getNumberOfMembers() > 0) {
                 //get the car values
                 for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
@@ -762,7 +762,7 @@ public class TPS_DB_IO {
 
         //clear household map if necessary
         if (this.PM.getParameters().isFalse(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-            this.householdSet.clearAllHouseholds();
+            this.householdSet.clear();
         }
         try {
             if (householdSet.isEmpty()) {
@@ -774,18 +774,18 @@ public class TPS_DB_IO {
 
                 while (hRs.next()) {
                     TPS_Household hh = readHouseholdResult(hRs, region);
-                    householdSet.addHousehold(hh);
+                    householdSet.put(hh.getId(), hh);
                 }
                 hRs.close();
 
                 // read person table
                 sumPersons = readPersonsFromDB(hIDs, this.PM.getParameters().getString(ParamString.DB_TABLE_PERSON), this.PM.getParameters().getFlag(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS));
 
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
-                            "Fetched " + sumPersons + " persons");
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Fetching car types");
-                }
+//                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
+//                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+//                            "Fetched " + sumPersons + " persons");
+//                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Fetching car types");
+//                }
                 // read cars
                 cRs = queryCars(this.PM.getParameters().getString(ParamString.DB_TABLE_CARS),
                         this.PM.getParameters().getString(ParamString.DB_CAR_FLEET_KEY),
@@ -811,7 +811,7 @@ public class TPS_DB_IO {
 
         }
         for (Integer hid : hIDs) {
-            TPS_Household ihh = this.householdSet.getHousehold(hid);
+            TPS_Household ihh = this.householdSet.get(hid);
             if (ihh != null) {
                 fetchedHouseholds.add(ihh);
             } else {
