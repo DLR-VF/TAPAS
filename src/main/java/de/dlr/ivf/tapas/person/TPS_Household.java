@@ -181,6 +181,15 @@ public class TPS_Household implements ExtendedWritable {
         }
     }
 
+    public int getNumberOfRestrictedCars(){
+        if (cars != null) {
+            return (int) Arrays.stream(this.getAllCars()).filter(TPS_Car::isRestricted).count();
+        } else {
+            return 0;
+        }
+    }
+
+
     /**
      * Returns the id of the household
      *

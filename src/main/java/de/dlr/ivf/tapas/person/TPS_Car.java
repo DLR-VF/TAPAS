@@ -39,7 +39,7 @@ public class TPS_Car {
     /**
      * indicates if this car is available (standing in front of the home)
      */
-    private Timeline availability;
+    private Timeline carBookingTimeline;
     /**N
      * this fuel type
      */
@@ -646,7 +646,7 @@ public class TPS_Car {
         this.companyCar = companyCar;
         this.kbaNo = kba;
         this.restricted = isRestricted;
-        this.availability = new Timeline();
+        this.carBookingTimeline = new Timeline();
         this.parameterClass = parameterClass;
         this.rangeLeft = this.parameterClass.getDoubleValue(this.type.getRange(SimulationType.SCENARIO));
         this.index = index;
@@ -660,14 +660,6 @@ public class TPS_Car {
         this.rangeLeft = initial_range;
     }
 
-    /**
-     * checks if this car is available and standing at home
-     *
-     * @return returns the availability status
-     */
-    public boolean isAvailable(double start, double end) {
-        return !availability.clash((int) (start + 0.5), (int) (end + 0.5));
-    }
 
     /**
      * checks if this car is available and standing at home
@@ -675,7 +667,7 @@ public class TPS_Car {
      * @return returns the availability status
      */
     public boolean isAvailable(int start, int end) {
-        return !availability.clash(start, end);
+        return carBookingTimeline.isItPossibleToAddTimespan(start, end);
     }
 
     public boolean isCompanyCar() {
@@ -708,7 +700,7 @@ public class TPS_Car {
      * @return success of this action
      */
     public boolean pickCar(double start, double end, double distance, boolean payToll) {
-        if (pickCar((int) (start + 0.5), (int) (end + 0.5), payToll)) {
+        if (pickCar((int) Math.round(start), (int) Math.round(end), payToll)) {
             this.rangeLeft -= distance;
             return true;
         } else {
@@ -728,7 +720,7 @@ public class TPS_Car {
         boolean success = false;
 
         if (isAvailable(start, end)) {
-            success = availability.add(start, end);
+            success = carBookingTimeline.add(start, end);
         }
         this.hasPaidToll = payToll;
         return success;
@@ -777,8 +769,8 @@ public class TPS_Car {
      */
     public boolean unPickCar(int start, int end) {
         boolean success = false;
-        if (availability.remove(start,
-                end)) { //remove returns true if a timeline-entry with the given start and end existed and was removed
+        //remove returns true if a timeline-entry with the given start and end existed and was removed
+        if (carBookingTimeline.remove(start,end)) {
             success = true;
         }
         return success;
