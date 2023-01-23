@@ -142,7 +142,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
     public TPS_Plan(TPS_Plan src) {
         this.pe = src.pe;
         this.PM = src.PM;
-        src.usedCars.addAll(this.usedCars);
+        this.usedCars.addAll(src.usedCars);
 
         this.locatedStays = new HashMap<>();
         this.plannedTrips = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
@@ -809,7 +809,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
      * travel times exceed the maximum difference defined in the configuration
      */
     public boolean isPlanAccepted() {
-        return this.pe.isPlanAccepted(this) && this.isPlanFeasible();
+        return this.pe.isPlanAccepted(this) && this.isFeasible();
     }
 
     /**
@@ -819,7 +819,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
      *
      * @return result if this plan is feasible
      */
-    public boolean isPlanFeasible() {
+    public boolean isFeasible() {
         return feasible;
     }
 
@@ -828,7 +828,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
      *
      * @param feasible the feasibility for this plan
      */
-    public void setPlanFeasible(boolean feasible) {
+    public void setFeasible(boolean feasible) {
         this.feasible = feasible;
     }
 
@@ -1479,4 +1479,26 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
     }
 
 
+    /**
+     * Function to assign a car to a given plan. The car can not be used during this period of time by someone else.
+     */
+    public void assignCarToPlan() {
+        // pick cars used for this plan
+        for (TPS_SchemePart schemePart : getScheme()) {
+            if (!schemePart.isHomePart()) { // are we leaving home?
+                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
+                if (tourpart.getCar() != null) { // do we use a car?
+                    TPS_AdaptedEpisode startEpisode = (getAdaptedEpisode(tourpart.getFirstEpisode()));
+                    TPS_AdaptedEpisode endEpisode = (getAdaptedEpisode(tourpart.getLastEpisode()));
+                    boolean carIsAvailable = tourpart.getCar().pickCar(startEpisode.getStart(), endEpisode.getEnd(),
+                            tourpart.getTourpartDistance(), mustPayToll || tourpart.getCar().hasPaidToll); // pick
+                    // car;
+                    if (!carIsAvailable) {
+                        TPS_Logger.log(HierarchyLogLevel.PLAN, SeverenceLogLevel.WARN,
+                                "Oh oh car is not available. What now? ");
+                    }
+                }
+            }
+        }
+    }
 }

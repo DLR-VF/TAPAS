@@ -75,8 +75,8 @@ public class TPS_PlanEnvironment {
         this.plans.sort((o1, o2) -> {
             // TODO minor thing: wouldn't it be possible that negative acceptance probabilities indicate the plan is not feasible?
             // TODO Would save some lines, here
-            boolean feasible1 = o1.isPlanFeasible();
-            boolean feasible2 = o2.isPlanFeasible();
+            boolean feasible1 = o1.isFeasible();
+            boolean feasible2 = o2.isFeasible();
             if (feasible1 && feasible2) {
                 if (o1.getAcceptanceProbability() == o2.getAcceptanceProbability()) {
                     return 0;

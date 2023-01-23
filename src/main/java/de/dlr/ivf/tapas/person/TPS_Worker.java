@@ -13,7 +13,6 @@ import de.dlr.ivf.tapas.log.TPS_Logger;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
 import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanEnvironment;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
@@ -26,7 +25,6 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -110,30 +108,6 @@ public class TPS_Worker implements Callable<Exception> {
         return allList;
     }
 
-    /**
-     * Function to assign a car to a given plan. The car can not be used during this period of time by someone else.
-     *
-     * @param plan
-     */
-    private void assignCarToPlan(TPS_Plan plan) {
-        // pick cars used for this plan
-        for (TPS_SchemePart schemePart : plan.getScheme()) {
-            if (!schemePart.isHomePart()) { // are we leaving home?
-                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
-                if (tourpart.getCar() != null) { // do we use a car?
-                    TPS_AdaptedEpisode startEpisode = (plan.getAdaptedEpisode(tourpart.getFirstEpisode()));
-                    TPS_AdaptedEpisode endEpisode = (plan.getAdaptedEpisode(tourpart.getLastEpisode()));
-                    boolean carIsAvailable = tourpart.getCar().pickCar(startEpisode.getStart(), endEpisode.getEnd(),
-                            tourpart.getTourpartDistance(), plan.mustPayToll || tourpart.getCar().hasPaidToll); // pick
-                    // car;
-                    if (!carIsAvailable) {
-                        System.out.println("Oh oh car is not available. What now? " + tourpart.getId());
-                    }
-                }
-            }
-        }
-    }
-
     /*
      * (non-Javadoc)
      *
@@ -152,8 +126,8 @@ public class TPS_Worker implements Callable<Exception> {
                 PM.returnHousehold(hh);
             }
 
-            if(should_finish){
-                TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,name+" has finished remaining work, shutting down...");
+            if (should_finish) {
+                TPS_Logger.log(getClass(), SeverenceLogLevel.INFO, name + " has finished remaining work, shutting down...");
             }
         } catch (Exception e) {
             TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.ERROR, e.getMessage(), e);
@@ -310,7 +284,7 @@ public class TPS_Worker implements Callable<Exception> {
                 TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person);
                 createPersonPlans(pe, null);
                 TPS_Plan plan = pe.getBestPlan();
-                this.assignCarToPlan(plan); //TODO: isn't it too late here?
+                plan.assignCarToPlan(); //TODO: isn't it too late here?
                 PM.writePlan(plan);
                 // reset the age adaption of the retirees
                 person.setAgeAdaption(false, this.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
@@ -370,7 +344,7 @@ public class TPS_Worker implements Callable<Exception> {
                 }
                 // check car
                 TPS_Car carDummy = null;
-                if (person.mayDriveACar(this.PM,leastLimitedCar)) {
+                if (person.mayDriveACar(this.PM, leastLimitedCar)) {
                     carDummy = leastLimitedCar;
                 }
 
@@ -416,175 +390,43 @@ public class TPS_Worker implements Callable<Exception> {
                 //filter all combinations where more plans use a car than there are available cars in the household
                 cartesianProductOfPlansByPerson = cartesianProductOfPlansByPerson
                         .stream()
+//                        .filter(TPS_Worker::allPlansAreFeasible)
                         .filter(TPS_Worker::areThereEnoughCarsInTheHouseholdForThePlanCombination) //the argument of the function is a list of plans
                         .filter(TPS_Worker::areThereEnoughUnrestrictedCarsInTheHouseholdForThePlanCombination)
                         .sorted(Comparator.comparingDouble(TPS_Worker::getScoreOfPlanCombination).reversed()) //sort! best plan first
                         .collect(Collectors.toList());
 
+                this.setCarsToPlanCombination(cartesianProductOfPlansByPerson.get(0));
+
                 //we use the best (car feasible) plan combination!
                 //because of the sorting above we only need to take the first element
-                this.assignCarsToPlanCombination(cartesianProductOfPlansByPerson.get(0));
+                for (TPS_Plan plan : cartesianProductOfPlansByPerson.get(0)) {
+                    bestPlans.put(plan.getPerson(), plan);
+                }
 
-
-//                Map<Integer, TPS_Person> scoreIndexMap = new HashMap<>();
-//                int maxPlanCount = 0;
-//                int index = 0;
-//                for (TPS_Person e : driverPlanEnvironments.keySet()) {
-//                    scoreIndexMap.put(index, e);
-//                    TPS_PlanEnvironment pe = driverPlanEnvironments.get(e);
-//                    maxPlanCount = Math.max(maxPlanCount, pe.getPlans().size());
-//                    index++;
-//                }
-//                double[][] scoreArray = new double[driverPlanEnvironments.size()][maxPlanCount];
-//                // calc permutations table
-//                index = 0;
-//                for (TPS_Person e : driverPlanEnvironments.keySet()) {
-//                    //init score array with negative scores-> no plan here!
-//                    for (int i = 0; i < maxPlanCount; ++i) {
-//                        scoreArray[index][i] = -1;
-//                    }
-//                    TPS_PlanEnvironment pe = driverPlanEnvironments.get(e);
-//                    for (int i = 0; i < pe.getPlans().size(); ++i) {
-//                        TPS_Plan p = pe.getPlans().get(i);
-//                        if (p.usesCar()) {
-//                            scoreArray[index][i] = p.getAcceptanceProbability();
-//                        } else if (p.usesBike) {
-//                            scoreArray[index][i] = p.getAcceptanceProbability();
-//                        } else {
-//                            scoreArray[index][i] = p.getAcceptanceProbability();
-//                        }
-//                    }
-//                    index++;
-//                }
-//
-//                //ok now make a sorted list with all permutations and its score
-//                List<Integer> e = new ArrayList<>();
-//                //possible values
-//                for (int i = 0; i < maxPlanCount; ++i) {
-//                    e.add(i);
-//                }
-//
-//                List<Integer[]> permutationsl = getAllLists(e, driverPlanEnvironments.size());
-//                //hooray, now i have to find the best possible solution!
-//                double bestScore = Double.NEGATIVE_INFINITY, tmpScore, numOfCarPlans;
-//                Integer[] solution = new Integer[0];
-//                for (Integer[] vector : permutationsl) {
-//                    //see if the plans are filled:  non existing plans have a index of -1!
-//                    for (Integer integer : vector) {
-//                        if (integer < 0) {
-//                            continue; //TODO is this continue meant to be for the outer for loop?
-//                        }
-//                    }
-//                    //first sum up the scores to see if it is a candidate
-//                    tmpScore = 0;
-//                    for (int i = 0; i < vector.length; ++i) {
-//                        tmpScore += scoreArray[i][vector[i]];
-//                    }
-//                    if (tmpScore > bestScore) { //is the score better than the currently best one?
-//                        /*
-//                         * TODO: these checks do not look
-//                         * 	if a car is used twice at different times during the day in different plans!
-//                         * doing all these checks needs a lot of tricky methods and accurate choice modelling
-//                         * since all these "strange situations" occur only in very low frequencies,
-//                         * we just forbid those complicated plans
-//                         */
-//                        numOfCarPlans = 0;
-//                        for (Entry<Integer, TPS_Person> entry : scoreIndexMap.entrySet()) {
-//                            TPS_PlanEnvironment pe = driverPlanEnvironments.get(entry.getValue());
-//                            if (pe.getPlans().get(vector[entry.getKey()]).usesCar()) {
-//                                numOfCarPlans++;
-//                            }
-//                        }
-//
-//                        //see if the set of plans is feasible
-//                        if (numOfCarPlans > numCarsInHH) { // too much cars used?
-//                            continue; //too many cars! -> next set of plans
-//                        }
-//
-//                        //count number of restricted cars
-//                        int numRestrictedCars = 0;
-//                        for (TPS_Car car : hh.getAllCars()) {
-//                            if (car.isRestricted()) {
-//                                numRestrictedCars++;
-//                            }
-//                        }
-//                        //count num of restricted plans
-//                        int numRestrictedPlans = 0;
-//                        for (Entry<Integer, TPS_Person> entry : scoreIndexMap.entrySet()) {
-//                            TPS_PlanEnvironment pe = driverPlanEnvironments.get(entry.getValue());
-//                            if (pe.getPlans().get(vector[entry.getKey()]).entersRestrictedAreas()) {
-//                                numRestrictedPlans++;
-//                            }
-//                        }
-//                        if (numRestrictedCars > numRestrictedPlans) { //do we have sufficient unrestricted cars?
-//                            continue; //no!
-//                        }
-//                        //ok : set the cars
-//                        //first copy a list of cars so that we can safetly remove them when they are "used up"
-//                        List<TPS_Car> localCarList = new ArrayList<>(Arrays.asList(hh.getAllCars()));
-//                        //now put all the plans (with cars) to work on in a 2nd list
-//                        List<TPS_Plan> localPlanList = new ArrayList<>();
-//                        for (Entry<Integer, TPS_Person> entry : scoreIndexMap.entrySet()) {
-//                            TPS_PlanEnvironment pe = driverPlanEnvironments.get(entry.getValue());
-//                            TPS_Plan tmp = pe.getPlans().get(vector[entry.getKey()]);
-//                            if (tmp.usesCar()) {
-//                                localPlanList.add(tmp);
-//                            }
-//                        }
-//                        //safety check
-//                        if (localPlanList.size() > localCarList.size()) {
-//                            continue;
-//                        }
-//
-//                        //put the restricted Plans to front
-//                        localPlanList.sort((arg0, arg1) -> arg0.entersRestrictedAreas() ? -1 : 1);
-//
-//                        //now assign the cars
-//                        for (TPS_Plan actPlan : localPlanList) {
-//                            TPS_Car tmpCar = null;
-//                            int indexOfCar = 0;
-//                            //find an unrestricted car for a restricted plan. restricted plans come first!
-//                            if (actPlan.entersRestrictedAreas()) {
-//                                for (int i = 0; i < localCarList.size(); i++) {
-//                                    if (!localCarList.get(i).isRestricted()) { //not restricted?
-//                                        indexOfCar = i; //take it!
-//                                        break;
-//                                    }
-//                                }
-//                            }
-//                            tmpCar = localCarList.get(indexOfCar);
-//                            localCarList.remove(indexOfCar); //this car is used up!
-//                            for (TPS_SchemePart schemePart : actPlan.getScheme().getSchemeParts()) {
-//                                if (schemePart.isTourPart()) {
-//                                    ((TPS_TourPart) schemePart).setCar(tmpCar);
-//                                }
-//                            }
-//                        }
-//                        //DONE!
-//                        solution = vector;
-//                        bestScore = tmpScore;
-//                    }
-//                }
-//
-//                if (solution.length > 0) {
-//                    for (Entry<Integer, TPS_Person> entry : scoreIndexMap.entrySet()) {
-//                        TPS_PlanEnvironment pe = driverPlanEnvironments.get(entry.getValue());
-//                        TPS_Plan tmp = pe.getPlans().get(solution[entry.getKey()]);
-//                        bestPlans.put(entry.getValue(), tmp);
-//                    }
-//                }
-//            }
-//            // write obtained results
-//            for (TPS_Person person : bestPlans.keySet()) {
-//                TPS_Plan plan = bestPlans.get(person);
-//                this.assignCarToPlan(plan); //TODO: isn't it too late here?
-//                PM.writePlan(plan);
-//            }
+                // write obtained results
+                for (TPS_Person person : bestPlans.keySet()) {
+                    TPS_Plan plan = bestPlans.get(person);
+                    plan.assignCarToPlan();
+                    PM.writePlan(plan);
+                }
             }
         }
     }
 
-    private void assignCarsToPlanCombination(List<TPS_Plan> planCombination){
+    /**
+     * We have a list of plans.
+     * This method checks if anyone of them is infeasible and if so it returns False.
+     * If all plans are feasible this method returns true.
+     *
+     * @param listOfPlans
+     * @return
+     */
+    private static boolean allPlansAreFeasible(List<TPS_Plan> listOfPlans) {
+        return listOfPlans.stream().allMatch(TPS_Plan::isFeasible);
+    }
+
+    private void setCarsToPlanCombination(List<TPS_Plan> planCombination) {
         //sort plans such that the restricted plans come first
         planCombination = planCombination.stream().sorted(Comparator.comparing(TPS_Plan::entersRestrictedAreas).reversed()).collect(Collectors.toList());
         //get all cars from the household
@@ -604,12 +446,10 @@ public class TPS_Worker implements Callable<Exception> {
                 }
                 currentCarIndex++;
             }
-            this.assignCarToPlan(plan);
-            PM.writePlan(plan);
         }
     }
 
-    private static double getScoreOfPlanCombination(List<TPS_Plan> plansOfMembersInTheSameHousehold){
+    private static double getScoreOfPlanCombination(List<TPS_Plan> plansOfMembersInTheSameHousehold) {
         if (!planCombinationIsInTheSameHousehold(plansOfMembersInTheSameHousehold)) {
             TPS_Logger.log(HierarchyLogLevel.PLAN, SeverenceLogLevel.WARN,
                     "Something is wrong. The plan combination does not belong to persons of the same household");
@@ -618,21 +458,20 @@ public class TPS_Worker implements Callable<Exception> {
         return plansOfMembersInTheSameHousehold.stream().mapToDouble(TPS_Plan::getAcceptanceProbability).sum();
     }
 
-    private static boolean planCombinationIsInTheSameHousehold(List<TPS_Plan> plansOfMembersInTheSameHousehold){
+    private static boolean planCombinationIsInTheSameHousehold(List<TPS_Plan> plansOfMembersInTheSameHousehold) {
         // belong all plans to persons of the same household?
         // btw each plan should belong to a different person!
         if (plansOfMembersInTheSameHousehold.stream()
                 .map(plan -> plan.getPerson().getHousehold())
                 .distinct()
                 .count() != 1) {
-        return false;
-        }
-        else {
+            return false;
+        } else {
             return true;
         }
     }
 
-    private static boolean areThereEnoughCarsInTheHouseholdForThePlanCombination(List<TPS_Plan> plansOfMembersInTheSameHousehold){
+    private static boolean areThereEnoughCarsInTheHouseholdForThePlanCombination(List<TPS_Plan> plansOfMembersInTheSameHousehold) {
         if (!planCombinationIsInTheSameHousehold(plansOfMembersInTheSameHousehold)) {
             TPS_Logger.log(HierarchyLogLevel.PLAN, SeverenceLogLevel.WARN,
                     "Something is wrong. The plan combination does not belong to persons of the same household");
@@ -642,10 +481,10 @@ public class TPS_Worker implements Callable<Exception> {
                 .count(); //count the remaining plans in the combination list
         //we know we can use any plan/person because they belong to the same household
         int numberOfCarsInHousehold = plansOfMembersInTheSameHousehold.get(0).getPerson().getHousehold().getNumberOfCars();
-        return  numberOfCarsInHousehold >= numberOfPlansUsingACar ;
+        return numberOfCarsInHousehold >= numberOfPlansUsingACar;
     }
 
-    private static boolean areThereEnoughUnrestrictedCarsInTheHouseholdForThePlanCombination(List<TPS_Plan> plansOfMembersInTheSameHousehold){
+    private static boolean areThereEnoughUnrestrictedCarsInTheHouseholdForThePlanCombination(List<TPS_Plan> plansOfMembersInTheSameHousehold) {
         if (!planCombinationIsInTheSameHousehold(plansOfMembersInTheSameHousehold)) {
             TPS_Logger.log(HierarchyLogLevel.PLAN, SeverenceLogLevel.WARN,
                     "Something is wrong. The plan combination does not belong to persons of the same household");
@@ -658,7 +497,7 @@ public class TPS_Worker implements Callable<Exception> {
         int numberOfCarsInHousehold = plansOfMembersInTheSameHousehold.get(0).getPerson().getHousehold().getNumberOfCars();
         int numberOfRestrictedCarsInHousehold = plansOfMembersInTheSameHousehold.get(0).getPerson().getHousehold().getNumberOfRestrictedCars();
         int numberOfUnrestrictedCarsInHousehold = numberOfCarsInHousehold - numberOfRestrictedCarsInHousehold;
-        return  numberOfUnrestrictedCarsInHousehold >= numberOfRestrictedPlansUsingACar;
+        return numberOfUnrestrictedCarsInHousehold >= numberOfRestrictedPlansUsingACar;
     }
 
     public static List<List<TPS_Plan>> cartesianProduct(List<List<TPS_Plan>> lists) {
@@ -676,7 +515,7 @@ public class TPS_Worker implements Callable<Exception> {
             ret.add(new ArrayList<>());
         } else {
             for (TPS_Plan plan : lists.get(index)) {
-                for (List<TPS_Plan> list : _cartesianProduct(index+1, lists)) {
+                for (List<TPS_Plan> list : _cartesianProduct(index + 1, lists)) {
                     list.add(plan);
                     ret.add(list);
                 }
@@ -687,7 +526,7 @@ public class TPS_Worker implements Callable<Exception> {
 
 
     public void finish() {
-        TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,name+" finishing remaining work...");
+        TPS_Logger.log(getClass(), SeverenceLogLevel.INFO, name + " finishing remaining work...");
         this.should_finish = true;
     }
 }

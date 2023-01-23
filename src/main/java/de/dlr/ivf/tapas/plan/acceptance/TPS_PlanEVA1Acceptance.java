@@ -196,7 +196,7 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
             acceptance = TPS_GX.calculateEVA1Acceptance(ratio, EBottom, FTop, TurningPoint);
             if (Double.isNaN(acceptance) || Double.isInfinite(acceptance)) {
                 TPS_Logger.log(SeverenceLogLevel.FATAL, "Plan has NaN acceptance!");
-                plan.setPlanFeasible(false);
+                plan.setFeasible(false);
                 accepted = false;
             } else {
                 plan.setAcceptanceProbability(acceptance);
