@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -38,7 +37,7 @@ public class TPS_CapacityAdjuster extends TPS_BasicConnectionClass {
         worker.keyVal = "WISTA_scen2030a";
         worker.scheme_class_distribution = "MID_2008_TBG_7_Mo-So";
         worker.region = "berlin";
-        worker.locationTable = "berlin_locations_baz";
+        worker.locationTable = "berlin_locations";
         worker.loadDBEntries();
         worker.calcLocDemand();
         worker.printNewDemand();

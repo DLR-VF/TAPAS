@@ -1159,6 +1159,11 @@ public class TPS_DB_IO {
             }
         }
         this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_BL, bl);
+        TPS_Logger.log(SeverenceLogLevel.INFO, "Beeline average value: " +
+                this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getAverageValue(false, true) +
+                " Size (Elements, Rows, Columns): " + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfElements() + ", "
+                + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfRows() + ", "
+                + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfColums());
 
         //walk
         if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_WALK)) {

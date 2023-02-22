@@ -139,6 +139,10 @@ public class TPS_MassTransportMode extends TPS_Mode {
 
         double beelineFaktor = beelineDistanceLoc / beelineDistanceTAZ;
 
+        if(beelineFaktor <1){
+            beelineFaktor = 1.4;
+        }
+
         if (!start.getTrafficAnalysisZone().equals(end.getTrafficAnalysisZone())) {
             // start and destination are not within the same traffic zone
             double scoreFrom = 0;
