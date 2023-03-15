@@ -26,12 +26,13 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
     public static void main(String[] args) {
 
-        if(args.length !=4)
-            System.err.println("Wrong number of arguments! I need four: <sim key> <tsc base dir> <taz name in sumo template> <output dir>);");
+        if(args.length !=5)
+            System.err.println("Wrong number of arguments! I need five: <sim key> <tsc base dir> <taz name in sumo template> <output dir> <write net (true/false)>);");
         String key = args[0];
         String tscBasePath = args[1];
         String tazFile = args[2];
         String output = args[3];
+        String net = args[4];
 
         //cut tailing slashes
         if(tscBasePath.endsWith(File.separator))
@@ -45,6 +46,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         String coreSchema =  worker.dbCon.readSingleParameter(key,"DB_SCHEMA_CORE");
         String activityTableName = coreSchema+ worker.dbCon.readSingleParameter(key,"DB_TABLE_CONSTANT_ACTIVITY");
         String modeTableName = coreSchema +worker.dbCon.readSingleParameter(key,"DB_TABLE_CONSTANT_MODE");
+        String tazTableName = coreSchema +worker.dbCon.readSingleParameter(key,"DB_TABLE_TAZ");
         String tripTable = worker.dbCon.readSingleParameter(key,"DB_TABLE_TRIPS")+"_"+key;
         String scenarioDestination= worker.dbCon.readSingleParameter(key,"SUMO_DESTINATION_FOLDER");
         String netName = tscBasePath+ File.separator+"scenario_workdir"+File.separator + scenarioDestination  + File.separator+"net.net.xml.gz";
@@ -57,13 +59,16 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
         worker.readActivityMapping(activityTableName);
         worker.readModeCodes(modeTableName);
+        worker.processTAZList(tazName,tazTableName);
         worker.readTrips(tripTable);
         worker.loadRoutes(routeName);
 
-        worker.writeEdgeAttributes(edgeOutputName);
+        worker.writeEdgeAndTazAttributes(edgeOutputName);
 
-        worker.exportNetAttribute(netName,tazName,outputName);
-        worker.exportNetGeoJSON(netName,tazName,outputName+".json");
+        if(net.equalsIgnoreCase("true")) {
+            worker.exportNetAttribute(netName, outputName);
+            worker.exportNetGeoJSON(netName, outputName + ".json");
+        }
 
     }
 
@@ -115,6 +120,49 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         }
 
 
+        public String getCSVHeader(){
+            String s = "id";
+            for (int j =0; j<timeCounts.length; j++) {
+                s += "\t" + "t"+j;
+            }
+
+            for (int j =0; j<distCount.length; j++) {
+                s += "\t" + "d"+j;
+            }
+
+            for (int j =0; j<activityCount.length; j++) {
+                s += "\t" + "a"+j;
+            }
+
+            for (int j =0; j<timeCountsStart.length; j++) {
+                s += "\t" + "start_t"+j;
+            }
+
+            for (int j =0; j<distCountStart.length; j++) {
+                s += "\t" + "start_d"+j;
+            }
+
+            for (int j =0; j<activityCountStart.length; j++) {
+                s += "\t" + "start_a"+j;
+            }
+
+            for (int j =0; j<timeCountsEnd.length; j++) {
+                s += "\t" + "end_t"+j;
+            }
+
+            for (int j =0; j<distCountEnd.length; j++) {
+                s += "\t" + "end_d"+j;
+            }
+
+            for (int j =0; j<activityCountEnd.length; j++) {
+                s += "\t" + "end_a"+j;
+            }
+
+            s+="\n";
+            return s;
+        }
+
+
         @Override
         public String toString() {
             String s = this.id;
@@ -158,6 +206,110 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
             return s;
         }
     }
+
+
+    public class TAZAttribute{
+        String id ="";
+
+        int[] timeCountsStart = new int[(24*60*60)/TIME_BIN];
+        int[][] distCountStart = new int[timeCountsStart.length][DIST_BINS.length];
+        int[][] activityCountStart = new int[timeCountsStart.length][possibleActivites.size()];
+
+        int[] timeCountsEnd = new int[(24*60*60)/TIME_BIN];
+        int[][] distCountEnd = new int[timeCountsStart.length][DIST_BINS.length];
+        int[][] activityCountEnd = new int[timeCountsStart.length][possibleActivites.size()];
+
+
+
+        public void addTripToStart(int time, int distIndex, int purposeIndex){
+            int tIndex = ((time + 24*60*60)%(24*60*60))/TIME_BIN;
+            timeCountsStart[tIndex]++;
+            distCountStart[tIndex][distIndex]++;
+            activityCountStart[tIndex][purposeIndex]++;
+        }
+
+        public void addTripToEnd(int time, int distIndex, int purposeIndex){
+            int tIndex = ((time + 24*60*60)%(24*60*60))/TIME_BIN;
+            timeCountsEnd[tIndex]++;
+            distCountEnd[tIndex][distIndex]++;
+            activityCountEnd[tIndex][purposeIndex]++;
+        }
+
+        public String getCSVHeader(){
+            String s = "id";
+            for (int j =0; j<timeCountsStart.length; j++) {
+                s += "\t" + "t"+j;
+            }
+
+            for (int j =0; j<timeCountsStart.length; j++) {
+                for (int i =0; i<distCountStart[j].length; i++) {
+                    s += "\tstart_t"+j+"_d"+i;
+                }
+            }
+            for (int j =0; j<timeCountsStart.length; j++) {
+                for (int i =0; i<activityCountStart[j].length; i++) {
+                    s += "\tstart_t"+j+"_a"+i;
+                }
+            }
+            for (Integer i : timeCountsEnd) {
+                s += "\t" + i.toString();
+            }
+
+            for (int j =0; j<timeCountsEnd.length; j++) {
+                for (int i =0; i<distCountEnd[j].length; i++) {
+                    s += "\tend_t"+j+"_d"+i;
+                }
+            }
+
+            for (int j =0; j<timeCountsEnd.length; j++) {
+                for (int i =0; i<activityCountEnd[j].length; i++) {
+                    s += "\tend_t"+j+"_a"+i;
+                }
+            }
+            s+="\n";
+
+            return s;
+        }
+
+        @Override
+        public String toString() {
+            String s = this.id;
+
+            for (Integer i : timeCountsStart) {
+                s += "\t" + i.toString();
+            }
+
+            for (int j =0; j<timeCountsStart.length; j++) {
+                for (Integer i : distCountStart[j]) {
+                    s += "\t" + i.toString();
+                }
+            }
+            for (int j =0; j<timeCountsStart.length; j++) {
+                for (Integer i : activityCountStart[j]) {
+                    s += "\t" + i.toString();
+                }
+            }
+            for (Integer i : timeCountsEnd) {
+                s += "\t" + i.toString();
+            }
+
+            for (int j =0; j<timeCountsEnd.length; j++) {
+                for (Integer i : distCountEnd[j]) {
+                    s += "\t" + i.toString();
+                }
+            }
+
+            for (int j =0; j<timeCountsEnd.length; j++) {
+                for (Integer i : activityCountEnd[j]) {
+                    s += "\t" + i.toString();
+                }
+            }
+            s+="\n";
+            return s;
+        }
+    }
+
+
 
     class TripAttribute{
         int activity;
@@ -215,8 +367,10 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
             while (rs.next()) {
                 zbeCode = rs.getInt("code_zbe");
                 tapasCode = rs.getInt("code_tapas");
-                this.activityMap.put(zbeCode,tapasCode);
-                possibleActivites.add(tapasCode);
+                if(tapasCode >=0) {
+                    this.activityMap.put(zbeCode, tapasCode);
+                    possibleActivites.add(tapasCode);
+                }
             }
             rs.close();
             System.out.println("found " + this.activityMap.size() + " activity entries");
@@ -249,12 +403,11 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
     }
 
 
-    public void exportNetAttribute(String net, String tazFile, String output){
+    public void exportNetAttribute(String net, String output){
 
 
         try {
 
-            Map<String,String> edge2TAZ = processTAZList (tazFile);
 
             // parse net XML file
             Document doc = openXMLDocument(net);
@@ -364,41 +517,49 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
     }
 
     Map<String, EdgeAttribute[]> edgelist = new HashMap<>();
+    Map<String, TAZAttribute[]> tazlist = new HashMap<>();
 
-    public Map<String,String> processTAZList(String filename) throws ParserConfigurationException , SAXException , IOException {
-        Document tazDoc = openXMLDocument(filename);
 
-        System.out.println("Root Element :" + tazDoc.getDocumentElement().getNodeName());
-        // get <edge>
-        //prepare output
-        Map<String,String> edge2TAZ = new HashMap<>();
-        NodeList tazlist = tazDoc.getElementsByTagName("taz");
-        System.out.println("TAZ to process:" + tazlist.getLength());
 
-        //prepare output
+    Map<String, String> edge2TAZ = new HashMap<>();
 
-        for (int temp = 0; temp < tazlist.getLength() ; temp++) {
-            if(temp %1000 ==0)System.out.println("Processed taz:"+temp);
-            Node node = tazlist.item(temp);
+    public void processTAZList(String filename, String tableName)  {
+        try{
+            Document tazDoc = openXMLDocument(filename);
 
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
+            System.out.println("Root Element :" + tazDoc.getDocumentElement().getNodeName());
+            // get <edge>
+            //prepare output
+            Map<String,String> edge2TAZ = new HashMap<>();
+            NodeList tazlist = tazDoc.getElementsByTagName("taz");
+            System.out.println("TAZ to process:" + tazlist.getLength());
 
-                Element element = (Element) node;
+            //prepare output
 
-                // get edge's attribute
-                String id = element.getAttribute("id");
+            for (int temp = 0; temp < tazlist.getLength() ; temp++) {
+                if(temp %1000 ==0)System.out.println("Processed taz:"+temp);
+                Node node = tazlist.item(temp);
 
-                // get type
-                String edges = element.getAttribute("edges");
-                //tokenize edges
-                String[] edge = edges.split(" ");
-                for(String t: edge) {
-                    edge2TAZ.put(t, id);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+
+                    Element element = (Element) node;
+
+                    // get edge's attribute
+                    String id = element.getAttribute("id");
+
+                    // get type
+                    String edges = element.getAttribute("edges");
+                    //tokenize edges
+                    String[] edge = edges.split(" ");
+                    for(String t: edge) {
+                        edge2TAZ.put(t, id);
+                    }
                 }
             }
+            System.out.println("Processed taz:"+tazlist.getLength());
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
         }
-        System.out.println("Processed taz:"+tazlist.getLength());
-        return edge2TAZ;
     }
 
     public Map<String,String> processEdgeTypes(Document doc) throws ParserConfigurationException , SAXException , IOException {
@@ -615,11 +776,19 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
 
             if (node.getNodeType() == Node.ELEMENT_NODE) {
+                String startTAZ = "", endTAZ = "";
+                int startTime=Integer.MIN_VALUE, endTime=Integer.MIN_VALUE;
 
                 Element element = (Element) node;
 
                 // get edge's attribute
                 String id = element.getAttribute("id");
+                String tmp = element.getAttribute("depart");
+                if(tmp.compareTo("")!=0)
+                    startTime =  (int) (Double.parseDouble(tmp) + 0.5);
+                tmp = element.getAttribute("arrival");
+                if(tmp.compareTo("")!=0)
+                    endTime =  (int) (Double.parseDouble(tmp) + 0.5);
                 String type = element.getAttribute("type");
                 TripAttribute attr =null;
                 if(!this.isPT(type)){
@@ -682,17 +851,57 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                             last = parseEdgeInfos(id, activity, mode, distIndex, leg, lookForBegin);
                         } else if (name.equals("ride")) {
                             last = parsePTInfos(id, activity, mode, distIndex, leg, lookForBegin);
+                        } else if (name.equals("param")){ //determine start and end taz
+                            if (leg.getNodeType() == Node.ELEMENT_NODE) {
+                                Element paramElement = (Element) leg;
+                                // get start
+                                if (startTAZ.compareTo("")==0 &&
+                                    paramElement.getAttribute("key").compareTo("taz_id_start")==0)
+                                    startTAZ = paramElement.getAttribute("value"); //will return an empty sting if not present
+                                //get end
+                                if (endTAZ.compareTo("")==0 &&
+                                    paramElement.getAttribute("key").compareTo("taz_id_end")==0)
+                                    endTAZ = paramElement.getAttribute("value"); //will return an empty sting if not present
+                            }
                         }
                         if(lookForBegin && last != null){
                             lookForBegin = false;
                         }
                     }
                     last[mode].addLastEntryToEnd(); //make the internally buffered last entry the End entry
+
+                    if (startTAZ.compareTo("")!=0 && endTAZ.compareTo("")!=0 &&
+                            startTime!=Integer.MIN_VALUE && endTime != Integer.MIN_VALUE){
+                        //store taz values
+                        addTAZInfos(startTAZ,startTime, distIndex,activity,mode,true);
+                        addTAZInfos(endTAZ,endTime, distIndex,activity,mode,false);
+                    }
+                    else{
+                        System.err.println("Incomplete tripinfo! id: "+id+" startTAZ: "+startTAZ+" endTaz: "+endTAZ+ " start time: "+startTime+" end time: "+endTime);
+                    }
                 }
 
             }
         }
         System.out.println("Processed tours: " + list.getLength());
+    }
+
+    private void addTAZInfos(String name, int time, int distIndex, int activity, int mode, boolean start){
+        TAZAttribute att[] = this.tazlist.get(name);
+        //check if we know this edge and add it if necessary
+        if (att == null) {
+            att = new TAZAttribute[this.modeMap.size()];
+            for (int k = 0; k < att.length; k++) {
+                att[k] = new TAZAttribute();
+                att[k].id = name;
+            }
+            this.tazlist.put(name, att);
+        }
+        if(start)
+            att[mode].addTripToStart(time, distIndex, activity);
+        else
+            att[mode].addTripToEnd(time, distIndex, activity);
+
     }
 
     private int getLengthBin(double val)
@@ -835,30 +1044,35 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
     }
 
 
-    public void writeEdgeAttributes(String output){
+    public void writeEdgeAndTazAttributes(String output){
         try{
             for(Map.Entry<Integer,String> e: this.modeMap.entrySet()) {
                 FileWriter fw = new FileWriter(output+"_"+e.getValue()+".csv");
-                fw.write("id\t" + //id of the edge
-                        "t0\tt1\tt2\tt3\tt4\tt5\tt6\tt7\tt8\tt9\tt10\tt11\t" + //volume per time
-                        "d0\td1\td2\td3\td4\td5\td6\td7\td8\td9\ta0\t" + //distance petr category
-                        "a1\ta2\ta3\ta4\ta5\ta6\ta7\t"+ // activities per category
-                        "start_t0\tstart_t1\tstart_t2\tstart_t3\tstart_t4\tstart_t5\tstart_t6\tstart_t7\tstart_t8\tstart_t9\tstart_t10\tstart_t11\t" + //starts per time
-                        "start_d0\tstart_d1\tstart_d2\tstart_d3\tstart_d4\tstart_d5\tstart_d6\tstart_d7\tstart_d8\tstart_d9\t" + //starts per distance
-                        "start_a0\tstart_a1\tstart_a2\tstart_a3\tstart_a4\tstart_a5\tstart_a6\tstart_a7\t"+ //starts per activity
-                        "end_t0\tend_t1\tend_t2\tend_t3\tend_t4\tend_t5\tend_t6\tend_t7\tend_t8\tend_t9\tend_t10\tend_t11\t" + //ends per time
-                        "end_d0\tend_d1\tend_d2\tend_d3\tend_d4\tend_d5\tend_d6\tend_d7\tend_d8\tend_d9\t" + //ends per distance
-                        "end_a0\tend_a1\tend_a2\tend_a3\tend_a4\tend_a5\tend_a6\tend_a7"+ //ends per activity
-                        "\n");
+                EdgeAttribute t = new EdgeAttribute();
+                fw.write(t.getCSVHeader());
                 int i = 0;
                 for (EdgeAttribute[] a : this.edgelist.values()) {
                     i++;
-                    if (i % 1000 == 0) System.out.println("Processed edges:" + i);
+                    if (i % 1000 == 0) System.out.println("Saved edges:" + i);
                     fw.write(a[e.getKey()].toString());
                 }
                 fw.close();
 
-                System.out.println("Processed edges:" + this.edgelist.size());
+                System.out.println("Saved edges:" + this.edgelist.size());
+
+                fw = new FileWriter(output+"_taz_"+e.getValue()+".csv");
+                TAZAttribute taz = new TAZAttribute();
+                fw.write(taz.getCSVHeader());
+                i = 0;
+                for (TAZAttribute[] a : this.tazlist.values()) {
+                    i++;
+                    if (i % 10 == 0) System.out.println("Saved taz:" + i);
+                    fw.write(a[e.getKey()].toString());
+                }
+                fw.close();
+
+                System.out.println("Saved taz:" + this.tazlist.size());
+
 
                 System.out.println("Finished processing");
             }
@@ -867,13 +1081,12 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         }
     }
 
-    public void exportNetGeoJSON(String net, String tazFile, String output){
+    public void exportNetGeoJSON(String net, String output){
         try {
 
             double offX=0, offY=0, x=0,y=0;
 
 
-            Map<String,String> edge2TAZ = processTAZList (tazFile);
             // parse net XML file
 
             Document doc =openXMLDocument(net);
