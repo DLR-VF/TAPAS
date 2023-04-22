@@ -10,7 +10,6 @@ module de.dlr.ivf.tapas {
     requires jxl;
     requires log4j;
     requires org.postgresql.jdbc;
-    requires javafx.controls;
     requires javafx.fxml;
     requires java.rmi;
     requires javafx.swing;
