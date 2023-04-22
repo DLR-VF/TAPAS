@@ -19,6 +19,8 @@ module de.dlr.ivf.tapas {
     requires org.apache.commons.collections4;
     requires jfreechart;
     requires jgoodies.forms;
+    requires simon.w;
+    requires commons.math3;
 
     exports de.dlr.ivf.tapas;
 
