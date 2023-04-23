@@ -27,7 +27,8 @@ plugins {
 
     id("org.javamodularity.moduleplugin") version "1.8.12"
 
-    `maven-publish`
+    //`maven-publish`
+    idea
 }
 
 
@@ -105,11 +106,11 @@ application {
     mainModule.set("de.dlr.ivf.tapas")
     mainClass.set("de.dlr.ivf.tapas.runtime.client.SimulationControl")
 }
-//idea {
-//    module {
-//        inheritOutputDirs = true
-//    }
-//}
+idea {
+    module {
+        inheritOutputDirs = true
+    }
+}
 
 
 // Task for writing the version to the buildnumber.properties file.

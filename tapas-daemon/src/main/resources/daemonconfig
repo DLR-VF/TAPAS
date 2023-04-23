@@ -1,0 +1,24 @@
+{
+  "tapasEnvironment" : {
+    "references" : {
+      "urlFile" : "D:\\TAPAS_modularity\\tapas_daemon\\src\\main\\resources\\urls.txt",
+      "loginFile" : "D:\\TAPAS_modularity\\tapas_daemon\\src\\main\\resources\\logins.txt"
+    },
+    "simulationsTable" : {
+      "type" : "reference",
+      "reference" : {
+        "urlReference" : "tapasdb",
+        "loginReference" : "postgres"
+      },
+      "uri" : "public.simulations"
+    },
+    "serverTable" : {
+      "type" : "reference",
+      "reference" : {
+        "urlReference" : "tapasdb",
+        "loginReference" : "postgres"
+      },
+      "uri" : "public.servers"
+    }
+  }
+}

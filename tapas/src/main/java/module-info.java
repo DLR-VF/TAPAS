@@ -20,6 +20,7 @@ module de.dlr.ivf.tapas {
     requires jgoodies.forms;
     requires simon.w;
     requires commons.math3;
+    requires javafx.controls;
 
     exports de.dlr.ivf.tapas;
 
