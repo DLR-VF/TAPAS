@@ -38,9 +38,12 @@ repositories {
     // You can declare any Maven/Ivy/file repository here.
     //use mavenCentral repository
     mavenCentral()
+    maven{
+        url = uri("https://repository.jboss.org/nexus/content/repositories/thirdparty-releases")
+    }
 
     //local directory
-    flatDir { dirs("ext") }
+   // flatDir { dirs("ext") }
 }
 
 dependencies {
@@ -60,12 +63,12 @@ dependencies {
     implementation("net.lingala.zip4j:zip4j:2.10.0")
     implementation("com.lmax:disruptor:3.4.2")
 
-    implementation(files("ext/simon_w.jar"))
+    //implementation(files("ext/simon_w.jar"))
 
     implementation("org.openjfx:javafx:17")
 
     //local dependency
-   // implementation("simon_w:simon_w:")
+    implementation(project(":tapas-matrixtool"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

@@ -8,14 +8,14 @@
 
 package de.dlr.ivf.tapas.tools.matrixMap;
 
+import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.model.TAPASMemoryModel;
+import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.view.MatrixManipulatorFrame;
 import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.TPS_Geometrics;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
-import matrixTool_v2.model.TAPASMemoryModel;
-import matrixTool_v2.view.MatrixManipulatorFrame;
 
 import javax.swing.*;
 import java.awt.*;
