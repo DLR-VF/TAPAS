@@ -70,6 +70,9 @@ dependencies {
     //local dependency
     implementation(project(":tapas-matrixtool"))
     implementation(project(":tapas-logger"))
+    implementation(project(":tapas-parameter"))
+    implementation(project(":tapas-util"))
+    implementation(project(":tapas-model"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
