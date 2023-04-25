@@ -6,13 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util.parameters;
+package de.dlr.ivf.tapas.parameter;
 
 import com.csvreader.CsvReader;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.SeverenceLogLevel;
 import de.dlr.ivf.tapas.util.Matrix;
 
 import java.io.File;
@@ -20,6 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -563,8 +565,11 @@ public class TPS_ParameterClass {
 
         generateTemporaryParameters();
 
-        if (this.isDefined(ParamString.LOG_CLASS)) TPS_Logger.setLoggingClass(this.getString(ParamString.LOG_CLASS),
-                this);
+        if (this.isDefined(ParamString.LOG_CLASS))
+            TPS_Logger.init(composeLogDirPath(),
+                    getString(ParamString.HIERARCHY_LOG_LEVEL_MASK),
+                    getString(ParamString.SEVERENCE_LOG_LEVEL_MASK),
+                    getString(ParamString.RUN_IDENTIFIER));
     }
 
     /**
@@ -661,9 +666,25 @@ public class TPS_ParameterClass {
             this.setString(ParamString.FILE_LOGGING_PROPERTIES, "loadedFromDB");
             this.setString(ParamString.FILE_PARAMETER_PROPERTIES, "loadedFromDB");
             if (this.isDefined(ParamString.LOG_CLASS)) {
-                TPS_Logger.setLoggingClass(this.getString(ParamString.LOG_CLASS), this);
+                TPS_Logger.init(composeLogDirPath(),
+                        getString(ParamString.HIERARCHY_LOG_LEVEL_MASK),
+                        getString(ParamString.SEVERENCE_LOG_LEVEL_MASK),
+                        getString(ParamString.RUN_IDENTIFIER));
             }
         }
+    }
+
+    private Path composeLogDirPath(){
+        String dirSeparator = System.getProperty("file.separator");
+        String dirName = getString(ParamString.FILE_WORKING_DIRECTORY);
+
+        if (!dirName.endsWith(dirSeparator)) {
+            dirName = dirName + dirSeparator;
+        }
+
+        dirName = dirName + LOG_DIR + getString(ParamString.RUN_IDENTIFIER);
+
+        return Paths.get(dirName);
     }
 
     /**

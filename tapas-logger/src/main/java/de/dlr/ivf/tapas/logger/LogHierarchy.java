@@ -6,10 +6,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.log;
+package de.dlr.ivf.tapas.logger;
 
-import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.HierarchyLogLevel;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -23,7 +22,6 @@ import java.lang.annotation.Target;
  *
  * @author mark_ma
  * @see TPS_Logger
- * @see TPS_Main
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = ElementType.TYPE)

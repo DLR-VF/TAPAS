@@ -6,16 +6,23 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.log;
+package de.dlr.ivf.tapas.logger;
 
 
-import de.dlr.ivf.tapas.runtime.util.IPInfo;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
-import org.apache.log4j.*;
+import de.dlr.ivf.tapas.util.IPInfo;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.DefaultConfiguration;
+import org.apache.logging.log4j.core.layout.PatternLayout;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,15 +38,31 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
 
     private final Map<Thread, Map<Class<?>, Logger>> loggerMap;
 
-    private final TPS_ParameterClass parameterClass;
+    private final Path logDirectory;
+
+    private final String runIdentifier;
+
+    private final PatternLayout layout;
 
     /**
      * Standard constructor which initializes the pattern and maps.
      */
-    public TPS_Log4jLogger(TPS_ParameterClass parameterClass) {
-        this.parameterClass = parameterClass;
-        BasicConfigurator.configure(new ConsoleAppender(new PatternLayout("%5p %d %m%n")));
-        Logger.getRootLogger().setLevel(Level.ALL);
+    public TPS_Log4jLogger(Path logDirectory, String runIdentifier) {
+        this.logDirectory = logDirectory;
+        this.runIdentifier = runIdentifier;
+
+       this.layout = PatternLayout.newBuilder()
+                .withPattern("%5p %d %m%n")
+                .build();
+
+        ConsoleAppender apppender = ConsoleAppender.newBuilder()
+                .setLayout(layout)
+                .build();
+
+        BasicConfigurator.configure(apppender);
+        Configurator.initialize(new DefaultConfiguration());
+
+        Configurator.setLevel(LogManager.getRootLogger(),Level.ALL);
         this.loggerMap = new HashMap<>();
         SeverenceLogLevel[] sLevelArray = SeverenceLogLevel.values();
         this.levelArray = new Level[sLevelArray.length];
@@ -76,7 +99,7 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
         if (map == null) {
             map = new HashMap<>();
             this.loggerMap.put(t, map);
-            Logger threadLogger = Logger.getLogger(t.getName());
+            Logger threadLogger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(t.getName());
             String host = "nohost";
             try {
                 host = IPInfo.getEthernetInetAddress().getHostAddress();
@@ -85,29 +108,19 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
                 e1.printStackTrace();
             }
             try {
-                String filename = "";
-                if (this.parameterClass.isDefined(ParamString.FILE_WORKING_DIRECTORY) && this.parameterClass.isDefined(
-                        ParamString.RUN_IDENTIFIER)) {
-                    filename = this.parameterClass.getString(ParamString.FILE_WORKING_DIRECTORY);
-
-                    if (!filename.endsWith(System.getProperty("file.separator"))) {
-                        filename = filename + System.getProperty("file.separator");
-                    }
-
-                    //make the dir-part of the file
-                    filename = filename + this.parameterClass.LOG_DIR + this.parameterClass.getString(
-                            ParamString.RUN_IDENTIFIER) + System.getProperty("file.separator");
-                    //mkdir makes the directory only if it NOT exists!
-                    new File(filename).mkdirs();
+                String filename = this.runIdentifier + "-" + host+ ".log";
+                Path logOutputFile = logDirectory.resolve(filename);
+                Files.createFile(logOutputFile);
 
 
-                    filename = filename + this.parameterClass.getString(ParamString.RUN_IDENTIFIER) + "-" + host
-                            //+ "-" + t.getName()
-                            + ".log";
+                PatternLayout layout = PatternLayout.newBuilder().withPattern("%5p %d - %m%n").build();
+                Appender app = FileAppender.newBuilder()
+                        .withFileName(logOutputFile.toString())
+                        .setLayout(layout)
+                        .withAppend(true)
+                        .build();
+                threadLogger.addAppender(app);
 
-                    Appender app = new FileAppender(new PatternLayout("%5p %d - %m%n"), filename, true);
-                    threadLogger.addAppender(app);
-                }
             } catch (RuntimeException | IOException e) {
                 e.printStackTrace();
                 System.out.println(e.getMessage());
@@ -115,7 +128,7 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
         }
         Logger logger = map.get(callerClass);
         if (logger == null) {
-            logger = Logger.getLogger(t.getName() + "." + callerClass.getName());
+            logger = (org.apache.logging.log4j.core.Logger) LogManager.getLogger(t.getName() + "." + callerClass.getName());
             map.put(callerClass, logger);
 
             // These two lines log the instantiation of a new logger for the callerClass.

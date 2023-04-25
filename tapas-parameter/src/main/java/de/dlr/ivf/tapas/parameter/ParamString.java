@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util.parameters;
+package de.dlr.ivf.tapas.parameter;
 
 /**
  * This class provides all string enums which determine the name of

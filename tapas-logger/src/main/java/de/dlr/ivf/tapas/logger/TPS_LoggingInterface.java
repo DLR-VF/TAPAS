@@ -6,10 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.log;
+package de.dlr.ivf.tapas.logger;
 
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 /**
  * Interface for the logging function. This interface also holds the enums for the HierarchyLogLevel and SeverenceLogLevel.

@@ -6,13 +6,17 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.log;
+package de.dlr.ivf.tapas.logger;
 
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -256,16 +260,18 @@ public class TPS_Logger {
     /**
      * This method sets a new instance of the logging class.
      *
-     * @param loggingClass   The Class, which holds the logging functionality.
-     * @param parameterClass parameter class reference
      */
-    public static void setLoggingClass(String loggingClass, TPS_ParameterClass parameterClass) {
+    public static void init(Path logDirectoryPath, String hierarchyLogLevel, String severanceLogLevel, String runIdentifier) {
         if (LOGGING == null) {
-            LOGGING = new TPS_Log4jLogger(parameterClass);
-            HIERARCHY_LOG_LEVEL_MASK = HierarchyLogLevel.valueOf(
-                    parameterClass.getString(ParamString.HIERARCHY_LOG_LEVEL_MASK));
-            SEVERENCE_LOG_LEVEL_MASK = SeverenceLogLevel.valueOf(
-                    parameterClass.getString(ParamString.SEVERENCE_LOG_LEVEL_MASK));
+            try {
+                Path logDirectory = Files.createDirectories(logDirectoryPath);
+                LOGGING = new TPS_Log4jLogger(logDirectory, runIdentifier);
+            }catch (IOException e){
+                e.printStackTrace();
+            }
+
+            HIERARCHY_LOG_LEVEL_MASK = HierarchyLogLevel.valueOf(hierarchyLogLevel);
+            SEVERENCE_LOG_LEVEL_MASK = SeverenceLogLevel.valueOf(severanceLogLevel);
 
             for (LogItem logItem : LOG_ITEMS) {
                 if (logItem.throwable == null) {
@@ -318,4 +324,3 @@ public class TPS_Logger {
     }
 }
 
-	 

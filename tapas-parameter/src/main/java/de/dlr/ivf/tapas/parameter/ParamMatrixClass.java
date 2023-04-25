@@ -6,10 +6,10 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util.parameters;
+package de.dlr.ivf.tapas.parameter;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.util.Matrix;
 import org.apache.commons.lang3.tuple.MutablePair;
 
@@ -143,7 +143,7 @@ public class ParamMatrixClass {
                         "(Matrix " + "matrix, SimulationType " + "type)");
         Matrix[] m = this.paramMatrix.get(param).getRight();
         if (m[0] != null) {
-            TPS_Logger.log(SeverenceLogLevel.DEBUG, "Overwriting existing matrix");
+            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "Overwriting existing matrix");
         }
         m[0] = matrix;
     }
@@ -163,7 +163,7 @@ public class ParamMatrixClass {
         Matrix[] m = this.paramMatrix.get(param).getRight();
         int index = type.getIndex();
         if (m[index] != null) {
-            TPS_Logger.log(SeverenceLogLevel.DEBUG, "Overwriting existing matrix");
+            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "Overwriting existing matrix");
         }
         m[index] = matrix;
     }

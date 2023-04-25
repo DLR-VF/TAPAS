@@ -8,7 +8,7 @@ module de.dlr.ivf.tapas {
     requires disruptor;
     requires zip4j;
     requires jxl;
-    requires log4j;
+
     requires org.postgresql.jdbc;
     requires javafx.fxml;
     requires java.rmi;
@@ -18,10 +18,11 @@ module de.dlr.ivf.tapas {
     requires org.apache.commons.collections4;
     requires jfreechart;
     requires jgoodies.forms;
-    //requires simon.w;
     requires commons.math3;
     requires javafx.controls;
+
     requires de.dlr.ivf.tapas.matrixtool;
+    requires de.dlr.ivf.tapas.logger;
 
     exports de.dlr.ivf.tapas;
 

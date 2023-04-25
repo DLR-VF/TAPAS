@@ -49,7 +49,7 @@ repositories {
 dependencies {
     // These dependencies are used by the application.
     implementation("net.sourceforge.javacsv:javacsv:2.0")
-    implementation("org.apache.logging.log4j:log4j:2.16.0")
+    //implementation("org.apache.logging.log4j:log4j:2.16.0")
     implementation("org.postgresql:postgresql:42.2.27")
     implementation("org.apache.commons:commons-lang3:3.9")
     implementation("org.apache.commons:commons-collections4:4.4")
@@ -69,6 +69,7 @@ dependencies {
 
     //local dependency
     implementation(project(":tapas-matrixtool"))
+    implementation(project(":tapas-logger"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

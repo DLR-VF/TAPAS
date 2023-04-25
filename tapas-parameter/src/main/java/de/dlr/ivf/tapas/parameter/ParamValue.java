@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util.parameters;
+package de.dlr.ivf.tapas.parameter;
 
 import de.dlr.ivf.tapas.person.TPS_Household;
 
