@@ -1,0 +1,18 @@
+{
+  "hierarchyLogLevelMask": "ALL",
+  "severanceLogLevelMask": "INFO",
+  "loggingFolder": "LOG",
+  "logLevels": {
+    "LOG_LEVEL_ALL": "ALL",
+    "LOG_LEVEL_DEBUG": "DEBUG",
+    "LOG_LEVEL_ERROR": "ERROR",
+    "LOG_LEVEL_FATAL": "FATAL",
+    "LOG_LEVEL_FINE": "DEBUG",
+    "LOG_LEVEL_FINER": "DEBUG",
+    "LOG_LEVEL_FINEST": "DEBUG",
+    "LOG_LEVEL_INFO": "INFO",
+    "LOG_LEVEL_OFF": "OFF",
+    "LOG_LEVEL_SEVERE": "WARN",
+    "LOG_LEVEL_WARN": "WARN"
+  }
+}

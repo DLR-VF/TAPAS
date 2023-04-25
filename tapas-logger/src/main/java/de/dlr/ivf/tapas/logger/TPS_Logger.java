@@ -8,17 +8,15 @@
 
 package de.dlr.ivf.tapas.logger;
 
-import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.SeverenceLogLevel;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
+import org.apache.logging.log4j.Level;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Basic class for the TAPAS loging functionality.
@@ -32,8 +30,9 @@ public class TPS_Logger {
      */
     private static List<LogItem> LOG_ITEMS = new LinkedList<>();
     private static HierarchyLogLevel HIERARCHY_LOG_LEVEL_MASK;
-    private static SeverenceLogLevel SEVERENCE_LOG_LEVEL_MASK;
     private static TPS_LoggingInterface LOGGING;
+
+    private static SeverityLogLevel SEVERENCE_LOG_LEVEL_MASK;
 
     public static void closeLoggers() {
         LOGGING.closeLogger();
@@ -85,7 +84,7 @@ public class TPS_Logger {
      * @param sLog        The SeverenceLogLevel
      * @return true if logging is enabled for the given combination
      */
-    public static boolean isLogging(Class<?> callerClass, HierarchyLogLevel hLog, SeverenceLogLevel sLog) {
+    public static boolean isLogging(Class<?> callerClass, HierarchyLogLevel hLog, SeverityLogLevel sLog) {
         if (LOGGING == null) {
             return true; // TODO: why true?
         } else if (shallBeLogged(hLog) && shallBeLogged(sLog)) {
@@ -94,7 +93,7 @@ public class TPS_Logger {
         return false;
     }
 
-    public static boolean isLogging(Class<?> callerClass, SeverenceLogLevel sLog) {
+    public static boolean isLogging(Class<?> callerClass, SeverityLogLevel sLog) {
         if (!shallBeLogged(sLog)) {
             return false;
         }
@@ -108,7 +107,7 @@ public class TPS_Logger {
      * @param sLog The SeverenceLogLevel
      * @return true if logging is enabled for the given combination
      */
-    public static boolean isLogging(HierarchyLogLevel hLog, SeverenceLogLevel sLog) {
+    public static boolean isLogging(HierarchyLogLevel hLog, SeverityLogLevel sLog) {
         if (!shallBeLogged(hLog) || !shallBeLogged(sLog)) {
             return false;
         }
@@ -121,7 +120,7 @@ public class TPS_Logger {
      * @param sLog The SeverenceLogLevel
      * @return true if logging is enabled for the given combination
      */
-    public static boolean isLogging(SeverenceLogLevel sLog) {
+    public static boolean isLogging(SeverityLogLevel sLog) {
         if (!shallBeLogged(sLog)) {
             return false;
         }
@@ -129,7 +128,7 @@ public class TPS_Logger {
     }
 
 
-    public static void log(Class<?> callerClass, HierarchyLogLevel hLog, SeverenceLogLevel sLog, String text) {
+    public static void log(Class<?> callerClass, HierarchyLogLevel hLog, SeverityLogLevel sLog, String text) {
         if (LOGGING == null) {
             LOG_ITEMS.add(new LogItem(callerClass, hLog, sLog, text, null));
 //			System.out.println("Stored log: "+text);
@@ -139,7 +138,7 @@ public class TPS_Logger {
     }
 
 
-    public static void log(Class<?> callerClass, HierarchyLogLevel hLog, SeverenceLogLevel sLog, String text, Throwable throwable) {
+    public static void log(Class<?> callerClass, HierarchyLogLevel hLog, SeverityLogLevel sLog, String text, Throwable throwable) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -162,7 +161,7 @@ public class TPS_Logger {
      * @param sLog        The SeverenceLogLevel
      * @param text        The text to log
      */
-    public static void log(Class<?> callerClass, SeverenceLogLevel sLog, String text) {
+    public static void log(Class<?> callerClass, SeverityLogLevel sLog, String text) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -177,7 +176,7 @@ public class TPS_Logger {
      * @param text        The text to log
      * @param throwable   The exception to log
      */
-    public static void log(Class<?> callerClass, SeverenceLogLevel sLog, String text, Throwable throwable) {
+    public static void log(Class<?> callerClass, SeverityLogLevel sLog, String text, Throwable throwable) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -191,7 +190,7 @@ public class TPS_Logger {
      * @param sLog The SeverenceLogLevel
      * @param text The text to log
      */
-    public static void log(HierarchyLogLevel hLog, SeverenceLogLevel sLog, String text) {
+    public static void log(HierarchyLogLevel hLog, SeverityLogLevel sLog, String text) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -206,7 +205,7 @@ public class TPS_Logger {
      * @param text      The text to log
      * @param throwable The exception to log
      */
-    public static void log(HierarchyLogLevel hLog, SeverenceLogLevel sLog, String text, Throwable throwable) {
+    public static void log(HierarchyLogLevel hLog, SeverityLogLevel sLog, String text, Throwable throwable) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -222,7 +221,7 @@ public class TPS_Logger {
      * @param sLog The SeverenceLogLevel
      * @param text The text to log
      */
-    public static void log(SeverenceLogLevel sLog, String text) {
+    public static void log(SeverityLogLevel sLog, String text) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -235,7 +234,7 @@ public class TPS_Logger {
      * @param sLog The SeverenceLogLevel
      * @param e    The exception to log
      */
-    public static void log(SeverenceLogLevel sLog, Exception e) {
+    public static void log(SeverityLogLevel sLog, Exception e) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -250,7 +249,7 @@ public class TPS_Logger {
      * @param text      The text to log
      * @param throwable The exception to log
      */
-    public static void log(SeverenceLogLevel sLog, String text, Throwable throwable) {
+    public static void log(SeverityLogLevel sLog, String text, Throwable throwable) {
         if (!shallBeLogged(sLog)) {
             return;
         }
@@ -261,17 +260,29 @@ public class TPS_Logger {
      * This method sets a new instance of the logging class.
      *
      */
-    public static void init(Path logDirectoryPath, String hierarchyLogLevel, String severanceLogLevel, String runIdentifier) {
+    public static void init(Path logDirectoryPath,
+                            String hierarchyLogLevel,
+                            String severanceLogLevel,
+                            String runIdentifier,
+                            LoggerConfiguration loggerConfiguration ) {
         if (LOGGING == null) {
+
+            Map<String,String> logLevels = loggerConfiguration.getLogLevels();
+            Level[] levelArray = new Level[logLevels.size()];
+
+            for (SeverityLogLevel sLog : SeverityLogLevel.values()) {
+                levelArray[sLog.ordinal()] = Level.toLevel(logLevels.get(sLog.name()));
+            }
+
             try {
                 Path logDirectory = Files.createDirectories(logDirectoryPath);
-                LOGGING = new TPS_Log4jLogger(logDirectory, runIdentifier);
+                LOGGING = new TPS_Log4jLogger(logDirectory, runIdentifier, levelArray);
             }catch (IOException e){
                 e.printStackTrace();
             }
 
             HIERARCHY_LOG_LEVEL_MASK = HierarchyLogLevel.valueOf(hierarchyLogLevel);
-            SEVERENCE_LOG_LEVEL_MASK = SeverenceLogLevel.valueOf(severanceLogLevel);
+            SEVERENCE_LOG_LEVEL_MASK = SeverityLogLevel.valueOf(severanceLogLevel);
 
             for (LogItem logItem : LOG_ITEMS) {
                 if (logItem.throwable == null) {
@@ -283,14 +294,14 @@ public class TPS_Logger {
             LOG_ITEMS.clear();
             LOG_ITEMS = null;
         } else {
-            log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.WARN, "Try to set the log level a second time");
+            log(HierarchyLogLevel.CLIENT, SeverityLogLevel.WARN, "Try to set the log level a second time");
         }
     }
 
     /**
      * @brief Returns whether the given severence level messages shall be logged
      */
-    public static boolean shallBeLogged(SeverenceLogLevel sLog) {
+    public static boolean shallBeLogged(SeverityLogLevel sLog) {
         return SEVERENCE_LOG_LEVEL_MASK == null || SEVERENCE_LOG_LEVEL_MASK.includes(sLog);
     }
 
@@ -309,11 +320,11 @@ public class TPS_Logger {
     private static class LogItem {
         Class<?> callerClass;
         HierarchyLogLevel hLog;
-        SeverenceLogLevel sLog;
+        SeverityLogLevel sLog;
         String text;
         Throwable throwable;
 
-        private LogItem(Class<?> callerClass, HierarchyLogLevel hLog, SeverenceLogLevel sLog, String text, Throwable throwable) {
+        private LogItem(Class<?> callerClass, HierarchyLogLevel hLog, SeverityLogLevel sLog, String text, Throwable throwable) {
             this.callerClass = callerClass;
             this.hLog = hLog;
             this.sLog = sLog;

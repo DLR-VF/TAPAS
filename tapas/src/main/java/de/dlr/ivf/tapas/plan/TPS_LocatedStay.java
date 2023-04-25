@@ -13,10 +13,10 @@ import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_Region;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
@@ -26,7 +26,7 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.parameter.SimulationType;
 
 import java.util.function.Supplier;
 
@@ -184,8 +184,8 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
      * @param pc
      */
     public void selectLocation(TPS_Plan plan, TPS_PlanningContext pc, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
-        if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(SeverenceLogLevel.DEBUG,
+        if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+            TPS_Logger.log(SeverityLogLevel.DEBUG,
                     "Start select procedure for stay (id=" + this.getStay().getId() + ")");
         }
 
@@ -221,8 +221,8 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
         if (currentActCode.hasAttribute(TPS_ActivityConstantAttribute.E_COMMERCE_OUT_OF_HOME)) {
             // Is this an activity that (if it not takes place at home anyway) should be executed in the very
             // vicinity of the home residence?
-            if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                TPS_Logger.log(SeverenceLogLevel.DEBUG,
+            if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                TPS_Logger.log(SeverityLogLevel.DEBUG,
                         "Activity: " + currentActCode + " assumed to be performed at home");
             }
             this.setLocation(plan.getPerson().getHousehold().getLocation());
@@ -230,12 +230,12 @@ public class TPS_LocatedStay extends TPS_AdaptedEpisode implements ExtendedWrita
             TPS_Region region = PM.getRegion();
             this.setLocation(region.selectLocation(plan, pc, this, coming_from,going_to));
             if (this.getLocation() == null) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR,
+                TPS_Logger.log(SeverityLogLevel.ERROR,
                         "End select procedure for stay (id=" + this.getStay().getId() + ") with no location");
                 //throw new RuntimeException("End select procedure for stay (id=" + this.getStay().getId() + ") with no location");
             } else {
-                if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                    TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                    TPS_Logger.log(SeverityLogLevel.DEBUG,
                             "End select procedure for stay (id=" + this.getStay().getId() + ") with location (id=" +
                                     this.getLocation().getId() + ")");
                 }

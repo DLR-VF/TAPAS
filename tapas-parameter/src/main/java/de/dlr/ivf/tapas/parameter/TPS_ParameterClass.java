@@ -11,9 +11,9 @@ package de.dlr.ivf.tapas.parameter;
 import com.csvreader.CsvReader;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.SeverenceLogLevel;
-import de.dlr.ivf.tapas.util.Matrix;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.model.Matrix;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -95,33 +95,33 @@ public class TPS_ParameterClass {
      * reported via the logging function.
      */
     public void checkParameters() {
-        if (!TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
+        if (!TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
             return;
         }
         for (ParamFlag pf : ParamFlag.values()) {
             if (!this.isDefined(pf) && !this.getType(pf).equals(ParamType.OPTIONAL)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN, pf + " not defined in the properties file");
+                TPS_Logger.log(SeverityLogLevel.WARN, pf + " not defined in the properties file");
             }
         }
         for (ParamValue pv : ParamValue.values()) {
             if (!this.isDefined(pv) && !this.getType(pv).equals(ParamType.OPTIONAL)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN, pv + " not defined in the properties file");
+                TPS_Logger.log(SeverityLogLevel.WARN, pv + " not defined in the properties file");
             }
         }
         for (ParamString ps : ParamString.values()) {
             if (!this.isDefined(ps) && !this.getType(ps).equals(ParamType.OPTIONAL)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN, ps + " not defined in the properties file");
+                TPS_Logger.log(SeverityLogLevel.WARN, ps + " not defined in the properties file");
             }
         }
         //TODO: we cannot check the matrices this way,because they need to be loaded somewhere first!
 //        for (ParamMatrix pm : ParamMatrix.values()) {
 //            if (!this.isDefined(pm) && !this.getType(pm).equals(ParamType.OPTIONAL)) {
-//                TPS_Logger.log(SeverenceLogLevel.WARN, pm + " not defined in the properties file");
+//                TPS_Logger.log(SeverityLogLevel.WARN, pm + " not defined in the properties file");
 //            }
 //        }
 //        for (ParamMatrixMap pmm : ParamMatrixMap.values()) {
 //            if (!this.isDefined(pmm) && !this.getType(pmm).equals(ParamType.OPTIONAL)) {
-//                TPS_Logger.log(SeverenceLogLevel.WARN, pmm + " not defined in the properties file");
+//                TPS_Logger.log(SeverityLogLevel.WARN, pmm + " not defined in the properties file");
 //            }
 //        }
     }
@@ -233,12 +233,12 @@ public class TPS_ParameterClass {
                         this.setFlag(pf, false);
                         flagSet.remove(pf);
                     } else {
-                        TPS_Logger.log(SeverenceLogLevel.ERROR,
+                        TPS_Logger.log(SeverityLogLevel.ERROR,
                                 "Illegal " + "Parameter value: " + key + " -> " + value + " not in {true, false}");
                     }
                 } else {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                        TPS_Logger.log(SeverenceLogLevel.WARN,
+                    if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                        TPS_Logger.log(SeverityLogLevel.WARN,
                                 "Parameter " + "already defined: " + key + " -> " + this.paramFlagClass.isTrue(pf));
                     }
                     consumed = true;
@@ -279,8 +279,8 @@ public class TPS_ParameterClass {
                             // everything ok
                     }
                 } else {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                        TPS_Logger.log(SeverenceLogLevel.WARN,
+                    if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                        TPS_Logger.log(SeverityLogLevel.WARN,
                                 "Parameter " + "already defined: " + key + " -> " + this.getString(ps));
                     }
                     consumed = true;
@@ -301,14 +301,14 @@ public class TPS_ParameterClass {
                     valueSet.remove(pv);
                     consumed = true;
                 } else {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                        TPS_Logger.log(SeverenceLogLevel.WARN, "Parameter " + "already defined: " + key + " -> " +
+                    if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                        TPS_Logger.log(SeverityLogLevel.WARN, "Parameter " + "already defined: " + key + " -> " +
                                 this.paramValueClass.getDoubleValue(pv));
                     }
                     consumed = true;
                 }
             } catch (NumberFormatException e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "Illegal parameter " + "value: " + key, e);
+                TPS_Logger.log(SeverityLogLevel.ERROR, "Illegal parameter " + "value: " + key, e);
                 consumed = true;
             } catch (IllegalArgumentException e) {
                 /*
@@ -319,8 +319,8 @@ public class TPS_ParameterClass {
             }
         }
         if (!consumed) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                TPS_Logger.log(SeverenceLogLevel.DEBUG, "Unknown parameter defined in file: " + key);
+            if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                TPS_Logger.log(SeverityLogLevel.DEBUG, "Unknown parameter defined in file: " + key);
             }
         }
         return consumed;
@@ -519,8 +519,8 @@ public class TPS_ParameterClass {
             }
         }
         reader.close();
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO,
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO,
                     "Load file: " + propertiesFile.getPath() + " with " + counter + " key-value pairs");
         }
     }
@@ -565,11 +565,6 @@ public class TPS_ParameterClass {
 
         generateTemporaryParameters();
 
-        if (this.isDefined(ParamString.LOG_CLASS))
-            TPS_Logger.init(composeLogDirPath(),
-                    getString(ParamString.HIERARCHY_LOG_LEVEL_MASK),
-                    getString(ParamString.SEVERENCE_LOG_LEVEL_MASK),
-                    getString(ParamString.RUN_IDENTIFIER));
     }
 
     /**
@@ -655,8 +650,8 @@ public class TPS_ParameterClass {
                 }
             } while (rs.next());
 
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO,
                         "Load db parameters " + "for " + sim_key + " with " + counter + " key-value pairs");
             }
 
@@ -665,26 +660,7 @@ public class TPS_ParameterClass {
             this.setString(ParamString.FILE_DATABASE_PROPERTIES, "loadedFromDB");
             this.setString(ParamString.FILE_LOGGING_PROPERTIES, "loadedFromDB");
             this.setString(ParamString.FILE_PARAMETER_PROPERTIES, "loadedFromDB");
-            if (this.isDefined(ParamString.LOG_CLASS)) {
-                TPS_Logger.init(composeLogDirPath(),
-                        getString(ParamString.HIERARCHY_LOG_LEVEL_MASK),
-                        getString(ParamString.SEVERENCE_LOG_LEVEL_MASK),
-                        getString(ParamString.RUN_IDENTIFIER));
-            }
         }
-    }
-
-    private Path composeLogDirPath(){
-        String dirSeparator = System.getProperty("file.separator");
-        String dirName = getString(ParamString.FILE_WORKING_DIRECTORY);
-
-        if (!dirName.endsWith(dirSeparator)) {
-            dirName = dirName + dirSeparator;
-        }
-
-        dirName = dirName + LOG_DIR + getString(ParamString.RUN_IDENTIFIER);
-
-        return Paths.get(dirName);
     }
 
     /**
@@ -770,7 +746,7 @@ public class TPS_ParameterClass {
                 } else if (value.equalsIgnoreCase("false")) {
                     this.setFlag(pf, false);
                 } else {
-                    TPS_Logger.log(SeverenceLogLevel.SEVERE,
+                    TPS_Logger.log(SeverityLogLevel.SEVERE,
                             "Illegal Parameter value: " + key + " -> " + value + " not in {true, false}");
                 }
                 consumed = true;
@@ -802,7 +778,7 @@ public class TPS_ParameterClass {
                 this.paramValueClass.setValue(pv, Double.parseDouble(value));
                 consumed = true;
             } catch (NumberFormatException e) {
-                TPS_Logger.log(SeverenceLogLevel.SEVERE, "Illegal parameter value: " + key, e);
+                TPS_Logger.log(SeverityLogLevel.SEVERE, "Illegal parameter value: " + key, e);
                 consumed = true;
             } catch (IllegalArgumentException e) {
                 /*
@@ -813,7 +789,7 @@ public class TPS_ParameterClass {
             }
         }
         if (!consumed) {
-            TPS_Logger.log(SeverenceLogLevel.WARN, "Unknown parameter defined: " + key);
+            TPS_Logger.log(SeverityLogLevel.WARN, "Unknown parameter defined: " + key);
         }
         return consumed;
     }
@@ -923,11 +899,11 @@ public class TPS_ParameterClass {
                         this.setFlag(pf, false);
                         flagSet.remove(pf);
                     } else {
-                        TPS_Logger.log(SeverenceLogLevel.SEVERE,
+                        TPS_Logger.log(SeverityLogLevel.SEVERE,
                                 "Illegal Parameter value: " + key + " -> " + value + " not in {true, false}");
                     }
                 } else {
-                    TPS_Logger.log(SeverenceLogLevel.SEVERE,
+                    TPS_Logger.log(SeverityLogLevel.SEVERE,
                             "Parameter already defined: " + key + " -> " + this.paramFlagClass.isTrue(pf));
                 }
                 consumed = true;
@@ -957,7 +933,7 @@ public class TPS_ParameterClass {
                             // everything ok
                     }
                 } else {
-                    TPS_Logger.log(SeverenceLogLevel.SEVERE,
+                    TPS_Logger.log(SeverityLogLevel.SEVERE,
                             "Parameter already defined: " + key + " -> " + this.getString(ps));
                 }
             } catch (IllegalArgumentException e) {
@@ -976,11 +952,11 @@ public class TPS_ParameterClass {
                     valueSet.remove(pv);
                     consumed = true;
                 } else {
-                    TPS_Logger.log(SeverenceLogLevel.SEVERE,
+                    TPS_Logger.log(SeverityLogLevel.SEVERE,
                             "Parameter already defined: " + key + " -> " + this.paramValueClass.getDoubleValue(pv));
                 }
             } catch (NumberFormatException e) {
-                TPS_Logger.log(SeverenceLogLevel.SEVERE, "Illegal parameter value: " + key, e);
+                TPS_Logger.log(SeverityLogLevel.SEVERE, "Illegal parameter value: " + key, e);
                 consumed = true;
             } catch (IllegalArgumentException e) {
                 /*
@@ -991,8 +967,8 @@ public class TPS_ParameterClass {
             }
         }
         if (!consumed) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN, "Unknown parameter defined in file: " + key);
+            if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                TPS_Logger.log(SeverityLogLevel.WARN, "Unknown parameter defined in file: " + key);
             }
         }
         return consumed;

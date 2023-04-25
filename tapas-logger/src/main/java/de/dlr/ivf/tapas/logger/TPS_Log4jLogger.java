@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.appender.FileAppender;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -47,28 +48,23 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
     /**
      * Standard constructor which initializes the pattern and maps.
      */
-    public TPS_Log4jLogger(Path logDirectory, String runIdentifier) {
+    public TPS_Log4jLogger(Path logDirectory, String runIdentifier, Level[] levelArray) {
         this.logDirectory = logDirectory;
         this.runIdentifier = runIdentifier;
+        this.levelArray = levelArray;
 
        this.layout = PatternLayout.newBuilder()
                 .withPattern("%5p %d %m%n")
                 .build();
 
-        ConsoleAppender apppender = ConsoleAppender.newBuilder()
+        ConsoleAppender appender = ConsoleAppender.newBuilder()
                 .setLayout(layout)
                 .build();
 
-        BasicConfigurator.configure(apppender);
-        Configurator.initialize(new DefaultConfiguration());
-
+        LoggerContext loggerContext = Configurator.initialize(new DefaultConfiguration());
+        loggerContext.getConfiguration().addAppender(appender);
         Configurator.setLevel(LogManager.getRootLogger(),Level.ALL);
         this.loggerMap = new HashMap<>();
-        SeverenceLogLevel[] sLevelArray = SeverenceLogLevel.values();
-        this.levelArray = new Level[sLevelArray.length];
-        for (SeverenceLogLevel sLog : sLevelArray) {
-            this.levelArray[sLog.getIndex()] = Level.toLevel(sLog.getKey(parameterClass));
-        }
     }
 
     public boolean closeLogger() {
@@ -83,8 +79,8 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
      * @param sLog The SeverenceLogLevel
      * @return The according Level
      */
-    private Level getLevel(SeverenceLogLevel sLog) {
-        return this.levelArray[sLog.getIndex()];
+    private Level getLevel(SeverityLogLevel sLog) {
+        return this.levelArray[sLog.ordinal()];
     }
 
     /**
@@ -136,8 +132,8 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
             // a, ask if this class with the given log parameter is logged at all -> this should be used when complex
             // texts are created to avoid concatenating the string without use
             // b, call the log method itself
-            if (TPS_Logger.isLogging(TPS_Log4jLogger.class, HierarchyLogLevel.CLIENT, SeverenceLogLevel.FINEST)) {
-                TPS_Logger.log(TPS_Log4jLogger.class, HierarchyLogLevel.CLIENT, SeverenceLogLevel.FINEST,
+            if (TPS_Logger.isLogging(TPS_Log4jLogger.class, HierarchyLogLevel.CLIENT, SeverityLogLevel.FINEST)) {
+                TPS_Logger.log(TPS_Log4jLogger.class, HierarchyLogLevel.CLIENT, SeverityLogLevel.FINEST,
                         "Created logger for class: " + callerClass.getName());
             }
         }
@@ -147,21 +143,21 @@ class TPS_Log4jLogger implements TPS_LoggingInterface {
     /**
      * Method to check if logging for a specific class and level is enabled
      */
-    public boolean isLogging(Class<?> callerClass, SeverenceLogLevel sLog) {
-        return this.getLogger(callerClass).isEnabledFor(this.getLevel(sLog));
+    public boolean isLogging(Class<?> callerClass, SeverityLogLevel sLog) {
+        return true;//this.getLogger(callerClass).isEnabledFor(this.getLevel(sLog));
     }
 
     /**
      * Log a text for the given class and log level.
      */
-    public void log(Class<?> callerClass, SeverenceLogLevel sLog, String text) {
+    public void log(Class<?> callerClass, SeverityLogLevel sLog, String text) {
         this.getLogger(callerClass).log(this.getLevel(sLog), text);
     }
 
     /**
      * Log a text for a given class and log level and attaching a given exception.
      */
-    public void log(Class<?> callerClass, SeverenceLogLevel sLog, String text, Throwable throwable) {
+    public void log(Class<?> callerClass, SeverityLogLevel sLog, String text, Throwable throwable) {
         this.getLogger(callerClass).log(this.getLevel(sLog), text, throwable);
     }
 

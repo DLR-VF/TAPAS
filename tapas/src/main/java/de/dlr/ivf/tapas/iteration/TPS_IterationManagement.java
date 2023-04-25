@@ -8,14 +8,13 @@
 
 package de.dlr.ivf.tapas.iteration;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.MatrixMap;
-import de.dlr.ivf.tapas.util.TPS_TripDeleter;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -120,7 +119,7 @@ public abstract class TPS_IterationManagement {
 
 
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Exception during SQL! Query: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Exception during SQL! Query: " + query, e);
         }
 
 
@@ -177,40 +176,40 @@ public abstract class TPS_IterationManagement {
      */
     public void resetPlansForRecalculation(ArrayList<Long> plans) {
         String query = "";
-
-        try {
-            TPS_TripDeleter worker = new TPS_TripDeleter(this.parameterClass);
-            Connection con = this.dbManager.getConnection(worker);
-
-            worker.setKey(this.parameterClass.getString(ParamString.RUN_IDENTIFIER));
-            // read HH-IDs
-            //performance tweak: 10000 -chunks!
-            int counter = 0;
-            for (Long id : plans) {
-                worker.putHHID(this.hashToHHID(id));
-                counter++;
-                if (counter == 10000) {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(SeverenceLogLevel.INFO, "Deleting " + counter + " households from triptable");
-                    }
-                    worker.deleteHouseholdsFromTriptable(con);
-                    worker.clearHHID();
-                    counter = 0;
-                }
-            }
-            //rest
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Deleting " + counter + " households from triptable");
-            }
-            worker.deleteHouseholdsFromTriptable(con);
-            worker.clearHHID();
-
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Done!");
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Exception during SQL! Query: " + query, e);
-        }
+//todo fix trip deleter in tapas-tools
+//        try {
+//            TPS_TripDeleter worker = new TPS_TripDeleter(this.parameterClass);
+//            Connection con = this.dbManager.getConnection(worker);
+//
+//            worker.setKey(this.parameterClass.getString(ParamString.RUN_IDENTIFIER));
+//            // read HH-IDs
+//            //performance tweak: 10000 -chunks!
+//            int counter = 0;
+//            for (Long id : plans) {
+//                worker.putHHID(this.hashToHHID(id));
+//                counter++;
+//                if (counter == 10000) {
+//                    if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+//                        TPS_Logger.log(SeverityLogLevel.INFO, "Deleting " + counter + " households from triptable");
+//                    }
+//                    worker.deleteHouseholdsFromTriptable(con);
+//                    worker.clearHHID();
+//                    counter = 0;
+//                }
+//            }
+//            //rest
+//            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+//                TPS_Logger.log(SeverityLogLevel.INFO, "Deleting " + counter + " households from triptable");
+//            }
+//            worker.deleteHouseholdsFromTriptable(con);
+//            worker.clearHHID();
+//
+//            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+//                TPS_Logger.log(SeverityLogLevel.INFO, "Done!");
+//            }
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.ERROR, "Exception during SQL! Query: " + query, e);
+//        }
     }
 
     /**

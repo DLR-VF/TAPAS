@@ -6,15 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util;
+package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.loc.Locatable;
 import de.dlr.ivf.tapas.loc.TPS_Coordinate;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamMatrix;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamMatrix;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
+import de.dlr.ivf.tapas.util.TPS_FastMath;
 
 import java.io.FileOutputStream;
 import java.io.IOException;

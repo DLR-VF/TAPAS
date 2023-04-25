@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util;
+package de.dlr.ivf.tapas.model;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;

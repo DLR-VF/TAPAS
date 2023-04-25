@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util;
+package de.dlr.ivf.tapas.model;
 
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.util.Matrix.MatrixPrint;
+import de.dlr.ivf.tapas.model.Matrix.MatrixPrint;
 
 import java.util.Arrays;
 
@@ -26,7 +26,7 @@ public class MatrixMap {
 
     public MatrixMap(double[] distribution, Matrix[] matrices) {
         if (distribution.length != matrices.length) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "Length of matrices and distribution differs: Matrix elements:" + matrices.length +
                             " distribution elements :" + distribution.length);
             return;
@@ -105,7 +105,7 @@ public class MatrixMap {
 
     public void logStatistics() {
         for (MatrixTuple e : this.matrices) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.INFO,
+            TPS_Logger.log(SeverityLogLevel.INFO,
                     "Matrix values: Time: " + e.value + " average Time: " + e.matrix.getAverageValue(true, true));
         }
     }

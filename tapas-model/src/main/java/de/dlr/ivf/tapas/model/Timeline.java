@@ -6,12 +6,12 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util;
+package de.dlr.ivf.tapas.model;
 
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 
 /**
  * This class represents a time line. It is possible to add entries from a start to an end point. These entries build up a
@@ -101,8 +101,8 @@ public class Timeline {
      */
     public boolean add(int start, int end) {
         if (start > end) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN,
+            if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                TPS_Logger.log(SeverityLogLevel.WARN,
                         "Start is greater or equal to end (start=" + start + ", end=" + end + ")");
             }
             return false;

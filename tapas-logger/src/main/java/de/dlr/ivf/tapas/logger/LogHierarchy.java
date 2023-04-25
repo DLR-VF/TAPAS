@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.logger;
 
-import de.dlr.ivf.tapas.logger.TPS_LoggingInterface.HierarchyLogLevel;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
