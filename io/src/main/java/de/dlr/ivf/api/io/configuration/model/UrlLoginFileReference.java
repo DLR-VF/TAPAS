@@ -1,21 +1,19 @@
 package de.dlr.ivf.api.io.configuration.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class UrlLoginFileReference {
 
-
+    @JsonProperty
     private final String urlFile;
 
-
+    @JsonProperty
     private final String loginFile;
-
-    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-    public UrlLoginFileReference(@JsonProperty("urlFile") String urlFile, @JsonProperty("loginFile") String loginFile){
-        this.urlFile = urlFile;
-        this.loginFile = loginFile;
-    }
-
-
 }
