@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.runtime.util;
+package de.dlr.ivf.tapas.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;

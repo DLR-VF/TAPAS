@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.util;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.util.Matrix.MatrixPrint;
 
 import java.util.Arrays;
@@ -26,7 +26,7 @@ public class MatrixMap {
 
     public MatrixMap(double[] distribution, Matrix[] matrices) {
         if (distribution.length != matrices.length) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.ERROR,
                     "Length of matrices and distribution differs: Matrix elements:" + matrices.length +
                             " distribution elements :" + distribution.length);
             return;
@@ -105,7 +105,7 @@ public class MatrixMap {
 
     public void logStatistics() {
         for (MatrixTuple e : this.matrices) {
-            TPS_Logger.log(SeverenceLogLevel.INFO,
+            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.INFO,
                     "Matrix values: Time: " + e.value + " average Time: " + e.matrix.getAverageValue(true, true));
         }
     }
