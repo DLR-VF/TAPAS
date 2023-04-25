@@ -18,7 +18,15 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-core:2.20.0")
     implementation("org.apache.logging.log4j:log4j-api:2.20.0")
 
-    implementation(project(":tapas-parameter"))
+    //lombok
+    implementation("org.projectlombok:lombok:1.18.24")
+    annotationProcessor ("org.projectlombok:lombok:1.18.24")
+    testCompileOnly ("org.projectlombok:lombok:1.18.24")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.24")
+
+    //jackson
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")
+
     implementation(project(":tapas-util"))
 }
 
