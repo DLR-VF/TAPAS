@@ -11,12 +11,12 @@ package de.dlr.ivf.tapas.scheme;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.EpisodeType;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingClass;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceAccessibility;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceSupply;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 /**
  * A Stay indicates an episode at one specific place. A stay can be part of a home part or a tour part.

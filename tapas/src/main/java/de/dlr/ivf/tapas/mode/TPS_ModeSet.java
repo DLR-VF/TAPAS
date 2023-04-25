@@ -15,9 +15,9 @@ import de.dlr.ivf.tapas.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.modechoice.TPS_ExpertKnowledgeTree;
 import de.dlr.ivf.tapas.modechoice.TPS_ModeChoiceTree;
@@ -28,10 +28,10 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.util.function.Supplier;
 
@@ -193,7 +193,7 @@ public class TPS_ModeSet implements ExtendedWritable {
                     currentArrivalMode = previousStayDepartureMode;
                 }
                 if (currentArrivalMode == null) {
-                    TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
+                    TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
                             "Error: no possible mode found!");
                 }
                 locatedStay.setModeArr(currentArrivalMode);
@@ -215,7 +215,7 @@ public class TPS_ModeSet implements ExtendedWritable {
                     }
                     locatedStay.setModeDep(currentDepartureMode);
                     if (currentDepartureMode == null) {
-                        TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
+                        TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
                                 "Error: no possible mode found!");
                     }
                 }
@@ -243,7 +243,7 @@ public class TPS_ModeSet implements ExtendedWritable {
                         currentArrivalMode = previousStayDepartureMode;
                     }
                     if (currentArrivalMode == null) {
-                        TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
+                        TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
                                 "Error: no possible mode found!");
                     }
                     locatedStay.setModeArr(currentArrivalMode);
@@ -354,8 +354,8 @@ public class TPS_ModeSet implements ExtendedWritable {
         TPS_Mode primary;
         // selecting mode
         if (dstDis == null || dstDis.size() == 0) {
-            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE)) {
-                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
+                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
                         "Distribution is empty. Using 'WALK' as default.");
             }
             primary = TPS_Mode.get(ModeType.WALK);
@@ -400,7 +400,7 @@ public class TPS_ModeSet implements ExtendedWritable {
 //			random = Randomizer.random();
 //			// selecting mode
 //			if (dstDis == null || dstDis.size()==0) {
-//				TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
+//				TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
 //						"Distribution is empty. Using 'WALK' as default.");
 //				mode = TPS_Mode.get(ModeType.WALK);
 //			} else {

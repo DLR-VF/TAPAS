@@ -9,9 +9,9 @@
 package de.dlr.ivf.tapas.modechoice;
 
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
@@ -37,16 +37,16 @@ public class TPS_UtilityChaidMNLMixed extends TPS_UtilityMNLFullComplex {
             dist = pNode.getCopyOfValueDistribution();
             expertCheck = TPS_ExpertKnowledgeTree.applyExpertKnowledge(modeSet, plan, distanceNet, mcc, true, dist);
             if (pNode.getParent() == null) {
-                if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN, "Top node in mode choice tree reached!");
+                if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                    TPS_Logger.log(SeverityLogLevel.WARN, "Top node in mode choice tree reached!");
                 }
             }
             pNode = pNode.getParent(); // for the next cycle: if normalize fails, we take the parent
         } while ((!expertCheck || !dist.normalize()) && pNode != null);
 
         if (!dist.normalize()) {
-            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE)) {
-                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE, "No possible modes!");
+            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
+                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE, "No possible modes!");
                 dist.setValueByKey(TPS_Mode.get(ModeType.MIT_PASS), 1); // you have to find someone taking you there!
             }
         }

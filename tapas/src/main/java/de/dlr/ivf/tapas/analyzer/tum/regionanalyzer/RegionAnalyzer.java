@@ -12,7 +12,7 @@ import de.dlr.ivf.tapas.analyzer.gui.AbstractCoreProcess;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
 import de.dlr.ivf.tapas.analyzer.tum.results.DatabaseSummaryExport;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;

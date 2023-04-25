@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.runtime.server;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Worker;
 
@@ -30,8 +30,8 @@ public class HierarchicalSimulator implements TPS_Simulator {
             this.workers = new ArrayList<>(num_threads);
 
             // start worker threads
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize " + num_threads + " working threads ...");
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Initialize " + num_threads + " working threads ...");
             }
 
 
@@ -46,8 +46,8 @@ public class HierarchicalSimulator implements TPS_Simulator {
             }
 
             // wait for worker threads
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "... wait for all working threads ...");
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "... wait for all working threads ...");
             }
 
             for (Future<Exception> future : col) {
@@ -57,13 +57,13 @@ public class HierarchicalSimulator implements TPS_Simulator {
 
         } catch (Exception e) {
 
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
         }
     }
 
     @Override
     public void shutdown() {
-        TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,"Stopping worker threads...");
+        TPS_Logger.log(getClass(),SeverityLogLevel.INFO,"Stopping worker threads...");
         this.workers.forEach(TPS_Worker::finish);
     }
 

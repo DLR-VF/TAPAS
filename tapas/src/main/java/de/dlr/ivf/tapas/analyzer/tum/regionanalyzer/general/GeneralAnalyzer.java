@@ -16,7 +16,7 @@ import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.tools.TUM.IntegratedTUM;
 import jxl.write.WriteException;
 

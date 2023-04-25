@@ -3,8 +3,9 @@ package de.dlr.ivf.tapas.execution.sequential.action;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.mode.TazBasedCarSharingDelegator;
 import de.dlr.ivf.tapas.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
@@ -17,7 +18,7 @@ import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
 
 
 import java.util.Map;
@@ -122,8 +123,8 @@ public class SelectLocationAndModeAction implements TPS_PlanStateAction {
 
                     arrival_located_stay.setLocation(plan.getFixLocations().get(currentActCode));
 
-                if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.EPISODE, TPS_LoggingInterface.SeverenceLogLevel.FINE)) {
-                    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.EPISODE, TPS_LoggingInterface.SeverenceLogLevel.FINE,
+                if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.FINE)) {
+                    TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.FINE,
                             "Set location from fix locations");
                 }
             } else {
@@ -134,7 +135,7 @@ public class SelectLocationAndModeAction implements TPS_PlanStateAction {
             }
 
             if (arrival_located_stay.getLocation() == null) {
-                TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.ERROR, "No Location found!");
+                TPS_Logger.log(SeverityLogLevel.ERROR, "No Location found!");
             }
         }
 
@@ -164,8 +165,8 @@ public class SelectLocationAndModeAction implements TPS_PlanStateAction {
 
 
 
-        if (TPS_Logger.isLogging(TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG,
+        if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+            TPS_Logger.log(SeverityLogLevel.DEBUG,
                     "Selected mode (id=" + arrival_located_stay.getModeArr() == null ? "NULL" :
                             arrival_located_stay.getModeArr().getName() + ") for stay (id=" +
                                     arrival_located_stay.getEpisode().getId() + " in TAZ (id=" +

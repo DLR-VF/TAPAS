@@ -11,8 +11,8 @@ package de.dlr.ivf.tapas.loc;
 import de.dlr.ivf.tapas.TPS_Main;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
@@ -22,10 +22,10 @@ import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart.TravelDurations;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -173,8 +173,8 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
         }
 
         time = System.nanoTime() - time;
-        if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(SeverenceLogLevel.DEBUG,
+        if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+            TPS_Logger.log(SeverityLogLevel.DEBUG,
                     "Selected traffic analysis zones (size=" + regionRS.size() + ") in " + (time / 1000000.0) + "ms");
         }
         return regionRS;

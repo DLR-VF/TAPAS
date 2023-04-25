@@ -9,18 +9,18 @@
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
-import de.dlr.ivf.tapas.util.Matrix;
-import de.dlr.ivf.tapas.util.MatrixMap;
+import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
-import de.dlr.ivf.tapas.util.parameters.CURRENCY;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.CURRENCY;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.File;
 import java.io.IOException;

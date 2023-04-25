@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.tools.matrixMap;
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

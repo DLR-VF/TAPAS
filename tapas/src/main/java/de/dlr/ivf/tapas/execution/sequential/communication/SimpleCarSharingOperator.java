@@ -3,8 +3,8 @@ package de.dlr.ivf.tapas.execution.sequential.communication;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.runtime.server.SimTimeProvider;
 import de.dlr.ivf.tapas.util.FuncUtils;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.util.Iterator;
 import java.util.Optional;

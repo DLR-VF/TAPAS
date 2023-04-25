@@ -18,9 +18,9 @@ import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingPreferenceAccess
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBased {
 

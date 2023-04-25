@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.File;
 import java.io.IOException;

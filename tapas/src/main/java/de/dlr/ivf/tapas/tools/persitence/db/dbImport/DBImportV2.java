@@ -10,7 +10,7 @@ package de.dlr.ivf.tapas.tools.persitence.db.dbImport;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.tools.fileModifier.TPS_ModeChoiceTreeConverter;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.*;
 import java.sql.*;

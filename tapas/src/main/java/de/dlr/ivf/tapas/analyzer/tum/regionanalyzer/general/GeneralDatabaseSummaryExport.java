@@ -15,7 +15,7 @@ import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.IOException;
 import java.sql.Connection;

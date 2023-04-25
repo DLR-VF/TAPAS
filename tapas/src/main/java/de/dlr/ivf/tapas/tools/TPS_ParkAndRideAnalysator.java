@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.util.Matrix;
+import de.dlr.ivf.tapas.model.Matrix;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

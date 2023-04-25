@@ -9,10 +9,10 @@
 package de.dlr.ivf.tapas.scheme;
 
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.util.Iterator;
 import java.util.SortedMap;

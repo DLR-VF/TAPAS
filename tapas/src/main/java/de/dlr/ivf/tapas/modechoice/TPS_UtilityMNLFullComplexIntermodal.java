@@ -18,10 +18,10 @@ import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamMatrixMap;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamMatrixMap;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

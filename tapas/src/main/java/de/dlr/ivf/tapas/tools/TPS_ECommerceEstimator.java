@@ -14,8 +14,7 @@ import de.dlr.ivf.tapas.loc.TPS_Coordinate;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.parameter.ParamValue;
 
 import java.io.FileWriter;
 import java.io.IOException;

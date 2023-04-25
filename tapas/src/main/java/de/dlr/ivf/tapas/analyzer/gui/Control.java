@@ -12,10 +12,9 @@ import de.dlr.ivf.tapas.analyzer.core.Core;
 import de.dlr.ivf.tapas.analyzer.core.CoreInputInterface;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.TUMControlGeneral;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
-import org.apache.log4j.*;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.Timer;
 import javax.swing.*;
@@ -46,7 +45,6 @@ public class Control implements CoreInputInterface, ActionListener {
     /**
      * Logging object
      */
-    private static final Logger LOG = LogManager.getLogger(Control.class);
     private static String initOutputPath;
     private static Control instance;
     final JTextPane cons = new JTextPane();
@@ -92,11 +90,6 @@ public class Control implements CoreInputInterface, ActionListener {
      */
     public Control(TPS_ParameterClass parameterClass) {
         this.parameterClass = parameterClass;
-        BasicConfigurator.configure(new ConsoleAppender(new PatternLayout("%5p %d - %m%n")));
-        Logger.getRootLogger().setLevel(Level.ALL);
-        // logger.info("Starting Program");
-        LOG.info("Starting Control");
-
         // show styles
         // Object a[] = UIManager.getInstalledLookAndFeels();
         // for (int i = 0; i < a.length; i++)

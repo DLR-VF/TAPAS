@@ -8,10 +8,10 @@
 
 package de.dlr.ivf.tapas.persistence.io;
 
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 
 import java.io.File;
 import java.io.IOException;
@@ -111,8 +111,8 @@ public abstract class TPS_FileConsumer {
      * @throws Exception This method can throw any Exception
      */
     private void consumeFile(boolean hasHeader) throws Exception {
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Opened file: " + this.getFileName());
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Opened file: " + this.getFileName());
         }
 
         if (hasHeader) this.init(this.reader.getHeaders());
@@ -124,8 +124,8 @@ public abstract class TPS_FileConsumer {
 
         while ((record = reader.getRecord()) != null) {
             if (record.length == 0 || record[0].length() == 0) {
-                if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN,
+                if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                    TPS_Logger.log(SeverityLogLevel.WARN,
                             "Skipped empty line in file " + this.getShortFileName() + " in line " + (lineCount + 1) +
                                     ": " + Arrays.toString(record));
                 }
@@ -138,8 +138,8 @@ public abstract class TPS_FileConsumer {
                                             Arrays.toString(record) + " is too short: " + this.getRecordLength() +
                                             "(requested) > " + record.length);
                         } else if (record.length > this.getRecordLength()) {
-                            if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-                                TPS_Logger.log(SeverenceLogLevel.FINE,
+                            if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+                                TPS_Logger.log(SeverityLogLevel.FINE,
                                         "Record  in file " + this.getShortFileName() + " in line " + (lineCount + 1) +
                                                 " " + Arrays.toString(record) + " is too long: " +
                                                 this.getRecordLength() + "(requested) < " + record.length);
@@ -166,8 +166,8 @@ public abstract class TPS_FileConsumer {
         }
 
         this.finish(lineCount);
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO,
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO,
                     "Read " + lineCount + " entries of file: " + new File(this.getFileName()).getName());
         }
     }
@@ -247,7 +247,7 @@ public abstract class TPS_FileConsumer {
         try {
             this.consumeFile(this.hasHeader);
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
             throw new RuntimeException("Fatal Error in TPS_FileConsumer.start() -> stop application", e);
         }
     }

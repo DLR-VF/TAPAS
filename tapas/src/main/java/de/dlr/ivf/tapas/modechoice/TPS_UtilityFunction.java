@@ -9,8 +9,8 @@
 package de.dlr.ivf.tapas.modechoice;
 
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.mode.TPS_ModeSet;

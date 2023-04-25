@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.analyzer.core;
 
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;

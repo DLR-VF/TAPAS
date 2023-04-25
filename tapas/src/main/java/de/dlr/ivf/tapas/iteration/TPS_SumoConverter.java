@@ -9,18 +9,18 @@
 package de.dlr.ivf.tapas.iteration;
 
 import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.util.Matrix;
-import de.dlr.ivf.tapas.util.MatrixMap;
-import de.dlr.ivf.tapas.util.parameters.CURRENCY;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.parameter.CURRENCY;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -131,7 +131,7 @@ public class TPS_SumoConverter {
             parameterClass.checkParameters();
 
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -193,7 +193,7 @@ public class TPS_SumoConverter {
             }
             rs.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! ", e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! ", e);
             return false;
         }
         return returnVal;
@@ -336,8 +336,8 @@ public class TPS_SumoConverter {
             }
         }
         avgError /= size * size;
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO,
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO,
                     "max error: " + maxError + " minError: " + minError + " avg error: " + avgError);
         }
     }
@@ -389,7 +389,7 @@ public class TPS_SumoConverter {
             }
             rs.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in query: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in query: " + query, e);
         }
     }
 
@@ -422,8 +422,8 @@ public class TPS_SumoConverter {
             in = new FileReader(fileName);
             input = new BufferedReader(in);
             line = input.readLine();//header
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "File opened: " + fileName + " header: " + line);
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "File opened: " + fileName + " header: " + line);
             }
 
             String actToken;
@@ -490,7 +490,7 @@ public class TPS_SumoConverter {
                 if (in != null) in.close();
             }//try
             catch (IOException ex) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, " Could not close : " + fileName);
+                TPS_Logger.log(SeverityLogLevel.ERROR, " Could not close : " + fileName);
                 throw new IOException(ex);
             }//catch
         }//finally
@@ -515,12 +515,12 @@ public class TPS_SumoConverter {
                 }
             }
             rs.close();
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
             }
 
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! Query: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! Query: " + query, e);
             throw new SQLException("SQL error! Query: " + query, e);
         }
     }
@@ -545,7 +545,7 @@ public class TPS_SumoConverter {
                     Integer[] matrixVal = (Integer[]) array;
                     int size = (int) Math.sqrt(matrixVal.length);
                     if (size != this.distance.length) {
-                        TPS_Logger.log(SeverenceLogLevel.ERROR,
+                        TPS_Logger.log(SeverityLogLevel.ERROR,
                                 "Matrix " + matrixName + " has a different size: " + size + " Expected: " +
                                         this.distance.length);
                         return null;
@@ -559,11 +559,11 @@ public class TPS_SumoConverter {
                     }
                 }
             } else {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
+                TPS_Logger.log(SeverityLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
             }
             rs.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL Error: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL Error: " + query, e);
         }
         return returnVal;
     }
@@ -587,7 +587,7 @@ public class TPS_SumoConverter {
                 rs.close();
                 // check sizes
                 if (numOfMatrices != matrix_names.length) {
-                    TPS_Logger.log(SeverenceLogLevel.FATAL,
+                    TPS_Logger.log(SeverityLogLevel.FATAL,
                             "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixName) +
                                     " from database. Different array sizes (num, matrices, distribution): " +
                                     numOfMatrices + " " + matrix_names.length + " " + distribution.length +
@@ -612,7 +612,7 @@ public class TPS_SumoConverter {
                         }
                         rs.close();
                     } else {
-                        TPS_Logger.log(SeverenceLogLevel.FATAL,
+                        TPS_Logger.log(SeverityLogLevel.FATAL,
                                 "Couldn't load matrix " + matrix_names[i] + " form matrix map" +
                                         this.dbManager.getParameters().getString(matrixName) +
                                         ": No such matrix. SQL Query: " + query);
@@ -622,7 +622,7 @@ public class TPS_SumoConverter {
                 return new MatrixMap(thisDistribution, matrices);
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixName) +
                             " from database: No such entry. SQL Query: " + query, e);
         }
@@ -657,8 +657,8 @@ public class TPS_SumoConverter {
      */
     public void storeInDB(String matrixName, Matrix mat, int decimalPlaces) {
         if (decimalPlaces != 0) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN,
+            if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                TPS_Logger.log(SeverityLogLevel.WARN,
                         "Decimal places are currently incompatible with the db (integers not doubles). Setting Decimal Places to 0!");
             }
             decimalPlaces = 0;
@@ -666,8 +666,8 @@ public class TPS_SumoConverter {
         //load the data from the db
         String query = "SELECT * FROM " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
                 " WHERE \"matrix_name\" = '" + matrixName + "'";
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
                     this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES));
         }
         if (checkMatrixName(matrixName)) {
@@ -675,22 +675,22 @@ public class TPS_SumoConverter {
             query = "UPDATE " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
                     " SET matrix_values = ";
             query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + " WHERE \"matrix_name\" = '" + matrixName + "'";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
                         this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");
             }
         } else {
             query = "INSERT INTO " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
                     " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
             query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + ")";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
                         this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");
             }
         }
         this.dbManager.execute(query, this);
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Successful!");
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Successful!");
         }
 
     }
@@ -720,7 +720,7 @@ public class TPS_SumoConverter {
             }
             this.dbManager.execute(query, this);
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "Couldn't load matrixmap " + this.dbManager.getParameters().getString(matrixMapName) +
                             " from database: No such entry. SQL Query: " + query, e);
         }
@@ -743,7 +743,7 @@ public class TPS_SumoConverter {
             rs.close();
 
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Exception during Sumo export! Error reading SQL! Query:" + query,
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Exception during Sumo export! Error reading SQL! Query:" + query,
                     e);
             throw new SQLException("Exception during Sumo export! Error reading SQL! Query:" + query, e);
         }

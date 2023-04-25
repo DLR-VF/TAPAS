@@ -11,7 +11,7 @@ package de.dlr.ivf.tapas.tools.matrixMap;
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.PropertyReader;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 import org.apache.commons.cli.*;
 
 import java.io.*;

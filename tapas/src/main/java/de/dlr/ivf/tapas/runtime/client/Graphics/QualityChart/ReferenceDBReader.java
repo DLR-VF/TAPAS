@@ -12,7 +12,7 @@ import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategoryDefault;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.File;
 import java.io.IOException;

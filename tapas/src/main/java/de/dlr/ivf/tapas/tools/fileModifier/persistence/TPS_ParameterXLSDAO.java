@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.tools.fileModifier.persistence;
 
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.util.parameters.*;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;

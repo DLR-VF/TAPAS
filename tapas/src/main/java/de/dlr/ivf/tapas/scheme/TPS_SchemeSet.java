@@ -10,10 +10,10 @@ package de.dlr.ivf.tapas.scheme;
 
 import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.NestedIterator;
@@ -82,8 +82,8 @@ public class TPS_SchemeSet implements Iterable<TPS_Scheme>, ExtendedWritable {
     public TPS_Scheme findScheme(TPS_Person person) {
         TPS_Scheme scheme = this.selectScheme(person);
         // report if wished
-        if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(HierarchyLogLevel.PERSON, SeverenceLogLevel.DEBUG,
+        if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
+            TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG,
                     "Selected scheme (id=" + scheme.getId() + ") of schemeClass (id=" +
                             scheme.getSchemeClass().getId() + ")");
         }

@@ -1,7 +1,8 @@
 package de.dlr.ivf.tapas.execution.sequential.io;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
@@ -11,9 +12,9 @@ import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlanEnvironment;
 import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.scheme.TPS_Scheme;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,12 +52,12 @@ public class HouseholdBasedPlanGenerator {
 
         for (TPS_Person person : household.getMembers(sortAlgo)) {
 
-            if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
-                TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "Working on person: " + person);
+            if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
+                TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG, "Working on person: " + person);
             }
             if (person.isChild()) {
-                if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
-                    TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.DEBUG,
+                if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
+                    TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG,
                             "Person is skipped because it is a child");
                 }
                 continue;
@@ -65,8 +66,8 @@ public class HouseholdBasedPlanGenerator {
             // check if age adaptation should occur
             if (pm.getParameters().isTrue(ParamFlag.FLAG_REJUVENATE_RETIREE)) {
                 if (person.getAge() >= pm.getParameters().getIntValue(ParamValue.REJUVENATE_AGE)) {
-                    if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.DEBUG,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG,
                                 "Person's age gets adapted");
                     }
                     person.setAgeAdaption(true, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));

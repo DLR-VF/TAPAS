@@ -8,13 +8,13 @@
 
 package de.dlr.ivf.tapas.iteration;
 
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.util.Randomizer;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,8 +41,8 @@ public class TPS_BasicIterationManager extends TPS_IterationManagement {
         ArrayList<Long> plans = new ArrayList<>();
 
         String query = "";
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Selecting households for recalculation");
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Selecting households for recalculation");
         }
         //stupid first attempt: recalculate fix random rate!
         try {
@@ -61,7 +61,7 @@ public class TPS_BasicIterationManager extends TPS_IterationManagement {
                 }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Exception during SQL! Query: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Exception during SQL! Query: " + query, e);
         }
         return plans;
     }

@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.runtime.util;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -84,7 +84,7 @@ public class WindowsProcessHandler {
 
             }
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
         }
 
         return false;
@@ -105,12 +105,12 @@ public class WindowsProcessHandler {
                 try {
                     proc.waitFor();
                 } catch (InterruptedException e) {
-                    TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+                    TPS_Logger.log(SeverityLogLevel.ERROR, e);
                 }
                 byte[] bytes = new byte[proc.getInputStream().available()];
                 proc.getInputStream().read(bytes);
-                if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN, new String(bytes));
+                if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                    TPS_Logger.log(SeverityLogLevel.WARN, new String(bytes));
                 }
                 return proc.exitValue();
             } else {
@@ -119,17 +119,17 @@ public class WindowsProcessHandler {
                 try {
                     proc.waitFor();
                 } catch (InterruptedException e) {
-                    TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+                    TPS_Logger.log(SeverityLogLevel.ERROR, e);
                 }
                 byte[] bytes = new byte[proc.getInputStream().available()];
                 proc.getInputStream().read(bytes);
-                if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN, new String(bytes));
+                if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                    TPS_Logger.log(SeverityLogLevel.WARN, new String(bytes));
                 }
                 return proc.exitValue();
             }
         } catch (IOException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
             return -1;
         }
     }

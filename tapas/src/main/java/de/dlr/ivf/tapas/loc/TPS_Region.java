@@ -13,10 +13,10 @@ import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
@@ -27,9 +27,9 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_VariableMap;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -117,8 +117,8 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
     private double calculateVOTadds(double costs, TPS_Plan plan) {
         // getting vots as a function of the activity type, mode, distance and income
         double vot = this.getValuesOfTime().getValue(plan.getAttributes());
-        if (TPS_Logger.isLogging(this.getClass(), SeverenceLogLevel.FINE)) {
-            TPS_Logger.log(this.getClass(), SeverenceLogLevel.FINE,
+        if (TPS_Logger.isLogging(this.getClass(), SeverityLogLevel.FINE)) {
+            TPS_Logger.log(this.getClass(), SeverityLogLevel.FINE,
                     "Calculated vot: " + vot + " with request:" + this.getValuesOfTime().getLastRequest());
         }
         return 3600.0 * costs / vot;// travel time plus in seconds
@@ -290,7 +290,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
             LOCATION_CHOICE_SET.setClassReferences(this, (TPS_DB_IOManager) this.PM);
         } catch (Exception e) {
             // this is bad style, but the above four lines produce way to many exceptions, which are all related to "ClassNotFound"
-            TPS_Logger.log(HierarchyLogLevel.APPLICATION, SeverenceLogLevel.FATAL,
+            TPS_Logger.log(HierarchyLogLevel.APPLICATION, SeverityLogLevel.FATAL,
                     "Error in instantiating the " + "utility function: " + ExceptionUtils.getStackTrace(e));
         }
     }
@@ -309,7 +309,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
             LOCATION_SELECT_MODEL.setClassReferences(this, (TPS_DB_IOManager) this.PM);
 
         } catch (ClassNotFoundException | InvocationTargetException | SecurityException | NoSuchMethodException | InstantiationException | IllegalArgumentException | IllegalAccessException e) {
-            TPS_Logger.log(HierarchyLogLevel.APPLICATION, SeverenceLogLevel.FATAL,
+            TPS_Logger.log(HierarchyLogLevel.APPLICATION, SeverityLogLevel.FATAL,
                     "Error in instantiating the " + "utility function: " + ExceptionUtils.getStackTrace(e));
         }
     }
@@ -377,16 +377,16 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
                 parkingCosts = parkingCosts * stayingHours;
             }
             costs += parkingCosts;
-            if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-                TPS_Logger.log(SeverenceLogLevel.FINE, "GoingTo hast parkingfee of" +
+            if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+                TPS_Logger.log(SeverityLogLevel.FINE, "GoingTo hast parkingfee of" +
                         goingToTVZ.getSimulationTypeValues(SimulationType.SCENARIO).getFeeParking() + "; duration is " +
                         durationStay + "; parkingcosts: " + parkingCosts + "; sum resulting costs " + costs);
             }
         }
         if (costs > 0.0) {
             resultingTravelTimePlus = calculateVOTadds(costs, plan);
-            if (TPS_Logger.isLogging(SeverenceLogLevel.FINER)) {
-                TPS_Logger.log(SeverenceLogLevel.FINER,
+            if (TPS_Logger.isLogging(SeverityLogLevel.FINER)) {
+                TPS_Logger.log(SeverityLogLevel.FINER,
                         "taz (id=" + goingToTVZ.getTAZId() + ") with costs:" + costs + " and values: " +
                                 goingToTVZ.getSimulationTypeValues(SimulationType.SCENARIO));
             }
@@ -418,8 +418,8 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
         }
         if (costs > 0.0) {
             resultingTravelTimePlus = calculateVOTadds(costs, plan);
-            if (TPS_Logger.isLogging(SeverenceLogLevel.FINER)) {
-                TPS_Logger.log(SeverenceLogLevel.FINER,
+            if (TPS_Logger.isLogging(SeverityLogLevel.FINER)) {
+                TPS_Logger.log(SeverityLogLevel.FINER,
                         "taz (id=" + goingToTVZ.getTAZId() + ") with costs:" + costs + " and values:" +
                                 goingToTVZ.getSimulationTypeValues(SimulationType.SCENARIO));
             }
@@ -440,7 +440,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
     TPS_Location selectDefaultLocation(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         TPS_ActivityConstant actCode = locatedStay.getEpisode().getActCode();
         if (actCode.hasAttribute(TPS_ActivityConstantAttribute.DEFAULT)) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "Can't continue without locations for at least the default activity " +
                             this.PM.getParameters().getIntValue(ParamValue.DEFAULT_ACT_CODE_ZBE) + ". Driving home!");
             // no location for the default activity: drive home!
@@ -498,7 +498,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
                 .get(actCode);
         //TPS_AbstractConstant.getConnectedConstants(actCode, TPS_LocationCode.class);
         if (connectedLocCodesToActCode == null || connectedLocCodesToActCode.isEmpty()) {
-            TPS_Logger.log(SeverenceLogLevel.SEVERE,
+            TPS_Logger.log(SeverityLogLevel.SEVERE,
                     "No location codes for activity code " + actCode.getId() + " " + "(ZBE:" +
                             actCode.getCode(TPS_ActivityCodeType.ZBE) + ") found");
             return this.selectDefaultLocation(plan, pc, locatedStay,coming_from,going_to);

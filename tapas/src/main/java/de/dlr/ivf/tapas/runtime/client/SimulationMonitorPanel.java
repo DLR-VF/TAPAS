@@ -17,8 +17,8 @@ import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
 import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import javax.swing.border.Border;

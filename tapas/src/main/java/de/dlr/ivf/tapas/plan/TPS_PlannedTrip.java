@@ -10,21 +10,21 @@ package de.dlr.ivf.tapas.plan;
 
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
-import de.dlr.ivf.tapas.util.parameters.*;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 
 /**
  * @author cyga_ri
@@ -316,8 +316,8 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
                 if (!goingToTVZ.hasToll(SimulationType.SCENARIO) && comingFromTVZ.hasToll(SimulationType.SCENARIO)) {
                     // Scenario: toll has to be payed leaving a toll zone (cordon toll)
                     costStay += comingFromTVZ.getTollFee(SimulationType.SCENARIO);
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-                        TPS_Logger.log(SeverenceLogLevel.FINE,
+                    if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+                        TPS_Logger.log(SeverityLogLevel.FINE,
                                 "MIV - trip has maut: " + comingFromTVZ.getTollFee(SimulationType.SCENARIO) +
                                         " costSum: " + costStay);
                     }
@@ -331,8 +331,8 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
                     double stayingHours = this.getDuration() * 2.7777777777e-4;// converting into seconds
                     costStay += (costSzen * stayingHours);
                 }
-                if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-                    TPS_Logger.log(SeverenceLogLevel.FINE,
+                if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+                    TPS_Logger.log(SeverityLogLevel.FINE,
                             "GoingTo has parkingfee of" + goingToTVZ.getParkingFee(SimulationType.SCENARIO) +
                                     "; duration: " + this.getDuration() + "; costSum: " + costSzen);
                 }
@@ -340,9 +340,9 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode implements ExtendedWrita
         }
 
         costs = (this.getDistance() * 0.001 * costVal) + costStay;
-        if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-            TPS_Logger.log(SeverenceLogLevel.FINE, this.mode.toString() + " - trip-costs: " + costs);
-            TPS_Logger.log(SeverenceLogLevel.FINE, "Set travel time " + this.toString());
+        if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+            TPS_Logger.log(SeverityLogLevel.FINE, this.mode.toString() + " - trip-costs: " + costs);
+            TPS_Logger.log(SeverityLogLevel.FINE, "Set travel time " + this.toString());
         }
 
         return (true);

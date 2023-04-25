@@ -8,10 +8,10 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamString;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -152,12 +152,12 @@ public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
             if (tvzCounter == 0) {
                 in = new FileReader(fileName);
                 input = new BufferedReader(in);
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "File opened: " + fileName);
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "File opened: " + fileName);
                 }
                 //read tvzs
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "Analyzing TVZ-IDs: ");
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "Analyzing TVZ-IDs: ");
                 }
 
                 while ((line = input.readLine()) != null) {
@@ -185,8 +185,8 @@ public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
                         tvzCounter++;
                     }
                 }
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "Found " + tvzCounter + " TVZ-IDs");
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "Found " + tvzCounter + " TVZ-IDs");
                 }
                 input.close();
                 in.close();
@@ -201,8 +201,8 @@ public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
             //open input
             in = new FileReader(fileName);
             input = new BufferedReader(in);
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "File opened: " + fileName);
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "File opened: " + fileName);
             }
 
             while ((line = input.readLine()) != null) {
@@ -228,7 +228,7 @@ public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
                 if (in != null) in.close();
             }//try
             catch (IOException ex) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, " Could not close : " + fileName);
+                TPS_Logger.log(SeverityLogLevel.ERROR, " Could not close : " + fileName);
                 throw new IOException(ex);
             }//catch
         }//finally
@@ -252,11 +252,11 @@ public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
                 }
             }
             rs.close();
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! Query: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! Query: " + query, e);
             throw new SQLException("SQL error! Query: " + query, e);
         }
     }

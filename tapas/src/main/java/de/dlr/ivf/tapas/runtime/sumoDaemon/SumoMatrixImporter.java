@@ -9,13 +9,13 @@
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.Matrix;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
+import de.dlr.ivf.tapas.parameter.ParamString;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -173,8 +173,8 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
         String query = "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_SCHEMA_CORE) +
                 this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + " WHERE \"matrix_name\" = '" +
                 matrixName + "'";
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
                     this.parameterClass.getString(ParamString.DB_TABLE_MATRICES));
         }
         if (converter.checkMatrixName(matrixName)) {
@@ -182,8 +182,8 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
             query = "UPDATE " + this.parameterClass.getString(ParamString.DB_SCHEMA_CORE) +
                     this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + " SET matrix_values = ";
             query += TPS_DB_IO.matrixToSQLArray(matrix, 0) + " WHERE \"matrix_name\" = '" + matrixName + "'";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
                         this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + ".");
             }
         } else {
@@ -191,15 +191,15 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
                     this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) +
                     " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
             query += TPS_DB_IO.matrixToSQLArray(matrix, 0) + ")";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
                         this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + ".");
             }
         }
         writeStringToFile(query, "C:\\temp\\sumo-" + matrixName + ".sql");
         dbCon.execute(query, this);
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Successful!");
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Successful!");
         }
     }
 

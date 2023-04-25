@@ -16,11 +16,12 @@ import de.dlr.ivf.tapas.constants.TPS_DrivingLicenseInformation;
 import de.dlr.ivf.tapas.constants.TPS_Income;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
@@ -28,8 +29,7 @@ import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.scheme.*;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.Timeline;
-import de.dlr.ivf.tapas.util.parameters.*;
+import de.dlr.ivf.tapas.model.Timeline;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -260,7 +260,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 pt = this.getPlannedTrip(t);
                 start = pt.getStart();
                 if (start <= lastStart) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN,
+                    TPS_Logger.log(SeverityLogLevel.WARN,
                             "Same or earlier start of episode detected! last:" + lastStart + " act:" + start);
                     start = lastStart + 1;
                     pt.setStart(start);
@@ -874,8 +874,8 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
      * Initiates the determination of locations and modes for stays and trips of the scheme
      */
     public void selectLocationsAndModesAndTravelTimes(TPS_PlanningContext pc) {
-        if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(SeverenceLogLevel.DEBUG,
+        if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+            TPS_Logger.log(SeverityLogLevel.DEBUG,
                     "Start select locations procedure for plan (number=" + pe.getNumberOfRejectedPlans() +
                             ") with scheme (id=" + this.scheme.getId() + ")");
         }
@@ -886,15 +886,15 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
         for (TPS_SchemePart schemePart : this.scheme) {
             if (schemePart.isHomePart()) {
                 // Home Parts are already set
-                if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-                    TPS_Logger.log(SeverenceLogLevel.FINE, "Skip home part (id=" + schemePart.getId() + ")");
+                if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+                    TPS_Logger.log(SeverityLogLevel.FINE, "Skip home part (id=" + schemePart.getId() + ")");
                 }
                 continue;
             }
 
             TPS_TourPart tourpart = (TPS_TourPart) schemePart;
-            if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-                TPS_Logger.log(SeverenceLogLevel.FINE,
+            if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+                TPS_Logger.log(SeverityLogLevel.FINE,
                         "Start select location for each stay in tour part (id=" + tourpart.getId() + ")");
             }
 
@@ -975,8 +975,8 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                             currentLocatedStay.setLocation(this.fixLocations.get(currentActCode));
                         }
 
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverenceLogLevel.FINE)) {
-                            TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.FINE,
+                        if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.FINE)) {
+                            TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.FINE,
                                     "Set location from fix locations");
                         }
                     } else {
@@ -987,9 +987,9 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                     }
 
                     if (currentLocatedStay.getLocation() == null) {
-                        TPS_Logger.log(SeverenceLogLevel.ERROR, "No Location found!");
+                        TPS_Logger.log(SeverityLogLevel.ERROR, "No Location found!");
                     }
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
+                    if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
                         String s = "gewählte Location zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
                                 currentLocatedStay.getLocation().getId() + " in TAZ:" +
                                 currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() + " in block: " +
@@ -998,8 +998,8 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                                                                                  .getId() : -1) +
                                 " via" + currentLocatedStay.getModeArr().getName() + "/" +
                                 currentLocatedStay.getModeDep().getName();
-                        TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
-                        TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                        TPS_Logger.log(SeverityLogLevel.DEBUG, s);
+                        TPS_Logger.log(SeverityLogLevel.DEBUG,
                                 "Selected location (id=" + currentLocatedStay.getLocation().getId() +
                                         ") for stay (id=" + currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
                                         currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
@@ -1017,8 +1017,8 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                 TPS_Stay goingTo = tourpart.getStayHierarchy(stay).getNextStay();
                 Supplier<TPS_Stay> goingToSupplier = () -> tourpart.getStayHierarchy(stay).getNextStay();
                 if (currentLocatedStay.getModeArr() == null || currentLocatedStay.getModeDep() == null) {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.FINE)) {
-                        TPS_Logger.log(SeverenceLogLevel.FINE,
+                    if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+                        TPS_Logger.log(SeverityLogLevel.FINE,
                                 "Start select mode for each stay in tour part (id=" + tourpart.getId() + ")");
                     }
                     //do we have a fixed mode from the previous trip?
@@ -1057,7 +1057,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                         myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
                     }
                 }
-                if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
+                if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
                     String s = "Chosen mode of Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
                             currentLocatedStay.getModeArr() == null ? "NULL" :
                             currentLocatedStay.getModeArr().getName() + " in TAZ:" +
@@ -1068,8 +1068,8 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                                                                                                      .getId() : -1) +
                                     " via" + currentLocatedStay.getModeArr().getName() + "/" +
                                     currentLocatedStay.getModeDep().getName();
-                    TPS_Logger.log(SeverenceLogLevel.DEBUG, s);
-                    TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                    TPS_Logger.log(SeverityLogLevel.DEBUG, s);
+                    TPS_Logger.log(SeverityLogLevel.DEBUG,
                             "Selected mode (id=" + currentLocatedStay.getModeArr() == null ? "NULL" :
                                     currentLocatedStay.getModeArr().getName() + ") for stay (id=" +
                                             currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
@@ -1119,8 +1119,8 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
                         locatedStay.setModeArr(TPS_ExtMode.simpleWalk);
                     }
                 } else {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                        TPS_Logger.log(SeverenceLogLevel.WARN, "One location is null");
+                    if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                        TPS_Logger.log(SeverityLogLevel.WARN, "One location is null");
                     }
                 }
             }
@@ -1136,7 +1136,7 @@ public class TPS_Plan implements ExtendedWritable, Comparable<TPS_Plan> {
             }
         }
 
-        TPS_Logger.log(SeverenceLogLevel.DEBUG,
+        TPS_Logger.log(SeverityLogLevel.DEBUG,
                 "Selected all locations in " + (System.currentTimeMillis() - start) + "ms");
     }
 

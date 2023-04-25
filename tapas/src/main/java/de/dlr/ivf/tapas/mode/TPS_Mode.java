@@ -11,18 +11,18 @@ package de.dlr.ivf.tapas.mode;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_InternalConstant;
 import de.dlr.ivf.tapas.loc.Locatable;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.modechoice.TPS_UtilityFunction;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.Collection;
@@ -170,7 +170,7 @@ public abstract class TPS_Mode {
             TPS_Mode.UTILITY_FUNCTION = (TPS_UtilityFunction) c.getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             // this is bad style, but the above four lines produce way to many exceptions, which are all related to "ClassNotFound"
-            TPS_Logger.log(HierarchyLogLevel.APPLICATION, SeverenceLogLevel.FATAL,
+            TPS_Logger.log(HierarchyLogLevel.APPLICATION, SeverityLogLevel.FATAL,
                     "Error in instantiating the utility function: " + ExceptionUtils.getStackTrace(e));
         }
     }

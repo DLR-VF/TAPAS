@@ -12,10 +12,10 @@ import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.TPS_VariableMap;
 
 import java.util.HashMap;
@@ -97,7 +97,7 @@ public class TPS_CFN {
         Map<TPS_ActivityConstant, Double> actMap = this.cfn4Map.get(regRef);
         if (actMap != null && actMap.containsKey(actRef)) return actMap.get(actRef);
         else {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.WARN,
+            TPS_Logger.log(SeverityLogLevel.WARN,
                     "No CNF4-value found for activity " + act.getCode(TPS_ActivityCodeType.ZBE)+" in region "+regionType.toString());
             return 0.5;
         }

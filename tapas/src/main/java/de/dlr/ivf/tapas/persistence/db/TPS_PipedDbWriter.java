@@ -2,11 +2,12 @@ package de.dlr.ivf.tapas.persistence.db;
 
 
 import com.lmax.disruptor.*;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.execution.sequential.io.TPS_WritableTrip;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamString;
 import org.postgresql.core.BaseConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -70,14 +71,14 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
         try {
 
             //start the pipe and block
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Opening database pipeline");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Opening database pipeline");
             copy_manager.copyIn(copy_string,this.ring_buffer,written_trips);
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Closing database pipeline with "+ registered_trips.get()+" written trips.");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Closing database pipeline with "+ registered_trips.get()+" written trips.");
 
             String query = "UPDATE "+this.pm.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS)+" SET sim_finished = true, sim_progress = "+total_trip_count+", sim_total = "+ total_trip_count +", timestamp_finished = now() WHERE sim_key = '"+this.pm.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
             pm.execute(query);
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Closing the writer...");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Closing the writer...");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -88,10 +89,10 @@ public class TPS_PipedDbWriter implements Runnable, TPS_TripWriter {
      */
     private void init(){
         try {
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Setting up the copy manager...");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,"Setting up the copy manager...");
             this.copy_manager = new TPS_CopyManager((BaseConnection) this.connection);
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,"Setting up the persistence disruptor...");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,"Setting up the persistence disruptor...");
 
             EventFactory<TPS_WritableTripEvent> ef = TPS_WritableTripEvent::new;
             this.ring_buffer = RingBuffer.createMultiProducer(ef, buffer_size, new BlockingWaitStrategy());

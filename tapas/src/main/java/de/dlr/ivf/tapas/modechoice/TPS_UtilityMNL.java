@@ -10,9 +10,9 @@ package de.dlr.ivf.tapas.modechoice;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
@@ -20,8 +20,8 @@ import de.dlr.ivf.tapas.mode.TPS_ModeDistribution;
 import de.dlr.ivf.tapas.mode.TPS_ModeSet;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.SimulationType;
 
 import java.util.HashMap;
 
@@ -123,8 +123,8 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
             }
             dist.setValueByKey(TPS_Mode.get(ModeType.MIT_PASS),
                     1);// if we erased all possible modes we have to prepare an exit plan!
-            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE)) {
-                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
+                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
                         "No possible mode! Enabling MIT_PASS!");
             }
         }
@@ -132,8 +132,8 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
         boolean expertCheck = TPS_ExpertKnowledgeTree.applyExpertKnowledge(modeSet, plan, distanceNet, mcc, false,
                 dist);
         if (!expertCheck) {
-            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE)) {
-                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverenceLogLevel.SEVERE, "No possible modes!");
+            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
+                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE, "No possible modes!");
                 dist.setValueByKey(TPS_Mode.get(ModeType.MIT_PASS), 1); // you have to find someone taking you there!
             }
         }

@@ -8,8 +8,9 @@ import com.lmax.disruptor.util.DaemonThreadFactory;
 import de.dlr.ivf.tapas.execution.sequential.event.*;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_PipedDbWriter;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
@@ -78,7 +79,7 @@ public class TPS_SequentialSimulator implements Runnable, SimTimeProvider {
     }
 
     public void run(){
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Setting up "+worker_count+" workers...");
+        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Setting up "+worker_count+" workers...");
 
         //event factory for event pre-allocation on the ring
         EventFactory<TPS_StateMachineEvent> event_factory = TPS_StateMachineEvent::new;
@@ -121,7 +122,7 @@ public class TPS_SequentialSimulator implements Runnable, SimTimeProvider {
             var event_count = 0;
             var current_iteration_start_time = System.currentTimeMillis();
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Publishing and consuming events for simulation time: "+simulation_time_stamp.get());
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Publishing and consuming events for simulation time: "+simulation_time_stamp.get());
 
             //now pass the event to the controllers
             List<HouseholdBasedStateMachineController> unfinished_state_machine_controllers = new ArrayList<>(unfinished_controllers_count);
@@ -148,7 +149,7 @@ public class TPS_SequentialSimulator implements Runnable, SimTimeProvider {
 
             String log_message = event_count+" events published for "+unfinished_controllers_count+" unfinished controllers and "+ unfinished_state_machines_count +" unfinished state machines in "+(System.currentTimeMillis()-current_iteration_start_time)+" ms";
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, log_message);
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, log_message);
 
             //are all state machines finished?
             all_finished = unfinished_state_machines_count == 0;
@@ -164,7 +165,7 @@ public class TPS_SequentialSimulator implements Runnable, SimTimeProvider {
             var written_trip_count = writer.getWrittenTripCount();
             var trips_in_pipeline_count = writer.getRegisteredTripCount();
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, event_count+" events handled, "+( written_trip_count - last_written_trip_count)+
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, event_count+" events handled, "+( written_trip_count - last_written_trip_count)+
                     " trips written  in "+(System.currentTimeMillis()-current_iteration_start_time)/1000+" seconds for simulation time: "+simulation_time_stamp.get()+
                     " ( "+trips_in_pipeline_count+" trips in writer pipeline )");
 
@@ -173,7 +174,7 @@ public class TPS_SequentialSimulator implements Runnable, SimTimeProvider {
             next_simulation_event = new TPS_Event(TPS_EventType.SIMULATION_STEP,  simulation_time_stamp.incrementAndGet());
         }
 
-        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Simulation finished! "+total_event_count+" events handled in "+(System.currentTimeMillis()-sim_start)/60000+" minutes");
+        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Simulation finished! "+total_event_count+" events handled in "+(System.currentTimeMillis()-sim_start)/60000+" minutes");
 
         worker_pool.drainAndHalt();
         writer.finish();

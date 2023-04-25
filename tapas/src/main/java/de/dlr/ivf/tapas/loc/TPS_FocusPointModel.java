@@ -9,8 +9,8 @@
 package de.dlr.ivf.tapas.loc;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_Stay;
 
@@ -40,8 +40,8 @@ public class TPS_FocusPointModel {
     public TPS_Stay getFocusPoint(TPS_Stay from, TPS_Stay to, TPS_ActivityConstant code) {
         if (STATUS) {
             if (TPS_Logger.isLogging(
-                    SeverenceLogLevel.DEBUG)) { // TODO: what's this double-check stuff? Is STATUS needed?
-                TPS_Logger.log(SeverenceLogLevel.DEBUG, "You want me to do the Fancy Chicken?");
+                    SeverityLogLevel.DEBUG)) { // TODO: what's this double-check stuff? Is STATUS needed?
+                TPS_Logger.log(SeverityLogLevel.DEBUG, "You want me to do the Fancy Chicken?");
             }
         }
 
@@ -57,8 +57,8 @@ public class TPS_FocusPointModel {
 
         if (STATUS) {
             STATUS = false;
-            if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                TPS_Logger.log(SeverenceLogLevel.DEBUG, "Lets do the Fancy Chicken!");
+            if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                TPS_Logger.log(SeverityLogLevel.DEBUG, "Lets do the Fancy Chicken!");
             }
         }
 

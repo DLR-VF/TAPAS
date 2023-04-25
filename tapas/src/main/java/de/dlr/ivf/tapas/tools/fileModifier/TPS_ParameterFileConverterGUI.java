@@ -8,6 +8,7 @@
 
 package de.dlr.ivf.tapas.tools.fileModifier;
 
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
@@ -15,7 +16,6 @@ import de.dlr.ivf.tapas.tools.fileModifier.filefilter.ExtensionFilter;
 import de.dlr.ivf.tapas.tools.fileModifier.persistence.TPS_ParameterCSVDAO;
 import de.dlr.ivf.tapas.tools.fileModifier.persistence.TPS_ParameterPropertiesDAO;
 import de.dlr.ivf.tapas.tools.fileModifier.persistence.TPS_ParameterXLSDAO;
-import de.dlr.ivf.tapas.util.parameters.*;
 
 import javax.swing.*;
 import javax.swing.table.*;

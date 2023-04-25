@@ -8,9 +8,10 @@
 
 package de.dlr.ivf.tapas.parameter;
 
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.util.Matrix;
+import de.dlr.ivf.tapas.model.Matrix;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.util.Arrays;
@@ -143,7 +144,7 @@ public class ParamMatrixClass {
                         "(Matrix " + "matrix, SimulationType " + "type)");
         Matrix[] m = this.paramMatrix.get(param).getRight();
         if (m[0] != null) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "Overwriting existing matrix");
+            TPS_Logger.log(SeverityLogLevel.DEBUG, "Overwriting existing matrix");
         }
         m[0] = matrix;
     }
@@ -163,7 +164,7 @@ public class ParamMatrixClass {
         Matrix[] m = this.paramMatrix.get(param).getRight();
         int index = type.getIndex();
         if (m[index] != null) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.DEBUG, "Overwriting existing matrix");
+            TPS_Logger.log(SeverityLogLevel.DEBUG, "Overwriting existing matrix");
         }
         m[index] = matrix;
     }

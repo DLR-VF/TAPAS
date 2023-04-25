@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.runtime.util;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 
 import java.io.*;
 
@@ -53,7 +53,7 @@ public class ProcessHandler extends Thread {
         try {
             this.process.waitFor();
         } catch (InterruptedException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
         }
 
     }
@@ -104,7 +104,7 @@ public class ProcessHandler extends Thread {
                     this.writer.flush();
                 }
             } catch (IOException e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+                TPS_Logger.log(SeverityLogLevel.ERROR, e);
             }
         }
     }

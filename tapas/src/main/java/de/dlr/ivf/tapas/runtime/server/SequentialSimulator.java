@@ -10,8 +10,9 @@ import de.dlr.ivf.tapas.execution.sequential.io.HouseholdBasedPlanGenerator;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.HouseholdBasedStateMachineController;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachineFactory;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.mode.TPS_ModeValidator;
 import de.dlr.ivf.tapas.mode.TazBasedCarSharingDelegator;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
@@ -24,9 +25,9 @@ import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.util.FuncUtils;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -65,13 +66,13 @@ public class SequentialSimulator implements TPS_Simulator {
         try {
 
             //load households, persons and assign cars
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loading all households, persons and cars");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Loading all households, persons and cars");
             TPS_HouseholdAndPersonLoader hh_pers_loader = new TPS_HouseholdAndPersonLoader((TPS_DB_IOManager)this.pm);
             List<TPS_Household> hhs = hh_pers_loader.initAndGetAllHouseholds();
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Finished loading all households, persons and cars");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Finished loading all households, persons and cars");
             int cnt_hh = hhs.size();
             int cnt_person = Math.toIntExact(hhs.stream().mapToInt(TPS_Household::getNumberOfMembers).sum());
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, "Loaded "+cnt_hh+" households and "+cnt_person+" persons");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Loaded "+cnt_hh+" households and "+cnt_person+" persons");
 
             //setup preference models
             List<TPS_Preference> preference_models = generatePreferenceModels(hhs);
@@ -82,7 +83,7 @@ public class SequentialSimulator implements TPS_Simulator {
             HouseholdBasedPlanGenerator plan_generator = new HouseholdBasedPlanGenerator(this.pm, preference_models,preference_parameters);
 
             Map<TPS_Household,List<TPS_Plan>> households_to_plans = generatePlansAndGet(plan_generator,hhs);
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO, " Generated "+households_to_plans.values().stream().mapToLong(List::size).sum()+" person plans");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, " Generated "+households_to_plans.values().stream().mapToLong(List::size).sum()+" person plans");
 
             //set up entry time
             IntSummaryStatistics stats = calcStatistics(households_to_plans, TPS_Episode::getOriginalStart);
@@ -107,7 +108,7 @@ public class SequentialSimulator implements TPS_Simulator {
             //set up state machines
             TPS_StateMachineFactory state_machine_factory = new TPS_StateMachineFactory(transition_actions_provider);
             List<HouseholdBasedStateMachineController> statemachine_controllers = generateHouseholdStateMachineControllers(households_to_plans, state_machine_factory);
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.INFO,
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                     "Generated "+statemachine_controllers.size()+" state machine controllers with "
                             +statemachine_controllers.stream().mapToInt(HouseholdBasedStateMachineController::getStateMachinesCount).sum()
                             +" state machines | "+state_machine_factory.getImmediatelyFinishedStateMachineCnt()

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import de.dlr.ivf.tapas.environment.configuration.EnvironmentConfiguration;
+import de.dlr.ivf.tapas.logger.LoggerConfiguration;
 import lombok.*;
 
 /**
@@ -38,4 +39,10 @@ public class DaemonConfiguration {
      */
    @JsonProperty
     private final EnvironmentConfiguration tapasEnvironment;
+
+    /**
+     * The configuration skeleton for the tapas-logger
+     */
+   @JsonProperty
+   private final LoggerConfiguration loggerConfiguration;
 }

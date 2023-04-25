@@ -10,17 +10,17 @@ package de.dlr.ivf.tapas.modechoice;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.mode.TPS_ModeSet;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
 
 /**
  * This tree describes the different specialisations of the mode distributions. At each node there is a different mode
@@ -81,8 +81,8 @@ public class TPS_ExpertKnowledgeTree extends TPS_ModeChoiceTree {
             if (changed || numEmpty == TPS_Mode.MODE_TYPE_ARRAY.length) {
                 if (numEmpty == TPS_Mode.MODE_TYPE_ARRAY.length || !dist.normalize()) {
                     if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE,
-                            TPS_LoggingInterface.SeverenceLogLevel.SEVERE)) {
-                        TPS_Logger.log(HierarchyLogLevel.EPISODE, TPS_LoggingInterface.SeverenceLogLevel.SEVERE,
+                            SeverityLogLevel.SEVERE)) {
+                        TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
                                 "\"Check forbidden modes\" erased all possible modes!");
                     }
                     return false;

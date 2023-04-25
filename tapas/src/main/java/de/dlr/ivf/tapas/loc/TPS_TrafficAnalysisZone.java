@@ -11,12 +11,12 @@ package de.dlr.ivf.tapas.loc;
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.util.Randomizer;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 
 import java.util.*;

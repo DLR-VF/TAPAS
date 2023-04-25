@@ -14,8 +14,8 @@ import de.dlr.ivf.tapas.constants.TPS_Distance;
 import de.dlr.ivf.tapas.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.mode.TPS_ModeChoiceContext;
@@ -32,10 +32,10 @@ import de.dlr.ivf.tapas.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.SimulationType;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.SimulationType;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -162,12 +162,12 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
     @Override
     public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         if (this.PM == null) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "TPS_LocationSelectModel not properly initialized! Persistance manager is null?!?! Driving home!");
             return plan.getPerson().getHousehold().getLocation();
         }
         if (this.region == null) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "TPS_LocationSelectModel not properly initialized! Region is null?!?! Driving home!");
             return plan.getPerson().getHousehold().getLocation();
         }
@@ -300,7 +300,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
                 }
             }
         } else {
-            TPS_Logger.log(SeverenceLogLevel.WARN,
+            TPS_Logger.log(SeverityLogLevel.WARN,
                     "No specific location found for activity " + actCode.getCode(TPS_ActivityCodeType.ZBE));
             return region.selectDefaultLocation(plan, pc, locatedStay,coming_from,going_to);
         }

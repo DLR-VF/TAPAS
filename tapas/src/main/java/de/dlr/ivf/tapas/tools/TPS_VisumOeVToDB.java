@@ -11,7 +11,7 @@ package de.dlr.ivf.tapas.tools;
 import de.dlr.ivf.scripts.SrVCalculator;
 import de.dlr.ivf.scripts.SrVCalculator.TAZ;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamString;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.io.BufferedReader;
@@ -267,7 +267,7 @@ public class TPS_CapacityCalculator extends TPS_BasicConnectionClass {
                 if (input != null) input.close();
                 if (in != null) in.close();
             } catch (IOException ex) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, " Could not close : " + filename);
+                TPS_Logger.log(SeverityLogLevel.ERROR, " Could not close : " + filename);
             }
         }//finally
     }

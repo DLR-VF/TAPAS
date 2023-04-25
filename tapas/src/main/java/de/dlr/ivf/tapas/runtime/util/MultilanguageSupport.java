@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.runtime.util;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 
 import javax.swing.*;
 import java.io.*;
@@ -58,7 +58,7 @@ public class MultilanguageSupport {
             MultilanguageSupport.locale = locale;
             store(locale);
         } catch (IOException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error storing user language information",
                     JOptionPane.ERROR_MESSAGE);
         }
@@ -132,7 +132,7 @@ public class MultilanguageSupport {
             }
             RB = ResourceBundle.getBundle(guiClass.getSimpleName() + "Labels", locale);
         } catch (IOException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error storing user language information",
                     JOptionPane.ERROR_MESSAGE);
         }

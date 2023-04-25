@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.tools.TUM;
 
 
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
 import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;

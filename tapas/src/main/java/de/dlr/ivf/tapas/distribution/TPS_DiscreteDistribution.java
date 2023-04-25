@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.distribution;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 
 import java.util.*;
 
@@ -125,7 +125,7 @@ public class TPS_DiscreteDistribution<Key> {
             index = (low + high) / 2;
         }
         if (low > high) {
-            if (cumulativeValues[index] < randomValue) TPS_Logger.log(SeverenceLogLevel.ERROR, "Something is wrong");
+            if (cumulativeValues[index] < randomValue) TPS_Logger.log(SeverityLogLevel.ERROR, "Something is wrong");
         }
         return index;
     }
@@ -148,7 +148,7 @@ public class TPS_DiscreteDistribution<Key> {
      */
     public int draw(double randomValue) {
         if (this.size() == 0) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Empty distribution!");
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Empty distribution!");
             return 0;
         }
         //safety min/max if randomValue is not between 0 and 1
@@ -157,7 +157,7 @@ public class TPS_DiscreteDistribution<Key> {
             this.normalize(false);
         }
         if (!isNormalized()) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Distribution cannot be normalized because all" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Distribution cannot be normalized because all" +
                     " values are 0 or there is an infinity or NaN value; sum of values: " + this.sum() +
                     " is Normalized: " + this.isNormalized);
         }
@@ -225,7 +225,7 @@ public class TPS_DiscreteDistribution<Key> {
      */
     public Key getKey(int position) {
         if (position >= this.singletons.size()) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "Requested position " + position + " out of bounds: " + this.singletons.size());
         }
         return this.singletons.get(position);
@@ -296,16 +296,16 @@ public class TPS_DiscreteDistribution<Key> {
     public void setValues(double[] values) {
         this.isNormalized = false;
         if (values == null) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Input is null!");
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Input is null!");
             return;
         }
         if (this.values == null) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "internal distribution is null!");
+            TPS_Logger.log(SeverityLogLevel.ERROR, "internal distribution is null!");
             return;
         }
 
         if (values.length != this.size()) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "Different array sizes! given: " + values.length + " expected: " + this.size());
             return;
         }
@@ -365,8 +365,8 @@ public class TPS_DiscreteDistribution<Key> {
             this.isNormalized = true;
             return true;
         } else {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.ERROR)) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "Trying to normalize a distribution with a sum of zero!");
+            if (TPS_Logger.isLogging(SeverityLogLevel.ERROR)) {
+                TPS_Logger.log(SeverityLogLevel.ERROR, "Trying to normalize a distribution with a sum of zero!");
             }
         }
         return false;
@@ -414,7 +414,7 @@ public class TPS_DiscreteDistribution<Key> {
     public double sum() {
         double sum = Arrays.stream(this.values).sum();
         if (Double.isNaN(sum) || Double.isInfinite(sum)) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "ERROR: NaN or infinity detected! Distribution: " + this.toString());
             throw new RuntimeException("ERROR: NaN or infinity detected! Index: Distribution: " + this.toString());
         }

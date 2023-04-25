@@ -8,16 +8,15 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
-import de.dlr.ivf.tapas.util.Matrix;
-import de.dlr.ivf.tapas.util.MatrixMap;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import java.net.InetAddress;
@@ -148,8 +147,8 @@ public class TPS_DB_Connector {
         ResultSet set = s.executeQuery(
                 "SELECT core.check_user('" + this.parameterClass.getString(ParamString.DB_USER) + "')");
         while (set.next()) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO,
                         "Connectivity check for user " + this.parameterClass.getString(ParamString.DB_USER) +
                                 " was successful");
             }
@@ -183,7 +182,7 @@ public class TPS_DB_Connector {
             try {
                 this.closeConnection(key);
             } catch (SQLException e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
+                TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
             }
         }
     }
@@ -225,14 +224,14 @@ public class TPS_DB_Connector {
                 tries++;
                 ex = e;
             } catch (Exception e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+                TPS_Logger.log(SeverityLogLevel.ERROR, e);
                 ex = new SQLException(e);
             }
         }
         if (ex != null) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, ex);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
-            TPS_Logger.log(SeverenceLogLevel.ERROR, ex.getNextException());
+            TPS_Logger.log(SeverityLogLevel.ERROR, ex);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception:");
+            TPS_Logger.log(SeverityLogLevel.ERROR, ex.getNextException());
             System.err.println("Error during sql-statement: " + query);
             ex.printStackTrace();
             if (ex.getNextException() != null) {
@@ -268,15 +267,15 @@ public class TPS_DB_Connector {
                 tries++;
                 ex = e;
             } catch (Exception e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+                TPS_Logger.log(SeverityLogLevel.ERROR, e);
                 ex = new SQLException(e);
             }
         }
         if (ex != null) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error during sql-statement: " + query);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, ex);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
-            TPS_Logger.log(SeverenceLogLevel.ERROR, ex.getNextException());
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error during sql-statement: " + query);
+            TPS_Logger.log(SeverityLogLevel.ERROR, ex);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception:");
+            TPS_Logger.log(SeverityLogLevel.ERROR, ex.getNextException());
             System.err.println("Error during sql-statement: " + query);
             ex.printStackTrace();
             if (ex.getNextException() != null) {
@@ -318,14 +317,14 @@ public class TPS_DB_Connector {
                 tries++;
                 ex = e;
             } catch (Exception e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+                TPS_Logger.log(SeverityLogLevel.ERROR, e);
                 ex = new SQLException(e);
             }
         }
         if (ex != null) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, ex);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
-            TPS_Logger.log(SeverenceLogLevel.ERROR, ex.getNextException());
+            TPS_Logger.log(SeverityLogLevel.ERROR, ex);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception:");
+            TPS_Logger.log(SeverityLogLevel.ERROR, ex.getNextException());
             System.err.println("Error during sql-statement: " + query);
             ex.printStackTrace();
             if (ex.getNextException() != null) {
@@ -362,11 +361,11 @@ public class TPS_DB_Connector {
                 c = this.openConnection();
                 this.connections.put(key, c);
             } catch (SQLException e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR,
+                TPS_Logger.log(SeverityLogLevel.ERROR,
                         "Error creating db-connection. Try: " + i + "\n" + e.getMessage(), e);
                 ex = e;
             } catch (InterruptedException e) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
+                TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
             }
         }
         if (c == null) {
@@ -457,7 +456,7 @@ public class TPS_DB_Connector {
         String query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
                 this.parameterClass.getString(ParamString.DB_TABLE_MATRIXMAPS) + " WHERE \"matrixMap_name\"='" +
                 matrixName + "'";
-        TPS_Logger.log(SeverenceLogLevel.INFO, "Loading matrix map distribution " + matrixName + " from DB: ");
+        TPS_Logger.log(SeverityLogLevel.INFO, "Loading matrix map distribution " + matrixName + " from DB: ");
         try {
             ResultSet rs = this.executeQuery(query, caller);
             if (rs.next()) {
@@ -481,7 +480,7 @@ public class TPS_DB_Connector {
                 for (int i = 0; i < numOfMatrices; ++i) {
                     matrices[i] = this.readMatrix(matrix_names[i], sIndex, caller);
                     if(matrices[i] != null){
-                        TPS_Logger.log(SeverenceLogLevel.INFO,
+                        TPS_Logger.log(SeverityLogLevel.INFO,
                                 "Loaded matrix from DB: " + matrix_names[i] + " End time: " + distribution[i] +
                                         " Average value: " + matrices[i].getAverageValue(false, true)+
                                         " Size (Elements, Rows, Columns): " + matrices[i].getNumberOfElements() + ", "
@@ -495,11 +494,11 @@ public class TPS_DB_Connector {
                 }
                 matrix = new MatrixMap(distribution, matrices);
             } else {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "No results from DB!");
+                TPS_Logger.log(SeverityLogLevel.ERROR, "No results from DB!");
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in sql-query: " + query);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error in sql-query: " + query);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
         }
         return matrix;
     }
@@ -526,15 +525,15 @@ public class TPS_DB_Connector {
                     returnVal.setRawValue(index, iArray[index]);
                 }
                 rs.close();
-                TPS_Logger.log(SeverenceLogLevel.INFO,
+                TPS_Logger.log(SeverityLogLevel.INFO,
                         "Loaded matrix from DB: " + matrixName);
             } else {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "No results from DB for"+ matrixName+
+                TPS_Logger.log(SeverityLogLevel.ERROR, "No results from DB for"+ matrixName+
                                 ": No such matrix.");
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in sql-query: " + query);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error in sql-query: " + query);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
         }
         return  returnVal;
     }
@@ -560,7 +559,7 @@ public class TPS_DB_Connector {
             }
             rs.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in SQL-query: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error in SQL-query: " + query, e);
             throw new RuntimeException(e);
         }
         return result;
@@ -657,7 +656,7 @@ public class TPS_DB_Connector {
                 result.put(rs.getInt("ft_taz_id"),rs.getInt("car_sharing_capacity"));
             }
         }catch (Exception e){
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, SeverenceLogLevel.SEVERE,"Error reading car sharing data.");
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.SEVERE,"Error reading car sharing data.");
         }
 
         return result;

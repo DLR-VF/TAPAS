@@ -13,7 +13,7 @@ import de.dlr.ivf.tapas.mode.TPS_ModeSet;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.scheme.TPS_SchemeSet;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 /**
  * This interface separates the software from the data structure. Behind this interface there can be implementations which

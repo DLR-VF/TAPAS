@@ -9,10 +9,10 @@
 package de.dlr.ivf.tapas;
 
 
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
@@ -21,10 +21,10 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.runtime.server.*;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.File;
 import java.text.DecimalFormat;
@@ -98,14 +98,14 @@ public class TPS_Main {
 //            this.parameterClass.readRuntimeParametersFromDB(rs);
 //            rs.close();
 
-            TPS_Logger.log(SeverenceLogLevel.INFO,
+            TPS_Logger.log(SeverityLogLevel.INFO,
                     "Starting iteration: " + this.parameterClass.paramValueClass.getIntValue(ParamValue.ITERATION));
             //  this.parameterClass.checkParameters();
 
             dbConnector.closeConnection(this);
             this.PM = initAndGetPersistenceManager(this.parameterClass);
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -194,7 +194,7 @@ public class TPS_Main {
                 TPS_DB_IOManager dbManager = (TPS_DB_IOManager) PM;
                 dbManager.dropTemporaryTables();
             } catch (Exception e) {
-                TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+                TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
                 throw new RuntimeException(e);
             }
         }
@@ -202,10 +202,10 @@ public class TPS_Main {
 
     public void initShutdown(){
         this.external_shutdown_received = true;
-        TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,"Server shutdown initiated, shutting down simulator...");
+        TPS_Logger.log(getClass(),SeverityLogLevel.INFO,"Server shutdown initiated, shutting down simulator...");
         this.simulator.shutdown();
         while(simulator.isRunningSimulation()){
-            TPS_Logger.log(getClass(),SeverenceLogLevel.INFO,"Waiting for workers to finish remaining work...");
+            TPS_Logger.log(getClass(),SeverityLogLevel.INFO,"Waiting for workers to finish remaining work...");
 
             try {
                 Thread.sleep(1000);
@@ -263,16 +263,16 @@ public class TPS_Main {
     }
 
     private void initPM() {
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Initialize Persistence Manager ...");
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Initialize Persistence Manager ...");
         }
         long t0 = System.currentTimeMillis();
 
         PM.init();
 
         long t1 = System.currentTimeMillis();
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "... finished in " + (t1 - t0) * 0.001 + "s");
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "... finished in " + (t1 - t0) * 0.001 + "s");
         }
     }
 
@@ -444,7 +444,7 @@ public class TPS_Main {
             Class<?> clazz = Class.forName(parameters.getString(ParamString.CLASS_DATA_SCOURCE_ORIGIN));
             return (TPS_PersistenceManager) clazz.getConstructor(TPS_ParameterClass.class).newInstance(parameters);
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
         }
 

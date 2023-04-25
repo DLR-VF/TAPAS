@@ -8,8 +8,9 @@
 
 package de.dlr.ivf.tapas.runtime.util;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,7 +47,7 @@ abstract class ControlProperties {
             output.close();
             this.changed = false;
         } catch (IOException e) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
         }
     }
 }

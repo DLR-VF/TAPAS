@@ -8,8 +8,9 @@
 
 package de.dlr.ivf.tapas.constants;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.person.TPS_Person;
 
 import java.util.Collection;
@@ -130,9 +131,9 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
                 }
             }
         }
-        if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.ERROR)) {
+        if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.ERROR)) {
             TPS_Logger.log(
-                    TPS_LoggingInterface.HierarchyLogLevel.PERSON, TPS_LoggingInterface.SeverenceLogLevel.ERROR,
+                    HierarchyLogLevel.PERSON, SeverityLogLevel.ERROR,
                     "Person does not match any person group: " + person.toString());
             for (TPS_PersonGroup tpg : PERSON_GROUP_MAP.values()) {
                 if (tpg.fits(person)) {

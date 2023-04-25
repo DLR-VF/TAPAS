@@ -5,8 +5,9 @@ import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.TPS_LoggingInterface;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Car;
@@ -68,7 +69,7 @@ public class TPS_WritableTrip {
     public double getScoreCombined(){
         if (Double.isNaN(plan.getAcceptanceProbability()) || Double.isInfinite(
                 plan.getAcceptanceProbability())) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "NaN detected in getAcceptanceProbability for person " + plan.getPerson().getId());
         }
         return plan.getAcceptanceProbability();
@@ -77,7 +78,7 @@ public class TPS_WritableTrip {
     public double getScoreFinance(){
         if (Double.isNaN(plan.getBudgetAcceptanceProbability()) || Double.isInfinite(
                 plan.getBudgetAcceptanceProbability())) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "NaN detected in getBudgetcceptanceProbability for person " + plan.getPerson().getId());
         }
         return plan.getBudgetAcceptanceProbability();
@@ -86,7 +87,7 @@ public class TPS_WritableTrip {
     public double getScoreTime(){
         if (Double.isNaN(plan.getTimeAcceptanceProbability()) || Double.isInfinite(
                 plan.getTimeAcceptanceProbability())) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "NaN detected in getTimeAcceptanceProbability for person " + plan.getPerson().getId());
         }
         return plan.getTimeAcceptanceProbability();
@@ -147,7 +148,7 @@ public class TPS_WritableTrip {
     public double getTravelTimeSec(){
         TPS_PlannedTrip pt = plan.getPlannedTrip(trip);
         if (Double.isNaN(pt.getDuration()) || Double.isInfinite(pt.getDuration())) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "NaN detected in getDuration for person " + plan.getPerson().getId());
         }
         return pt.getDuration();
@@ -168,7 +169,7 @@ public class TPS_WritableTrip {
     public double getDistanceBlMeter(){
         TPS_PlannedTrip pt = plan.getPlannedTrip(trip);
         if (Double.isNaN(pt.getDistanceBeeline()) || Double.isInfinite(pt.getDistanceBeeline())) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "NaN detected in getDistanceBeeline for person " + plan.getPerson().getId());
         }
 
@@ -178,7 +179,7 @@ public class TPS_WritableTrip {
     public double getDistanceRealMeter(){
         TPS_PlannedTrip pt = plan.getPlannedTrip(trip);
         if (Double.isNaN(pt.getDistance()) || Double.isInfinite(pt.getDistance())) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "NaN detected in getDistanceBeeline for person " + plan.getPerson().getId());
         }
 

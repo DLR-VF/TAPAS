@@ -8,13 +8,13 @@
 
 package de.dlr.ivf.tapas.tools.persitence.db;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import java.io.File;
@@ -329,8 +329,8 @@ public class TPS_BasicConnectionClass {
      */
     public void storeInDB(String matrixName, double[][] matrix, int decimalPlaces) {
         if (decimalPlaces != 0) {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                TPS_Logger.log(SeverenceLogLevel.WARN,
+            if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                TPS_Logger.log(SeverityLogLevel.WARN,
                         "Decimal places are currently incompatible with the db (integers not doubles). Setting Decimal Places to 0!");
             }
             decimalPlaces = 0;
@@ -339,30 +339,30 @@ public class TPS_BasicConnectionClass {
         String query = "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) +
                 " WHERE \"matrix_name\" = '" + matrixName + "'";
 
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
                     this.parameterClass.getString(ParamString.DB_TABLE_MATRICES));
         }
         if (checkMatrixName(matrixName)) {
             //update!
             query = "UPDATE " + this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + " SET matrix_values = ";
             query += matrixToSQLArray(matrix, decimalPlaces) + " WHERE \"matrix_name\" = '" + matrixName + "'";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
                         this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + ".");
             }
         } else {
             query = "INSERT INTO " + this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) +
                     " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
             query += matrixToSQLArray(matrix, decimalPlaces) + ")";
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
                         this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + ".");
             }
         }
         dbCon.execute(query, this);
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Successful!");
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, "Successful!");
         }
     }
 }

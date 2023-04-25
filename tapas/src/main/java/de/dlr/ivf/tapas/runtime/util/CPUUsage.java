@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.runtime.util;
 
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -143,7 +143,7 @@ public class CPUUsage {
             proc = Double.parseDouble(line) / 100.0;
 
         } catch (IOException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
         }
 
         //get exitValue (0), this should be done to prevent "zombie-processes",

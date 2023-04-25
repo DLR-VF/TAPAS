@@ -11,8 +11,8 @@ package de.dlr.ivf.tapas.person;
 import de.dlr.ivf.tapas.constants.TPS_Sex;
 import de.dlr.ivf.tapas.execution.sequential.communication.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 

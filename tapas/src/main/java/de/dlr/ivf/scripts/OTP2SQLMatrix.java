@@ -11,7 +11,7 @@ package de.dlr.ivf.scripts;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

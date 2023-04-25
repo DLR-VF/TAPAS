@@ -10,10 +10,10 @@ package de.dlr.ivf.tapas.mode;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.loc.Locatable;
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
-import de.dlr.ivf.tapas.util.parameters.*;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 
 /**
  * This class represents the modes 'walk' and 'bike'.

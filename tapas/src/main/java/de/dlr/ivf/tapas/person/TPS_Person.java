@@ -13,8 +13,8 @@ import de.dlr.ivf.tapas.constants.TPS_AgeClass.TPS_AgeCodeType;
 import de.dlr.ivf.tapas.constants.TPS_DrivingLicenseInformation;
 import de.dlr.ivf.tapas.constants.TPS_PersonGroup;
 import de.dlr.ivf.tapas.constants.TPS_Sex;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Preference.PreferenceSet;
 import de.dlr.ivf.tapas.person.TPS_PreferenceParameters.ShoppingClass;
@@ -24,7 +24,7 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.parameter.ParamValue;
 
 import java.util.Map;
 

@@ -16,14 +16,14 @@ import de.dlr.ivf.tapas.loc.Locatable;
 import de.dlr.ivf.tapas.loc.TPS_Block;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone.ScenarioTypeValues;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
-import de.dlr.ivf.tapas.util.parameters.*;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 
 /**
  * This class represents modes 'pubtrans' and 'train'
@@ -95,8 +95,8 @@ public class TPS_MassTransportMode extends TPS_Mode {
             if (block != null) {
                 score = block.getScoreCat();
             } else {
-                if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                    TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                    TPS_Logger.log(SeverityLogLevel.DEBUG,
                             "No block assigned for " + this.toString() + " Using default score");
                 }
             }
@@ -174,7 +174,7 @@ public class TPS_MassTransportMode extends TPS_Mode {
                             ParamValue.DEFAULT_SCHOOL_BUS_EGRESS) + this.getParameters().getDoubleValue(
                             ParamValue.DEFAULT_SCHOOL_BUS_WAIT);
                     if (travelTimeIsInvalid(tt)) {
-                        TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                        TPS_Logger.log(SeverityLogLevel.DEBUG,
                                 "Invalid travel time detected: " + tt + " from " + TVZfrom + " to " + TVZto +
                                         " mode: " + getName());
                         tt = TPS_Mode.NO_CONNECTION;
@@ -185,7 +185,7 @@ public class TPS_MassTransportMode extends TPS_Mode {
                     //					tt= beelineDistanceLoc * ModeType.WALK.getBeelineFactor().getDoubleValue() /
                     //					get(ModeType.WALK).getVelocity().getDoubleValue();
                     //					if(travelTimeIsInvalid(tt))
-                    //						TPS_Logger.log(SeverenceLogLevel.FATAL, "NaN detected");
+                    //						TPS_Logger.log(SeverityLogLevel.FATAL, "NaN detected");
                 }
 
             } else {
@@ -214,7 +214,7 @@ public class TPS_MassTransportMode extends TPS_Mode {
 
                 tt += TT1 + TT2;
                 if (travelTimeIsInvalid(tt)) {
-                    TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                    TPS_Logger.log(SeverityLogLevel.DEBUG,
                             "Invalid travel time detected: " + tt + " from " + TVZfrom + " to " + TVZto + " mode: " +
                                     getName());
                     tt = TPS_Mode.NO_CONNECTION;
@@ -271,7 +271,7 @@ public class TPS_MassTransportMode extends TPS_Mode {
                     // !!!dk
                     tt += (distFrom + distTo) * beelineFactor / ptSpeed;
                     if (travelTimeIsInvalid(tt)) {
-                        TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                        TPS_Logger.log(SeverityLogLevel.DEBUG,
                                 "Invalid travel time detected: " + tt + " from " + TVZfrom + " to " + TVZto +
                                         " mode: " + getName());
                         tt = TPS_Mode.NO_CONNECTION;
@@ -311,7 +311,7 @@ public class TPS_MassTransportMode extends TPS_Mode {
 
                     tt += TT1 + TT2;
                     if (travelTimeIsInvalid(tt)) {
-                        TPS_Logger.log(SeverenceLogLevel.DEBUG,
+                        TPS_Logger.log(SeverityLogLevel.DEBUG,
                                 "Invalid travel time detected: " + tt + " from " + TVZfrom + " to " + TVZto +
                                         " mode: " + getName());
                         tt = TPS_Mode.NO_CONNECTION;

@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.tools.persitence.db.dbImport;
 
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.parameter;
 
-import de.dlr.ivf.tapas.person.TPS_Household;
-
 /**
  * This class provides all value (Number, int, double etc.) enums which determine the name of
  * parameters available in the application
@@ -574,7 +572,7 @@ public enum ParamValue {
      * Low income threshold
      * Depending on the utility function this is either a threshold for the total income of a household
      * or a threshold for the equivalence income (see
-     * {@link TPS_Household}.getHouseholdEquivalenceIncome)
+     * TPS_Household.getHouseholdEquivalenceIncome)
      * Households below the threshold are considered to have a low income and may benefit of scenario measures
      * like public transport cost reduction etc.
      * Default=0, i.e. there is no consideration of low income households

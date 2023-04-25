@@ -8,15 +8,16 @@ import de.dlr.ivf.tapas.execution.sequential.statemachine.util.StateMachineUtils
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_Region;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.util.Randomizer;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -139,7 +140,7 @@ public class TPS_HouseholdAndPersonLoader {
                 car_map.put(tmp.getId(), tmp);
             }
         } catch (SQLException e) {
-            TPS_Logger.log(TPS_LoggingInterface.SeverenceLogLevel.FATAL, e);
+            TPS_Logger.log(SeverityLogLevel.FATAL, e);
         }
 
 
@@ -227,7 +228,7 @@ public class TPS_HouseholdAndPersonLoader {
                     if (carNum > 0) {
                         int[] carId = TPS_DB_IO.extractIntArray(rs.getArray("hh_car_ids").getArray());
                         if (carNum != carId.length) {
-                            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.ERROR,
+                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
                                     "HH_id: " + current_hh_id + " expected cars: " + carNum + " found cars: " + carId.length);
                         }
                         // init the cars
@@ -295,8 +296,8 @@ public class TPS_HouseholdAndPersonLoader {
                 if (carMap.containsKey(car.getId())) {
                     car.cloneCar(carMap.get(car.getId()));
                 } else {
-                    if (TPS_Logger.isLogging(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.WARN)) {
-                        TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.WARN,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.WARN)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.WARN,
                                 "Unknown car id " + car.getId() + " in household " + household.getId());
                     }
                 }

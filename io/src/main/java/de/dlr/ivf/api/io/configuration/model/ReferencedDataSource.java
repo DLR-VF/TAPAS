@@ -2,7 +2,9 @@ package de.dlr.ivf.api.io.configuration.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
 
+@Getter
 public class ReferencedDataSource extends DataSource {
 
 

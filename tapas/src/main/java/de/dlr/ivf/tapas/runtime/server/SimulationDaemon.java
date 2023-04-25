@@ -11,11 +11,11 @@ package de.dlr.ivf.tapas.runtime.server;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
 import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties.DaemonControlPropKey;
-import de.dlr.ivf.tapas.runtime.util.IPInfo;
+import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.File;
 import java.io.IOException;

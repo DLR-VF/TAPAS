@@ -9,16 +9,16 @@
 package de.dlr.ivf.tapas.iteration;
 
 import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_Mode;
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.Matrix;
-import de.dlr.ivf.tapas.util.MatrixMap;
-import de.dlr.ivf.tapas.util.parameters.*;
+import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixMap;
 
 import java.io.*;
 import java.sql.ResultSet;
@@ -139,7 +139,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             this.parameterClass.checkParameters();
 
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -151,7 +151,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
      */
     private void calcMinMaxValue(double[] array) {
         if (array.length != 3) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Wrong array size: " + array.length);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Wrong array size: " + array.length);
             return;
         }
         array[1] = Math.min(array[1], array[0]);
@@ -178,7 +178,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             }
             rs.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error!", e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error!", e);
             return false;
 
         }
@@ -203,7 +203,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             }
             rs.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! ", e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! ", e);
             return false;
         }
         return returnVal;
@@ -434,27 +434,27 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
 
             double[][] comp = null;
             //time
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Merging times with: " + this.compareMatrix[0]);
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Merging times with: " + this.compareMatrix[0]);
             }
             comp = this.readMatrixFromDB(this.compareMatrix[0]);
             if (comp != null) mergeMatrixPair(comp, this.travelTime);
             //dist
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Merging distances with: " + this.compareMatrix[1]);
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Merging distances with: " + this.compareMatrix[1]);
             }
             comp = this.readMatrixFromDB(this.compareMatrix[1]);
             if (comp != null) mergeMatrixPair(comp, this.distance);
             if (isPT) {
                 //access  time
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "Merging access times with: " + this.compareMatrix[2]);
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "Merging access times with: " + this.compareMatrix[2]);
                 }
                 comp = this.readMatrixFromDB(this.compareMatrix[2]);
                 if (comp != null) mergeMatrixPair(comp, this.accessTime);
                 //egress time
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "Merging egress times with: " + this.compareMatrix[3]);
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "Merging egress times with: " + this.compareMatrix[3]);
                 }
                 comp = this.readMatrixFromDB(this.compareMatrix[3]);
                 if (comp != null) mergeMatrixPair(comp, this.egressTime);
@@ -491,8 +491,8 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             }
         }
         avgError /= size * size;
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO,
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO,
                     "max error: " + maxError + " minError: " + minError + " avg error: " + avgError);
         }
     }
@@ -522,12 +522,12 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             if (tvzCounter == 0) {
                 in = new FileReader(fileName);
                 input = new BufferedReader(in);
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "File opened: " + fileName);
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "File opened: " + fileName);
                 }
                 //read tvzs
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "Analyzing TVZ-IDs: ");
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "Analyzing TVZ-IDs: ");
                 }
 
                 while ((line = input.readLine()) != null) {
@@ -563,8 +563,8 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                         tvzCounter++;
                     }
                 }
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "Found " + tvzCounter + " TVZ-IDs");
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO, "Found " + tvzCounter + " TVZ-IDs");
                 }
                 input.close();
                 in.close();
@@ -585,8 +585,8 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             //open input
             in = new FileReader(fileName);
             input = new BufferedReader(in);
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "File opened: " + fileName);
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "File opened: " + fileName);
             }
             tt[1] = v[1] = at[1] = et[1] = dist[1] = bl[1] = 99999;
             tt[2] = v[2] = at[1] = et[2] = dist[2] = bl[2] = 0;
@@ -666,16 +666,16 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                     }
                 }
             }
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "travelTime	min/max: " + tt[1] + " " + tt[2]);
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "travelTime	min/max: " + tt[1] + " " + tt[2]);
                 if (isPT) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "accessTime	min/max: " + at[1] + " " + at[2]);
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "egressTime	min/max: " + et[1] + " " + et[2]);
+                    TPS_Logger.log(SeverityLogLevel.INFO, "accessTime	min/max: " + at[1] + " " + at[2]);
+                    TPS_Logger.log(SeverityLogLevel.INFO, "egressTime	min/max: " + et[1] + " " + et[2]);
                 } else {
-                    TPS_Logger.log(SeverenceLogLevel.INFO, "speed		min/max: " + v[1] + " " + v[2]);
+                    TPS_Logger.log(SeverityLogLevel.INFO, "speed		min/max: " + v[1] + " " + v[2]);
                 }
-                TPS_Logger.log(SeverenceLogLevel.INFO, "distance	min/max: " + dist[1] + " " + dist[2]);
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Beeline		min/max: " + bl[1] + " " + bl[2]);
+                TPS_Logger.log(SeverityLogLevel.INFO, "distance	min/max: " + dist[1] + " " + dist[2]);
+                TPS_Logger.log(SeverityLogLevel.INFO, "Beeline		min/max: " + bl[1] + " " + bl[2]);
             }
         } finally {
             try {
@@ -683,7 +683,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                 if (in != null) in.close();
             }//try
             catch (IOException ex) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, " Could not close : " + fileName);
+                TPS_Logger.log(SeverityLogLevel.ERROR, " Could not close : " + fileName);
                 throw new IOException(ex);
             }//catch
         }//finally
@@ -707,11 +707,11 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                 }
             }
             rs.close();
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error! Query: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! Query: " + query, e);
             throw new SQLException("SQL error! Query: " + query, e);
         }
     }
@@ -735,7 +735,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                 rs.close();
                 // check sizes
                 if (numOfMatrices != matrix_names.length || numOfMatrices != distribution.length) {
-                    TPS_Logger.log(SeverenceLogLevel.FATAL,
+                    TPS_Logger.log(SeverityLogLevel.FATAL,
                             "Couldn't load matrixmap " + this.parameterClass.getString(matrixName) +
                                     " from database. Different array sizes (num, matrices, distribution): " +
                                     numOfMatrices + " " + matrix_names.length + " " + distribution.length +
@@ -759,7 +759,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                         }
                         rs.close();
                     } else {
-                        TPS_Logger.log(SeverenceLogLevel.FATAL,
+                        TPS_Logger.log(SeverityLogLevel.FATAL,
                                 "Couldn't load matrix " + matrix_names[i] + " form matrix map" +
                                         this.parameterClass.getString(matrixName) + ": No such matrix. SQL Query: " +
                                         query);
@@ -773,7 +773,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                 else this.parameterClass.paramMatrixMapClass.setMatrixMap(matrix, distribution, matrices);
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL,
+            TPS_Logger.log(SeverityLogLevel.FATAL,
                     "Couldn't load matrixmap " + this.parameterClass.getString(matrixName) +
                             " from database: No such entry. SQL Query: " + query, e);
         }
@@ -799,7 +799,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                     Integer[] matrixVal = (Integer[]) array;
                     int size = (int) Math.sqrt(matrixVal.length);
                     if (size != this.travelTime.length) {
-                        TPS_Logger.log(SeverenceLogLevel.ERROR,
+                        TPS_Logger.log(SeverityLogLevel.ERROR,
                                 "Matrix " + matrixName + " has a different size: " + size + " Expected: " +
                                         this.travelTime.length);
                         return null;
@@ -813,11 +813,11 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                     }
                 }
             } else {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
+                TPS_Logger.log(SeverityLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
             }
             rs.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL Error: " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL Error: " + query, e);
         }
         return returnVal;
     }
@@ -886,8 +886,8 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
         String query;
         if (checkIntraInfos(name)) {
             //update
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO,
                         "Updating data for entry: " + name + " in table " + tableName + ". ");
             }
             for (int i = 0; i < this.intraSpeed.length; ++i) {
@@ -900,8 +900,8 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             }
 
         } else {
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO,
                         "Inserting data for entry: " + name + " in table " + tableName + ". ");
             }
             for (int i = 0; i < this.intraSpeed.length; ++i) {
@@ -914,8 +914,8 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                 dbCon.execute(query, this);
             }
         }
-        if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(SeverenceLogLevel.INFO, " Successful!");
+        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+            TPS_Logger.log(SeverityLogLevel.INFO, " Successful!");
         }
         return true;
     }
@@ -966,7 +966,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                             this.parameterClass.paramValueClass.getIntValue(ParamValue.ITERATION));
             if (!outputDir.exists()) {
                 if (!outputDir.mkdir()) {
-                    TPS_Logger.log(SeverenceLogLevel.FATAL,
+                    TPS_Logger.log(SeverityLogLevel.FATAL,
                             "Exception during VISUM export! cannot create output dir: " + outputDir.getAbsolutePath());
                     return;
                 }
@@ -1001,8 +1001,8 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                     tapasMatricesWithPaths.add(outPutFile.getPath());
                     // open file
                     FileWriter writer = new FileWriter(outPutFile);
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(SeverenceLogLevel.INFO,
+                    if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                        TPS_Logger.log(SeverityLogLevel.INFO,
                                 "Writing O/D matrices for mode " + i + ". Timeslot from " + (lastTime / 60) + "h to " +
                                         (thisTime / 60) + "h to file: " + outPutFile.getAbsolutePath());
                     }
@@ -1045,11 +1045,11 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             }
 
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Exception during VISUM export! Error reading SQL! Query:" + query,
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Exception during VISUM export! Error reading SQL! Query:" + query,
                     e);
             throw new SQLException("Exception during VISUM export! Error reading SQL! Query:" + query, e);
         } catch (IOException e) {
-            TPS_Logger.log(SeverenceLogLevel.FATAL, "Exception during VISUM export! Error writing cvs:", e);
+            TPS_Logger.log(SeverityLogLevel.FATAL, "Exception during VISUM export! Error writing cvs:", e);
             throw new IOException("Exception during VISUM export! Error reading SQL! Query:" + query, e);
         }
     }

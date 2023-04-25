@@ -9,15 +9,15 @@
 package de.dlr.ivf.tapas.plan.acceptance;
 
 
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_GX;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamValue;
 
 /**
  * This class is an implementation of the {@link TPS_PlanAcceptance} interface and uses the EVA(1) function of Lohse
@@ -68,8 +68,8 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
                 ratio = ratio - 1; // Basis ist immer 0, Abweichung darauf basierend
                 budgetAcceptanceProbability = TPS_GX.calculateEVA1Acceptance(ratio, EBottom, FTop, TurningPoint);
             }
-            if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                TPS_Logger.log(SeverenceLogLevel.DEBUG,
+            if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                TPS_Logger.log(SeverityLogLevel.DEBUG,
                         "Plan with financial costs=" + plan.getTravelCosts() + " and person's budget=" +
                                 myFinancialBudgetVariable + " leads to [ratio=" + ratio + ", acceptance=" +
                                 budgetAcceptanceProbability + "]");
@@ -115,8 +115,8 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
             ratio = Math.abs(ratio - 1.0);
             timeAcceptanceProbability = TPS_GX.calculateEVA1Acceptance(ratio, EBottom, FTop, TurningPoint);
         }
-        if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(SeverenceLogLevel.DEBUG,
+        if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+            TPS_Logger.log(SeverityLogLevel.DEBUG,
                     "Plan with time costs=" + plan.getTravelDuration() + " and person's budget=" + 1.0 / myTimeBudget +
                             " leads to [ratio=" + ratio + ", acceptance=" + timeAcceptanceProbability + "]");
         }
@@ -195,7 +195,7 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
 
             acceptance = TPS_GX.calculateEVA1Acceptance(ratio, EBottom, FTop, TurningPoint);
             if (Double.isNaN(acceptance) || Double.isInfinite(acceptance)) {
-                TPS_Logger.log(SeverenceLogLevel.FATAL, "Plan has NaN acceptance!");
+                TPS_Logger.log(SeverityLogLevel.FATAL, "Plan has NaN acceptance!");
                 plan.setPlanFeasible(false);
                 accepted = false;
             } else {
@@ -203,8 +203,8 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
                 accepted = Randomizer.random() < acceptance;
             }
         }
-        if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-            TPS_Logger.log(SeverenceLogLevel.DEBUG,
+        if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+            TPS_Logger.log(SeverityLogLevel.DEBUG,
                     "Plan with travel times [orig=" + originalDuration + ", real=" + realDuration +
                             "] leads to [ratio=" + ratio + ", acceptance=" + acceptance + "] is accepted => " +
                             accepted);

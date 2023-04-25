@@ -1,12 +1,13 @@
 package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.execution.sequential.communication.EndOfSimulationCallback;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.util.StateMachineUtils;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -140,7 +141,7 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
             TPS_StateTransitionException exception = (TPS_StateTransitionException) t;
             TPS_StateMachine state_machine = exception.getStateMachine();
 
-            TPS_Logger.log(TPS_LoggingInterface.HierarchyLogLevel.THREAD, TPS_LoggingInterface.SeverenceLogLevel.SEVERE, exception.getMessage());
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.SEVERE, exception.getMessage());
             state_machine.transitionToErrorState();
         }else{
             if(!(t instanceof RuntimeException))

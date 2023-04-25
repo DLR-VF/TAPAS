@@ -10,7 +10,7 @@ package de.dlr.ivf.tapas.tools.persitence.db.dbImport;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamString;
 
 import javax.swing.*;
 import java.awt.*;

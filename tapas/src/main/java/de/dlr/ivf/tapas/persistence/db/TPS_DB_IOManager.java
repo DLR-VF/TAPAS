@@ -12,10 +12,10 @@ import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.loc.TPS_Location;
 import de.dlr.ivf.tapas.loc.TPS_Region;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.TPS_ModeSet;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Household;
@@ -23,12 +23,12 @@ import de.dlr.ivf.tapas.person.TPS_Person;
 import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.plan.TPS_Plan;
 import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
-import de.dlr.ivf.tapas.runtime.util.IPInfo;
+import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.scheme.*;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -135,19 +135,19 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                         pS.setInt(index++, plan.getScheme().getId());
                         if (Double.isNaN(plan.getAcceptanceProbability()) || Double.isInfinite(
                                 plan.getAcceptanceProbability())) {
-                            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                            TPS_Logger.log(SeverityLogLevel.FATAL,
                                     "NaN detected in getAcceptanceProbability for person " + p.getId());
                         }
                         pS.setDouble(index++, plan.getAcceptanceProbability());
                         if (Double.isNaN(plan.getBudgetAcceptanceProbability()) || Double.isInfinite(
                                 plan.getBudgetAcceptanceProbability())) {
-                            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                            TPS_Logger.log(SeverityLogLevel.FATAL,
                                     "NaN detected in getBudgetAcceptanceProbability for person " + p.getId());
                         }
                         pS.setDouble(index++, plan.getBudgetAcceptanceProbability());
                         if (Double.isNaN(plan.getTimeAcceptanceProbability()) || Double.isInfinite(
                                 plan.getTimeAcceptanceProbability())) {
-                            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                            TPS_Logger.log(SeverityLogLevel.FATAL,
                                     "NaN detected in getTimeAcceptanceProbability for person " + p.getId());
                         }
                         pS.setDouble(index++, plan.getTimeAcceptanceProbability());
@@ -182,19 +182,19 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
 
                         pS.setInt(index++, (int) ((start * 1.66666666e-2) + 0.5)); //sec to min incl round
                         if (Double.isNaN(pt.getDuration()) || Double.isInfinite(pt.getDuration())) {
-                            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                            TPS_Logger.log(SeverityLogLevel.FATAL,
                                     "NaN detected in getDuration for person " + p.getId());
                         }
                         pS.setDouble(index++, pt.getDuration());
                         pS.setInt(index++, pt.getMode().getMCTCode());
                         pS.setInt(index++, tp.getCar() == null ? -1 : tp.getCar().getId());
                         if (Double.isNaN(pt.getDistanceBeeline()) || Double.isInfinite(pt.getDistanceBeeline())) {
-                            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                            TPS_Logger.log(SeverityLogLevel.FATAL,
                                     "NaN detected in getDistanceBeeline for person " + p.getId());
                         }
                         pS.setDouble(index++, pt.getDistanceBeeline());
                         if (Double.isNaN(pt.getDistance()) || Double.isInfinite(pt.getDistance())) {
-                            TPS_Logger.log(SeverenceLogLevel.FATAL,
+                            TPS_Logger.log(SeverityLogLevel.FATAL,
                                     "NaN detected in getDistance for person " + p.getId());
                         }
                         pS.setDouble(index++, pt.getDistance());
@@ -243,14 +243,14 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             }
 
             if (!planStoreSuccessful) {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "Storing of plans failed!");
+                TPS_Logger.log(SeverityLogLevel.ERROR, "Storing of plans failed!");
             }
             pS.close();
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error during sql-statement: " + statement);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getNextException().getMessage(), e.getNextException());
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error during sql-statement: " + statement);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception:");
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getNextException().getMessage(), e.getNextException());
         }
     }
 
@@ -260,22 +260,22 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
 
     public void createTemporaryAndOutputTables() {
         // create additional temporary tables in database
-        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO, "Create temporary location table");
+        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO, "Create temporary location table");
         }
         functionExecute("create_temp_locations", ParamString.DB_TABLE_LOCATION, ParamString.DB_TABLE_LOCATION_TMP);
 
 
-        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO, "Create temporary household table");
+        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO, "Create temporary household table");
         }
         functionExecute("create_hh_sample", ParamString.DB_TABLE_HOUSEHOLD, ParamString.DB_TABLE_HOUSEHOLD_TMP,
                 ParamString.DB_TABLE_PERSON, this.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY),
                 this.getParameters().getLongValue(ParamValue.RANDOM_SEED_NUMBER),
                 this.getParameters().getDoubleValue(ParamValue.DB_HH_SAMPLE_SIZE));
 
-        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO, "Create output trip table");
+        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO, "Create output trip table");
         }
         String query = "CREATE TABLE " + this.getParameters().getString(ParamString.DB_TABLE_TRIPS) +
                 " (p_id integer, hh_id integer, scheme_id integer, score_combined double precision," +
@@ -372,12 +372,12 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             TPS_Household hh = this.dbIO.getNextHousehold(this.getRegion());
 
             time = System.nanoTime() - time;
-            if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                TPS_Logger.log(SeverenceLogLevel.DEBUG, "Read next household in " + (time * 0.000001) + "ms");
+            if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                TPS_Logger.log(SeverityLogLevel.DEBUG, "Read next household in " + (time * 0.000001) + "ms");
             }
             return hh;
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
             throw new RuntimeException(e);
         }
     }
@@ -428,52 +428,52 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             this.dbIO.initStart();
 
             // clearing initial information from database
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Clearing constants (all codes: age," + " distance, person, activity, location, ...)");
             }
             this.dbIO.clearConstants();
 
             // reading initial information from database
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading constants (all codes: age," + " distance, person, activity, location, ...)");
             }
             this.dbIO.readConstants();
 
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading parameters for the utility function");
             }
             this.dbIO.readUtilityFunction();
 
             // read scheme set
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading scheme set (includes scheme classes, schemes and episodes)");
             }
             this.schemeSet = this.dbIO.readSchemeSet();
 
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading region with all blocks and locations");
             }
             this.region = this.dbIO.readRegion();
 
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading mode set with mode choice tree");
             }
             this.modeSet = new TPS_ModeSet(this.dbIO.readModeChoiceTree(), this.dbIO.readExpertKnowledgeTree(),
                     this.getParameters());
 
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading matrices (distances, travel times, access and egress times)");
             }
             this.dbIO.readMatrices(this.getRegion());
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
             throw new RuntimeException(e);
         }
     }
@@ -501,16 +501,16 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                 Thread.sleep(10);
             }
             long time = System.nanoTime();
-            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Inserting trips");
+            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Inserting trips");
             }
             this.insertPlansIntoDB();
             time = System.nanoTime() - time;
-            if (TPS_Logger.isLogging(SeverenceLogLevel.DEBUG)) {
-                TPS_Logger.log(SeverenceLogLevel.DEBUG, "Wrote trips back into db in " + (time * 0.000001) + "ms");
+            if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
+                TPS_Logger.log(SeverityLogLevel.DEBUG, "Wrote trips back into db in " + (time * 0.000001) + "ms");
             }
         } catch (InterruptedException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
         }
     }
 
@@ -525,15 +525,15 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             if (rs.next()) {
                 int count = rs.getInt(1);
                 if (count > 0) {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.WARN)) {
-                        TPS_Logger.log(SeverenceLogLevel.WARN,
+                    if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                        TPS_Logger.log(SeverityLogLevel.WARN,
                                 "Resetted " + count + " households for new calculation!");
                     }
                 }
             }
             rs.close();
         } catch (IOException | SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e);
 
         }
     }
@@ -563,8 +563,8 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             con.setAutoCommit(false);
             //write households
             if (this.insertedHouseHolds.size() > 0) {
-                if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(SeverenceLogLevel.INFO,
+                if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(SeverityLogLevel.INFO,
                             "Finishing " + this.insertedHouseHolds.size() + " households.");
                 }
 
@@ -606,7 +606,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                     householdStoreSuccesful &= batchResultCounter[index] != PreparedStatement.EXECUTE_FAILED;
                 }
                 if (!householdStoreSuccesful) {
-                    TPS_Logger.log(SeverenceLogLevel.ERROR, "Finishing of households failed!");
+                    TPS_Logger.log(SeverityLogLevel.ERROR, "Finishing of households failed!");
                 }
                 pS.close();
             }
@@ -614,12 +614,12 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             //now store the whole thing in db!
             if (numberOfHouseholds + numberOfPlans > 0) {
                 if (householdStoreSuccesful && planStoreSuccessful) {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(SeverenceLogLevel.INFO, "Saved trips to database.");
+                    if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                        TPS_Logger.log(SeverityLogLevel.INFO, "Saved trips to database.");
                     }
                 } else {
-                    if (TPS_Logger.isLogging(SeverenceLogLevel.ERROR)) {
-                        TPS_Logger.log(SeverenceLogLevel.ERROR,
+                    if (TPS_Logger.isLogging(SeverityLogLevel.ERROR)) {
+                        TPS_Logger.log(SeverityLogLevel.ERROR,
                                 "ERROR: Error during commit to DB! Plans successful:" + planStoreSuccessful +
                                         " households successful: " + householdStoreSuccesful);
                     }
@@ -628,10 +628,10 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             con.setAutoCommit(true);
 
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error during sql-statement: " + statement);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getNextException().getMessage(), e.getNextException());
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error during sql-statement: " + statement);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception:");
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getNextException().getMessage(), e.getNextException());
         }
     }
 
@@ -645,8 +645,8 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         try {
 
 
-            if (TPS_Logger.isLogging(SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO,
                         "Storing " + this.plansToStore.size() + " plan elements into the database.");
             }
 
@@ -720,10 +720,10 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
 
 
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error during sql-statement: " + statement);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getMessage(), e);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception:");
-            TPS_Logger.log(SeverenceLogLevel.ERROR, e.getNextException().getMessage(), e.getNextException());
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error during sql-statement: " + statement);
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception:");
+            TPS_Logger.log(SeverityLogLevel.ERROR, e.getNextException().getMessage(), e.getNextException());
         }
     }
 

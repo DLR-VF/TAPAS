@@ -15,26 +15,30 @@ import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.loc.*;
 import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone.ScenarioTypeValues;
-import de.dlr.ivf.tapas.log.LogHierarchy;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.HierarchyLogLevel;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.LogHierarchy;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.mode.*;
 import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.modechoice.TPS_ExpertKnowledgeNode;
 import de.dlr.ivf.tapas.modechoice.TPS_ExpertKnowledgeTree;
 import de.dlr.ivf.tapas.modechoice.TPS_ModeChoiceTree;
 import de.dlr.ivf.tapas.modechoice.TPS_Node;
+import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Household;
 import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.runtime.util.IPInfo;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
+import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.scheme.*;
-import de.dlr.ivf.tapas.util.*;
+import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.parameters.*;
+import de.dlr.ivf.tapas.util.TPS_VariableMap;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
@@ -272,12 +276,12 @@ public class TPS_DB_IO {
                     " WHERE sim_key = '" + this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
             ResultSet sRs = PM.executeQuery(query);
             if (!sRs.next()) {
-                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "simulation key removed from db!");
+                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "simulation key removed from db!");
                 return 0;
             }
             if (sRs.getBoolean("sim_started")) {
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Fetching new set of households");
+                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Fetching new set of households");
                 }
                 String hhtemptable = this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP);
 
@@ -311,8 +315,8 @@ public class TPS_DB_IO {
                     st.execute(query);
                     con.commit();
                     con.setAutoCommit(true);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                                 "Assigned " + actualCount + " new households this instance.");
                     }
                 }
@@ -329,8 +333,8 @@ public class TPS_DB_IO {
                 }
                 hRs.close();
 
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                             "Fetching data for " + hIDs.size() + " households.");
                 }
 
@@ -346,15 +350,15 @@ public class TPS_DB_IO {
             }
             this.numberOfFetchedHouseholds = this.prefetchedHouseholds.size();
             if (numberOfFetchedHouseholds > 0) {
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                             "Fetched " + numberOfFetchedHouseholds + " households");
                 }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR, "error during one of th sqls: " + query,
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "error during one of th sqls: " + query,
                     e);
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR, "next exception:", e.getNextException());
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "next exception:", e.getNextException());
         }
         return this.prefetchedHouseholds.size();
     }
@@ -377,8 +381,8 @@ public class TPS_DB_IO {
                     this.updateOccupancyTable(region);
                     this.vacuumTempTables();
                     if (this.fetchNextSetOfHouseholds(region) == 0) {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Finished all households");
+                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Finished all households");
                         }
                         return null;
                     }
@@ -587,7 +591,7 @@ public class TPS_DB_IO {
                     if (carNum > 0) {
                         int[] carId = extractIntArray(hRs, "hh_car_ids");
                         if (carNum != carId.length) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
+                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
                                     "HH_id: " + id + " expected cars: " + carNum + " found cars: " + carId.length);
                         }
                         // init the cars
@@ -604,7 +608,7 @@ public class TPS_DB_IO {
                     int tazID = hRs.getInt("hh_taz_id");
                     TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(tazID);
                     if (taz == null) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
                                 "No taz found for household " + id + " hh_taz_id " + tazID);
                         throw new RuntimeException(); //we cannot proceed with such faulty data!
                     }
@@ -619,8 +623,8 @@ public class TPS_DB_IO {
                 }
                 hRs.close();
                 if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                                 "Prefetching persons for all " + houseHoldMap.size() + " households");
                     }
                     int chunks = 10; //avoid big fetches! the modulo operation is quite fast and scales very well
@@ -637,8 +641,8 @@ public class TPS_DB_IO {
                         pRs.close();
                     }
                 } else { //chunky way
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                                 "Fetching persons for " + houseHoldMap.size() + " households");
                     }
 
@@ -670,10 +674,10 @@ public class TPS_DB_IO {
                     }
                 }
 
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                             "Fetched " + sumPersons + " persons");
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Fetching car types");
+                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Fetching car types");
                 }
 
                 if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
@@ -732,8 +736,8 @@ public class TPS_DB_IO {
                     cRs.close();
                 }
 
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Assigning cars to households");
+                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Assigning cars to households");
                 }
 
                 for (TPS_Household ihh : houseHoldMap.values()) {
@@ -744,8 +748,8 @@ public class TPS_DB_IO {
                             if (carMap.containsKey(car.getId())) {
                                 car.cloneCar(carMap.get(car.getId()));
                             } else {
-                                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN)) {
-                                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.WARN,
+                                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.WARN)) {
+                                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.WARN,
                                             "Unknown car id " + car.getId() + " in household " + ihh.getId());
                                 }
                             }
@@ -756,10 +760,10 @@ public class TPS_DB_IO {
                 }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Error in sqlStatement " + query, e);
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Next exception: ", e.getNextException());
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Error in sqlStatement " + query, e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception: ", e.getNextException());
         } catch (Exception e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Unknown Error in loadHouseholds!", e);
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Unknown Error in loadHouseholds!", e);
 
         }
         for (Integer hid : hIDs) {
@@ -767,7 +771,7 @@ public class TPS_DB_IO {
             if (ihh != null) {
                 fetchedHouseholds.add(ihh);
             } else {
-                TPS_Logger.log(SeverenceLogLevel.ERROR, "Household not loaded: " + hid);
+                TPS_Logger.log(SeverityLogLevel.ERROR, "Household not loaded: " + hid);
             }
         }
         return fetchedHouseholds;
@@ -799,7 +803,7 @@ public class TPS_DB_IO {
                 // replaced by the two lines above:           TPS_AbstractConstant.connectConstants(actCode, locCode);
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readConstant! Query: " + query + " constant:" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readConstant! Query: " + query + " constant:" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " or " +
                     this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY), e);
             throw new RuntimeException("Error loading constant " +
@@ -833,7 +837,7 @@ public class TPS_DB_IO {
                 tac.addActivityConstantToMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "SQL error in readActivityConstantCodes! Query: " + query + " constant:" +
                             this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY), e);
             throw new RuntimeException("Error loading constant " +
@@ -865,7 +869,7 @@ public class TPS_DB_IO {
                 tac.addAgeClassToMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readAgeClassCodes! Query: " + query + " constant:" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readAgeClassCodes! Query: " + query + " constant:" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_AGE), e);
             throw new RuntimeException(
                     "Error loading constant " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_AGE));
@@ -886,12 +890,12 @@ public class TPS_DB_IO {
                     TPS_CarCode s = TPS_CarCode.valueOf(rs.getString("name_cars"));
                     s.code = rs.getInt("code_cars");
                 } catch (IllegalArgumentException e) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN,
+                    TPS_Logger.log(SeverityLogLevel.WARN,
                             "Read invalid car information from DB:" + rs.getString("name_cars"));
                 }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readCarCodes! Query: " + query + " constant" + ":" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readCarCodes! Query: " + query + " constant" + ":" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_CARS), e);
             throw new RuntimeException(
                     "Error loading constant " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_CARS));
@@ -940,7 +944,7 @@ public class TPS_DB_IO {
                 td.addDistanceToMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readDistanceCodes! Query: " + query + " constant:" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readDistanceCodes! Query: " + query + " constant:" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), e);
             throw new RuntimeException("Error loading constant " +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_DISTANCE));
@@ -961,11 +965,11 @@ public class TPS_DB_IO {
                     TPS_DrivingLicenseInformation s = TPS_DrivingLicenseInformation.valueOf(rs.getString("name"));
                     s.setCode(rs.getInt("code_dli"));
                 } catch (IllegalArgumentException e) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN, "Invalid driving license code: " + rs.getString("name"));
+                    TPS_Logger.log(SeverityLogLevel.WARN, "Invalid driving license code: " + rs.getString("name"));
                 }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "SQL error in readDrivingLicenseCodes! Query: " + query + " constant:" + this.PM.getParameters()
                                                                                                     .getString(
                                                                                                             ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION),
@@ -1074,7 +1078,7 @@ public class TPS_DB_IO {
                 ti.addToIncomeMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readIncomeCodes! Query: " + query + " constant:" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readIncomeCodes! Query: " + query + " constant:" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_INCOME), e);
             throw new RuntimeException("Error loading constant " +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_INCOME));
@@ -1100,7 +1104,7 @@ public class TPS_DB_IO {
                 tlc.addLocationCodeToMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "SQL error in readLocationConstantCodes! Query: " + query + " constant:" +
                             this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_LOCATION), e);
             throw new RuntimeException("Error loading constant " +
@@ -1123,7 +1127,7 @@ public class TPS_DB_IO {
         if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_WALK)) {
             this.readMatrix(ParamString.DB_NAME_MATRIX_DISTANCES_WALK, ParamMatrix.DISTANCES_WALK, null, sIndex);
         } else {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Setting walk distances equal to street distances.");
+            TPS_Logger.log(SeverityLogLevel.INFO, "Setting walk distances equal to street distances.");
             this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_WALK,
                     this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
@@ -1132,7 +1136,7 @@ public class TPS_DB_IO {
         if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE)) {
             this.readMatrix(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE, ParamMatrix.DISTANCES_BIKE, null, sIndex);
         } else {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Setting bike distances equal to street distances.");
+            TPS_Logger.log(SeverityLogLevel.INFO, "Setting bike distances equal to street distances.");
             this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_BIKE,
                     this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
@@ -1141,13 +1145,13 @@ public class TPS_DB_IO {
         if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_PT)) {
             this.readMatrix(ParamString.DB_NAME_MATRIX_DISTANCES_PT, ParamMatrix.DISTANCES_PT, null, sIndex);
         } else {
-            TPS_Logger.log(SeverenceLogLevel.INFO, "Setting public transport distances equal to street distances.");
+            TPS_Logger.log(SeverityLogLevel.INFO, "Setting public transport distances equal to street distances.");
             this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_PT,
                     this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
 
         //beeline dist
-        TPS_Logger.log(SeverenceLogLevel.INFO, "Calculate beeline distances distances.");
+        TPS_Logger.log(SeverityLogLevel.INFO, "Calculate beeline distances distances.");
         Matrix bl = new Matrix(region.getTrafficAnalysisZones().size(), region.getTrafficAnalysisZones().size(),
                 sIndex);
         for (TPS_TrafficAnalysisZone tazfrom : region.getTrafficAnalysisZones()) {
@@ -1159,7 +1163,7 @@ public class TPS_DB_IO {
             }
         }
         this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_BL, bl);
-        TPS_Logger.log(SeverenceLogLevel.INFO, "Beeline average value: " +
+        TPS_Logger.log(SeverityLogLevel.INFO, "Beeline average value: " +
                 this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getAverageValue(false, true) +
                 " Size (Elements, Rows, Columns): " + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfElements() + ", "
                 + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfRows() + ", "
@@ -1350,7 +1354,7 @@ public class TPS_DB_IO {
         String query = "SELECT matrix_values FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
                 " WHERE matrix_name='" + matrixName + "'";
         ResultSet rs = PM.executeQuery(query);
-        TPS_Logger.log(SeverenceLogLevel.INFO, "Loading " + matrix);
+        TPS_Logger.log(SeverityLogLevel.INFO, "Loading " + matrix);
         if (rs.next()) {
             int[] iArray = extractIntArray(rs, "matrix_values");
             int len = (int) Math.sqrt(iArray.length);
@@ -1361,9 +1365,9 @@ public class TPS_DB_IO {
             if (simType != null) this.PM.getParameters().setMatrix(matrix, m, simType);
             else this.PM.getParameters().setMatrix(matrix, m);
         } else {
-            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.WARN, "No matrix found for query: " + query);
+            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.WARN, "No matrix found for query: " + query);
         }
-        TPS_Logger.log(SeverenceLogLevel.INFO, "Loaded matrix from DB: " + matrixName + " Average value: " +
+        TPS_Logger.log(SeverityLogLevel.INFO, "Loaded matrix from DB: " + matrixName + " Average value: " +
                 this.PM.getParameters().getMatrix(matrix).getAverageValue(false, true) +
                 " Size (Elements, Rows, Columns): " + this.PM.getParameters().getMatrix(matrix).getNumberOfElements() + ", "
                 + this.PM.getParameters().getMatrix(matrix).getNumberOfRows() + ", "
@@ -1380,7 +1384,7 @@ public class TPS_DB_IO {
      * @param sIndex     the index for reading in the db. Should be zero.
      */
     private void readMatrix(ParamString matrixName, ParamMatrixMap matrix, SimulationType type, int sIndex) {
-        TPS_Logger.log(SeverenceLogLevel.INFO, "Loading matrix map " + matrix + " from DB.");
+        TPS_Logger.log(SeverityLogLevel.INFO, "Loading matrix map " + matrix + " from DB.");
         MatrixMap m = PM.getDbConnector().readMatrixMap(this.PM.getParameters().getString(matrixName), sIndex, this);
 
         if (type != null) this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrix, m, type);
@@ -1473,11 +1477,11 @@ public class TPS_DB_IO {
                 tm.addModeToMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readModes! Query: " + query + " constant:" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readModes! Query: " + query + " constant:" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_MODE), e);
             throw new RuntimeException("Error loading modes " + ParamString.DB_TABLE_CONSTANT_MODE.toString());
         } catch (IllegalArgumentException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "Class-related error in readModes! Query: " + query + " constant:" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "Class-related error in readModes! Query: " + query + " constant:" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_MODE), e);
             throw new RuntimeException("Error loading constant " + ParamString.DB_TABLE_CONSTANT_MODE.toString());
         }
@@ -1505,7 +1509,7 @@ public class TPS_DB_IO {
                 tpg.addPersonGroupToMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "SQL error in readPersonGroupCodes! Query: " + query + " constant:" +
                             this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_PERSON), e);
             throw new RuntimeException("Error loading constant " +
@@ -1571,8 +1575,8 @@ public class TPS_DB_IO {
             key = rsCFN4.getInt("CURRENT_EPISODE_ACTIVITY_CODE_TAPAS");
             val = rsCFN4.getDouble("value");
             potential.addToCFN4Map(reg, key, val);
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Found a location choice parameter (region, key, value): " + reg + " " + key + " " + val);
             }
         }
@@ -1747,8 +1751,8 @@ public class TPS_DB_IO {
         }
         //now update the occupancy values from the temporary table
         this.updateOccupancyTable(region);
-        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO)) {
-            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverenceLogLevel.INFO,
+        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
+            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                     "Total number of locations: " + numOfLocations + " capacity sum: " + totalCapacity);
         }
         rsLoc.close();
@@ -1898,7 +1902,7 @@ public class TPS_DB_IO {
                 tss.addSettlementSystemToMap();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR,
+            TPS_Logger.log(SeverityLogLevel.ERROR,
                     "SQL error in readSettlementSystemCodes! Query: " + query + " constant:" +
                             this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), e);
             throw new RuntimeException("Error loading constant " +
@@ -1920,12 +1924,12 @@ public class TPS_DB_IO {
                     TPS_Sex s = TPS_Sex.valueOf(rs.getString("name_sex"));
                     s.code = rs.getInt("code_sex");
                 } catch (IllegalArgumentException e) {
-                    TPS_Logger.log(SeverenceLogLevel.WARN,
+                    TPS_Logger.log(SeverityLogLevel.WARN,
                             "Read invalid sex type name from DB:" + rs.getString("name_sex"));
                 }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(SeverenceLogLevel.ERROR, "SQL error in readSexCodes! Query: " + query + " constant:" +
+            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readSexCodes! Query: " + query + " constant:" +
                     this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SEX), e);
             throw new RuntimeException(
                     "Error loading constant " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SEX));
@@ -1999,7 +2003,7 @@ public class TPS_DB_IO {
             try {
                 attributes.add(TPS_Attribute.valueOf(set.getMetaData().getColumnName(i)));
             } catch (IllegalArgumentException e) {
-                TPS_Logger.log(SeverenceLogLevel.FATAL, "Unknown attribute: " + set.getMetaData().getColumnName(i), e);
+                TPS_Logger.log(SeverityLogLevel.FATAL, "Unknown attribute: " + set.getMetaData().getColumnName(i), e);
             }
         }
         TPS_VariableMap varMap = new TPS_VariableMap(attributes, defaultValue);
@@ -2046,8 +2050,8 @@ public class TPS_DB_IO {
         try {
             if (this.PM.getParameters().isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS)) {
                 // update the local occupancies/weights
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO, "Updating locations");
+                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Updating locations");
                 }
                 query = "SELECT loc_id, loc_occupancy FROM " + this.PM.getParameters().getString(
                         ParamString.DB_TABLE_LOCATION_TMP) + " WHERE loc_id >= 0";
@@ -2057,17 +2061,17 @@ public class TPS_DB_IO {
                     TPS_Location loc = region.getLocation(rsOcc.getInt("loc_id"));
                     if (loc != null) {
                         loc.setOccupancy(rsOcc.getInt("loc_occupancy"));
-                    } else if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
+                    } else if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
                                 "Location " + rsOcc.getInt("loc_id") + " not found!");
                     }
                 }
                 rsOcc.close();
             }
         } catch (SQLException e) {
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
                     "error during one of the sql queries: " + query, e);
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR, "next exception:", e.getNextException());
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "next exception:", e.getNextException());
         }
 
     }
@@ -2154,14 +2158,14 @@ public class TPS_DB_IO {
                 }
                 mRs.close();
                 if (doCleanup) {
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
                                 "Vacuuming temporary tables for locations in simulation " +
                                         this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
                     }
                     PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
                                 "Vacuuming temporary tables for households in simulation " +
                                         this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
                     }
@@ -2176,8 +2180,8 @@ public class TPS_DB_IO {
                         0.1) { //random is better than planed, because servers are lining up to clean the db multiple
                     // times
                     lastCleanUp = after;
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                                 "Time to reindex and clean the simulation " +
                                         this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
                     }
@@ -2213,8 +2217,8 @@ public class TPS_DB_IO {
                     }
                     mRs.close();
                     if (doCleanup) {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                                     "Reindexing temporary tables");
                         }
                         PM.execute(query);
@@ -2222,8 +2226,8 @@ public class TPS_DB_IO {
                         PM.execute(query3);
                         PM.execute(query4);
                     } else {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO)) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.INFO,
+                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
+                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
                                     "Someone else is reindexing!");
                         }
                     }
@@ -2232,32 +2236,32 @@ public class TPS_DB_IO {
                 lastCleanUp = -1; //for new sim!
                 if (after > before) { // avoid that every thread reindexes. just the last who commited changes!
                     //finally: shrink the temp tables to the minimum and reindex
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
                                 "Vacuuming temporary tables for locations in simulation " +
                                         this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
                     }
                     query = "VACUUM FULL temp.locations_" + this.PM.getParameters().getString(
                             ParamString.RUN_IDENTIFIER);
                     PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
                                 "Vacuuming temporary tables for households in simulation " +
                                         this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
                     }
                     query = "VACUUM FULL temp.households_" + this.PM.getParameters().getString(
                             ParamString.RUN_IDENTIFIER);
                     PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
                                 "Reindexing temporary tables for locations in simulation " +
                                         this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
                     }
                     query = "REINDEX TABLE temp.locations_" + this.PM.getParameters().getString(
                             ParamString.RUN_IDENTIFIER);
                     PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.DEBUG,
+                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
+                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
                                 "Reindexing temporary tables for households in simulation " +
                                         this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
                     }
@@ -2291,9 +2295,9 @@ public class TPS_DB_IO {
                 }
             }
         } catch (SQLException e) {
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR,
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
                     "error during one of th sqls: " + query + "\n or: " + query2, e);
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverenceLogLevel.ERROR, "next exception:", e.getNextException());
+            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "next exception:", e.getNextException());
         }
     }
 

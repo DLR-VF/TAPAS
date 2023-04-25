@@ -12,10 +12,10 @@ import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.model.TAPASMemoryModel;
 import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.view.MatrixManipulatorFrame;
 import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import java.awt.*;

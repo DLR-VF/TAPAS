@@ -9,7 +9,6 @@
 package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
 
 import java.io.FileWriter;
 import java.io.IOException;

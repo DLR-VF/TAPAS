@@ -11,12 +11,12 @@ package de.dlr.ivf.tapas.mode;
 
 import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.loc.Locatable;
-import de.dlr.ivf.tapas.log.TPS_Logger;
-import de.dlr.ivf.tapas.log.TPS_LoggingInterface.SeverenceLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.person.TPS_Car;
 import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.util.TPS_Geometrics;
-import de.dlr.ivf.tapas.util.parameters.*;
+import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 
 /**
  * This class represents modes 'taxi', 'miv' and 'miv pass'
@@ -118,7 +118,7 @@ public class TPS_IndividualTransportMode extends TPS_Mode {
                     tt = beelineDistanceLoc * this.getParameters().getDoubleValue(ModeType.WALK.getBeelineFactor()) /
                             this.getParameters().getDoubleValue(get(ModeType.WALK).getVelocity());
                     if (travelTimeIsInvalid(tt)) {
-                        TPS_Logger.log(SeverenceLogLevel.FATAL, "NaN detected");
+                        TPS_Logger.log(SeverityLogLevel.FATAL, "NaN detected");
                     }
                 }
             } else {
