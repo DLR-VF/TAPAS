@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":tapas"))
     implementation(project(":io"))
     implementation(project(":tapas-environment"))
+    implementation(project(":tapas-logger"))
 
     //junit
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
