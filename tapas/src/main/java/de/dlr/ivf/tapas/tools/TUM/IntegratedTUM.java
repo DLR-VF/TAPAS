@@ -11,7 +11,6 @@ package de.dlr.ivf.tapas.tools.TUM;
 
 import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
 import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.AnalyzerCollection;
@@ -19,7 +18,7 @@ import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.GeneralAnalyzer;
 import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.runtime.client.SimulationMonitor;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import de.dlr.ivf.tapas.util.MultilanguageSupport;
 import org.postgresql.util.PSQLException;
 
 import javax.swing.*;
