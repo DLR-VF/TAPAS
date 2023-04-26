@@ -8,12 +8,11 @@
 
 package de.dlr.ivf.tapas.environment.gui.parametercomparator;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.util.parameters.ParamFlag;
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamFlag;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -26,6 +25,7 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;

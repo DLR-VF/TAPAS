@@ -22,9 +22,6 @@ plugins {
     //plugin for creating a fat jar (called shadow jar) with all dependencies included
     //id("com.github.johnrengelman.shadow") version "7.0.0"
 
-    // javafx plugin to handle javafx dependencies
-    id("org.openjfx.javafxplugin") version "0.0.9"
-
     id("org.javamodularity.moduleplugin") version "1.8.12"
 
     //`maven-publish`
@@ -65,7 +62,7 @@ dependencies {
 
     //implementation(files("ext/simon_w.jar"))
 
-    implementation("org.openjfx:javafx:17")
+
 
     //local dependency
     implementation(project(":tapas-matrixtool"))
@@ -78,10 +75,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
-javafx {
-    version = "17"
-    modules("javafx.controls", "javafx.fxml", "javafx.swing")
-}
+
 
 // This is for publishing a package to GitHub
 //publishing {

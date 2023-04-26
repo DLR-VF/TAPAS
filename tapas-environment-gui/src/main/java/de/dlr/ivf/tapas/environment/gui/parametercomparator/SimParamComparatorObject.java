@@ -8,9 +8,9 @@
 
 package de.dlr.ivf.tapas.environment.gui.parametercomparator;
 
-import de.dlr.ivf.tapas.util.parameters.ParamString;
-import de.dlr.ivf.tapas.util.parameters.ParamValue;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.Arrays;

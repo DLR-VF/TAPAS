@@ -11,15 +11,11 @@ module de.dlr.ivf.tapas {
     requires commons.math3;
 
     requires org.postgresql.jdbc;
-    requires javafx.fxml;
     requires java.rmi;
-    requires javafx.swing;
     requires java.management;
     requires poi;
     requires org.apache.commons.collections4;
-    requires jfreechart;
     requires jgoodies.forms;
-    requires javafx.controls;
 
     requires de.dlr.ivf.tapas.matrixtool;
     requires de.dlr.ivf.tapas.logger;

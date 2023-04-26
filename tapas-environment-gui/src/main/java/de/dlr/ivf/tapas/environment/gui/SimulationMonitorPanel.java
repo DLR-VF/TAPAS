@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.runtime.client;
+package de.dlr.ivf.tapas.environment.gui;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.runtime.client.SimulationMonitor.SIM_INDEX;
@@ -16,7 +16,7 @@ import de.dlr.ivf.tapas.runtime.server.SimulationData;
 import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.parameter.ParamString;
 import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
@@ -754,21 +754,21 @@ public class SimulationMonitorPanel extends JPanel {
 
                     SimulationData simulation = get(row);
                     switch (key) {
-                        case KEY:
+                        case SIM_INDEX.KEY:
                             return simulation.getKey();
-                        case DESCRIPTION:
+                        case SIM_INDEX.DESCRIPTION:
                             return simulation.getDescription();
-                        case FILE:
+                        case SIM_INDEX.FILE:
                             return simulation.getRelativeFileName();
-                        case STOPPED:
+                        case SIM_INDEX.STOPPED:
                             return simulation.minimumState(TPS_SimulationState.STOPPED);
-                        case STARTED:
+                        case SIM_INDEX.STARTED:
                             return simulation.minimumState(TPS_SimulationState.STARTED);
-                        case FINISHED:
+                        case SIM_INDEX.FINISHED:
                             return simulation.minimumState(TPS_SimulationState.FINISHED);
-                        case PROGRESS:
+                        case SIM_INDEX.PROGRESS:
                             return (double) simulation.getProgress() / simulation.getTotal();
-                        case COUNT:
+                        case SIM_INDEX.COUNT:
                             return simulation.getProgress() + "/" + simulation.getTotal();
                         // TODO @PB add elapsed, esitmated control?
                         // case ELAPSED:
@@ -777,11 +777,11 @@ public class SimulationMonitorPanel extends JPanel {
                         // case ESTIMATED:
                         // return simulation.getEstimatedTime(control
                         // .getCurrentDatabaseTimestamp());
-                        case DATE_STARTED:
+                        case SIM_INDEX.DATE_STARTED:
                             return simulation.getTimestampStarted();
-                        case DATE_FINISHED:
+                        case SIM_INDEX.DATE_FINISHED:
                             return simulation.getTimestampFinished();
-                        case ACTION:
+                        case SIM_INDEX.ACTION:
                             return simulation.getState().getAction();
                         default:
                             return null;

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.runtime.client.util;
+package de.dlr.ivf.tapas.environment.gui.util;
 
 import java.io.Serializable;
 import java.util.List;

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.runtime.client;
+package de.dlr.ivf.tapas.environment.gui;
 
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;

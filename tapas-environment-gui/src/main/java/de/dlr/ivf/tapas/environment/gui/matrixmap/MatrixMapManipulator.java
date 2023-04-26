@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.tools.matrixMap;
+package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
 import javax.swing.*;
 import java.awt.*;

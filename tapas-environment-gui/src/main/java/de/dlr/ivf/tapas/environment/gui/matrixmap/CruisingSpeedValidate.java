@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.tools.matrixMap;
+package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
 import com.csvreader.CsvWriter;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
@@ -303,7 +303,7 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
                 if (rs.next()) {
                     Object array = rs.getArray(1).getArray();
                     Integer[] matrixVal = (Integer[]) array;
-                    records[i].data = array1Dto2D(matrixVal);
+                    records[i].data = TPS_BasicConnectionClass.array1Dto2D(matrixVal);
                 } else {
                     System.err.println("Record " + records[i].dataName + " in table " + records[i].matricesTable +
                             " does not exist!");

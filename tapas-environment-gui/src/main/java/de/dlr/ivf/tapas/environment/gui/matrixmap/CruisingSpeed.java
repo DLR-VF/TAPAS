@@ -6,12 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.tools.matrixMap;
+package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
 
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.PropertyReader;
-import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 import org.apache.commons.cli.*;
 
 import java.io.*;
@@ -415,13 +414,13 @@ public class CruisingSpeed extends TPS_BasicConnectionClass {
                 if (dist != null) {
                     if (calcData.isTop3()) TPS_Geometrics.calcTop3(dist);
 
-                    sqlVektor = matrixToStringWriterSQL(dist, 0);
+                    sqlVektor = TPS_BasicConnectionClass.matrixToStringWriterSQL(dist, 0);
                     writeMatrix(sqlVektor, Modus.values()[i].getName(), DISTANCE);
 
                     if (getCalcData().getCalculation()[i + 4]) {
                         double[][] travelTime = calculation.getTravelTime(Modus.values()[i].toString());
                         if (travelTime != null) {
-                            sqlVektor = matrixToStringWriterSQL(travelTime, 0);
+                            sqlVektor = TPS_BasicConnectionClass.matrixToStringWriterSQL(travelTime, 0);
                             writeMatrix(sqlVektor, Modus.values()[i].getName(), TRAVELTIME);
                         } else {
                             throw new RuntimeException("error in travel time calculation");

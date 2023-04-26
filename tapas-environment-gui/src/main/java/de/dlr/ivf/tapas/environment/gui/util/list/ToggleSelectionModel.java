@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.runtime.client.util.list;
+package de.dlr.ivf.tapas.environment.gui.util.list;
 
 import javax.swing.*;
 

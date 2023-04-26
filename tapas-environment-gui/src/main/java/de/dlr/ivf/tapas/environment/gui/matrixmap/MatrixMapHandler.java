@@ -6,11 +6,11 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.tools.matrixMap;
+package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
 import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.model.TAPASMemoryModel;
 import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.view.MatrixManipulatorFrame;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import de.dlr.ivf.tapas.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 import de.dlr.ivf.tapas.parameter.ParamString;

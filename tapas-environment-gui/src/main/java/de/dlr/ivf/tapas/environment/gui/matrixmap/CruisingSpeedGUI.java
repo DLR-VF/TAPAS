@@ -12,7 +12,7 @@
  * and open the template in the editor.
  */
 
-package de.dlr.ivf.tapas.tools.matrixMap;
+package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
 import de.dlr.ivf.tapas.util.PropertyReader;
 
