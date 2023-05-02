@@ -2,10 +2,7 @@ package de.dlr.ivf.api.io.configuration.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 
 /**
@@ -17,15 +14,11 @@ import lombok.NoArgsConstructor;
 public class RemoteDataSource extends DataSource {
 
     @JsonProperty
-    private final String url;
-
-    @JsonProperty
-    private final Login login;
+    ConnectionDetails connector;
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-    public RemoteDataSource(String url, Login login, String uri){
+    public RemoteDataSource(ConnectionDetails connector, String uri){
         super(uri);
-        this.url = url;
-        this.login = login;
+        this.connector = connector;
     }
 }

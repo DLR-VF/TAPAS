@@ -45,7 +45,7 @@ repositories {
 
 dependencies {
     // These dependencies are used by the application.
-    implementation("net.sourceforge.javacsv:javacsv:2.0")
+
     //implementation("org.apache.logging.log4j:log4j:2.16.0")
     implementation("org.postgresql:postgresql:42.2.27")
     implementation("org.apache.commons:commons-lang3:3.9")
@@ -54,11 +54,17 @@ dependencies {
     implementation("commons-cli:commons-cli:1.5.0")
     implementation("org.apache.poi:poi:4.1.1")
     implementation("org.jfree:jfreechart:1.5.0")
-    implementation("com.jgoodies:jgoodies-forms:1.9.0")
+
     implementation("com.miglayout:miglayout-swing:5.2")
     implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
     implementation("net.lingala.zip4j:zip4j:2.10.0")
     implementation("com.lmax:disruptor:3.4.2")
+
+    //lombok
+    implementation("org.projectlombok:lombok:1.18.24")
+    annotationProcessor ("org.projectlombok:lombok:1.18.24")
+    testCompileOnly ("org.projectlombok:lombok:1.18.24")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.24")
 
     //implementation(files("ext/simon_w.jar"))
 
@@ -70,6 +76,8 @@ dependencies {
     implementation(project(":tapas-parameter"))
     implementation(project(":tapas-util"))
     implementation(project(":tapas-model"))
+    implementation(project(":tapas-tools"))
+    implementation(project(":io"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

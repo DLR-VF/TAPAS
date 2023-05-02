@@ -7,5 +7,4 @@ module de.dlr.ivf.tapas.parameter {
 
     requires de.dlr.ivf.tapas.util;
     requires static de.dlr.ivf.tapas.logger;
-    requires de.dlr.ivf.tapas.model;
 }

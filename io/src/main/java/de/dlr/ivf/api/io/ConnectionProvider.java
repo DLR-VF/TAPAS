@@ -1,5 +1,6 @@
 package de.dlr.ivf.api.io;
 
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.model.RemoteDataSource;
 
 /**
@@ -11,5 +12,5 @@ import de.dlr.ivf.api.io.configuration.model.RemoteDataSource;
  */
 public interface ConnectionProvider<T> {
 
-    T get(RemoteDataSource dataSource);
+    T get(ConnectionDetails connector);
 }
