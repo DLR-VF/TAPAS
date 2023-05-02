@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.loc.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
 
 import java.util.function.Supplier;
 

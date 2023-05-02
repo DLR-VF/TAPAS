@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
-import de.dlr.ivf.tapas.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.util.TPS_AttributeReader;
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
+import de.dlr.ivf.tapas.model.person.TPS_Person;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.model.TPS_AttributeReader;
 
 public class UpdateLocationChoicePlanAttributesAction implements TPS_PlanStateAction{
 

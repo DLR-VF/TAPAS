@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
 import de.dlr.ivf.tapas.mode.TazBasedCarSharingDelegator;
-import de.dlr.ivf.tapas.person.TPS_Car;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
 
 public class TPS_CarSharingCheckInAndUpdateRangeAction implements TPS_PlanStateAction {
     private TPS_Car car;

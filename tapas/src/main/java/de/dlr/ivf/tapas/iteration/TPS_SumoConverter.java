@@ -18,9 +18,9 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.parameter.CURRENCY;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.ParamValue;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.parameter.ParamString;
+import de.dlr.ivf.tapas.model.parameter.ParamValue;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -8,27 +8,28 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.loc.TPS_Region;
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_Region;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.mode.TPS_ModeSet;
+import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
+import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.person.TPS_Household;
-import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
+import de.dlr.ivf.tapas.model.person.TPS_Household;
+import de.dlr.ivf.tapas.model.person.TPS_Person;
+import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.scheme.*;
-import de.dlr.ivf.tapas.parameter.ParamFlag;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.ParamValue;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.parameter.ParamFlag;
+import de.dlr.ivf.tapas.model.parameter.ParamString;
+import de.dlr.ivf.tapas.model.parameter.ParamValue;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -445,7 +446,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                 TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading parameters for the utility function");
             }
-            this.dbIO.readUtilityFunction();
+            this.dbIO.readUtilityFunction(getParameters().getString(ParamString.UTILITY_FUNCTION_NAME));
 
             // read scheme set
             if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {

@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.execution.sequential.communication.SharingMediator;
-import de.dlr.ivf.tapas.person.TPS_Car;
+import de.dlr.ivf.tapas.model.mode.SharingMediator;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
 
 public class CheckOutHouseholdVehicle implements TPS_PlanStateAction {
 

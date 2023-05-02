@@ -1,11 +1,11 @@
 package de.dlr.ivf.tapas.execution.sequential.context;
 
 import de.dlr.ivf.tapas.execution.sequential.choice.LocationContext;
-import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.scheme.TPS_Episode;
-import de.dlr.ivf.tapas.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.scheme.TPS_Episode;
+import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
+import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
 
 import java.util.*;
 import java.util.function.Supplier;

@@ -5,7 +5,7 @@ import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.execution.sequential.io.TPS_WritableTrip;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
-import de.dlr.ivf.tapas.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
 
 public class TripPersistenceAction implements TPS_PlanStateAction {
 

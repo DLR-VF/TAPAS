@@ -12,7 +12,7 @@ import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.*;
 import java.util.ArrayList;

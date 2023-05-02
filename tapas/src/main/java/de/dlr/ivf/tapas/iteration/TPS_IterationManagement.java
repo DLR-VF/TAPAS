@@ -10,11 +10,11 @@ package de.dlr.ivf.tapas.iteration;
 
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.model.MatrixMap;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.parameter.ParamString;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

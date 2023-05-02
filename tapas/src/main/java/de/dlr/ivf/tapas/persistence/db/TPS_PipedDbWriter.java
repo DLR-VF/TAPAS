@@ -7,7 +7,7 @@ import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.execution.sequential.io.TPS_WritableTrip;
-import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.model.parameter.ParamString;
 import org.postgresql.core.BaseConnection;
 import java.sql.Connection;
 import java.sql.SQLException;

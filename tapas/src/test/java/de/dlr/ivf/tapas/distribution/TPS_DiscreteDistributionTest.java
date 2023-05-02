@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.distribution;
 
-import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
+import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

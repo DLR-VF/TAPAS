@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.context;
 
-import de.dlr.ivf.tapas.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 
 import java.util.ArrayList;
 import java.util.List;

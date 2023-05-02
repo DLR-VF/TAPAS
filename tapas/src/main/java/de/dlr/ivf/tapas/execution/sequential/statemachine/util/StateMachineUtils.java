@@ -2,7 +2,7 @@ package de.dlr.ivf.tapas.execution.sequential.statemachine.util;
 
 import de.dlr.ivf.tapas.execution.sequential.action.TPS_PlanStateAction;
 import de.dlr.ivf.tapas.execution.sequential.action.TPS_PlanStateNoAction;
-import de.dlr.ivf.tapas.person.TPS_Household;
+import de.dlr.ivf.tapas.model.person.TPS_Household;
 
 public class StateMachineUtils {
 

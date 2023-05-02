@@ -14,9 +14,9 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.ParamValue;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.parameter.ParamString;
+import de.dlr.ivf.tapas.model.parameter.ParamValue;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import java.net.InetAddress;

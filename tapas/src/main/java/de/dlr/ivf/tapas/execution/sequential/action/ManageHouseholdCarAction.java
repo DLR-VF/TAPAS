@@ -1,10 +1,10 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.execution.sequential.communication.TPS_HouseholdCarMediator;
+import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
-import de.dlr.ivf.tapas.mode.TPS_Mode;
-import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 
 public class ManageHouseholdCarAction implements TPS_PlanStateAction {
 

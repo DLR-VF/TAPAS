@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.runtime.server;
 
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 public class TPS_InitializedSimulation {
 

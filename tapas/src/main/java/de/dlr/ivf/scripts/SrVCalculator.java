@@ -10,8 +10,8 @@ package de.dlr.ivf.scripts;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.TPS_Geometrics;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.TPS_Geometrics;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.*;
 import java.math.BigDecimal;

@@ -17,8 +17,7 @@ import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
 import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.tools.TUM.IntegratedTUM;
-import jxl.write.WriteException;
+import de.dlr.ivf.tapas.analyzer.tum.IntegratedTUM;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
@@ -140,7 +139,7 @@ public class GeneralAnalyzer extends AbstractCoreProcess {
             excelExport.writeAnalysis(outputPath);
             excelSuccess = true;
 
-        } catch (IOException | WriteException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             if (excelSuccess) {

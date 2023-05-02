@@ -3,10 +3,10 @@ package de.dlr.ivf.tapas.execution.sequential.action;
 import de.dlr.ivf.tapas.execution.sequential.choice.LocationContext;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
-import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 
 public class SelectLocationAction implements TPS_PlanStateAction{
 

@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.mode.TPS_ExtMode;
-import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
+import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 
 public class UpdateDepartureAndArrivalModesAction implements TPS_PlanStateAction {
 

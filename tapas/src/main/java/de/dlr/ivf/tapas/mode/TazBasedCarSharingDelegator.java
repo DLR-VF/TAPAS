@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.mode;
 
-import de.dlr.ivf.tapas.execution.sequential.communication.SharingDelegator;
-import de.dlr.ivf.tapas.execution.sequential.communication.SharingMediator;
-import de.dlr.ivf.tapas.person.TPS_Car;
+import de.dlr.ivf.tapas.model.mode.SharingDelegator;
+import de.dlr.ivf.tapas.model.mode.SharingMediator;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
 
 import java.util.Map;
 import java.util.Optional;

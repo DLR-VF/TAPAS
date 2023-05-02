@@ -1,9 +1,9 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
-import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.util.TPS_AttributeReader;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.TPS_AttributeReader;
 
 public class UpdateModeChoicePlanAttributesAction implements TPS_PlanStateAction {
     private final TPS_Plan plan;

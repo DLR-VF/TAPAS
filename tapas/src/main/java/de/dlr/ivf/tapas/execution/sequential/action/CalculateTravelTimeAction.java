@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
-import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
+import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
+import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 
 public class CalculateTravelTimeAction implements TPS_PlanStateAction {
 

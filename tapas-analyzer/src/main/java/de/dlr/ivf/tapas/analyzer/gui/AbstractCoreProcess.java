@@ -9,7 +9,6 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
 import de.dlr.ivf.tapas.analyzer.core.CoreProcessInterface;
-import de.dlr.ivf.tapas.tools.TUM.IntegratedTUM;
 
 import javax.swing.text.BadLocationException;
 import java.io.File;
@@ -39,7 +38,6 @@ public abstract class AbstractCoreProcess implements CoreProcessInterface {
     public abstract boolean finish(File exportfile) throws BadLocationException;
 
     /**
-     * Must be called once before executing the {@link IntegratedTUM}
      *
      * @param clearSources Flag to omit previous results
      * @return

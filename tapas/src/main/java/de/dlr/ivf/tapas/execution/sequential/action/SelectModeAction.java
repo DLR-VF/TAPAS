@@ -3,10 +3,10 @@ package de.dlr.ivf.tapas.execution.sequential.action;
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
-import de.dlr.ivf.tapas.mode.TPS_ExtMode;
-import de.dlr.ivf.tapas.mode.TPS_ModeSet;
-import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
+import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 
 public class SelectModeAction implements TPS_PlanStateAction {
 

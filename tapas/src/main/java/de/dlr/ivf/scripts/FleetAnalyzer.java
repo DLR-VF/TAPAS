@@ -8,9 +8,9 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.person.TPS_Car.CarSize;
-import de.dlr.ivf.tapas.person.TPS_Car.FuelType;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.person.TPS_Car.CarSize;
+import de.dlr.ivf.tapas.model.person.TPS_Car.FuelType;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.sql.ResultSet;

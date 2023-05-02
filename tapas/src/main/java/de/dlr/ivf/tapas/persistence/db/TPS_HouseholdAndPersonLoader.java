@@ -1,23 +1,23 @@
 package de.dlr.ivf.tapas.persistence.db;
 
-import de.dlr.ivf.tapas.constants.TPS_DrivingLicenseInformation;
-import de.dlr.ivf.tapas.constants.TPS_LocationConstant;
-import de.dlr.ivf.tapas.constants.TPS_Sex;
-import de.dlr.ivf.tapas.execution.sequential.communication.TPS_HouseholdCarMediator;
+import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
+import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
+import de.dlr.ivf.tapas.model.constants.TPS_Sex;
+import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.util.StateMachineUtils;
-import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.loc.TPS_Region;
-import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_Region;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.person.TPS_Household;
-import de.dlr.ivf.tapas.person.TPS_Person;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.person.TPS_Household;
+import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.util.Randomizer;
-import de.dlr.ivf.tapas.parameter.ParamFlag;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.ParamValue;
+import de.dlr.ivf.tapas.model.parameter.ParamFlag;
+import de.dlr.ivf.tapas.model.parameter.ParamString;
+import de.dlr.ivf.tapas.model.parameter.ParamValue;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

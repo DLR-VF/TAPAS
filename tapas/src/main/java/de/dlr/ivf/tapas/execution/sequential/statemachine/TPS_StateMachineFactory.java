@@ -6,8 +6,8 @@ import de.dlr.ivf.tapas.execution.sequential.choice.LocationContext;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_EventType;
 import de.dlr.ivf.tapas.execution.sequential.guard.Guard;
-import de.dlr.ivf.tapas.person.TPS_Household;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.person.TPS_Household;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.FuncUtils;
 
 import java.util.List;

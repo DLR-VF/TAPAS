@@ -1,22 +1,21 @@
 package de.dlr.ivf.tapas.execution.sequential.io;
 
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
-import de.dlr.ivf.tapas.loc.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.TPS_LoggingInterface;
-import de.dlr.ivf.tapas.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.plan.TPS_LocatedStay;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
-import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
-import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
-import de.dlr.ivf.tapas.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
+import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.util.FuncUtils;
 
 /**

@@ -2,9 +2,9 @@ package de.dlr.ivf.tapas.execution.sequential.action;
 
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.mode.TPS_ModeValidator;
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.plan.TPS_PlannedTrip;
-import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
+import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 
 import java.util.function.Predicate;
 

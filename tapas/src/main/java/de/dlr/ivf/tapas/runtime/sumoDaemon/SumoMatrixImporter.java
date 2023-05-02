@@ -14,8 +14,8 @@ import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.tools.TPS_Geometrics;
-import de.dlr.ivf.tapas.parameter.ParamString;
+import de.dlr.ivf.tapas.model.TPS_Geometrics;
+import de.dlr.ivf.tapas.model.parameter.ParamString;
 
 import java.io.File;
 import java.io.FileWriter;

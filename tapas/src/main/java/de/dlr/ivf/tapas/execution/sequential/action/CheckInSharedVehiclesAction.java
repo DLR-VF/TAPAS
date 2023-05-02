@@ -1,15 +1,15 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.execution.sequential.communication.SharingDelegator;
-import de.dlr.ivf.tapas.execution.sequential.communication.TPS_HouseholdCarMediator;
+import de.dlr.ivf.tapas.model.mode.SharingDelegator;
+import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
-import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.mode.TPS_ExtMode;
-import de.dlr.ivf.tapas.mode.TPS_Mode;
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.plan.TPS_PlanningContext;
-import de.dlr.ivf.tapas.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 
 /**
  * In its current form, this action checks in used household and used car sharing cars.

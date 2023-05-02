@@ -2,9 +2,10 @@ package de.dlr.ivf.tapas.execution.sequential.context;
 
 
 import de.dlr.ivf.tapas.execution.sequential.choice.LocationContext;
-import de.dlr.ivf.tapas.execution.sequential.communication.TPS_HouseholdCarMediator;
-import de.dlr.ivf.tapas.loc.TPS_Location;
-import de.dlr.ivf.tapas.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.scheme.*;
 import java.util.*;
 import java.util.stream.Collectors;

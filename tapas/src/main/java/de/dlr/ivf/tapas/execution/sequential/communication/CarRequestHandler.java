@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.communication;
 
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.person.TPS_Person;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.person.TPS_Person;
 
 import java.util.Optional;
 

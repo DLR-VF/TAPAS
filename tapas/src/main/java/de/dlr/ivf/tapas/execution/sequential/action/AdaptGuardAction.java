@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
 import de.dlr.ivf.tapas.execution.sequential.guard.Guard;
-import de.dlr.ivf.tapas.scheme.TPS_Episode;
+import de.dlr.ivf.tapas.model.scheme.TPS_Episode;
 
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
