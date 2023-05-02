@@ -8,37 +8,48 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
-import de.dlr.ivf.tapas.constants.*;
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.constants.TPS_LocationConstant.TPS_LocationCodeType;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.loc.*;
-import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone.ScenarioTypeValues;
+
+import de.dlr.ivf.api.io.ConnectionProvider;
+import de.dlr.ivf.api.io.DataReader;
+import de.dlr.ivf.api.io.DataReaderFactory;
+import de.dlr.ivf.api.io.JdbcConnectionProvider;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.implementation.ResultSetConverter;
+import de.dlr.ivf.tapas.dto.ModeDto;
+import de.dlr.ivf.tapas.model.constants.*;
+import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
+import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ExpertKnowledgeNode;
+import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ExpertKnowledgeTree;
+import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ModeChoiceTree;
+import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_Node;
+import de.dlr.ivf.tapas.model.location.*;
+import de.dlr.ivf.tapas.model.mode.*;
+
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
+import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.ScenarioTypeValues;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.mode.*;
-import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.modechoice.TPS_ExpertKnowledgeNode;
-import de.dlr.ivf.tapas.modechoice.TPS_ExpertKnowledgeTree;
-import de.dlr.ivf.tapas.modechoice.TPS_ModeChoiceTree;
-import de.dlr.ivf.tapas.modechoice.TPS_Node;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.MatrixMap;
-import de.dlr.ivf.tapas.parameter.*;
-import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
+import de.dlr.ivf.tapas.model.parameter.*;
+import de.dlr.ivf.tapas.model.scheme.*;
+import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
-import de.dlr.ivf.tapas.person.TPS_Car;
-import de.dlr.ivf.tapas.person.TPS_Household;
-import de.dlr.ivf.tapas.person.TPS_Person;
-import de.dlr.ivf.tapas.tools.TPS_Geometrics;
+import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.person.TPS_Household;
+import de.dlr.ivf.tapas.model.person.TPS_Person;
+
+import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.util.IPInfo;
-import de.dlr.ivf.tapas.scheme.*;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.util.Randomizer;
-import de.dlr.ivf.tapas.util.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.util.TPS_VariableMap;
+import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
+import de.dlr.ivf.tapas.model.TPS_VariableMap;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
@@ -60,6 +71,8 @@ public class TPS_DB_IO {
     private static final int fetchSizePerProcessorPrefetchHouseholds = 256;
     /// The ip address of this machine
     private static InetAddress ADDRESS = null;
+    private final ConnectionDetails connectionDetails;
+    private final ConnectionProvider<Connection> connectionProvider;
     /// The number of households to fetch per cpu
     private int numberToFetch;
     Map<Integer, TPS_Household> houseHoldMap = new TreeMap<>();
@@ -79,10 +92,14 @@ public class TPS_DB_IO {
      * @param pm the managing class for sql-commands
      * @throws IOException if the machine has no IP address, an exception is thrown.
      */
-    public TPS_DB_IO(TPS_DB_IOManager pm) throws IOException {
+    public TPS_DB_IO(TPS_DB_IOManager pm, ConnectionDetails connectionDetails) throws IOException {
         if (ADDRESS == null) {
             ADDRESS = IPInfo.getEthernetInetAddress();
         }
+
+        this.connectionDetails = connectionDetails;
+
+        this.connectionProvider = JdbcConnectionProvider.newJdbcConnectionProvider();
         this.PM = pm;
         // TODO: use the defined number of threads
         if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
@@ -1443,7 +1460,13 @@ public class TPS_DB_IO {
      * A Mode has the form (id, 3-tuples of (name, code, type), isfix)
      * Example: (3, (MIT, 2, MCT), (MIT, 1, VOT), true)
      */
-    private void readModes() {
+    private void readModes(DataSource modesTable) {
+
+        DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader(() -> connectionProvider.get(connectionDetails));
+
+        Collection<ModeDto> modes = dr.read(new ResultSetConverter<>(ModeDto.class, ModeDto::new),modesTable);
+
+
         String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_MODE);
         try (ResultSet rs = PM.executeQuery(query)) {
             while (rs.next()) {
@@ -1524,7 +1547,7 @@ public class TPS_DB_IO {
      * @throws SQLException Error during SQL-processing
      */
     public TPS_Region readRegion() throws SQLException {
-        TPS_Region region = new TPS_Region(PM);
+        TPS_Region region = new TPS_Region();
         TPS_Block blk;
         String query;
         // read values of time
@@ -1964,18 +1987,17 @@ public class TPS_DB_IO {
      *
      * @throws SQLException
      */
-    public void readUtilityFunction() throws SQLException {
+    public void readUtilityFunction(String utilityFunctionName, String key, DataSource utilityFunctionTable) throws SQLException {
         ResultSet rs;
-        String utilityFunctionName = this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_CLASS);
+        String utilityFunctionName = this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME);
         utilityFunctionName = utilityFunctionName.substring(utilityFunctionName.lastIndexOf('.') + 1);
         // read the parameters for the utility function of the modes
         rs = PM.executeQuery(
-                "SELECT mode_class, parameters FROM " + this.PM.getParameters().getString(ParamString.DB_SCHEMA_CORE) +
-                        this.PM.getParameters().getString(ParamString.DB_NAME_MODEL_PARAMETERS) +
+                "SELECT mode_class, parameters FROM " + utilityFunctionTable. +
                         " WHERE utility_function_class='" + utilityFunctionName + "' and key='" +
-                        this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_KEY) + "'");
+                        key + "'");
         //now init the utility function
-        TPS_Mode.initUtilityFunction(this.PM.getParameters());
+        TPS_Mode.initUtilityFunction(this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME));
         while (rs.next()) {
             String mode = rs.getString("mode_class");
             double[] parameters = extractDoubleArray(rs, "parameters");
