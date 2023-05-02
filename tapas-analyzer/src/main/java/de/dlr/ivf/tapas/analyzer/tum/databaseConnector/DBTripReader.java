@@ -10,19 +10,13 @@ package de.dlr.ivf.tapas.analyzer.tum.databaseConnector;
 
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
-import de.dlr.ivf.tapas.util.FuncUtils;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.util.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.util.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -30,6 +24,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Supplier;
 
 /**
  * This class provides a way to export {@link TapasTrip}s directly from the database without using a file export first.<br>
@@ -80,7 +75,7 @@ public class DBTripReader implements TapasTripReader {
         init(simulation, hhkey, schema, region, settlementType, tazFilter, connection, console);
     }
 
-    public DBTripReader(String simulation, StyledDocument console, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, TPS_DB_Connector connection) throws SQLException, ClassNotFoundException, IOException {
+    public DBTripReader(String simulation, StyledDocument console, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, Supplier<Connection> connectionSupplier) throws SQLException, ClassNotFoundException, IOException {
         this.console = console;
         this.settlementType = settlementType;
 
@@ -93,52 +88,23 @@ public class DBTripReader implements TapasTripReader {
                 "WHERE s.sim_key = '" + simulation +  "' and sp.param_key = 'DB_REGION' " +
                 "and sp2.param_key = 'DB_HOUSEHOLD_AND_PERSON_KEY' ORDER BY s.sim_key";
 
-        ResultSet rs = connection.executeQuery(q, this);
+        try(Connection connection = connectionSupplier.get();
+            PreparedStatement st = connection.prepareStatement(q);
+            ResultSet rs = st.executeQuery()) {
 
-        if (rs.next()) {
-            this.region = rs.getString("region");
-            this.description = rs.getString("sim_description");
-            String hhkey = rs.getString("hhkey");
-            String schema = "core";
-            init(simulation, hhkey, schema, this.region, settlementType, tazFilter, connection, console);
-        } else {
-            throw new IllegalStateException("Could not retrieve information about simulation" + simulation);
+
+            if (rs.next()) {
+                this.region = rs.getString("region");
+                this.description = rs.getString("sim_description");
+                String hhkey = rs.getString("hhkey");
+                String schema = "core";
+                init(simulation, hhkey, schema, this.region, settlementType, tazFilter, connection, console);
+            } else {
+                throw new IllegalStateException("Could not retrieve information about simulation" + simulation);
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
         }
-        rs.close();
-    }
-
-    @SuppressWarnings("unused")
-    public static void main(String[] args) throws SQLException, ClassNotFoundException, IOException {
-
-        String hhkey = "MID2008_Y2008";
-        String schema = "core";
-        String region = "berlin";
-
-        long before = System.currentTimeMillis();
-        String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
-
-        // DBTripReader tripReader = new DBTripReader(
-        // "berlin_trips_2013y_01m_04d_17h_22m_36s_448ms", hhkey, schema,
-        // region); // big example
-
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        parameterClass.loadRuntimeParameters(new File(loginInfo));
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
-
-        DBTripReader tripReader = new DBTripReader("berlin_trips_2013y_01m_14d_09h_47m_38s_709ms", hhkey, schema,
-                region, null, null, dbCon, null);// small example
-
-        int cnt = 0;
-        while (tripReader.getIterator().hasNext()) {
-            TapasTrip t = tripReader.getIterator().next();
-            cnt++;
-        }
-
-        tripReader.close();
-
-        System.out.println("Es wurden " + cnt + " Trips gefunden.");
-
-        System.out.println("Es hat " + (System.currentTimeMillis() - before) + "ms gedauert.");
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -197,34 +163,40 @@ public class DBTripReader implements TapasTripReader {
         return totaltripcount;
     }
 
-    private void init(String simulation, String hhkey, String schema, String region, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, TPS_DB_Connector connection, StyledDocument console) throws SQLException, ClassNotFoundException, IOException {
+    private void init(String simulation, String hhkey, String schema, String region, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, Connection connection, StyledDocument console) throws SQLException, ClassNotFoundException, IOException {
 
         this.console = console;
         this.settlementType = settlementType;
-        ResultSet rs;
+
         String q = "SELECT param_value FROM simulation_parameters WHERE sim_key = '" + simulation +
                 "' and param_key = 'DB_TABLE_TRIPS'";
         String trip_table;
-        rs = connection.executeQuery(q, this);
-        if (rs.next()) {
-            trip_table = rs.getString("param_value") + "_" + simulation;
-        } else {
-            throw new SQLException("Neccessary value for key DB_TABLE_TRIPS not found! Query = " + q);
+        try(PreparedStatement st = connection.prepareStatement(q);
+            ResultSet rs = st.executeQuery()) {
+            if (rs.next()) {
+                trip_table = rs.getString("param_value") + "_" + simulation;
+            } else {
+                throw new RuntimeException("Neccessary value for key DB_TABLE_TRIPS not found! Query = " + q);
+            }
+            tripIterator = new TripIterator(simulation, hhkey, schema, region, tazFilter, trip_table, connection, true);
+        }catch (SQLException e){
+            e.printStackTrace();
         }
-        tripIterator = new TripIterator(simulation, hhkey, schema, region, tazFilter, trip_table, connection, true);
-
         // try getting estimate for number
 
         q = "SELECT sim_total FROM simulations WHERE sim_key = '" + simulation + "'";
-        rs.close();
 
-        rs = connection.executeQuery(q, this);
-        if (rs.next()) {
-            totalEstimate = (long) rs.getDouble("sim_total") * 8;
-        } else {
-            totalEstimate = -1;
+        try(PreparedStatement st = connection.prepareStatement(q);
+            ResultSet rs = st.executeQuery()) {
+
+            if (rs.next()) {
+                totalEstimate = (long) rs.getDouble("sim_total") * 8;
+            } else {
+                totalEstimate = -1;
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
         }
-        rs.close();
     }
 
     public boolean isCancelled() {
@@ -253,7 +225,7 @@ public class DBTripReader implements TapasTripReader {
         private final String region;
         private final boolean verbose;
 
-        private final TPS_DB_Connector dbCon;
+        private final Supplier<Connection> dbCon;
 
         private final PreparedStatement fetchNext;
         private Statement fillTableStatement;
@@ -264,7 +236,7 @@ public class DBTripReader implements TapasTripReader {
 
         private boolean isFinished = false;
 
-        public DBTripFetcher(BlockingQueue<TapasTrip> q, String simulation, String hhkey, String schema, String region, TPS_DB_Connector connection, boolean verbose) throws SQLException, IOException, ClassNotFoundException {
+        public DBTripFetcher(BlockingQueue<TapasTrip> q, String simulation, String hhkey, String schema, String region, Supplier<Connection> connection, boolean verbose) throws SQLException, IOException, ClassNotFoundException {
 
             //this.simulation = region + "_trips_" + simulation;
             this.simulation = simulation;
@@ -334,14 +306,16 @@ public class DBTripReader implements TapasTripReader {
                     if (fillTableStatement != null) {
                         fillTableStatement.cancel();
                     }
-                    dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE tt_" + simulation);
-                    dbCon.getConnection(this).close();
+                    try(Connection connection = dbCon.get();
+                        Statement st = connection.createStatement()) {
+                        st.executeUpdate("DROP TABLE tt_" + simulation);
+                    }catch (SQLException e){
+                        e.printStackTrace();
+                    }
                 }
-
             } catch (SQLException e) {
                 // do nothing
             }
-
         }
 
         private boolean createTripTable() throws BadLocationException, SQLException {
@@ -369,9 +343,10 @@ public class DBTripReader implements TapasTripReader {
             String tableCheck = "SELECT column_name" + " FROM information_schema.columns " +
                     "WHERE table_name='%tablename%' and column_name='p_group'";
             tableCheck = tableCheck.replaceAll("%tablename%", simulation);
-            try {
-                fillTableStatement = dbCon.getConnection(this).createStatement();
-                ResultSet rs = fillTableStatement.executeQuery(tableCheck);
+            try (Connection connection = dbCon.get();
+                PreparedStatement fillTableStatement = connection.prepareStatement(tableCheck);
+                ResultSet rs = fillTableStatement.executeQuery()){
+
                 if (rs.next()) { // new format
                     fillTable = "INSERT INTO tt_%tablename%( " +
                             " p_id, hh_id, p_group, t_duration,t_start_time, t_mode, t_distance_bl, " +
@@ -397,8 +372,6 @@ public class DBTripReader implements TapasTripReader {
                             "(select taz_bbr_type from %schemaname%.%region%_households as hh join %schemaname%.%region%_taz as taz " +
                             "on hh.hh_taz_id = taz.taz_id where hh.hh_id= tt.hh_id and hh.hh_key = '%p_hh_key%')";
                 }
-
-
             } catch (SQLException e) {
                 e.printStackTrace();
                 System.err.println("Error while filling trip table with query " + tableCheck);
@@ -415,8 +388,8 @@ public class DBTripReader implements TapasTripReader {
                                          .replaceAll("%schemaname%", schema).replaceAll("%p_hh_key%", hhkey);
 
 
-            try {
-                dbCon.getConnection(this).createStatement().executeUpdate(createTable);
+            try(Connection connection = dbCon.get()) {
+                connection.createStatement().executeUpdate(createTable);
             } catch (SQLException e) {
                 e.printStackTrace();
                 System.err.println("Could not create table! query = " + createTable);
@@ -431,8 +404,9 @@ public class DBTripReader implements TapasTripReader {
                 } else {
                     System.out.println("Start filling the trip table. This may take a while...");
                 }
-                try {
-                    fillTableStatement = dbCon.getConnection(this).createStatement();
+                try(Connection connection = dbCon.get();
+                    Statement st = connection.createStatement()) {
+
                     fillTableStatement.executeUpdate(fillTable);
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -451,9 +425,9 @@ public class DBTripReader implements TapasTripReader {
                     System.out.println("Updating the bbsr-type of starts in trip table. This may take a while...");
                 }
 
-                try {
-                    fillTableStatement = dbCon.getConnection(this).createStatement();
-                    fillTableStatement.executeUpdate(updateBBRStart);
+                try(Connection connection = dbCon.get();
+                    Statement st = connection.createStatement()) {
+                    st.executeUpdate(updateBBRStart);
                 } catch (SQLException e) {
                     e.printStackTrace();
                     System.out.println("Error while filling trip table with query " + updateBBRStart);
@@ -470,9 +444,9 @@ public class DBTripReader implements TapasTripReader {
                     System.out.println("Updating the bbsr-type of homes in trip table. This may take a while...");
                 }
 
-                try {
-                    fillTableStatement = dbCon.getConnection(this).createStatement();
-                    fillTableStatement.executeUpdate(updateBBRHome);
+                try(Connection connection = dbCon.get();
+                    Statement st = connection.createStatement()) {
+                    st.executeUpdate(updateBBRHome);
 
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -486,13 +460,19 @@ public class DBTripReader implements TapasTripReader {
             } else {
                 System.out.println("Trip table successfully created.");
             }
-            Statement st = dbCon.getConnection(this).createStatement();
-            ResultSet rs = st.executeQuery("select count(*) from " + simulation);
-            if (rs.next()) {
-                totaltripcount = rs.getInt(1);
-                rs.close();
+
+            try(Connection connection = dbCon.get();
+            PreparedStatement st = connection.prepareStatement("select count(*) from " + simulation);
+            ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    totaltripcount = rs.getInt(1);
+                    rs.close();
+                }
+                return true;
+            }catch (SQLException e){
+                e.printStackTrace();
             }
-            return true;
+            return false;
         }
 
         public String getSource() {
@@ -620,7 +600,7 @@ public class DBTripReader implements TapasTripReader {
 
         private TapasTrip nextItem = null;
 
-        public TripIterator(String simulation, String hhkey, String schema, String region, Set<Integer> acceptedTAZs, String trip_table, TPS_DB_Connector connection, boolean verbose) throws SQLException, ClassNotFoundException, IOException {
+        public TripIterator(String simulation, String hhkey, String schema, String region, Set<Integer> acceptedTAZs, String trip_table, Supplier<Connection> connection, boolean verbose) throws SQLException, ClassNotFoundException, IOException {
             try {
                 tripFetcher = new DBTripFetcher(q, trip_table, hhkey, schema, region, connection, verbose);
                 fetcherThread = new Thread(tripFetcher);

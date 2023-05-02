@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.execution.sequential.choice;
 
-import de.dlr.ivf.tapas.constants.TPS_ActivityConstant;
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.execution.sequential.context.ContextUpdateable;
-import de.dlr.ivf.tapas.loc.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
 
 import java.util.HashMap;
 import java.util.Map;

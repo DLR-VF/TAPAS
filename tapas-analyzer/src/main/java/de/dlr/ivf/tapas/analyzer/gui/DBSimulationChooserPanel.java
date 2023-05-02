@@ -9,11 +9,8 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
 import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.TAZFilter.TAZFilter;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.tools.TAZFilter;
+import de.dlr.ivf.tapas.util.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -27,12 +24,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Eine UI-Komponente die das Auswählen von Simulationstabellen in der DB ermöglicht.
@@ -60,29 +56,20 @@ public class DBSimulationChooserPanel extends JPanel {
 
     private StringListModel simulationDataModel;
 
-    private TPS_DB_Connector dbCon = null;
+    private Supplier<Connection> dbCon = null;
 
     private TitledBorder border;
 
     /**
      * Create the panel.
      */
-    public DBSimulationChooserPanel(String title, String initSimulation, StyledDocument console) {
+    public DBSimulationChooserPanel(String title, String initSimulation, StyledDocument console, Supplier<Connection> connectionSupplier) {
 
         this.console = console;
-        try {
-            // Part 2: loading runtime file
-            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-            parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-            dbCon = new TPS_DB_Connector(parameterClass);
-        } catch (IOException e) {
-            // TODO handle no loginInfo file found
-        } catch (ClassNotFoundException e) {
-            // should not happen
-        }
+        this.dbCon = connectionSupplier;
 
         createContents(title);
-        cleanDB();
+        //cleanDB();
 
         if (null != initSimulation) {
             lstSimulations.setSelectedValue(initSimulation, true);
@@ -93,33 +80,33 @@ public class DBSimulationChooserPanel extends JPanel {
     /**
      * Create the panel.
      */
-    public DBSimulationChooserPanel(StyledDocument console) {
-        this("DB - Triptables", null, console);
-    }
-
-    public void cleanDB() {
-        List<String> oldTables = getOldTables();
-
-        if (oldTables != null) {
-            // Custom button text
-            Object[] options = {"Yes", "No"};
-            int n = JOptionPane.showOptionDialog(this,
-                    "The database contains old trip tables.\n" + "They should be deleted but could belong " +
-                            "to another instance of the Tapas Analyzer.\n" + "Do you want to delete them?",
-                    "Old tables found.", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
-                    options[1]);
-            if (n == 0) {// yes
-                for (String t : oldTables) {
-                    try {
-                        dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE " + t);
-                    } catch (SQLException e) {
-                        System.err.println("Could not drop table " + t);
-                    }
-                }
-
-            }
-        }
-    }
+//    public DBSimulationChooserPanel(StyledDocument console) {
+//        this("DB - Triptables", null, console);
+//    }
+//
+//    public void cleanDB() {
+//        List<String> oldTables = getOldTables();
+//
+//        if (oldTables != null) {
+//            // Custom button text
+//            Object[] options = {"Yes", "No"};
+//            int n = JOptionPane.showOptionDialog(this,
+//                    "The database contains old trip tables.\n" + "They should be deleted but could belong " +
+//                            "to another instance of the Tapas Analyzer.\n" + "Do you want to delete them?",
+//                    "Old tables found.", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options,
+//                    options[1]);
+//            if (n == 0) {// yes
+//                for (String t : oldTables) {
+//                    try {
+//                        dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE " + t);
+//                    } catch (SQLException e) {
+//                        System.err.println("Could not drop table " + t);
+//                    }
+//                }
+//
+//            }
+//        }
+//    }
 
     private void createContents(String title) {
         // TODO stop Jlist from changing size on selection
@@ -251,7 +238,7 @@ public class DBSimulationChooserPanel extends JPanel {
             String mapping = (String) cbFilter.getSelectedItem();
             Set<Integer> acceptedTAZs = null;
             if (!mapping.equals(NO_PICK)) {
-                acceptedTAZs = TAZFilter.getTAZValues(mapping, dbCon, this);
+                acceptedTAZs = TAZFilter.getTAZValues(mapping, , this);
             }
 
             return new DBTripReader(simulation, hhkey, schema, region, settlementType, acceptedTAZs, dbCon, console);
@@ -264,7 +251,7 @@ public class DBSimulationChooserPanel extends JPanel {
 
     private boolean getDatabaseContent() {
 
-        try {
+        try (Connection connection = dbCon.get()){
             String q = "SELECT s.sim_key, sp.param_value as region, sp2.param_value as hhkey, sim_finished, sim_description" +
                     "    FROM simulations s join simulation_parameters sp on (s.sim_key = sp.sim_key)" +
                     "        join simulation_parameters sp2 on (s.sim_key = sp2.sim_key) " +
@@ -273,22 +260,25 @@ public class DBSimulationChooserPanel extends JPanel {
 
             simdata.clear();
             simulations.clear();
+            try(PreparedStatement st = connection.prepareStatement(q);
+                ResultSet rs = st.executeQuery()) {
 
-            ResultSet rs = dbCon.executeQuery(q, this);
-            while (rs.next()) {
-                String simkey = rs.getString("sim_key");
-                String description = rs.getString("sim_description");
-                String region = rs.getString("region");
-                String hhkey = rs.getString("hhkey");
-                boolean finished = rs.getBoolean("sim_finished");
+                while (rs.next()) {
+                    String simkey = rs.getString("sim_key");
+                    String description = rs.getString("sim_description");
+                    String region = rs.getString("region");
+                    String hhkey = rs.getString("hhkey");
+                    boolean finished = rs.getBoolean("sim_finished");
 
-                if (description == null) description = "";
-                else description = " " + description;
-                String[] arr = {simkey, region, hhkey};
-                simdata.add(arr);
-                simulations.add(simkey + description + (finished ? "" : "\t(paused)"));
+                    if (description == null) description = "";
+                    else description = " " + description;
+                    String[] arr = {simkey, region, hhkey};
+                    simdata.add(arr);
+                    simulations.add(simkey + description + (finished ? "" : "\t(paused)"));
+                }
+            }catch (SQLException e){
+                e.printStackTrace();
             }
-            rs.close();
         } catch (SQLException e) {
             System.err.println("Could not fetch meta data. Check connection to database.");
             System.err.println(e.getMessage());
@@ -296,15 +286,14 @@ public class DBSimulationChooserPanel extends JPanel {
             return false;
         }
 
-        try {
-            filters.clear();
-            filters.addAll(TAZFilter.getMappingNames(dbCon, this));
-        } catch (SQLException e) {
-            System.err.println("Could not fetch filters.");
-            System.err.println(e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
+        filters.clear();
+        filters.addAll(TAZFilter.getMappingNames(dbCon));
+
+        System.err.println("Could not fetch filters.");
+        System.err.println(e.getMessage());
+
+        return false;
+
 
         // update content
         simulationDataModel = new StringListModel(simulations);
@@ -325,7 +314,7 @@ public class DBSimulationChooserPanel extends JPanel {
 
         try {
             ArrayList<String> tables = new ArrayList<>();
-            DatabaseMetaData metaData = dbCon.getConnection(this).getMetaData();
+            DatabaseMetaData metaData = dbCon.get().getMetaData();
             ResultSet res = metaData.getTables(null, null, null, new String[]{"TABLE"});
 
             while (res.next()) {
