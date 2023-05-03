@@ -1,10 +1,12 @@
 package de.dlr.ivf.tapas.choice;
 
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.choice.traveltime.functions.PtTravelTimeFunction;
+import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleMatrixTravelTimeFunction;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
-import de.dlr.ivf.tapas.model.constants.TPS_PersonType;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;

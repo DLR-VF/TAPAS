@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.choice;
 
+import de.dlr.ivf.tapas.choice.distance.TravelDistanceFunction;
+import de.dlr.ivf.tapas.choice.distance.functions.IndividualTransportDistanceFunction;
+import de.dlr.ivf.tapas.choice.distance.functions.SimpleMatrixDistanceFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
