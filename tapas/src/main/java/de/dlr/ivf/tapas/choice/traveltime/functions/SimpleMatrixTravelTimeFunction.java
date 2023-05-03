@@ -1,5 +1,6 @@
-package de.dlr.ivf.tapas.choice;
+package de.dlr.ivf.tapas.choice.traveltime.functions;
 
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -10,12 +11,12 @@ import de.dlr.ivf.tapas.model.parameter.ParamMatrix;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
-public class SimpleMatrixTravelTimeFunction implements TravelTimeFunction{
+public class SimpleMatrixTravelTimeFunction implements TravelTimeFunction {
 
     private final MatrixMap ttMatrixMap;
     private final MatrixMap accessMatrixMap;
     private final MatrixMap egressMatrixMap;
-    private final boolean useTazIntraInfos;
+    private final boolean useIntraTazInfo;
     private final TPS_Mode mode;
     private final double minDist;
     private final Matrix beelineMatrix;
@@ -25,7 +26,7 @@ public class SimpleMatrixTravelTimeFunction implements TravelTimeFunction{
         this.ttMatrixMap = ttMatrixMap;
         this.accessMatrixMap = accessMatrixMap;
         this.egressMatrixMap = egressMatrixMap;
-        this.useTazIntraInfos = parameterClass.isTrue(ParamFlag.FLAG_INTRA_INFOS_MATRIX);
+        this.useIntraTazInfo = parameterClass.isTrue(ParamFlag.FLAG_INTRA_INFOS_MATRIX);
         this.minDist = parameterClass.getDoubleValue(ParamValue.MIN_DIST);
         this.mode = mode;
         this.beelineMatrix = parameterClass.getMatrix(ParamMatrix.DISTANCES_BL);
@@ -40,7 +41,7 @@ public class SimpleMatrixTravelTimeFunction implements TravelTimeFunction{
         int idDest = end.getTrafficAnalysisZone().getTAZId();
         if (idStart == idDest) {
             // start and end locations are in the same traffic analysis zone
-            if (this.useTazIntraInfos) {
+            if (this.useIntraTazInfo) {
                 // If there exists travel times inside a traffic
                 // analysis zone this value is used.
                 // if not use default tt

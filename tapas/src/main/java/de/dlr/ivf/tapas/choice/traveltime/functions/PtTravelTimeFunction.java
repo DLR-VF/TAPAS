@@ -1,5 +1,6 @@
-package de.dlr.ivf.tapas.choice;
+package de.dlr.ivf.tapas.choice.traveltime.functions;
 
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -16,7 +17,7 @@ import de.dlr.ivf.tapas.model.parameter.*;
  *
  * @author Alain Schengen
  */
-public class PtTravelTimeFunction implements TravelTimeFunction{
+public class PtTravelTimeFunction implements TravelTimeFunction {
 
 
     private final MatrixMap ttMatrixMap;

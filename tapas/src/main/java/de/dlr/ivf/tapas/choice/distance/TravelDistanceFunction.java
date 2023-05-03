@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.choice;
+package de.dlr.ivf.tapas.choice.distance;
 
 import de.dlr.ivf.tapas.model.location.Locatable;
 
