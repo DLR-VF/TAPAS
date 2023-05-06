@@ -66,6 +66,9 @@ dependencies {
     testCompileOnly ("org.projectlombok:lombok:1.18.24")
     testAnnotationProcessor ("org.projectlombok:lombok:1.18.24")
 
+    //jackson
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")
+
     //implementation(files("ext/simon_w.jar"))
 
 

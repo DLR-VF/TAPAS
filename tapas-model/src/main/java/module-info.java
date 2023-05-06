@@ -3,10 +3,11 @@ module de.dlr.ivf.tapas.model {
     requires org.apache.commons.lang3;
     requires org.apache.commons.collections4;
 
+
     requires de.dlr.ivf.tapas.logger;
     requires de.dlr.ivf.tapas.parameter;
     requires de.dlr.ivf.tapas.util;
-
+    requires javacsv;
     exports de.dlr.ivf.tapas.model;
     exports de.dlr.ivf.tapas.model.person;
     exports de.dlr.ivf.tapas.model.constants;
