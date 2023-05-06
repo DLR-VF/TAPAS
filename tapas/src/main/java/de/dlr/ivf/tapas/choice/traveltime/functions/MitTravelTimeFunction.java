@@ -19,6 +19,8 @@ public class MitTravelTimeFunction implements TravelTimeFunction {
     private final double walkBeelineFactor;
     private final double walkVelocity;
     private final Matrix distanceMatrix;
+    private final MatrixMap mitAccessMatrixMap;
+    private final MatrixMap mitEgressMatrixMap;
 
     public MitTravelTimeFunction(TPS_ParameterClass parameterClass, double walkVelocity){
 
@@ -29,6 +31,8 @@ public class MitTravelTimeFunction implements TravelTimeFunction {
         this.walkBeelineFactor = parameterClass.getDoubleValue(ModeType.WALK.getBeelineFactor());
         this.walkVelocity = walkVelocity;
         this.distanceMatrix = parameterClass.getMatrix(ParamMatrix.DISTANCES_BL);
+        this.mitAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_MIT,simType);
+        this.mitEgressMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.EGRESS_MIT,simType);
 
     }
 
@@ -79,6 +83,15 @@ public class MitTravelTimeFunction implements TravelTimeFunction {
             // since TAZes are different use beeline factor
             tt *= beelineDistanceLoc / distanceMatrix.getValue(idStart, idDest);
         }
+
+        //add access and egress times
+        double acc = mitAccessMatrixMap == null ? 0 : mitAccessMatrixMap.getMatrix(time).getValue(idStart,idDest);
+
+        double egr = mitEgressMatrixMap == null ? 0 : mitEgressMatrixMap.getMatrix(time).getValue(idStart,idDest);
+
+        tt += acc + egr;
+
         return tt;
     }
+
 }

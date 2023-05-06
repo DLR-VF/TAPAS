@@ -11,7 +11,7 @@ import de.dlr.ivf.tapas.model.parameter.ParamMatrix;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
-public class SimpleMatrixTravelTimeFunction implements TravelTimeFunction {
+public class WalkBikeTravelTimeFunction implements TravelTimeFunction {
 
     private final MatrixMap ttMatrixMap;
     private final MatrixMap accessMatrixMap;
@@ -21,8 +21,8 @@ public class SimpleMatrixTravelTimeFunction implements TravelTimeFunction {
     private final double minDist;
     private final Matrix beelineMatrix;
 
-    public SimpleMatrixTravelTimeFunction(MatrixMap ttMatrixMap, MatrixMap accessMatrixMap, MatrixMap egressMatrixMap,
-                                          TPS_ParameterClass parameterClass, TPS_Mode mode){
+    public WalkBikeTravelTimeFunction(MatrixMap ttMatrixMap, MatrixMap accessMatrixMap, MatrixMap egressMatrixMap,
+                                      TPS_ParameterClass parameterClass, TPS_Mode mode){
         this.ttMatrixMap = ttMatrixMap;
         this.accessMatrixMap = accessMatrixMap;
         this.egressMatrixMap = egressMatrixMap;
