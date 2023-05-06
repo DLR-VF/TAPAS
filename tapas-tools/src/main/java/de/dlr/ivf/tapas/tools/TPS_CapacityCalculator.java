@@ -10,7 +10,6 @@ package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -22,7 +21,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 
-public class TPS_CapacityCalculator extends TPS_BasicConnectionClass {
+public class TPS_CapacityCalculator {
 
     static final int UNKNOWN = -2;
     static final int WOHNEN = -1;
@@ -90,41 +89,41 @@ public class TPS_CapacityCalculator extends TPS_BasicConnectionClass {
     public void addHouseHoldsForVisit(String hhTable, String hhKey, String tazTable) {
         String query = "";
 
-        try {
-
-            query = "select sum(hh_persons) as sum, hh_taz_id from " + hhTable + " where hh_key='" + hhKey +
-                    "' group by hh_taz_id";
-
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                //System.out.println("taz: "+ rs.getInt("hh_taz_id"));
-                //System.out.println("num: "+ rs.getInt("sum"));
-                TargetLocation loc = new TargetLocation();
-                loc.fix = false;
-                loc.loc_id = maxID * 2;
-                maxID++;
-                loc.loc_code = this.codeMap.get("private Erledigung-Familie-Besuch");
-                loc.loc_enterprise = "Personen in TAZ " + rs.getInt("hh_taz_id");
-                loc.loc_type = "private Erledigung-Familie-Besuch";
-                loc.loc_unit = "Personen";
-                loc.loc_capacity = rs.getInt("sum");
-                query = "SELECT st_X(taz_coordinate) as x, st_Y(taz_coordinate) as y from " + tazTable +
-                        " where taz_id =" + rs.getInt("hh_taz_id");
-                ResultSet rs2 = this.dbCon.executeQuery(query, hhTable);
-                if (rs2.next()) {
-                    loc.x = rs2.getDouble("x");
-                    loc.y = rs2.getDouble("y");
-                }
-                rs2.close();
-                this.locations.add(loc);
-            }
-            rs.close();
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//
+//            query = "select sum(hh_persons) as sum, hh_taz_id from " + hhTable + " where hh_key='" + hhKey +
+//                    "' group by hh_taz_id";
+//
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                //System.out.println("taz: "+ rs.getInt("hh_taz_id"));
+//                //System.out.println("num: "+ rs.getInt("sum"));
+//                TargetLocation loc = new TargetLocation();
+//                loc.fix = false;
+//                loc.loc_id = maxID * 2;
+//                maxID++;
+//                loc.loc_code = this.codeMap.get("private Erledigung-Familie-Besuch");
+//                loc.loc_enterprise = "Personen in TAZ " + rs.getInt("hh_taz_id");
+//                loc.loc_type = "private Erledigung-Familie-Besuch";
+//                loc.loc_unit = "Personen";
+//                loc.loc_capacity = rs.getInt("sum");
+//                query = "SELECT st_X(taz_coordinate) as x, st_Y(taz_coordinate) as y from " + tazTable +
+//                        " where taz_id =" + rs.getInt("hh_taz_id");
+//                ResultSet rs2 = this.dbCon.executeQuery(query, hhTable);
+//                if (rs2.next()) {
+//                    loc.x = rs2.getDouble("x");
+//                    loc.y = rs2.getDouble("y");
+//                }
+//                rs2.close();
+//                this.locations.add(loc);
+//            }
+//            rs.close();
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     private void aggregateCat(String[] array, Map<String, CapacityType> catMap, Map<String, CapacityType> sourceMap, int catLevel) {
@@ -230,263 +229,263 @@ public class TPS_CapacityCalculator extends TPS_BasicConnectionClass {
         BufferedReader input = null;
         String line;
         String query;
-        try {
-            in = new FileReader(filename);
-            input = new BufferedReader(in);
-            //query= "DELETE FROM "+tablename;
-            //this.dbCon.execute(query, this);
-            input.readLine();//header
-            while ((line = input.readLine()) != null) {
-                boolean fakeDescription = false;
-                if (line.endsWith(";")) { //add a ending space to avoid tructiating of the last entry
-                    line += " ";
-                    fakeDescription = true;
-                }
-                String[] tok1 = line.split(";");
-                if (tok1.length == 10) {
-                    query = "INSERT INTO " + tablename + " " +
-                            "kategorie, unterkategorie_1, unterkategorie_2, default_cappa," +
-                            "user_factor, worker_factor, name_match, wz_key, name, comment) " + "VALUES (" + "'" +
-                            tok1[0] + "', " + "'" + tok1[1] + "', " + "'" + tok1[2] + "', " +
-                            (tok1[3].length() == 0 ? 0 : tok1[3]) + ", " + (tok1[4].length() == 0 ? 0 : tok1[4]) +
-                            ", " + (tok1[5].length() == 0 ? 0 : tok1[5]) + ", " + "'" + tok1[6] + "', " + makeSQLArray(
-                            tok1[7], ",") + ", " + "'" + tok1[8] + "', ";
-                    if (!fakeDescription) {
-                        query += "'" + tok1[9] + "')";
-                    } else {
-                        query += "NULL)";
-                    }
-                    this.dbCon.execute(query, this);
-                }
-            }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } finally {
-            try {
-                if (input != null) input.close();
-                if (in != null) in.close();
-            } catch (IOException ex) {
-                TPS_Logger.log(SeverityLogLevel.ERROR, " Could not close : " + filename);
-            }
-        }//finally
+//        try {
+//            in = new FileReader(filename);
+//            input = new BufferedReader(in);
+//            //query= "DELETE FROM "+tablename;
+//            //this.dbCon.execute(query, this);
+//            input.readLine();//header
+//            while ((line = input.readLine()) != null) {
+//                boolean fakeDescription = false;
+//                if (line.endsWith(";")) { //add a ending space to avoid tructiating of the last entry
+//                    line += " ";
+//                    fakeDescription = true;
+//                }
+//                String[] tok1 = line.split(";");
+//                if (tok1.length == 10) {
+//                    query = "INSERT INTO " + tablename + " " +
+//                            "kategorie, unterkategorie_1, unterkategorie_2, default_cappa," +
+//                            "user_factor, worker_factor, name_match, wz_key, name, comment) " + "VALUES (" + "'" +
+//                            tok1[0] + "', " + "'" + tok1[1] + "', " + "'" + tok1[2] + "', " +
+//                            (tok1[3].length() == 0 ? 0 : tok1[3]) + ", " + (tok1[4].length() == 0 ? 0 : tok1[4]) +
+//                            ", " + (tok1[5].length() == 0 ? 0 : tok1[5]) + ", " + "'" + tok1[6] + "', " + makeSQLArray(
+//                            tok1[7], ",") + ", " + "'" + tok1[8] + "', ";
+//                    if (!fakeDescription) {
+//                        query += "'" + tok1[9] + "')";
+//                    } else {
+//                        query += "NULL)";
+//                    }
+//                    this.dbCon.execute(query, this);
+//                }
+//            }
+//        } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        } finally {
+//            try {
+//                if (input != null) input.close();
+//                if (in != null) in.close();
+//            } catch (IOException ex) {
+//                TPS_Logger.log(SeverityLogLevel.ERROR, " Could not close : " + filename);
+//            }
+//        }//finally
     }
 
     public void emptyLocations(String destination) {
         //empty target
         String query = "DELETE FROM " + destination;
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
     }
 
     public void generateCodeMap() {
         String query = "";
 
-        try {
-            query = "select distinct " + "kategorie, unterkategorie_1, unterkategorie_2 " +
-                    "FROM core.global_bosserhof_ws_mapping order by kategorie, unterkategorie_1, unterkategorie_2";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            String lastKategorie = "";
-            String lastUnterkategorie_1 = "";
-            String lastUnterkategorie_2 = "";
-            int code = 1000000000;
-
-
-            while (rs.next()) {
-                String kategorie = rs.getString("kategorie");
-                if (kategorie.equals("Arbeit")) {
-                    @SuppressWarnings("unused") int i = 0;
-                }
-                String unterkategorie_1 = rs.getString("unterkategorie_1");
-                String unterkategorie_2 = rs.getString("unterkategorie_2");
-                if (!kategorie.equals(lastKategorie)) {
-                    code += 1000000;
-                    code /= 1000000;
-                    code *= 1000000;
-                }
-                if (!unterkategorie_1.equals(lastUnterkategorie_1)) {
-                    code += 1000;
-                    code /= 1000;
-                    code *= 1000;
-                }
-                if (!unterkategorie_2.equals(lastUnterkategorie_2)) code += 1;
-                lastKategorie = kategorie;
-                lastUnterkategorie_1 = unterkategorie_1;
-                lastUnterkategorie_2 = unterkategorie_2;
-                String entry = getCombinedCategory(kategorie, unterkategorie_1, unterkategorie_2);
-                codeMap.put(entry, code);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select distinct " + "kategorie, unterkategorie_1, unterkategorie_2 " +
+//                    "FROM core.global_bosserhof_ws_mapping order by kategorie, unterkategorie_1, unterkategorie_2";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            String lastKategorie = "";
+//            String lastUnterkategorie_1 = "";
+//            String lastUnterkategorie_2 = "";
+//            int code = 1000000000;
+//
+//
+//            while (rs.next()) {
+//                String kategorie = rs.getString("kategorie");
+//                if (kategorie.equals("Arbeit")) {
+//                    @SuppressWarnings("unused") int i = 0;
+//                }
+//                String unterkategorie_1 = rs.getString("unterkategorie_1");
+//                String unterkategorie_2 = rs.getString("unterkategorie_2");
+//                if (!kategorie.equals(lastKategorie)) {
+//                    code += 1000000;
+//                    code /= 1000000;
+//                    code *= 1000000;
+//                }
+//                if (!unterkategorie_1.equals(lastUnterkategorie_1)) {
+//                    code += 1000;
+//                    code /= 1000;
+//                    code *= 1000;
+//                }
+//                if (!unterkategorie_2.equals(lastUnterkategorie_2)) code += 1;
+//                lastKategorie = kategorie;
+//                lastUnterkategorie_1 = unterkategorie_1;
+//                lastUnterkategorie_2 = unterkategorie_2;
+//                String entry = getCombinedCategory(kategorie, unterkategorie_1, unterkategorie_2);
+//                codeMap.put(entry, code);
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
 
     }
 
     public void loadLocations(String origin) {
         String query = "";
 
-        try {
-
-            query = "select capacity_value as capa, unit as loc_unit, loc_id, general_type as loc_enterprise, general_name as loc_type, x_coord as x1, y_coord as y1 FROM  " +
-                    origin;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-
-            while (rs.next()) {
-                String loc_type = rs.getString("loc_type");
-
-                loc_type = loc_type.replaceAll("ä", "ae");
-                loc_type = loc_type.replaceAll("ö", "oe");
-                loc_type = loc_type.replaceAll("ü", "ue");
-                loc_type = loc_type.replaceAll("Ä", "Ae");
-                loc_type = loc_type.replaceAll("Ö", "Oe");
-                loc_type = loc_type.replaceAll("Ü", "Ue");
-                if (loc_type.equals("private Erledigung-Dienstleistung-Versicherungen")) { //hot-fix
-                    loc_type = "private Erledigung-Dienstleistung-Versicherung";
-                }
-                if (loc_type.equals("private Erledigung-Familie-Besuch")) { //this cathegorty contains only bull shit
-                    continue;
-                }
-
-                TargetLocation tmp = new TargetLocation();
-                CapacityType capaInfo = this.wzMap.get(loc_type);
-                if (capaInfo == null) {
-                    System.err.println("No capacity Info for " + loc_type);
-                    continue;
-                }
-                //tmp.loc_id=rs.getInt("loc_id")*2;
-                tmp.loc_id = maxID * 2;
-                maxID++;
-                tmp.loc_unit = rs.getString("loc_unit");
-
-                //unit convert
-                switch (tmp.loc_unit) {
-                    case "Schüler":
-                    case "Schüler gymn. Oberstufe":
-                    case "Studierende":
-                    case "Schüler geistig behindert":
-                    case "Schüler Klassen 5-6":
-                    case "Schüler Klassen 1-4":
-                    case "Sitzplätze":
-                    case "Kunden":
-                    case "Personen":
-                    case "Schüler Klassen 7-10":
-                        tmp.loc_capacity = (int) (rs.getDouble("capa"));
-                        break;
-                    case "Quadratmeter":
-                    case "Quadratmeter Gastronomie":
-                        tmp.loc_capacity = (int) (rs.getDouble("capa") * capaInfo.userFactor);
-                        break;
-                    case "Besucher 2010":
-                    case "Besucher am Standort":
-                        tmp.loc_capacity = (int) (rs.getDouble("capa")) / 365;
-                        break;
-                    case "Fälle=*Besucher*Quartal":
-                    case "Fälle=*Patienten*Quartal":
-                        tmp.loc_capacity = (int) (rs.getDouble("capa")) / (365 / 4);
-                        break;
-                    case "Parzellen":
-                        tmp.loc_capacity = (int) (rs.getDouble("capa") * 300 *
-                                capaInfo.userFactor); //ein Kleingarten = 300m²
-                        break;
-                    default:
-                        tmp.loc_capacity = (int) (rs.getDouble("capa") * capaInfo.userFactor);
-                        break;
-                }
-
-                tmp.loc_enterprise = rs.getString("loc_enterprise");
-                if (tmp.loc_enterprise != null && tmp.loc_enterprise.length() > 25)
-                    tmp.loc_enterprise = tmp.loc_enterprise.substring(0, 25);
-                tmp.loc_type = rs.getString("loc_type");
-                tmp.x = rs.getDouble("x1");
-                tmp.y = rs.getDouble("y1");
-                tmp.loc_code = codeMap.get(loc_type);
-                locations.add(tmp);
-                //generate workers/users from wzMap
-                TargetLocation tmpWork = new TargetLocation();
-                tmpWork.loc_id = tmp.loc_id + 1;
-                tmpWork.loc_unit = tmp.loc_unit;
-                tmpWork.loc_capacity = (int) (tmp.loc_capacity * capaInfo.workFactor / capaInfo.userFactor);
-                tmpWork.loc_enterprise = tmp.loc_enterprise;
-                tmpWork.loc_type = "Arbeit";
-                tmpWork.x = tmp.x;
-                tmpWork.y = tmp.y;
-                tmpWork.loc_code = codeMap.get("Arbeit");
-                if (tmpWork.loc_capacity > 0) locations.add(tmpWork);
-
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//
+//            query = "select capacity_value as capa, unit as loc_unit, loc_id, general_type as loc_enterprise, general_name as loc_type, x_coord as x1, y_coord as y1 FROM  " +
+//                    origin;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//
+//            while (rs.next()) {
+//                String loc_type = rs.getString("loc_type");
+//
+//                loc_type = loc_type.replaceAll("ä", "ae");
+//                loc_type = loc_type.replaceAll("ö", "oe");
+//                loc_type = loc_type.replaceAll("ü", "ue");
+//                loc_type = loc_type.replaceAll("Ä", "Ae");
+//                loc_type = loc_type.replaceAll("Ö", "Oe");
+//                loc_type = loc_type.replaceAll("Ü", "Ue");
+//                if (loc_type.equals("private Erledigung-Dienstleistung-Versicherungen")) { //hot-fix
+//                    loc_type = "private Erledigung-Dienstleistung-Versicherung";
+//                }
+//                if (loc_type.equals("private Erledigung-Familie-Besuch")) { //this cathegorty contains only bull shit
+//                    continue;
+//                }
+//
+//                TargetLocation tmp = new TargetLocation();
+//                CapacityType capaInfo = this.wzMap.get(loc_type);
+//                if (capaInfo == null) {
+//                    System.err.println("No capacity Info for " + loc_type);
+//                    continue;
+//                }
+//                //tmp.loc_id=rs.getInt("loc_id")*2;
+//                tmp.loc_id = maxID * 2;
+//                maxID++;
+//                tmp.loc_unit = rs.getString("loc_unit");
+//
+//                //unit convert
+//                switch (tmp.loc_unit) {
+//                    case "Schüler":
+//                    case "Schüler gymn. Oberstufe":
+//                    case "Studierende":
+//                    case "Schüler geistig behindert":
+//                    case "Schüler Klassen 5-6":
+//                    case "Schüler Klassen 1-4":
+//                    case "Sitzplätze":
+//                    case "Kunden":
+//                    case "Personen":
+//                    case "Schüler Klassen 7-10":
+//                        tmp.loc_capacity = (int) (rs.getDouble("capa"));
+//                        break;
+//                    case "Quadratmeter":
+//                    case "Quadratmeter Gastronomie":
+//                        tmp.loc_capacity = (int) (rs.getDouble("capa") * capaInfo.userFactor);
+//                        break;
+//                    case "Besucher 2010":
+//                    case "Besucher am Standort":
+//                        tmp.loc_capacity = (int) (rs.getDouble("capa")) / 365;
+//                        break;
+//                    case "Fälle=*Besucher*Quartal":
+//                    case "Fälle=*Patienten*Quartal":
+//                        tmp.loc_capacity = (int) (rs.getDouble("capa")) / (365 / 4);
+//                        break;
+//                    case "Parzellen":
+//                        tmp.loc_capacity = (int) (rs.getDouble("capa") * 300 *
+//                                capaInfo.userFactor); //ein Kleingarten = 300m²
+//                        break;
+//                    default:
+//                        tmp.loc_capacity = (int) (rs.getDouble("capa") * capaInfo.userFactor);
+//                        break;
+//                }
+//
+//                tmp.loc_enterprise = rs.getString("loc_enterprise");
+//                if (tmp.loc_enterprise != null && tmp.loc_enterprise.length() > 25)
+//                    tmp.loc_enterprise = tmp.loc_enterprise.substring(0, 25);
+//                tmp.loc_type = rs.getString("loc_type");
+//                tmp.x = rs.getDouble("x1");
+//                tmp.y = rs.getDouble("y1");
+//                tmp.loc_code = codeMap.get(loc_type);
+//                locations.add(tmp);
+//                //generate workers/users from wzMap
+//                TargetLocation tmpWork = new TargetLocation();
+//                tmpWork.loc_id = tmp.loc_id + 1;
+//                tmpWork.loc_unit = tmp.loc_unit;
+//                tmpWork.loc_capacity = (int) (tmp.loc_capacity * capaInfo.workFactor / capaInfo.userFactor);
+//                tmpWork.loc_enterprise = tmp.loc_enterprise;
+//                tmpWork.loc_type = "Arbeit";
+//                tmpWork.x = tmp.x;
+//                tmpWork.y = tmp.y;
+//                tmpWork.loc_code = codeMap.get("Arbeit");
+//                if (tmpWork.loc_capacity > 0) locations.add(tmpWork);
+//
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void loadNexigaLocations(String origin) {
         String query = "";
 
-        try {
-
-            query = "select beschaeftigte as capa, 'worker' as loc_unit, id_extern as loc_id, general_type as loc_enterprise, general_name as loc_type, st_X(st_transform(the_geom,4326)) as x1, st_Y(st_transform(the_geom,4326)) as y1 FROM  " +
-                    origin;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-
-            while (rs.next()) {
-                String loc_type = rs.getString("loc_type");
-                loc_type = loc_type.replaceAll(" - ", "-");
-                if (loc_type.equals("private Erledigung-Dienstleistung-Versicherungen")) { //hot-fix
-                    loc_type = "private Erledigung-Dienstleistung-Versicherung";
-                }
-                if (loc_type.equals("private Erledigung-Familie-Besuch")) { //this cathegorty contains only bull shit
-                    continue;
-                }
-                TargetLocation tmp = new TargetLocation();
-                CapacityType capaInfo = this.wzMap.get(loc_type);
-                if (capaInfo == null) {
-                    System.err.println("No capacity Info for " + loc_type);
-                    continue;
-                }
-                //tmp.loc_id=rs.getInt("loc_id")*2;
-                //if(rs.getInt("loc_id")==58402){
-                //	System.out.println("Found TU");
-                //}
-                tmp.loc_id = maxID * 2;
-                maxID++;
-                tmp.loc_unit = rs.getString("loc_unit");
-
-                //unit convert
-                if (loc_type.equals("Arbeit")) tmp.loc_capacity = (int) (rs.getDouble("capa"));
-                else tmp.loc_capacity = (int) (rs.getDouble("capa") * capaInfo.userFactor / capaInfo.workFactor);
-
-                tmp.loc_enterprise = rs.getString("loc_enterprise");
-                if (tmp.loc_enterprise != null && tmp.loc_enterprise.length() > 25)
-                    tmp.loc_enterprise = tmp.loc_enterprise.substring(0, 25);
-                tmp.loc_type = rs.getString("loc_type");
-                tmp.x = rs.getDouble("x1");
-                tmp.y = rs.getDouble("y1");
-                tmp.loc_code = codeMap.get(loc_type);
-                locations.add(tmp);
-
-                if (!loc_type.equals("Arbeit")) {
-                    //generate workers/users from wzMap
-                    TargetLocation tmpWork = new TargetLocation();
-                    tmpWork.loc_id = tmp.loc_id + 1;
-                    if (tmpWork.loc_id == 58402) System.out.println("FOUND PoPloa");
-                    tmpWork.loc_unit = tmp.loc_unit;
-                    tmpWork.loc_capacity = (int) (rs.getDouble("capa"));
-                    tmpWork.loc_enterprise = tmp.loc_enterprise;
-                    tmpWork.loc_type = "Arbeit";
-                    tmpWork.x = tmp.x;
-                    tmpWork.y = tmp.y;
-                    tmpWork.loc_code = codeMap.get("Arbeit");
-                    if (tmpWork.loc_capacity > 0) locations.add(tmpWork);
-                }
-
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//
+//            query = "select beschaeftigte as capa, 'worker' as loc_unit, id_extern as loc_id, general_type as loc_enterprise, general_name as loc_type, st_X(st_transform(the_geom,4326)) as x1, st_Y(st_transform(the_geom,4326)) as y1 FROM  " +
+//                    origin;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//
+//            while (rs.next()) {
+//                String loc_type = rs.getString("loc_type");
+//                loc_type = loc_type.replaceAll(" - ", "-");
+//                if (loc_type.equals("private Erledigung-Dienstleistung-Versicherungen")) { //hot-fix
+//                    loc_type = "private Erledigung-Dienstleistung-Versicherung";
+//                }
+//                if (loc_type.equals("private Erledigung-Familie-Besuch")) { //this cathegorty contains only bull shit
+//                    continue;
+//                }
+//                TargetLocation tmp = new TargetLocation();
+//                CapacityType capaInfo = this.wzMap.get(loc_type);
+//                if (capaInfo == null) {
+//                    System.err.println("No capacity Info for " + loc_type);
+//                    continue;
+//                }
+//                //tmp.loc_id=rs.getInt("loc_id")*2;
+//                //if(rs.getInt("loc_id")==58402){
+//                //	System.out.println("Found TU");
+//                //}
+//                tmp.loc_id = maxID * 2;
+//                maxID++;
+//                tmp.loc_unit = rs.getString("loc_unit");
+//
+//                //unit convert
+//                if (loc_type.equals("Arbeit")) tmp.loc_capacity = (int) (rs.getDouble("capa"));
+//                else tmp.loc_capacity = (int) (rs.getDouble("capa") * capaInfo.userFactor / capaInfo.workFactor);
+//
+//                tmp.loc_enterprise = rs.getString("loc_enterprise");
+//                if (tmp.loc_enterprise != null && tmp.loc_enterprise.length() > 25)
+//                    tmp.loc_enterprise = tmp.loc_enterprise.substring(0, 25);
+//                tmp.loc_type = rs.getString("loc_type");
+//                tmp.x = rs.getDouble("x1");
+//                tmp.y = rs.getDouble("y1");
+//                tmp.loc_code = codeMap.get(loc_type);
+//                locations.add(tmp);
+//
+//                if (!loc_type.equals("Arbeit")) {
+//                    //generate workers/users from wzMap
+//                    TargetLocation tmpWork = new TargetLocation();
+//                    tmpWork.loc_id = tmp.loc_id + 1;
+//                    if (tmpWork.loc_id == 58402) System.out.println("FOUND PoPloa");
+//                    tmpWork.loc_unit = tmp.loc_unit;
+//                    tmpWork.loc_capacity = (int) (rs.getDouble("capa"));
+//                    tmpWork.loc_enterprise = tmp.loc_enterprise;
+//                    tmpWork.loc_type = "Arbeit";
+//                    tmpWork.x = tmp.x;
+//                    tmpWork.y = tmp.y;
+//                    tmpWork.loc_code = codeMap.get("Arbeit");
+//                    if (tmpWork.loc_capacity > 0) locations.add(tmpWork);
+//                }
+//
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     private String makeSQLArray(String separatedArrary, String separator) {
@@ -535,183 +534,183 @@ public class TPS_CapacityCalculator extends TPS_BasicConnectionClass {
     public void readBosserhofMapingValues() {
         String query = "";
 
-        try {
-            query = "select " + "name, kategorie, unterkategorie_1, unterkategorie_2, default_cappa," +
-                    "user_factor, worker_factor, wz_key FROM core.global_bosserhof_ws_mapping order by kategorie, unterkategorie_1, unterkategorie_2";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                String typ = rs.getString("name");
-                String kategorie = rs.getString("kategorie");
-                String unterkategorie_1 = rs.getString("unterkategorie_1");
-                String unterkategorie_2 = rs.getString("unterkategorie_2");
-                double defaultCappa = rs.getDouble("default_cappa");
-                double userFactor = rs.getDouble("user_factor");
-                double workFactor = rs.getDouble("worker_factor");
-
-                //create the info
-                CapacityInfo infoUser = new CapacityInfo();
-                infoUser.max = userFactor;
-                infoUser.tapasCode = USER;
-                //create the info
-                CapacityInfo infoWorker = new CapacityInfo();
-                infoWorker.max = workFactor;
-                infoWorker.tapasCode = WORK;
-
-                //check for existing cappa type
-                CapacityType cappaTyp = new CapacityType(); //create new one
-                cappaTyp.type = typ;
-                cappaTyp.cathegory[0] = kategorie;
-                if (unterkategorie_1 != null && unterkategorie_1.length() > 0 && !unterkategorie_1.equals("''"))
-                    cappaTyp.cathegory[1] = unterkategorie_1;
-                if (unterkategorie_2 != null && unterkategorie_2.length() > 0 && !unterkategorie_2.equals("''"))
-                    cappaTyp.cathegory[2] = unterkategorie_2;
-                wzMap.put(cappaTyp.getCombinedCathegory(3), cappaTyp); //add it
-
-                cappaTyp.addCapacityInfo(infoUser); //add info
-                cappaTyp.addCapacityInfo(infoWorker); //add info
-                cappaTyp.setDefaultCapa(USER, defaultCappa);
-
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select " + "name, kategorie, unterkategorie_1, unterkategorie_2, default_cappa," +
+//                    "user_factor, worker_factor, wz_key FROM core.global_bosserhof_ws_mapping order by kategorie, unterkategorie_1, unterkategorie_2";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                String typ = rs.getString("name");
+//                String kategorie = rs.getString("kategorie");
+//                String unterkategorie_1 = rs.getString("unterkategorie_1");
+//                String unterkategorie_2 = rs.getString("unterkategorie_2");
+//                double defaultCappa = rs.getDouble("default_cappa");
+//                double userFactor = rs.getDouble("user_factor");
+//                double workFactor = rs.getDouble("worker_factor");
+//
+//                //create the info
+//                CapacityInfo infoUser = new CapacityInfo();
+//                infoUser.max = userFactor;
+//                infoUser.tapasCode = USER;
+//                //create the info
+//                CapacityInfo infoWorker = new CapacityInfo();
+//                infoWorker.max = workFactor;
+//                infoWorker.tapasCode = WORK;
+//
+//                //check for existing cappa type
+//                CapacityType cappaTyp = new CapacityType(); //create new one
+//                cappaTyp.type = typ;
+//                cappaTyp.cathegory[0] = kategorie;
+//                if (unterkategorie_1 != null && unterkategorie_1.length() > 0 && !unterkategorie_1.equals("''"))
+//                    cappaTyp.cathegory[1] = unterkategorie_1;
+//                if (unterkategorie_2 != null && unterkategorie_2.length() > 0 && !unterkategorie_2.equals("''"))
+//                    cappaTyp.cathegory[2] = unterkategorie_2;
+//                wzMap.put(cappaTyp.getCombinedCathegory(3), cappaTyp); //add it
+//
+//                cappaTyp.addCapacityInfo(infoUser); //add info
+//                cappaTyp.addCapacityInfo(infoWorker); //add info
+//                cappaTyp.setDefaultCapa(USER, defaultCappa);
+//
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void readBosserhofValues() {
         String query = "";
 
-        try {
-            query = "select typ, bezugsgroesse, kategorie, unterkategorie_1, unterkategorie_2, code, min, max from core.global_bosserhof_mapping order by id";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                String typ = rs.getString("typ");
-                String bezugsgroesse = rs.getString("bezugsgroesse");
-                String kategorie = rs.getString("kategorie");
-                String unterkategorie_1 = rs.getString("unterkategorie_1");
-                String unterkategorie_2 = rs.getString("unterkategorie_2");
-                int code = rs.getInt("code");
-                double min = rs.getDouble("min");
-                double max = rs.getDouble("max");
-
-                //build the info
-                CapacityInfo info = new CapacityInfo();
-                info.relatedOn = bezugsgroesse;
-                info.tapasCode = code;
-                info.min = min;
-                info.max = max;
-
-                //check for existing cappa type
-                CapacityType cappaTyp;
-                if (typeMap.containsKey(typ)) cappaTyp = typeMap.get(typ); //use existing one
-                else {
-                    cappaTyp = new CapacityType(); //create new one
-                    cappaTyp.type = typ;
-                    cappaTyp.cathegory[0] = kategorie;
-                    if (unterkategorie_1 != null && unterkategorie_1.length() > 0 && !unterkategorie_1.equals("''"))
-                        cappaTyp.cathegory[1] = unterkategorie_1;
-                    if (unterkategorie_2 != null && unterkategorie_2.length() > 0 && !unterkategorie_2.equals("''"))
-                        cappaTyp.cathegory[2] = unterkategorie_2;
-                    typeMap.put(typ, cappaTyp); //add it
-                }
-                cappaTyp.addCapacityInfo(info); //add info
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select typ, bezugsgroesse, kategorie, unterkategorie_1, unterkategorie_2, code, min, max from core.global_bosserhof_mapping order by id";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                String typ = rs.getString("typ");
+//                String bezugsgroesse = rs.getString("bezugsgroesse");
+//                String kategorie = rs.getString("kategorie");
+//                String unterkategorie_1 = rs.getString("unterkategorie_1");
+//                String unterkategorie_2 = rs.getString("unterkategorie_2");
+//                int code = rs.getInt("code");
+//                double min = rs.getDouble("min");
+//                double max = rs.getDouble("max");
+//
+//                //build the info
+//                CapacityInfo info = new CapacityInfo();
+//                info.relatedOn = bezugsgroesse;
+//                info.tapasCode = code;
+//                info.min = min;
+//                info.max = max;
+//
+//                //check for existing cappa type
+//                CapacityType cappaTyp;
+//                if (typeMap.containsKey(typ)) cappaTyp = typeMap.get(typ); //use existing one
+//                else {
+//                    cappaTyp = new CapacityType(); //create new one
+//                    cappaTyp.type = typ;
+//                    cappaTyp.cathegory[0] = kategorie;
+//                    if (unterkategorie_1 != null && unterkategorie_1.length() > 0 && !unterkategorie_1.equals("''"))
+//                        cappaTyp.cathegory[1] = unterkategorie_1;
+//                    if (unterkategorie_2 != null && unterkategorie_2.length() > 0 && !unterkategorie_2.equals("''"))
+//                        cappaTyp.cathegory[2] = unterkategorie_2;
+//                    typeMap.put(typ, cappaTyp); //add it
+//                }
+//                cappaTyp.addCapacityInfo(info); //add info
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void storeCodeMap(String table) {
         String query = "";
 
-        try {
-
-            query = "SELECT max(id) as id FROM " + table;
-
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int id = rs.getInt("id") + 1;
-                query = "INSERT INTO " + table +
-                        "( id, class, name_general, code_general, type_general, name_tapas, code_tapas, type_tapas)" +
-                        "VALUES (?,'de.dlr.ivf.tapas.constants.TPS_LocationCode', ?,?,'GENERAL',?,?,'TAPAS')";
-                PreparedStatement pSt = this.dbCon.getConnection(this).prepareStatement(query);
-                for (Entry<String, Integer> e : codeMap.entrySet()) {
-                    int i = 1;
-                    pSt.setInt(i++, id++);
-                    pSt.setString(i++, e.getKey());
-                    pSt.setInt(i++, e.getValue());
-                    pSt.setString(i++, e.getKey());
-                    pSt.setInt(i++, e.getValue());
-                    pSt.addBatch();
-                }
-                pSt.executeBatch();
-            }
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//
+//            query = "SELECT max(id) as id FROM " + table;
+//
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int id = rs.getInt("id") + 1;
+//                query = "INSERT INTO " + table +
+//                        "( id, class, name_general, code_general, type_general, name_tapas, code_tapas, type_tapas)" +
+//                        "VALUES (?,'de.dlr.ivf.tapas.constants.TPS_LocationCode', ?,?,'GENERAL',?,?,'TAPAS')";
+//                PreparedStatement pSt = this.dbCon.getConnection(this).prepareStatement(query);
+//                for (Entry<String, Integer> e : codeMap.entrySet()) {
+//                    int i = 1;
+//                    pSt.setInt(i++, id++);
+//                    pSt.setString(i++, e.getKey());
+//                    pSt.setInt(i++, e.getValue());
+//                    pSt.setString(i++, e.getKey());
+//                    pSt.setInt(i++, e.getValue());
+//                    pSt.addBatch();
+//                }
+//                pSt.executeBatch();
+//            }
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void storeLocations(String destination, boolean updateTAZ, String tazMultiline, boolean updateBlocks, String blockMultiline) {
         String query = "";
 
-        try {
-
-
-            query = "INSERT INTO " + destination +
-                    "(loc_id,loc_code,loc_taz_id,loc_group_id,loc_enterprise,loc_capacity,loc_has_fix_capacity,loc_type,loc_unit,loc_coordinate) " +
-                    "VALUES (?,?,-1,-1,?,?,?,?,?,st_setsrid(st_makepoint(?,?),4326))";
-
-            PreparedStatement pSt = this.dbCon.getConnection(this).prepareStatement(query);
-            int chunk = 0, chunksize = 10000;
-
-            for (TargetLocation e : locations) {
-                int i = 1;
-                pSt.setInt(i++, e.loc_id);
-                pSt.setInt(i++, e.loc_code);
-                pSt.setString(i++, e.loc_enterprise);
-                pSt.setInt(i++, e.loc_capacity);
-                pSt.setBoolean(i++, e.fix);
-                pSt.setString(i++, e.loc_type);
-                pSt.setString(i++, e.loc_unit);
-                pSt.setDouble(i++, e.x);
-                pSt.setDouble(i++, e.y);
-                pSt.addBatch();
-                chunk++;
-                //commit chunk if necessary
-                if (chunk >= chunksize) {
-                    chunk = 0;
-                    pSt.executeBatch();
-                }
-            }
-            //commit remainers
-            if (chunk > 0) {
-                pSt.executeBatch();
-            }
-            if (updateTAZ) {
-                //delete locs not in Region
-                query = "DELETE from " + destination +
-                        " WHERE not st_within(loc_coordinate, (SELECT st_union(the_geom) from " + tazMultiline + "))";
-                this.dbCon.execute(query, this);
-                query = "UPDATE " + destination + " as tab SET loc_taz_id = (SELECT taz.gid from " + tazMultiline +
-                        " as taz where st_within(tab.loc_coordinate,taz.the_geom))";
-                this.dbCon.executeUpdate(query, this);
-            }
-            if (updateBlocks) {
-                query = "UPDATE " + destination + " as tab SET loc_blk_id = (SELECT blk.blk_id from " + blockMultiline +
-                        " as blk where blk.blk_taz_id=tab.loc_taz_id order by st_distance(blk.blk_coordinate, tab.loc_coordinate) LIMIT 1)";
-                this.dbCon.executeUpdate(query, this);
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-            System.err.println("Next exception:");
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//
+//
+//            query = "INSERT INTO " + destination +
+//                    "(loc_id,loc_code,loc_taz_id,loc_group_id,loc_enterprise,loc_capacity,loc_has_fix_capacity,loc_type,loc_unit,loc_coordinate) " +
+//                    "VALUES (?,?,-1,-1,?,?,?,?,?,st_setsrid(st_makepoint(?,?),4326))";
+//
+//            PreparedStatement pSt = this.dbCon.getConnection(this).prepareStatement(query);
+//            int chunk = 0, chunksize = 10000;
+//
+//            for (TargetLocation e : locations) {
+//                int i = 1;
+//                pSt.setInt(i++, e.loc_id);
+//                pSt.setInt(i++, e.loc_code);
+//                pSt.setString(i++, e.loc_enterprise);
+//                pSt.setInt(i++, e.loc_capacity);
+//                pSt.setBoolean(i++, e.fix);
+//                pSt.setString(i++, e.loc_type);
+//                pSt.setString(i++, e.loc_unit);
+//                pSt.setDouble(i++, e.x);
+//                pSt.setDouble(i++, e.y);
+//                pSt.addBatch();
+//                chunk++;
+//                //commit chunk if necessary
+//                if (chunk >= chunksize) {
+//                    chunk = 0;
+//                    pSt.executeBatch();
+//                }
+//            }
+//            //commit remainers
+//            if (chunk > 0) {
+//                pSt.executeBatch();
+//            }
+//            if (updateTAZ) {
+//                //delete locs not in Region
+//                query = "DELETE from " + destination +
+//                        " WHERE not st_within(loc_coordinate, (SELECT st_union(the_geom) from " + tazMultiline + "))";
+//                this.dbCon.execute(query, this);
+//                query = "UPDATE " + destination + " as tab SET loc_taz_id = (SELECT taz.gid from " + tazMultiline +
+//                        " as taz where st_within(tab.loc_coordinate,taz.the_geom))";
+//                this.dbCon.executeUpdate(query, this);
+//            }
+//            if (updateBlocks) {
+//                query = "UPDATE " + destination + " as tab SET loc_blk_id = (SELECT blk.blk_id from " + blockMultiline +
+//                        " as blk where blk.blk_taz_id=tab.loc_taz_id order by st_distance(blk.blk_coordinate, tab.loc_coordinate) LIMIT 1)";
+//                this.dbCon.executeUpdate(query, this);
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//            System.err.println("Next exception:");
+//            e.getNextException().printStackTrace();
+//        }
     }
 
     public void updateLocCodesInBosserhofMapingValues() {
@@ -732,7 +731,7 @@ public class TPS_CapacityCalculator extends TPS_BasicConnectionClass {
                         cat[0] + "' and " + "unterkategorie_1=NULL and " + "unterkategorie_2=NULL";
             }
 
-            this.dbCon.executeUpdate(query, this);
+//            this.dbCon.executeUpdate(query, this);
         }
     }
 
@@ -745,7 +744,7 @@ public class TPS_CapacityCalculator extends TPS_BasicConnectionClass {
             double capa = capaTyp.defaultCapaUser / capaTyp.userFactor;
             query = "update " + tableName + " set capacity_value = " + capa +
                     " WHERE capacity_value isnull and general_name = '" + capaTyp.getCombinedCathegory(3) + "'";
-            this.dbCon.executeUpdate(query, this);
+//            this.dbCon.executeUpdate(query, this);
         }
     }
 

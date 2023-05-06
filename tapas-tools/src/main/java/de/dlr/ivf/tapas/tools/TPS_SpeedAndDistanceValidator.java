@@ -9,15 +9,12 @@
 package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class TPS_SpeedAndDistanceValidator extends TPS_BasicConnectionClass {
+public class TPS_SpeedAndDistanceValidator {
 
     Map<Integer, TAZ> tazes = new HashMap<>();
     TravelData[][] data = new TravelData[0][0];
@@ -286,18 +283,18 @@ public class TPS_SpeedAndDistanceValidator extends TPS_BasicConnectionClass {
         String query = "";
         ResultSet rs;
         double[][] returnVal = new double[0][0];
-        try {
-            query = "SELECT matrix_values from " + table + " where matrix_name = '" + name + "'";
-            rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int[] val = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                returnVal = array1Dto2D(val);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT matrix_values from " + table + " where matrix_name = '" + name + "'";
+//            rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int[] val = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                returnVal = array1Dto2D(val);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
         return returnVal;
     }
 
@@ -320,7 +317,7 @@ public class TPS_SpeedAndDistanceValidator extends TPS_BasicConnectionClass {
                     }
                 }
             } while (bla != null);
-            retVal = array1Dto2D(values);
+//            retVal = array1Dto2D(values);
             reader.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -331,23 +328,23 @@ public class TPS_SpeedAndDistanceValidator extends TPS_BasicConnectionClass {
     public void loadTAZ(String table) {
         String query = "";
         ResultSet rs;
-        try {
-            query = "SELECT taz_id, st_x(taz_coordinate) as x, st_y(taz_coordinate) as y from " + table + " order by taz_id";
-            rs = this.dbCon.executeQuery(query, this);
-            int num = 0;
-            while (rs.next()) {
-                TAZ newTaz = new TAZ();
-                newTaz.id = rs.getInt("taz_id");
-                newTaz.x = rs.getDouble("x");
-                newTaz.y = rs.getDouble("y");
-                tazes.put(num, newTaz);
-                num++;
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT taz_id, st_x(taz_coordinate) as x, st_y(taz_coordinate) as y from " + table + " order by taz_id";
+//            rs = this.dbCon.executeQuery(query, this);
+//            int num = 0;
+//            while (rs.next()) {
+//                TAZ newTaz = new TAZ();
+//                newTaz.id = rs.getInt("taz_id");
+//                newTaz.x = rs.getDouble("x");
+//                newTaz.y = rs.getDouble("y");
+//                tazes.put(num, newTaz);
+//                num++;
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
     }
 
     public void loadTAZInfos(String tazTable, String matrixTable, String distName, String ttName, String accessName, String egressName) {

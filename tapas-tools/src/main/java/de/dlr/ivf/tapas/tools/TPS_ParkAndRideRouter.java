@@ -8,10 +8,8 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,7 +20,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 
-public class TPS_ParkAndRideRouter extends TPS_BasicConnectionClass {
+public class TPS_ParkAndRideRouter {
 
     List<IntermodalRoute> connections = new ArrayList<>();
     boolean[] TAZInfo = null;
@@ -102,18 +100,18 @@ public class TPS_ParkAndRideRouter extends TPS_BasicConnectionClass {
             return;
         }
         this.TAZInfo = new boolean[this.miv.getNumberOfColums()];
-        try {
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                this.TAZInfo[(rs.getInt("ft_taz_id") - 1)] = rs.getBoolean(
-                        "is_restricted"); //the columns come ordered from the database!
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println("Error during sql-statement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                this.TAZInfo[(rs.getInt("ft_taz_id") - 1)] = rs.getBoolean(
+//                        "is_restricted"); //the columns come ordered from the database!
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println("Error during sql-statement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
     }
 
     /**
@@ -125,22 +123,22 @@ public class TPS_ParkAndRideRouter extends TPS_BasicConnectionClass {
     protected Matrix readMatrix(String matrixName, String tableName) {
         Matrix m = null;
         String query = "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
-        try {
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                int len = (int) Math.sqrt(iArray.length);
-                m = new Matrix(len, len);
-                for (int index = 0; index < iArray.length; index++) {
-                    m.setRawValue(index, iArray[index]);
-                }
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println("Error during sql-statement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                int len = (int) Math.sqrt(iArray.length);
+//                m = new Matrix(len, len);
+//                for (int index = 0; index < iArray.length; index++) {
+//                    m.setRawValue(index, iArray[index]);
+//                }
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println("Error during sql-statement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
         return m;
     }
 
@@ -230,7 +228,7 @@ public class TPS_ParkAndRideRouter extends TPS_BasicConnectionClass {
         //delete old entry
         StringBuilder query = new StringBuilder(
                 "DELETE FROM " + tableName + " WHERE matrix_name = '" + matrixName + "'");
-        this.dbCon.execute(query.toString(), this);
+//        this.dbCon.execute(query.toString(), this);
 
         query = new StringBuilder("INSERT INTO " + tableName + " VALUES('" + matrixName + "','{");
         StringBuilder buffer;
@@ -244,7 +242,7 @@ public class TPS_ParkAndRideRouter extends TPS_BasicConnectionClass {
             query.append(buffer);
         }
         query.append("}' )");
-        this.dbCon.execute(query.toString(), this);
+//        this.dbCon.execute(query.toString(), this);
     }
 
     public void storeMatrixInDB(Matrix matrix, String matrixName, String tableName) {
@@ -253,7 +251,7 @@ public class TPS_ParkAndRideRouter extends TPS_BasicConnectionClass {
         //delete old entry
         StringBuilder query = new StringBuilder(
                 "DELETE FROM " + tableName + " WHERE matrix_name = '" + matrixName + "'");
-        this.dbCon.execute(query.toString(), this);
+//        this.dbCon.execute(query.toString(), this);
 
         query = new StringBuilder("INSERT INTO " + tableName + " VALUES('" + matrixName + "','{");
         StringBuilder buffer;
@@ -267,7 +265,7 @@ public class TPS_ParkAndRideRouter extends TPS_BasicConnectionClass {
             query.append(buffer);
         }
         query.append("}' )");
-        this.dbCon.execute(query.toString(), this);
+//        this.dbCon.execute(query.toString(), this);
     }
 
     class IntermodalNode {

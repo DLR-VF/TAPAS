@@ -10,7 +10,6 @@ package de.dlr.ivf.scripts;
 
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 
 import java.io.BufferedReader;
@@ -21,7 +20,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
 
-public class OTP2SQLMatrix extends TPS_BasicConnectionClass {
+public class OTP2SQLMatrix {
     double[][] matrixTT = null;
     double[][] matrixDist = null;
     double[][] matrixAcc = null;
@@ -58,43 +57,43 @@ public class OTP2SQLMatrix extends TPS_BasicConnectionClass {
     public void checkDBMatrix(String matrixName) {
 
         String query = "";
-        try {
-            query = "SELECT matrix_values FROM core.berlin_matrices WHERE matrix_name='" + matrixName + "'";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                rs.close();
-                int len = (int) Math.sqrt(iArray.length);
-                double[][] matrix = new double[len][len];
-                int index = 0;
-                for (int i = 0; i < len; ++i) {
-                    for (int j = 0; j < len; ++j) {
-                        matrix[i][j] = iArray[index];
-                        index++;
-                    }
-                }
-                for (int i = 0; i < len; ++i) {
-                    for (int j = 0; j < len; ++j) {
-                        if (matrix[i][j] == TPS_Mode.VISUM_NO_CONNECTION || matrix[i][j] <= 0.1) {
-                            System.out.println("Not fixable connection from " + i + " to " + j);
-                            matrix[i][j] = TPS_Mode.NO_CONNECTION;
-                        }
-                    }
-                }
-                FileWriter writer = new FileWriter("C:\\temp\\car_tt.sql");
-                writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + matrixName + "'; \n");
-                writer.append("INSERT INTO core.berlin_matrices VALUES ('" + matrixName + "', \n");
-                writer.append(matrixToSQLArray(matrix, 0) + ");\n");
-                writer.close();
-
-            }
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " checkDBMatrix: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT matrix_values FROM core.berlin_matrices WHERE matrix_name='" + matrixName + "'";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                rs.close();
+//                int len = (int) Math.sqrt(iArray.length);
+//                double[][] matrix = new double[len][len];
+//                int index = 0;
+//                for (int i = 0; i < len; ++i) {
+//                    for (int j = 0; j < len; ++j) {
+//                        matrix[i][j] = iArray[index];
+//                        index++;
+//                    }
+//                }
+//                for (int i = 0; i < len; ++i) {
+//                    for (int j = 0; j < len; ++j) {
+//                        if (matrix[i][j] == TPS_Mode.VISUM_NO_CONNECTION || matrix[i][j] <= 0.1) {
+//                            System.out.println("Not fixable connection from " + i + " to " + j);
+//                            matrix[i][j] = TPS_Mode.NO_CONNECTION;
+//                        }
+//                    }
+//                }
+//                FileWriter writer = new FileWriter("C:\\temp\\car_tt.sql");
+//                writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + matrixName + "'; \n");
+//                writer.append("INSERT INTO core.berlin_matrices VALUES ('" + matrixName + "', \n");
+//                writer.append(matrixToSQLArray(matrix, 0) + ");\n");
+//                writer.close();
+//
+//            }
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " checkDBMatrix: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 
     }
@@ -215,28 +214,28 @@ public class OTP2SQLMatrix extends TPS_BasicConnectionClass {
 
     public void writeSQLScript(String output, String name, boolean isPT) {
 
-        try {
-            FileWriter writer = new FileWriter(output);
-            writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_tt'; \n");
-            writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_tt', \n");
-            writer.append(matrixToSQLArray(matrixTT, 0) + ");\n");
-            writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_dist'; \n");
-            writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_dist', \n");
-            writer.append(matrixToSQLArray(matrixDist, 0) + ");\n");
-            if (isPT) {
-                writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_acc'; \n");
-                writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_acc', \n");
-                writer.append(matrixToSQLArray(matrixAcc, 0) + ");\n");
-                writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_egr'; \n");
-                writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_egr', \n");
-                writer.append(matrixToSQLArray(matrixEgr, 0) + ");\n");
-            }
-
-
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            FileWriter writer = new FileWriter(output);
+//            writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_tt'; \n");
+//            writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_tt', \n");
+//            writer.append(matrixToSQLArray(matrixTT, 0) + ");\n");
+//            writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_dist'; \n");
+//            writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_dist', \n");
+//            writer.append(matrixToSQLArray(matrixDist, 0) + ");\n");
+//            if (isPT) {
+//                writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_acc'; \n");
+//                writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_acc', \n");
+//                writer.append(matrixToSQLArray(matrixAcc, 0) + ");\n");
+//                writer.append("DELETE FROM core.berlin_matrices WHERE matrix_name ='" + name + "_egr'; \n");
+//                writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "_egr', \n");
+//                writer.append(matrixToSQLArray(matrixEgr, 0) + ");\n");
+//            }
+//
+//
+//            writer.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
 
     }

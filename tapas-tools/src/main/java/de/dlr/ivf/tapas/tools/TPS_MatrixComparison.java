@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -20,7 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
+public class TPS_MatrixComparison {
 
     int[][] matrix1 = null, matrix2 = null, weightMatrix = null;
 
@@ -191,21 +189,21 @@ public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
         String query = "";
         ResultSet rs;
         int[][] returnVal = new int[0][0];
-        try {
-            query = "SELECT matrix_values from " + table + " where matrix_name = '" + name + "'";
-            rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int[] val = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                returnVal = intArray1Dto2D(val);
-            } else {
-                System.out.println("No result for query " + query);
-                System.exit(0);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT matrix_values from " + table + " where matrix_name = '" + name + "'";
+//            rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int[] val = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                returnVal = intArray1Dto2D(val);
+//            } else {
+//                System.out.println("No result for query " + query);
+//                System.exit(0);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
         return returnVal;
     }
 
@@ -231,27 +229,27 @@ public class TPS_MatrixComparison extends TPS_BasicConnectionClass {
 
         this.weightMatrix = new int[matrix1.length][matrix1[0].length];
 
-        try {
-            ResultSet rs;
-            StringBuilder query = new StringBuilder(
-                    "SELECT taz_id_start,taz_id_end  from " + trips + " where mode =" + " ANY" + "(ARRAY[");
-            for (int i = 0; i < modes.length - 1; i++) {
-                query.append(modes[i]).append(",");
-            }
-            //last element
-            query.append(modes[modes.length - 1]).append("])");
-
-            rs = this.dbCon.executeQuery(query.toString(), this);
-            while (rs.next()) {
-                int from = rs.getInt("taz_id_start");
-                int to = rs.getInt("taz_id_end");
-                this.weightMatrix[from - 1][to - 1]++;
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            ResultSet rs;
+//            StringBuilder query = new StringBuilder(
+//                    "SELECT taz_id_start,taz_id_end  from " + trips + " where mode =" + " ANY" + "(ARRAY[");
+//            for (int i = 0; i < modes.length - 1; i++) {
+//                query.append(modes[i]).append(",");
+//            }
+//            //last element
+//            query.append(modes[modes.length - 1]).append("])");
+//
+//            rs = this.dbCon.executeQuery(query.toString(), this);
+//            while (rs.next()) {
+//                int from = rs.getInt("taz_id_start");
+//                int to = rs.getInt("taz_id_end");
+//                this.weightMatrix[from - 1][to - 1]++;
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
 
     }
 

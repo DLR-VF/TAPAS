@@ -8,13 +8,11 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.loc.Locatable;
-import de.dlr.ivf.tapas.loc.TPS_Block;
-import de.dlr.ivf.tapas.loc.TPS_Coordinate;
-import de.dlr.ivf.tapas.loc.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.model.location.Locatable;
+import de.dlr.ivf.tapas.model.location.TPS_Block;
+import de.dlr.ivf.tapas.model.location.TPS_Coordinate;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 
 import java.io.FileWriter;
@@ -24,7 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class TPS_ECommerceEstimator extends TPS_BasicConnectionClass {
+public class TPS_ECommerceEstimator {
 
     double[][] beeline;
     double[][] dist;
@@ -73,7 +71,7 @@ public class TPS_ECommerceEstimator extends TPS_BasicConnectionClass {
             TPS_ECommerceEstimator worker = new TPS_ECommerceEstimator();
 
             trips = tripPrefix + sims[i];
-            worker.getParameters().setValue(ParamValue.MIN_DIST, 50);
+            //worker.getParameters().setValue(ParamValue.MIN_DIST, 50);
             worker.prob = probabilities[i];
             //worker.addActivity(50); //general shopping
             worker.addActivity(51); //short term shopping
@@ -155,35 +153,35 @@ public class TPS_ECommerceEstimator extends TPS_BasicConnectionClass {
     public void appendBZRInfo(String bzrTable, MinimalLocation loc) {
         String query;
         ResultSet rs;
-        try {
-
-            query = "SELECT bzr_id from " + bzrTable + " where st_within(st_transform(st_setsrid(" + "st_makepoint(" +
-                    loc.loc.getValue(0) + ", " + loc.loc.getValue(1) + "),4326),25833), the_geom)";
-            rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                String val = rs.getString("bzr_id");
-                loc.bzrID = Integer.parseInt(val);
-            } else {
-                rs.close();
-                //try a 50 meter buffer
-                query = "SELECT bzr_id from " + bzrTable + " where st_within(st_transform(st_setsrid(" +
-                        "st_makepoint(" + loc.loc.getValue(0) + ", " + loc.loc.getValue(1) +
-                        "),4326),25833), st_buffer(the_geom,50))";
-                rs = this.dbCon.executeQuery(query, this);
-                if (rs.next()) {
-                    String val = rs.getString("bzr_id");
-                    loc.bzrID = Integer.parseInt(val);
-                } else {
-                    System.out.println(query);
-                }
-
-            }
-            rs.close();
-
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//
+//            query = "SELECT bzr_id from " + bzrTable + " where st_within(st_transform(st_setsrid(" + "st_makepoint(" +
+//                    loc.loc.getValue(0) + ", " + loc.loc.getValue(1) + "),4326),25833), the_geom)";
+//            rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                String val = rs.getString("bzr_id");
+//                loc.bzrID = Integer.parseInt(val);
+//            } else {
+//                rs.close();
+//                //try a 50 meter buffer
+//                query = "SELECT bzr_id from " + bzrTable + " where st_within(st_transform(st_setsrid(" +
+//                        "st_makepoint(" + loc.loc.getValue(0) + ", " + loc.loc.getValue(1) +
+//                        "),4326),25833), st_buffer(the_geom,50))";
+//                rs = this.dbCon.executeQuery(query, this);
+//                if (rs.next()) {
+//                    String val = rs.getString("bzr_id");
+//                    loc.bzrID = Integer.parseInt(val);
+//                } else {
+//                    System.out.println(query);
+//                }
+//
+//            }
+//            rs.close();
+//
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
     }
 
     public double calcDiffDist(ECommerceTrip trip) {
@@ -200,135 +198,135 @@ public class TPS_ECommerceEstimator extends TPS_BasicConnectionClass {
     public void collectEComTrips(String table) {
         String query;
         ResultSet rs;
-        try {
-            int currentHHID = -1, currentPID = -1;
-            int p_id, hh_id, loc_id_start, taz_id_start, loc_id_end, taz_id_end, mode, activity, taz_house = 0, hh_loc_id = 0, start_time_min;
-            double lon_start, lat_start, lon_end, lat_end, lon_hh = 0, lat_hh = 0;
-            ECommerceTrip trip = null;
-            boolean lastWasShopping = false;
-            //boolean added;
-            this.eComTrips.clear();
-            this.ecomHH.clear();
-            int maxChunk = 10;
-            for (int i = 0; i < maxChunk; i++) {
-                System.out.print(".");
-                query = "SELECT p_id, hh_id, start_time_min, loc_id_start, taz_id_start, lon_start, lat_start, loc_id_end, taz_id_end, lon_end, lat_end, mode, activity from " +
-                        table + " where hh_id%" + maxChunk + " = " + i + " order by hh_id, p_id, start_time_min ";
-                rs = this.dbCon.executeQuery(query, this);
-                while (rs.next()) {
-                    p_id = rs.getInt("p_id");
-                    hh_id = rs.getInt("hh_id");
-                    start_time_min = rs.getInt("start_time_min");
-                    loc_id_start = rs.getInt("loc_id_start");
-                    taz_id_start = rs.getInt("taz_id_start");
-                    loc_id_end = rs.getInt("loc_id_end");
-                    taz_id_end = rs.getInt("taz_id_end");
-                    mode = rs.getInt("mode");
-                    activity = rs.getInt("activity");
-                    lon_start = rs.getDouble("lon_start");
-                    lat_start = rs.getDouble("lat_start");
-                    lon_end = rs.getDouble("lon_end");
-                    lat_end = rs.getDouble("lat_end");
-                    //added =false;
-
-                    if (p_id == currentPID && hh_id == currentHHID) {
-                        if (lastWasShopping) {
-                            //potential ecommerce trip
-                            if (trip.middle.id != loc_id_start) {
-                                System.out.println("Ohoh! Location id missmatch!");
-                            }
-                            trip.end = new MinimalLocation(loc_id_end, taz_id_end, lon_end, lat_end);
-                            trip.mode[1] = mode;
-                            trip.startTimes[1] = start_time_min;
-                            double dist = this.getCorrectedMatrixVal(trip.middle, trip.end, this.dist);
-                            double time = this.getCorrectedMatrixVal(trip.middle, trip.end, this.tt[mode]);
-                            if (this.isShopping(activity)) {
-                                this.distShopping[mode] += dist;
-                                this.distShopping[7] += dist;
-                                this.timeShopping[mode] += time;
-                                this.timeShopping[7] += time;
-                            }
-
-                            if (trip.end.id == trip.start.id) { //single route
-                                this.numSingleTripShoping[mode]++;
-                                this.numSingleTripShoping[7]++;
-                            } else {
-                                this.numMultiTripShoping[mode]++;
-                                this.numMultiTripShoping[7]++;
-                            }
-
-                            if (this.isECommerceTrip()) {
-                                trip.newMode = Math.max(trip.mode[0],
-                                        trip.mode[1]); //fortunately we have a hierarchy here!
-                                trip.savedDist = this.calcDiffDist(trip);
-                                trip.savedTime = this.calcDiffTT(trip, trip.newMode);
-                                this.eComTrips.add(trip);
-                                MinimalLocation hh = this.ecomHH.get(trip.household.id);
-                                if (hh == null) {
-                                    this.ecomHH.put(trip.household.id, trip.household);
-                                } else {
-                                    hh.cappa++;
-                                }
-                            }
-                        }
-                    } else {
-                        //new person!
-                        currentHHID = hh_id;
-                        currentPID = p_id;
-                        taz_house = taz_id_start;
-                        hh_loc_id = loc_id_start;
-                        lon_hh = lon_start;
-                        lat_hh = lat_start;
-                    }
-                    if (this.isShopping(activity)) {
-                        lastWasShopping = true;
-                        trip = new ECommerceTrip();
-                        trip.hhID = hh_id;
-                        trip.pID = p_id;
-                        trip.household = new MinimalLocation(hh_loc_id, taz_house, lon_hh, lat_hh);
-                        trip.start = new MinimalLocation(loc_id_start, taz_id_start, lon_start, lat_start);
-                        trip.middle = new MinimalLocation(loc_id_end, taz_id_end, lon_end, lat_end);
-                        //if(!added) {
-                        this.numShoping[mode] += 1;
-                        this.numShoping[7] += 1;
-                        double dist = this.getCorrectedMatrixVal(trip.start, trip.middle, this.dist);
-                        double time = this.getCorrectedMatrixVal(trip.start, trip.middle, this.tt[mode]);
-                        this.distShopping[mode] += dist;
-                        this.distShopping[7] += dist;
-                        this.timeShopping[mode] += time;
-                        this.timeShopping[7] += time;
-                        trip.mode[0] = mode;
-                        trip.startTimes[0] = start_time_min;
-
-                        //}
-                    } else {
-                        lastWasShopping = false;
-                        trip = null;
-                    }
-
-
-                }
-                rs.close();
-            }
-            System.out.println();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            int currentHHID = -1, currentPID = -1;
+//            int p_id, hh_id, loc_id_start, taz_id_start, loc_id_end, taz_id_end, mode, activity, taz_house = 0, hh_loc_id = 0, start_time_min;
+//            double lon_start, lat_start, lon_end, lat_end, lon_hh = 0, lat_hh = 0;
+//            ECommerceTrip trip = null;
+//            boolean lastWasShopping = false;
+//            //boolean added;
+//            this.eComTrips.clear();
+//            this.ecomHH.clear();
+//            int maxChunk = 10;
+//            for (int i = 0; i < maxChunk; i++) {
+//                System.out.print(".");
+//                query = "SELECT p_id, hh_id, start_time_min, loc_id_start, taz_id_start, lon_start, lat_start, loc_id_end, taz_id_end, lon_end, lat_end, mode, activity from " +
+//                        table + " where hh_id%" + maxChunk + " = " + i + " order by hh_id, p_id, start_time_min ";
+//                rs = this.dbCon.executeQuery(query, this);
+//                while (rs.next()) {
+//                    p_id = rs.getInt("p_id");
+//                    hh_id = rs.getInt("hh_id");
+//                    start_time_min = rs.getInt("start_time_min");
+//                    loc_id_start = rs.getInt("loc_id_start");
+//                    taz_id_start = rs.getInt("taz_id_start");
+//                    loc_id_end = rs.getInt("loc_id_end");
+//                    taz_id_end = rs.getInt("taz_id_end");
+//                    mode = rs.getInt("mode");
+//                    activity = rs.getInt("activity");
+//                    lon_start = rs.getDouble("lon_start");
+//                    lat_start = rs.getDouble("lat_start");
+//                    lon_end = rs.getDouble("lon_end");
+//                    lat_end = rs.getDouble("lat_end");
+//                    //added =false;
+//
+//                    if (p_id == currentPID && hh_id == currentHHID) {
+//                        if (lastWasShopping) {
+//                            //potential ecommerce trip
+//                            if (trip.middle.id != loc_id_start) {
+//                                System.out.println("Ohoh! Location id missmatch!");
+//                            }
+//                            trip.end = new MinimalLocation(loc_id_end, taz_id_end, lon_end, lat_end);
+//                            trip.mode[1] = mode;
+//                            trip.startTimes[1] = start_time_min;
+//                            double dist = this.getCorrectedMatrixVal(trip.middle, trip.end, this.dist);
+//                            double time = this.getCorrectedMatrixVal(trip.middle, trip.end, this.tt[mode]);
+//                            if (this.isShopping(activity)) {
+//                                this.distShopping[mode] += dist;
+//                                this.distShopping[7] += dist;
+//                                this.timeShopping[mode] += time;
+//                                this.timeShopping[7] += time;
+//                            }
+//
+//                            if (trip.end.id == trip.start.id) { //single route
+//                                this.numSingleTripShoping[mode]++;
+//                                this.numSingleTripShoping[7]++;
+//                            } else {
+//                                this.numMultiTripShoping[mode]++;
+//                                this.numMultiTripShoping[7]++;
+//                            }
+//
+//                            if (this.isECommerceTrip()) {
+//                                trip.newMode = Math.max(trip.mode[0],
+//                                        trip.mode[1]); //fortunately we have a hierarchy here!
+//                                trip.savedDist = this.calcDiffDist(trip);
+//                                trip.savedTime = this.calcDiffTT(trip, trip.newMode);
+//                                this.eComTrips.add(trip);
+//                                MinimalLocation hh = this.ecomHH.get(trip.household.id);
+//                                if (hh == null) {
+//                                    this.ecomHH.put(trip.household.id, trip.household);
+//                                } else {
+//                                    hh.cappa++;
+//                                }
+//                            }
+//                        }
+//                    } else {
+//                        //new person!
+//                        currentHHID = hh_id;
+//                        currentPID = p_id;
+//                        taz_house = taz_id_start;
+//                        hh_loc_id = loc_id_start;
+//                        lon_hh = lon_start;
+//                        lat_hh = lat_start;
+//                    }
+//                    if (this.isShopping(activity)) {
+//                        lastWasShopping = true;
+//                        trip = new ECommerceTrip();
+//                        trip.hhID = hh_id;
+//                        trip.pID = p_id;
+//                        trip.household = new MinimalLocation(hh_loc_id, taz_house, lon_hh, lat_hh);
+//                        trip.start = new MinimalLocation(loc_id_start, taz_id_start, lon_start, lat_start);
+//                        trip.middle = new MinimalLocation(loc_id_end, taz_id_end, lon_end, lat_end);
+//                        //if(!added) {
+//                        this.numShoping[mode] += 1;
+//                        this.numShoping[7] += 1;
+//                        double dist = this.getCorrectedMatrixVal(trip.start, trip.middle, this.dist);
+//                        double time = this.getCorrectedMatrixVal(trip.start, trip.middle, this.tt[mode]);
+//                        this.distShopping[mode] += dist;
+//                        this.distShopping[7] += dist;
+//                        this.timeShopping[mode] += time;
+//                        this.timeShopping[7] += time;
+//                        trip.mode[0] = mode;
+//                        trip.startTimes[0] = start_time_min;
+//
+//                        //}
+//                    } else {
+//                        lastWasShopping = false;
+//                        trip = null;
+//                    }
+//
+//
+//                }
+//                rs.close();
+//            }
+//            System.out.println();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
     }
 
     public double getCorrectedMatrixVal(MinimalLocation start, MinimalLocation end, double[][] matrix) {
         int startTAZIndex = start.getTAZId() - 1;
         int endTAZIndex = end.getTAZId() - 1;
-        double result;
-        if (startTAZIndex != endTAZIndex) {
-            double beelineDistanceLoc = TPS_Geometrics.getDistance(start, end,
-                    this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
-            double factor = beelineDistanceLoc / beeline[startTAZIndex][endTAZIndex];
-            result = matrix[startTAZIndex][endTAZIndex] * factor;
-        } else {
-            result = matrix[startTAZIndex][endTAZIndex];
-        }
+        double result = 0;
+//        if (startTAZIndex != endTAZIndex) {
+//            double beelineDistanceLoc = TPS_Geometrics.getDistance(start, end,
+//                    this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
+//            double factor = beelineDistanceLoc / beeline[startTAZIndex][endTAZIndex];
+//            result = matrix[startTAZIndex][endTAZIndex] * factor;
+//        } else {
+//            result = matrix[startTAZIndex][endTAZIndex];
+//        }
         return result;
     }
 
@@ -354,191 +352,191 @@ public class TPS_ECommerceEstimator extends TPS_BasicConnectionClass {
         String query;
         ResultSet rs;
         double[][] returnVal = new double[0][0];
-        try {
-            query = "SELECT matrix_values from " + table + " where matrix_name = '" + name + "'";
-            rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int[] val = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                returnVal = array1Dto2D(val);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT matrix_values from " + table + " where matrix_name = '" + name + "'";
+//            rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int[] val = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                returnVal = array1Dto2D(val);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
         return returnVal;
     }
 
     public void loadTAZ(String table) {
         String query;
         ResultSet rs;
-        try {
-            query = "SELECT taz_id, st_x(taz_coordinate), st_y(taz_coordinate) from " + table + " order by taz_id";
-            rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                int id = rs.getInt("taz_id");
-                double x = rs.getDouble("st_x");
-                double y = rs.getDouble("st_y");
-                MinimalLocation newTaz = new MinimalLocation(-id, id, x, y);
-                tazes.add(newTaz);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT taz_id, st_x(taz_coordinate), st_y(taz_coordinate) from " + table + " order by taz_id";
+//            rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                int id = rs.getInt("taz_id");
+//                double x = rs.getDouble("st_x");
+//                double y = rs.getDouble("st_y");
+//                MinimalLocation newTaz = new MinimalLocation(-id, id, x, y);
+//                tazes.add(newTaz);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//        }
         this.beeline = new double[tazes.size()][tazes.size()];
-        for (MinimalLocation tazfrom : tazes) {
-            for (MinimalLocation tazto : tazes) {
-                double dist = TPS_Geometrics.getDistance(tazfrom.getCoordinate(), tazto.getCoordinate(),
-                        this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
-                this.beeline[tazfrom.getTAZId() - 1][tazto.getTAZId() - 1] = dist;
-            }
-        }
+//        for (MinimalLocation tazfrom : tazes) {
+//            for (MinimalLocation tazto : tazes) {
+//                double dist = TPS_Geometrics.getDistance(tazfrom.getCoordinate(), tazto.getCoordinate(),
+//                        this.getParameters().getDoubleValue(ParamValue.MIN_DIST));
+//                this.beeline[tazfrom.getTAZId() - 1][tazto.getTAZId() - 1] = dist;
+//            }
+//        }
     }
 
     public void updateEComTripsInDB(String tablename) {
         String queryUpdate = "", queryDelete = "";
-        try {
-
-
-            queryUpdate = "UPDATE " + tablename + " SET loc_id_start =?, taz_id_start =?, lon_start =?, lat_start =?," +
-                    " mode = ? , travel_time_sec =?, distance_real_m = ?, distance_bl_m =? "//, start_time_min =? "
-                    + " WHERE p_id = ? AND hh_id = ? AND start_time_min = ?";
-            queryDelete = "DELETE FROM " + tablename + " WHERE p_id = ? AND hh_id = ? AND start_time_min = ?";
-            PreparedStatement prepStUpdate = this.dbCon.getConnection(this).prepareStatement(queryUpdate);
-            PreparedStatement prepStDelete = this.dbCon.getConnection(this).prepareStatement(queryDelete);
-            int modifycount = 0, maxModify = 10000, pos;
-            for (ECommerceTrip trip : this.eComTrips) {
-                if (trip.start.id == trip.end.id) { //delete both trips!
-                    pos = 1;
-                    prepStDelete.setInt(pos++, trip.pID);
-                    prepStDelete.setInt(pos++, trip.hhID);
-                    prepStDelete.setInt(pos++, trip.startTimes[0]);
-                    prepStDelete.addBatch();
-                    pos = 1;
-                    prepStDelete.setInt(pos++, trip.pID);
-                    prepStDelete.setInt(pos++, trip.hhID);
-                    prepStDelete.setInt(pos++, trip.startTimes[1]);
-                    prepStDelete.addBatch();
-                } else {
-                    //delete the first trip
-                    pos = 1;
-                    prepStDelete.setInt(pos++, trip.pID);
-                    prepStDelete.setInt(pos++, trip.hhID);
-                    prepStDelete.setInt(pos++, trip.startTimes[0]);
-                    prepStDelete.addBatch();
-                    //modify the second trip  to become the first
-                    pos = 1;
-                    prepStUpdate.setInt(pos++, trip.start.id);
-                    prepStUpdate.setInt(pos++, trip.start.tazID);
-                    prepStUpdate.setDouble(pos++, trip.start.getCoordinate().getValue(0));
-                    prepStUpdate.setDouble(pos++, trip.start.getCoordinate().getValue(1));
-                    prepStUpdate.setInt(pos++, trip.newMode);
-                    prepStUpdate.setDouble(pos++,
-                            this.getCorrectedMatrixVal(trip.start, trip.end, this.tt[trip.newMode])); //travel time sec
-                    prepStUpdate.setDouble(pos++,
-                            this.getCorrectedMatrixVal(trip.start, trip.end, this.dist)); //dist real
-                    prepStUpdate.setDouble(pos++, TPS_Geometrics.getDistance(trip.start, trip.end,
-                            this.getParameters().getDoubleValue(ParamValue.MIN_DIST))); //dist bl
-                    //prepStUpdate.setInt(pos++, trip.startTimes[0]); // new start time!
-                    prepStUpdate.setInt(pos++, trip.pID);
-                    prepStUpdate.setInt(pos++, trip.hhID);
-                    prepStUpdate.setInt(pos++, trip.startTimes[1]);
-                    prepStUpdate.addBatch();
-                }
-
-                //make the commit-size smaller
-                modifycount++;
-                if (modifycount >= maxModify) {
-                    modifycount = 0;
-                    System.out.print(".");
-                    prepStDelete
-                            .executeBatch(); //delete first: Otherwise we might have double entries for the start_time_min
-                    prepStUpdate.executeBatch();
-                }
-            }
-            System.out.println(".");
-            prepStDelete.executeBatch();  //delete first: Otherwise we might have double entries for the start_time_min
-            prepStUpdate.executeBatch();
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + queryUpdate);
-            System.err.println("Error in sqlstatement: " + queryDelete);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//
+//
+//            queryUpdate = "UPDATE " + tablename + " SET loc_id_start =?, taz_id_start =?, lon_start =?, lat_start =?," +
+//                    " mode = ? , travel_time_sec =?, distance_real_m = ?, distance_bl_m =? "//, start_time_min =? "
+//                    + " WHERE p_id = ? AND hh_id = ? AND start_time_min = ?";
+//            queryDelete = "DELETE FROM " + tablename + " WHERE p_id = ? AND hh_id = ? AND start_time_min = ?";
+//            PreparedStatement prepStUpdate = this.dbCon.getConnection(this).prepareStatement(queryUpdate);
+//            PreparedStatement prepStDelete = this.dbCon.getConnection(this).prepareStatement(queryDelete);
+//            int modifycount = 0, maxModify = 10000, pos;
+//            for (ECommerceTrip trip : this.eComTrips) {
+//                if (trip.start.id == trip.end.id) { //delete both trips!
+//                    pos = 1;
+//                    prepStDelete.setInt(pos++, trip.pID);
+//                    prepStDelete.setInt(pos++, trip.hhID);
+//                    prepStDelete.setInt(pos++, trip.startTimes[0]);
+//                    prepStDelete.addBatch();
+//                    pos = 1;
+//                    prepStDelete.setInt(pos++, trip.pID);
+//                    prepStDelete.setInt(pos++, trip.hhID);
+//                    prepStDelete.setInt(pos++, trip.startTimes[1]);
+//                    prepStDelete.addBatch();
+//                } else {
+//                    //delete the first trip
+//                    pos = 1;
+//                    prepStDelete.setInt(pos++, trip.pID);
+//                    prepStDelete.setInt(pos++, trip.hhID);
+//                    prepStDelete.setInt(pos++, trip.startTimes[0]);
+//                    prepStDelete.addBatch();
+//                    //modify the second trip  to become the first
+//                    pos = 1;
+//                    prepStUpdate.setInt(pos++, trip.start.id);
+//                    prepStUpdate.setInt(pos++, trip.start.tazID);
+//                    prepStUpdate.setDouble(pos++, trip.start.getCoordinate().getValue(0));
+//                    prepStUpdate.setDouble(pos++, trip.start.getCoordinate().getValue(1));
+//                    prepStUpdate.setInt(pos++, trip.newMode);
+//                    prepStUpdate.setDouble(pos++,
+//                            this.getCorrectedMatrixVal(trip.start, trip.end, this.tt[trip.newMode])); //travel time sec
+//                    prepStUpdate.setDouble(pos++,
+//                            this.getCorrectedMatrixVal(trip.start, trip.end, this.dist)); //dist real
+//                    prepStUpdate.setDouble(pos++, TPS_Geometrics.getDistance(trip.start, trip.end,
+//                            this.getParameters().getDoubleValue(ParamValue.MIN_DIST))); //dist bl
+//                    //prepStUpdate.setInt(pos++, trip.startTimes[0]); // new start time!
+//                    prepStUpdate.setInt(pos++, trip.pID);
+//                    prepStUpdate.setInt(pos++, trip.hhID);
+//                    prepStUpdate.setInt(pos++, trip.startTimes[1]);
+//                    prepStUpdate.addBatch();
+//                }
+//
+//                //make the commit-size smaller
+//                modifycount++;
+//                if (modifycount >= maxModify) {
+//                    modifycount = 0;
+//                    System.out.print(".");
+//                    prepStDelete
+//                            .executeBatch(); //delete first: Otherwise we might have double entries for the start_time_min
+//                    prepStUpdate.executeBatch();
+//                }
+//            }
+//            System.out.println(".");
+//            prepStDelete.executeBatch();  //delete first: Otherwise we might have double entries for the start_time_min
+//            prepStUpdate.executeBatch();
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + queryUpdate);
+//            System.err.println("Error in sqlstatement: " + queryDelete);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
     }
 
     public void writeEComHouseholds(String filename) {
-        try {
-            FileWriter writer = new FileWriter(filename);
-            writer.append("hh_id\ttaz\t\tbzrnum\tlon\tlat\n");
-            //iterate over households
-            for (MinimalLocation hh : this.ecomHH.values()) {
-                writer.append(
-                        hh.id + "\t" + hh.tazID + "\t" + hh.bzrID + "\t" + hh.cappa + "\t" + hh.loc.getValue(0) + "\t" +
-                                hh.loc.getValue(1) + "\n");
-            }
-
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            FileWriter writer = new FileWriter(filename);
+//            writer.append("hh_id\ttaz\t\tbzrnum\tlon\tlat\n");
+//            //iterate over households
+//            for (MinimalLocation hh : this.ecomHH.values()) {
+//                writer.append(
+//                        hh.id + "\t" + hh.tazID + "\t" + hh.bzrID + "\t" + hh.cappa + "\t" + hh.loc.getValue(0) + "\t" +
+//                                hh.loc.getValue(1) + "\n");
+//            }
+//
+//            writer.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public void writeEComTripsToDB(String tablename) {
         String query = "";
-        try {
-
-            query = "DROP TABLE IF EXISTS " + tablename;
-            this.dbCon.execute(query, this);
-            String tableWithoutSchema = tablename.substring(tablename.indexOf(".") + 1);
-            query = "CREATE TABLE " + tablename + " (" + "  gid serial NOT NULL," + "  hh_id integer," +
-                    "  taz integer," + "  bzr integer," + "  mode integer," + "  dist_m double precision," +
-                    "  time_s double precision," + "  lon double precision," + "  lat double precision," +
-                    "  CONSTRAINT " + tableWithoutSchema + "_pkey PRIMARY KEY (gid)" + ")" + "WITH (" + "  OIDS=FALSE" +
-                    ");";
-            this.dbCon.execute(query, this);
-
-            query = "INSERT INTO " + tablename + " (" + "            hh_id, taz, bzr, mode, dist_m, time_s, lon, lat)" +
-                    "    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement prepSt = this.dbCon.getConnection(this).prepareStatement(query);
-            int pos;
-            for (ECommerceTrip trip : this.eComTrips) {
-                pos = 1;
-                prepSt.setInt(pos++, trip.household.id);
-                prepSt.setInt(pos++, trip.household.tazID);
-                prepSt.setInt(pos++, trip.household.bzrID);
-                prepSt.setInt(pos++, trip.newMode);
-                prepSt.setDouble(pos++, trip.savedDist);
-                prepSt.setDouble(pos++, trip.savedTime);
-                prepSt.setDouble(pos++, trip.household.loc.getValue(0));
-                prepSt.setDouble(pos++, trip.household.loc.getValue(1));
-                prepSt.addBatch();
-            }
-            prepSt.executeBatch();
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//
+//            query = "DROP TABLE IF EXISTS " + tablename;
+//            this.dbCon.execute(query, this);
+//            String tableWithoutSchema = tablename.substring(tablename.indexOf(".") + 1);
+//            query = "CREATE TABLE " + tablename + " (" + "  gid serial NOT NULL," + "  hh_id integer," +
+//                    "  taz integer," + "  bzr integer," + "  mode integer," + "  dist_m double precision," +
+//                    "  time_s double precision," + "  lon double precision," + "  lat double precision," +
+//                    "  CONSTRAINT " + tableWithoutSchema + "_pkey PRIMARY KEY (gid)" + ")" + "WITH (" + "  OIDS=FALSE" +
+//                    ");";
+//            this.dbCon.execute(query, this);
+//
+//            query = "INSERT INTO " + tablename + " (" + "            hh_id, taz, bzr, mode, dist_m, time_s, lon, lat)" +
+//                    "    VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+//            PreparedStatement prepSt = this.dbCon.getConnection(this).prepareStatement(query);
+//            int pos;
+//            for (ECommerceTrip trip : this.eComTrips) {
+//                pos = 1;
+//                prepSt.setInt(pos++, trip.household.id);
+//                prepSt.setInt(pos++, trip.household.tazID);
+//                prepSt.setInt(pos++, trip.household.bzrID);
+//                prepSt.setInt(pos++, trip.newMode);
+//                prepSt.setDouble(pos++, trip.savedDist);
+//                prepSt.setDouble(pos++, trip.savedTime);
+//                prepSt.setDouble(pos++, trip.household.loc.getValue(0));
+//                prepSt.setDouble(pos++, trip.household.loc.getValue(1));
+//                prepSt.addBatch();
+//            }
+//            prepSt.executeBatch();
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
     }
 
     public void writeEComTripsToFile(String filename) {
-        try {
-            FileWriter writer = new FileWriter(filename);
-            writer.append("hh_id\ttaz\tbzr\tmode\tdist\ttime\tlon\tlat\n");
-            //iterate over households
-            for (ECommerceTrip trip : this.eComTrips) {
-                writer.append(trip.household.id + "\t" + trip.household.tazID + "\t" + trip.household.bzrID + "\t" +
-                        trip.newMode + "\t" + trip.savedDist + "\t" + trip.savedTime + "\t" +
-                        trip.household.loc.getValue(0) + "\t" + trip.household.loc.getValue(1) + "\n");
-            }
-
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            FileWriter writer = new FileWriter(filename);
+//            writer.append("hh_id\ttaz\tbzr\tmode\tdist\ttime\tlon\tlat\n");
+//            //iterate over households
+//            for (ECommerceTrip trip : this.eComTrips) {
+//                writer.append(trip.household.id + "\t" + trip.household.tazID + "\t" + trip.household.bzrID + "\t" +
+//                        trip.newMode + "\t" + trip.savedDist + "\t" + trip.savedTime + "\t" +
+//                        trip.household.loc.getValue(0) + "\t" + trip.household.loc.getValue(1) + "\n");
+//            }
+//
+//            writer.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     class MinimalLocation implements Locatable {

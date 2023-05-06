@@ -8,9 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-
 import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -25,7 +22,7 @@ import java.util.Map.Entry;
  *
  * @author hein_mh
  */
-public class TPS_CarRedistributor extends TPS_BasicConnectionClass {
+public class TPS_CarRedistributor  {
 
     Map<Integer, Boolean> carRestriction = new HashMap<>();
     Map<Integer, Boolean> tazRestriction = new HashMap<>();
@@ -92,17 +89,17 @@ public class TPS_CarRedistributor extends TPS_BasicConnectionClass {
     public void loadCarMap(String table, String key) {
         String query = "";
 
-        try {
-            query = "select car_id, restriction from " + table + " where car_key='" + key + "'";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                this.carRestriction.put(rs.getInt("car_id"), rs.getBoolean("restriction"));
-                this.carIDFrequency.put(rs.getInt("car_id"), 0);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select car_id, restriction from " + table + " where car_key='" + key + "'";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                this.carRestriction.put(rs.getInt("car_id"), rs.getBoolean("restriction"));
+//                this.carIDFrequency.put(rs.getInt("car_id"), 0);
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void loadHouseHolds(String table, String key) {
@@ -110,65 +107,65 @@ public class TPS_CarRedistributor extends TPS_BasicConnectionClass {
         int numOfBadCars = 0;
         int numOfGoodCars = 0;
         boolean addHH;
-        try {
-            query = "select hh_id, hh_taz_id, hh_car_ids from " + table + " where hh_key='" + key + "' and hh_cars>0";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                HouseHoldWithCars hh = new HouseHoldWithCars();
-                hh.id = rs.getInt("hh_id");
-                //grrrr! int to Integer conversion does not work nicely!
-                int[] tmp = TPS_DB_IO.extractIntArray(rs, "hh_car_ids");
-                hh.carIDs = new Integer[tmp.length];
-                for (int i = 0; i < tmp.length; ++i) {
-                    hh.carIDs[i] = tmp[i];
-                    this.carIDFrequency.put(tmp[i], this.carIDFrequency.get(tmp[i]) + 1);
-                }
-                addHH = false;
-                if (this.tazRestriction.get(rs.getInt("hh_taz_id"))) {
-                    //check if the household has restricted cars;
-                    for (int i : hh.carIDs) {
-                        if (this.carRestriction.get(i)) { //restricted car in restricted area -> bad!
-                            addHH = true;
-                            numOfBadCars++;
-                        }
-                    }
-                    if (addHH) {
-                        this.householdsWithBadCars.add(hh);
-                    }
-                } else {
-                    //check if the household has unrestricted cars
-                    for (int i : hh.carIDs) {
-                        if (!this.carRestriction.get(i)) { //unrestricted car in unrestricted area -> good!
-                            addHH = true;
-                            numOfGoodCars++;
-                        }
-                    }
-                    if (addHH) {
-                        this.householdsWithGoodCars.add(hh);
-                    }
-                }
-            }
-            System.out.println("Bad cars:  " + numOfBadCars);
-            System.out.println("Good cars: " + numOfGoodCars);
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select hh_id, hh_taz_id, hh_car_ids from " + table + " where hh_key='" + key + "' and hh_cars>0";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                HouseHoldWithCars hh = new HouseHoldWithCars();
+//                hh.id = rs.getInt("hh_id");
+//                //grrrr! int to Integer conversion does not work nicely!
+//                int[] tmp = TPS_DB_IO.extractIntArray(rs, "hh_car_ids");
+//                hh.carIDs = new Integer[tmp.length];
+//                for (int i = 0; i < tmp.length; ++i) {
+//                    hh.carIDs[i] = tmp[i];
+//                    this.carIDFrequency.put(tmp[i], this.carIDFrequency.get(tmp[i]) + 1);
+//                }
+//                addHH = false;
+//                if (this.tazRestriction.get(rs.getInt("hh_taz_id"))) {
+//                    //check if the household has restricted cars;
+//                    for (int i : hh.carIDs) {
+//                        if (this.carRestriction.get(i)) { //restricted car in restricted area -> bad!
+//                            addHH = true;
+//                            numOfBadCars++;
+//                        }
+//                    }
+//                    if (addHH) {
+//                        this.householdsWithBadCars.add(hh);
+//                    }
+//                } else {
+//                    //check if the household has unrestricted cars
+//                    for (int i : hh.carIDs) {
+//                        if (!this.carRestriction.get(i)) { //unrestricted car in unrestricted area -> good!
+//                            addHH = true;
+//                            numOfGoodCars++;
+//                        }
+//                    }
+//                    if (addHH) {
+//                        this.householdsWithGoodCars.add(hh);
+//                    }
+//                }
+//            }
+//            System.out.println("Bad cars:  " + numOfBadCars);
+//            System.out.println("Good cars: " + numOfGoodCars);
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void loadTazMap(String table, String name) {
         String query = "";
 
-        try {
-            query = "select ft_taz_id, is_restricted from " + table + " where ft_name='" + name + "'";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                this.tazRestriction.put(rs.getInt("ft_taz_id"), rs.getBoolean("is_restricted"));
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select ft_taz_id, is_restricted from " + table + " where ft_name='" + name + "'";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                this.tazRestriction.put(rs.getInt("ft_taz_id"), rs.getBoolean("is_restricted"));
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void printStatistics() {
@@ -182,34 +179,34 @@ public class TPS_CarRedistributor extends TPS_BasicConnectionClass {
         String query = "";
         //Map<Integer, Integer> values = new HashMap<>();
         //int sum =0;
-        try {
-            query = "select hh_id, hh_taz_id, hh_car_ids from " + table + " where hh_key='" + key + "' and hh_cars>0";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                HouseHoldWithCars hh = new HouseHoldWithCars();
-                hh.id = rs.getInt("hh_id");
-                //grrrr! int to Integer conversion does not work nicely!
-                int[] tmp = TPS_DB_IO.extractIntArray(rs, "hh_car_ids");
-                hh.carIDs = new Integer[tmp.length];
-                for (int i = 0; i < hh.carIDs.length; ++i) {
-                    switch (tmp[i]) {
-                        case 1:
-                            hh.carIDs[i] = 2;
-                            break;
-                        case 4:
-                            hh.carIDs[i] = 5;
-                            break;
-                        case 13:
-                            hh.carIDs[i] = 8;
-                            break;
-                    }
-                }
-                this.householdsToUpdate.add(hh);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select hh_id, hh_taz_id, hh_car_ids from " + table + " where hh_key='" + key + "' and hh_cars>0";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                HouseHoldWithCars hh = new HouseHoldWithCars();
+//                hh.id = rs.getInt("hh_id");
+//                //grrrr! int to Integer conversion does not work nicely!
+//                int[] tmp = TPS_DB_IO.extractIntArray(rs, "hh_car_ids");
+//                hh.carIDs = new Integer[tmp.length];
+//                for (int i = 0; i < hh.carIDs.length; ++i) {
+//                    switch (tmp[i]) {
+//                        case 1:
+//                            hh.carIDs[i] = 2;
+//                            break;
+//                        case 4:
+//                            hh.carIDs[i] = 5;
+//                            break;
+//                        case 13:
+//                            hh.carIDs[i] = 8;
+//                            break;
+//                    }
+//                }
+//                this.householdsToUpdate.add(hh);
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
         System.out.println("Households to update: " + this.householdsToUpdate.size());
     }
 
@@ -263,34 +260,34 @@ public class TPS_CarRedistributor extends TPS_BasicConnectionClass {
             values.put(car.id, 0);
         }
         int sum = 0;
-        try {
-            query = "select hh_id, hh_taz_id, hh_car_ids from " + table + " where hh_key='" + key + "' and hh_cars>0";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                HouseHoldWithCars hh = new HouseHoldWithCars();
-                hh.id = rs.getInt("hh_id");
-                //grrrr! int to Integer conversion does not work nicely!
-                int[] tmp = TPS_DB_IO.extractIntArray(rs, "hh_car_ids");
-                hh.carIDs = new Integer[tmp.length];
-                for (int i = 0; i < tmp.length; ++i) {
-                    double random = Math.random();
-                    int id = tmp[i];
-                    for (CarProbabaility car : probs) {
-                        if (car.prob > random) {
-                            id = car.id;
-                            values.put(car.id, values.get(car.id) + 1);
-                            sum++;
-                            break;
-                        }
-                    }
-                    hh.carIDs[i] = id;
-                }
-                this.householdsToUpdate.add(hh);
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select hh_id, hh_taz_id, hh_car_ids from " + table + " where hh_key='" + key + "' and hh_cars>0";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                HouseHoldWithCars hh = new HouseHoldWithCars();
+//                hh.id = rs.getInt("hh_id");
+//                //grrrr! int to Integer conversion does not work nicely!
+//                int[] tmp = TPS_DB_IO.extractIntArray(rs, "hh_car_ids");
+//                hh.carIDs = new Integer[tmp.length];
+//                for (int i = 0; i < tmp.length; ++i) {
+//                    double random = Math.random();
+//                    int id = tmp[i];
+//                    for (CarProbabaility car : probs) {
+//                        if (car.prob > random) {
+//                            id = car.id;
+//                            values.put(car.id, values.get(car.id) + 1);
+//                            sum++;
+//                            break;
+//                        }
+//                    }
+//                    hh.carIDs[i] = id;
+//                }
+//                this.householdsToUpdate.add(hh);
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
         for (CarProbabaility car : probs) {
             System.out.println(
                     "Car id:" + car.id + " given prob:" + car.prob + " given freq:" + car.freqency + " drawn: " +
@@ -349,34 +346,34 @@ public class TPS_CarRedistributor extends TPS_BasicConnectionClass {
 
     public void updateHouseHolds(String table, String key) {
         String query = "";
-        try {
-            query = "UPDATE " + table + " set hh_car_ids =? where hh_key='" + key + "' and hh_id=?";
-
-            PreparedStatement pSt = this.dbCon.getConnection(this).prepareStatement(query);
-            int chunk = 0, chunksize = 10000;
-            for (HouseHoldWithCars updateHH : this.householdsToUpdate) {
-                Array sqlArray = this.dbCon.getConnection(this).createArrayOf("integer", updateHH.carIDs);
-                pSt.setArray(1, sqlArray);
-                pSt.setInt(2, updateHH.id);
-                pSt.addBatch();
-                chunk++;
-                if (chunk == chunksize) { //commit chunk
-                    pSt.executeBatch();
-                    chunk = 0;
-                }
-            }
-            pSt.executeBatch(); //commit remainers
-            //clean up
-            this.householdsToUpdate.clear();
-            this.householdsWithBadCars.clear();
-            this.householdsWithGoodCars.clear();
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            if (e.getNextException() != null) {
-                e.getNextException().printStackTrace();
-            }
-            e.printStackTrace();
-        }
+//        try {
+//            query = "UPDATE " + table + " set hh_car_ids =? where hh_key='" + key + "' and hh_id=?";
+//
+//            PreparedStatement pSt = this.dbCon.getConnection(this).prepareStatement(query);
+//            int chunk = 0, chunksize = 10000;
+//            for (HouseHoldWithCars updateHH : this.householdsToUpdate) {
+//                Array sqlArray = this.dbCon.getConnection(this).createArrayOf("integer", updateHH.carIDs);
+//                pSt.setArray(1, sqlArray);
+//                pSt.setInt(2, updateHH.id);
+//                pSt.addBatch();
+//                chunk++;
+//                if (chunk == chunksize) { //commit chunk
+//                    pSt.executeBatch();
+//                    chunk = 0;
+//                }
+//            }
+//            pSt.executeBatch(); //commit remainers
+//            //clean up
+//            this.householdsToUpdate.clear();
+//            this.householdsWithBadCars.clear();
+//            this.householdsWithGoodCars.clear();
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            if (e.getNextException() != null) {
+//                e.getNextException().printStackTrace();
+//            }
+//            e.printStackTrace();
+//        }
     }
 
     class HouseHoldWithCars {

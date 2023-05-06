@@ -8,15 +8,13 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 
-public class TPS_FeederCellManipulator extends TPS_BasicConnectionClass {
+public class TPS_FeederCellManipulator {
 	double[][] busShare;
 	double[][] ptTT;
 	
@@ -32,22 +30,22 @@ public class TPS_FeederCellManipulator extends TPS_BasicConnectionClass {
 	private Matrix readMatrix( String matrixName, String tableName) {
 		Matrix m = null;
 		String query= "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
-		try{
-			ResultSet rs = this.dbCon.executeQuery(query,this);
-			if (rs.next()) {
-				int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-				int len = (int) Math.sqrt(iArray.length);
-				m = new Matrix(len, len);
-				for (int index = 0; index < iArray.length; index++) {
-					m.setRawValue(index, iArray[index]);
-				}			
-			}
-			rs.close();
-		} catch(SQLException e){
-			System.err.println("Error during sql-statement: "+query);
-			e.printStackTrace();
-			e.getNextException().printStackTrace();
-		}
+//		try{
+//			ResultSet rs = this.dbCon.executeQuery(query,this);
+//			if (rs.next()) {
+//				int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//				int len = (int) Math.sqrt(iArray.length);
+//				m = new Matrix(len, len);
+//				for (int index = 0; index < iArray.length; index++) {
+//					m.setRawValue(index, iArray[index]);
+//				}
+//			}
+//			rs.close();
+//		} catch(SQLException e){
+//			System.err.println("Error during sql-statement: "+query);
+//			e.printStackTrace();
+//			e.getNextException().printStackTrace();
+//		}
 		return m;
 	}
 	
@@ -76,7 +74,7 @@ public class TPS_FeederCellManipulator extends TPS_BasicConnectionClass {
 		//store into DB
 		//delete old entry
 		String query = "DELETE FROM "+tableName+" WHERE matrix_name='"+entriesName+"'";
-		this.dbCon.execute(query,this);
+//		this.dbCon.execute(query,this);
 
 		StringBuilder entriesBuffer = new StringBuilder();
 
@@ -92,7 +90,7 @@ public class TPS_FeederCellManipulator extends TPS_BasicConnectionClass {
 			}
 		}
 		query = "INSERT INTO "+tableName+" VALUES('"+entriesName+"', '{"+entriesBuffer.toString()+"}' )";
-		this.dbCon.execute(query,this);
+//		this.dbCon.execute(query,this);
 	}
 	
 	

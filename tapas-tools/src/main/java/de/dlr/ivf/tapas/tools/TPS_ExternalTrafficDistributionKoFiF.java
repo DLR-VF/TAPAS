@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,7 +11,7 @@ import java.util.*;
 /*this class is very similar to TPS_ExternalTrafficDistribution
 
  */
-public class TPS_ExternalTrafficDistributionKoFiF  extends TPS_BasicConnectionClass {
+public class TPS_ExternalTrafficDistributionKoFiF{
 
     enum TrafficType{INBOUND,OUTBOUND,INTERNAL,DRIVETHROUGH, UNKNOWN};
 
@@ -750,83 +750,83 @@ public class TPS_ExternalTrafficDistributionKoFiF  extends TPS_BasicConnectionCl
         double volume;
         String query ="";
         int totalVolume = 0;
-        try {
-            query = "SELECT demo_from, demo_to, volume as volume FROM "+tableName+" where demo_vehicle = '"+trafficTypeFilter+"';";
-            rs = this.dbCon.executeQuery(query, this);
-            while(rs.next()){
-
-                //get from
-                fromTVZ = rs.getString("demo_from");
-                //get to
-                toTVZ = rs.getString("demo_to");
-                //				if(toTVZ==23565)
-                //					System.out.println("Hit berlin!");
-                //get volume
-                volume = rs.getDouble("volume");
-                totalVolume += volume;
-
-
-                //see if we found a TAPAS-mapping
-                if (!external2TapasLoc.containsKey(fromTVZ) && !fromTVZ.startsWith("w")) {
-                    System.err.println("Cannot find mapping for inbound  taz: "+fromTVZ);
-                    continue;
-                }
-                if (!external2TapasLoc.containsKey(toTVZ) && !toTVZ.startsWith("w")) {
-                    System.err.println("Cannot find mapping for outbound taz: "+toTVZ);
-                    continue;
-                }
-
-
-                key = fromTVZ + "-" + toTVZ;
-                //find existing relation and add the volume if found!
-                pair = this.ODPairs.get(key);
-                if (pair != null) {
-                    pair.volume += volume;
-                } else {
-                    //add the new relation!
-                    pair = new ODPair();
-                    pair.idOrigin = fromTVZ;
-                    pair.idDestination = toTVZ;
-                    pair.volume = volume;
-                    if(fromTVZ.startsWith("w") && !toTVZ.startsWith("w")){
-                        pair.type = TrafficType.INBOUND;
-                    }
-                    else if (!fromTVZ.startsWith("w") && toTVZ.startsWith("w")){
-                        pair.type = TrafficType.OUTBOUND;
-                    }
-                    else if(!fromTVZ.startsWith("w") && !toTVZ.startsWith("w")){
-                        pair.type = TrafficType.INTERNAL;
-                    }
-                    else{
-                        pair.type = TrafficType.DRIVETHROUGH;
-                    }
-
-                    this.ODPairs.put(key, pair);
-                    numRelations++;
-                }
-
-                switch(pair.type){
-                    case INBOUND:
-                        inboundVol += volume;
-                        break;
-                    case OUTBOUND:
-                        outboundVol += volume;
-                        break;
-                    case INTERNAL:
-                        internalVol += volume;
-                        break;
-                    case DRIVETHROUGH:
-                        driveThrougVolume += volume;
-                        break;
-
-                }
-            }
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT demo_from, demo_to, volume as volume FROM "+tableName+" where demo_vehicle = '"+trafficTypeFilter+"';";
+//            rs = this.dbCon.executeQuery(query, this);
+//            while(rs.next()){
+//
+//                //get from
+//                fromTVZ = rs.getString("demo_from");
+//                //get to
+//                toTVZ = rs.getString("demo_to");
+//                //				if(toTVZ==23565)
+//                //					System.out.println("Hit berlin!");
+//                //get volume
+//                volume = rs.getDouble("volume");
+//                totalVolume += volume;
+//
+//
+//                //see if we found a TAPAS-mapping
+//                if (!external2TapasLoc.containsKey(fromTVZ) && !fromTVZ.startsWith("w")) {
+//                    System.err.println("Cannot find mapping for inbound  taz: "+fromTVZ);
+//                    continue;
+//                }
+//                if (!external2TapasLoc.containsKey(toTVZ) && !toTVZ.startsWith("w")) {
+//                    System.err.println("Cannot find mapping for outbound taz: "+toTVZ);
+//                    continue;
+//                }
+//
+//
+//                key = fromTVZ + "-" + toTVZ;
+//                //find existing relation and add the volume if found!
+//                pair = this.ODPairs.get(key);
+//                if (pair != null) {
+//                    pair.volume += volume;
+//                } else {
+//                    //add the new relation!
+//                    pair = new ODPair();
+//                    pair.idOrigin = fromTVZ;
+//                    pair.idDestination = toTVZ;
+//                    pair.volume = volume;
+//                    if(fromTVZ.startsWith("w") && !toTVZ.startsWith("w")){
+//                        pair.type = TrafficType.INBOUND;
+//                    }
+//                    else if (!fromTVZ.startsWith("w") && toTVZ.startsWith("w")){
+//                        pair.type = TrafficType.OUTBOUND;
+//                    }
+//                    else if(!fromTVZ.startsWith("w") && !toTVZ.startsWith("w")){
+//                        pair.type = TrafficType.INTERNAL;
+//                    }
+//                    else{
+//                        pair.type = TrafficType.DRIVETHROUGH;
+//                    }
+//
+//                    this.ODPairs.put(key, pair);
+//                    numRelations++;
+//                }
+//
+//                switch(pair.type){
+//                    case INBOUND:
+//                        inboundVol += volume;
+//                        break;
+//                    case OUTBOUND:
+//                        outboundVol += volume;
+//                        break;
+//                    case INTERNAL:
+//                        internalVol += volume;
+//                        break;
+//                    case DRIVETHROUGH:
+//                        driveThrougVolume += volume;
+//                        break;
+//
+//                }
+//            }
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
 
         System.out.println("Relations: "+numRelations );
         System.out.println("Total volume: "+totalVolume );
@@ -839,248 +839,248 @@ public class TPS_ExternalTrafficDistributionKoFiF  extends TPS_BasicConnectionCl
 
     public void loadCordonDistrictsKoFIF(String trafficTableName, String dmod, String sumoCoordinates, String region, String loc_key, int loc_code) {
         String query = "";
-        try {
-            int id, taz, cappa;
-            double sLon, sLat;
-            ResultSet rs;
-            String cellName;
-            String zonename1 = "vbz_6561", zonename2 = "vbz_412";
-            Set<String > cordons = new TreeSet<>();
-
-            //first load the cells from the external traffic
-            query = "SELECT demo_from as id, st_x(st_transform(from_coord,4326)) as x,st_y(st_transform(from_coord,4326)) as y FROM "+trafficTableName+" group by demo_from,x,y";
-            rs = this.dbCon.executeQuery(query, this);
-            while(rs.next()){
-                ExternalCell tmp = new ExternalCell();
-                tmp.id = rs.getString("id");
-                if(tmp.id.startsWith("w"))
-                    cordons.add(tmp.id);
-                tmp.x[0] = rs.getDouble("x");
-                tmp.y[0] = rs.getDouble("y");
-                tmp.x[1] = rs.getDouble("x");
-                tmp.y[1] = rs.getDouble("y");
-                this.externalLoc.put(tmp.id,tmp);
-            }
-            rs.close();
-
-            //just in case we are not symmetric
-            query = "SELECT demo_to as id, st_x(st_transform(to_coord,4326)) as x,st_y(st_transform(to_coord,4326)) as y FROM "+trafficTableName+" group by demo_to,x,y";
-            rs = this.dbCon.executeQuery(query, this);
-
-            while(rs.next()){
-
-                ExternalCell tmp = new ExternalCell();
-                tmp.id = rs.getString("id");
-                if(tmp.id.startsWith("w"))
-                    cordons.add(tmp.id);
-                tmp.x[0] = rs.getDouble("x");
-                tmp.y[0] = rs.getDouble("y");
-                tmp.x[1] = rs.getDouble("x");
-                tmp.y[1] = rs.getDouble("y");
-                this.externalLoc.put(tmp.id,tmp);
-            }
-            rs.close();
-            System.out.println("found " + this.externalLoc.size() + " origin entires and "+cordons.size()+" cordons");
-
-            //load the sumo coordinates for the cordon cells
-            query = "SELECT full_id, lon_out,lat_out, lon_in, lat_in FROM "+sumoCoordinates;
-            rs = this.dbCon.executeQuery(query, this);
-            int count=0;
-            Set<String > cordonsCorrected = new TreeSet<>();
-            while(rs.next()){
-
-                //get the ID, which might end with an "-0" or "-1"
-
-                String sumoID = rs.getString("full_id");
-
-                if (cordons.contains(sumoID)) {
-                    cordonsCorrected.add(sumoID);
-                    count++;
-                    ExternalCell tmp = this.externalLoc.get(sumoID);
-
-                    tmp.x[0] = rs.getDouble("lon_in");
-                    tmp.y[0] = rs.getDouble("lat_in");
-                    tmp.x[1] = rs.getDouble("lon_out");
-                    tmp.y[1] = rs.getDouble("lat_out");
-                }
-                if(cordons.contains(sumoID+"-0")){
-                    cordonsCorrected.add(sumoID+"-0");
-                    count++;
-                    ExternalCell tmp = this.externalLoc.get(sumoID+"-0");
-
-                    tmp.x[0] = rs.getDouble("lon_in");
-                    tmp.y[0] = rs.getDouble("lat_in");
-                    tmp.x[1] = rs.getDouble("lon_out");
-                    tmp.y[1] = rs.getDouble("lat_out");;
-                }
-                if(cordons.contains(sumoID+"-1")){
-                    count++;
-                    cordonsCorrected.add(sumoID+"-1");
-                    ExternalCell tmp = this.externalLoc.get(sumoID+"-1");
-
-                    tmp.x[0] = rs.getDouble("lon_in");
-                    tmp.y[0] = rs.getDouble("lat_in");
-                    tmp.x[1] = rs.getDouble("lon_out");
-                    tmp.y[1] = rs.getDouble("lat_out");;
-                }
-            }
-            rs.close();
-
-            System.out.println("Updated  " + count + " cordon coordinates Unique: "+cordonsCorrected.size());
-            System.out.println(cordons.toString());
-            System.out.println(cordonsCorrected.toString());
-            //load the external mapping
-            query = "with cells as (" +
-                    "SELECT demo_from FROM "+trafficTableName+" where not demo_from like 'w%' group by demo_from)," +
-                    "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
-                    "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom from "+dmod+" zdm where zdm.bland =3)," +
-                    "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" from locations join zones on st_within(loc_coordinate, zone_geom))" +
-                    "select demo_from, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +" from cells join locations2Zones on (cells.demo_from)::integer = " + zonename1 +";";
-            rs = this.dbCon.executeQuery(query, this);
-            count=0;
-            while (rs.next()) {
-                   cellName = rs.getString("demo_from") ;
-                   LocationOption tmp = new LocationOption();
-                   tmp.x = rs.getDouble("x");
-                   tmp.y = rs.getDouble("y");
-                   tmp.id = Integer.toString(rs.getInt("loc_id"));
-                   tmp.cappa = rs.getInt("loc_capacity");
-                   tmp.taz = rs.getInt("loc_taz_id");
-                   List<LocationOption> locs = this.external2TapasLoc.get(cellName);
-                   if(locs == null){
-                       locs = new ArrayList<>();
-                   }
-                   locs.add(tmp);
-                   count++;
-                   this.external2TapasLoc.put(cellName,locs);
-                   this.internalLocs.put(tmp.id,tmp);
-            }
-            rs.close();
-
-            //load the external mapping for the "greater cells"
-            query = "with cells as (" +
-                    "SELECT demo_from FROM "+trafficTableName+" where not demo_from like 'w%' group by demo_from)," +
-                    "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
-                    "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom from "+dmod+" zdm where zdm.bland =3)," +
-                    "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" from locations join zones on st_within(loc_coordinate, zone_geom))" +
-                    "select demo_from, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +" from cells join locations2Zones on (cells.demo_from)::integer = " + zonename2 +";";            rs = this.dbCon.executeQuery(query, this);
-            count=0;
-            while (rs.next()) {
-                cellName = rs.getString("demo_from") ;
-                LocationOption tmp = new LocationOption();
-                tmp.x = rs.getDouble("x");
-                tmp.y = rs.getDouble("y");
-                tmp.id = Integer.toString(rs.getInt("loc_id"));
-                tmp.cappa = rs.getInt("loc_capacity");
-                tmp.taz = rs.getInt("loc_taz_id");
-                List<LocationOption> locs = this.external2TapasLoc.get(cellName);
-                if(locs == null){
-                    locs = new ArrayList<>();
-                }
-                locs.add(tmp);
-                count++;
-                this.external2TapasLoc.put(cellName,locs);
-                this.internalLocs.put(tmp.id,tmp);
-            }
-            rs.close();
-
-            //now the symmetric values: We have to load all and then filter by unknowns and add them to the external2TapasLoc-map
-            Map<String, List<LocationOption>> external2TapasLocDestinations = new HashMap<>();
-            //load the external mapping
-            query = "with cells as (" +
-                    "SELECT demo_to FROM "+trafficTableName+" where not demo_to like 'w%' group by demo_to)," +
-                    "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
-                    "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom from "+dmod+" zdm where zdm.bland =3)," +
-                    "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" from locations join zones on st_within(loc_coordinate, zone_geom))" +
-                    "select demo_to, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +" from cells join locations2Zones on (cells.demo_to)::integer = " + zonename1 +";";
-            rs = this.dbCon.executeQuery(query, this);
-
-            while (rs.next()) {
-                cellName = rs.getString("demo_to") ;
-                LocationOption tmp = new LocationOption();
-                tmp.x = rs.getDouble("x");
-                tmp.y = rs.getDouble("y");
-                tmp.id = Integer.toString(rs.getInt("loc_id"));
-                tmp.cappa = rs.getInt("loc_capacity");
-                tmp.taz = rs.getInt("loc_taz_id");
-                List<LocationOption> locs = external2TapasLocDestinations.get(cellName);
-                if(locs == null){
-                    locs = new ArrayList<>();
-                }
-                locs.add(tmp);
-                count++;
-                external2TapasLocDestinations.put(cellName,locs);
-            }
-            rs.close();
-
-            //load the external mapping for the "greater cells"
-            query = "with cells as (" +
-                        "SELECT demo_to FROM "+trafficTableName+" where not demo_to like 'w%' group by demo_to)," +
-                        "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  " +
-                                        "from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
-                        "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom " +
-                                    "from "+dmod+" zdm where zdm.bland =3)," +
-                        "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" " +
-                                                "from locations join zones on st_within(loc_coordinate, zone_geom))" +
-                    "select demo_to, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +
-                    " from cells join locations2Zones on (cells.demo_to)::integer = " + zonename2 +";";
-            rs = this.dbCon.executeQuery(query, this);
-            count=0;
-            while (rs.next()) {
-                cellName = rs.getString("demo_to") ;
-                LocationOption tmp = new LocationOption();
-                tmp.x = rs.getDouble("x");
-                tmp.y = rs.getDouble("y");
-                tmp.id = Integer.toString(rs.getInt("loc_id"));
-                tmp.cappa = rs.getInt("loc_capacity");
-                tmp.taz = rs.getInt("loc_taz_id");
-                List<LocationOption> locs = external2TapasLocDestinations.get(cellName);
-                if(locs == null){
-                    locs = new ArrayList<>();
-                }
-                locs.add(tmp);
-                count++;
-                external2TapasLocDestinations.put(cellName,locs);
-            }
-            rs.close();
-
-            for(Map.Entry<String, List<LocationOption>> e:external2TapasLocDestinations.entrySet()){
-                if(this.external2TapasLoc.containsKey(e.getKey())) //skip known ones
-                    continue;
-                this.external2TapasLoc.put(e.getKey(),e.getValue());
-                for(LocationOption l: e.getValue()){
-                    this.internalLocs.put(l.id,l);
-                }
-                count+=e.getValue().size();
-            }
-
-            //normalize the weight according to the volume of each entry of the map
-            for(Map.Entry<String, List<LocationOption>> e:this.external2TapasLoc.entrySet()){
-                double sum=0;
-                //find the sum of all capacities
-                for(LocationOption l: e.getValue()){
-                    sum+=l.cappa;
-                }
-                //normalize by this value
-                for(LocationOption l: e.getValue()){
-                    l.weight= ((double)l.cappa) / sum;
-                }
-            }
-
-
-            System.out.println("found " + this.external2TapasLoc.size() + " origin entires with "+count+"locations");
-
-            for(Map.Entry<String, ExternalCell> e:this.externalLoc.entrySet()) {
-                if (this.external2TapasLoc.containsKey(e.getKey()))
-                    continue;
-                System.out.println(e.getKey() + " not found");
-            }
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            int id, taz, cappa;
+//            double sLon, sLat;
+//            ResultSet rs;
+//            String cellName;
+//            String zonename1 = "vbz_6561", zonename2 = "vbz_412";
+//            Set<String > cordons = new TreeSet<>();
+//
+//            //first load the cells from the external traffic
+//            query = "SELECT demo_from as id, st_x(st_transform(from_coord,4326)) as x,st_y(st_transform(from_coord,4326)) as y FROM "+trafficTableName+" group by demo_from,x,y";
+//            rs = this.dbCon.executeQuery(query, this);
+//            while(rs.next()){
+//                ExternalCell tmp = new ExternalCell();
+//                tmp.id = rs.getString("id");
+//                if(tmp.id.startsWith("w"))
+//                    cordons.add(tmp.id);
+//                tmp.x[0] = rs.getDouble("x");
+//                tmp.y[0] = rs.getDouble("y");
+//                tmp.x[1] = rs.getDouble("x");
+//                tmp.y[1] = rs.getDouble("y");
+//                this.externalLoc.put(tmp.id,tmp);
+//            }
+//            rs.close();
+//
+//            //just in case we are not symmetric
+//            query = "SELECT demo_to as id, st_x(st_transform(to_coord,4326)) as x,st_y(st_transform(to_coord,4326)) as y FROM "+trafficTableName+" group by demo_to,x,y";
+//            rs = this.dbCon.executeQuery(query, this);
+//
+//            while(rs.next()){
+//
+//                ExternalCell tmp = new ExternalCell();
+//                tmp.id = rs.getString("id");
+//                if(tmp.id.startsWith("w"))
+//                    cordons.add(tmp.id);
+//                tmp.x[0] = rs.getDouble("x");
+//                tmp.y[0] = rs.getDouble("y");
+//                tmp.x[1] = rs.getDouble("x");
+//                tmp.y[1] = rs.getDouble("y");
+//                this.externalLoc.put(tmp.id,tmp);
+//            }
+//            rs.close();
+//            System.out.println("found " + this.externalLoc.size() + " origin entires and "+cordons.size()+" cordons");
+//
+//            //load the sumo coordinates for the cordon cells
+//            query = "SELECT full_id, lon_out,lat_out, lon_in, lat_in FROM "+sumoCoordinates;
+//            rs = this.dbCon.executeQuery(query, this);
+//            int count=0;
+//            Set<String > cordonsCorrected = new TreeSet<>();
+//            while(rs.next()){
+//
+//                //get the ID, which might end with an "-0" or "-1"
+//
+//                String sumoID = rs.getString("full_id");
+//
+//                if (cordons.contains(sumoID)) {
+//                    cordonsCorrected.add(sumoID);
+//                    count++;
+//                    ExternalCell tmp = this.externalLoc.get(sumoID);
+//
+//                    tmp.x[0] = rs.getDouble("lon_in");
+//                    tmp.y[0] = rs.getDouble("lat_in");
+//                    tmp.x[1] = rs.getDouble("lon_out");
+//                    tmp.y[1] = rs.getDouble("lat_out");
+//                }
+//                if(cordons.contains(sumoID+"-0")){
+//                    cordonsCorrected.add(sumoID+"-0");
+//                    count++;
+//                    ExternalCell tmp = this.externalLoc.get(sumoID+"-0");
+//
+//                    tmp.x[0] = rs.getDouble("lon_in");
+//                    tmp.y[0] = rs.getDouble("lat_in");
+//                    tmp.x[1] = rs.getDouble("lon_out");
+//                    tmp.y[1] = rs.getDouble("lat_out");;
+//                }
+//                if(cordons.contains(sumoID+"-1")){
+//                    count++;
+//                    cordonsCorrected.add(sumoID+"-1");
+//                    ExternalCell tmp = this.externalLoc.get(sumoID+"-1");
+//
+//                    tmp.x[0] = rs.getDouble("lon_in");
+//                    tmp.y[0] = rs.getDouble("lat_in");
+//                    tmp.x[1] = rs.getDouble("lon_out");
+//                    tmp.y[1] = rs.getDouble("lat_out");;
+//                }
+//            }
+//            rs.close();
+//
+//            System.out.println("Updated  " + count + " cordon coordinates Unique: "+cordonsCorrected.size());
+//            System.out.println(cordons.toString());
+//            System.out.println(cordonsCorrected.toString());
+//            //load the external mapping
+//            query = "with cells as (" +
+//                    "SELECT demo_from FROM "+trafficTableName+" where not demo_from like 'w%' group by demo_from)," +
+//                    "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
+//                    "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom from "+dmod+" zdm where zdm.bland =3)," +
+//                    "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" from locations join zones on st_within(loc_coordinate, zone_geom))" +
+//                    "select demo_from, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +" from cells join locations2Zones on (cells.demo_from)::integer = " + zonename1 +";";
+//            rs = this.dbCon.executeQuery(query, this);
+//            count=0;
+//            while (rs.next()) {
+//                   cellName = rs.getString("demo_from") ;
+//                   LocationOption tmp = new LocationOption();
+//                   tmp.x = rs.getDouble("x");
+//                   tmp.y = rs.getDouble("y");
+//                   tmp.id = Integer.toString(rs.getInt("loc_id"));
+//                   tmp.cappa = rs.getInt("loc_capacity");
+//                   tmp.taz = rs.getInt("loc_taz_id");
+//                   List<LocationOption> locs = this.external2TapasLoc.get(cellName);
+//                   if(locs == null){
+//                       locs = new ArrayList<>();
+//                   }
+//                   locs.add(tmp);
+//                   count++;
+//                   this.external2TapasLoc.put(cellName,locs);
+//                   this.internalLocs.put(tmp.id,tmp);
+//            }
+//            rs.close();
+//
+//            //load the external mapping for the "greater cells"
+//            query = "with cells as (" +
+//                    "SELECT demo_from FROM "+trafficTableName+" where not demo_from like 'w%' group by demo_from)," +
+//                    "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
+//                    "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom from "+dmod+" zdm where zdm.bland =3)," +
+//                    "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" from locations join zones on st_within(loc_coordinate, zone_geom))" +
+//                    "select demo_from, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +" from cells join locations2Zones on (cells.demo_from)::integer = " + zonename2 +";";            rs = this.dbCon.executeQuery(query, this);
+//            count=0;
+//            while (rs.next()) {
+//                cellName = rs.getString("demo_from") ;
+//                LocationOption tmp = new LocationOption();
+//                tmp.x = rs.getDouble("x");
+//                tmp.y = rs.getDouble("y");
+//                tmp.id = Integer.toString(rs.getInt("loc_id"));
+//                tmp.cappa = rs.getInt("loc_capacity");
+//                tmp.taz = rs.getInt("loc_taz_id");
+//                List<LocationOption> locs = this.external2TapasLoc.get(cellName);
+//                if(locs == null){
+//                    locs = new ArrayList<>();
+//                }
+//                locs.add(tmp);
+//                count++;
+//                this.external2TapasLoc.put(cellName,locs);
+//                this.internalLocs.put(tmp.id,tmp);
+//            }
+//            rs.close();
+//
+//            //now the symmetric values: We have to load all and then filter by unknowns and add them to the external2TapasLoc-map
+//            Map<String, List<LocationOption>> external2TapasLocDestinations = new HashMap<>();
+//            //load the external mapping
+//            query = "with cells as (" +
+//                    "SELECT demo_to FROM "+trafficTableName+" where not demo_to like 'w%' group by demo_to)," +
+//                    "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
+//                    "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom from "+dmod+" zdm where zdm.bland =3)," +
+//                    "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" from locations join zones on st_within(loc_coordinate, zone_geom))" +
+//                    "select demo_to, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +" from cells join locations2Zones on (cells.demo_to)::integer = " + zonename1 +";";
+//            rs = this.dbCon.executeQuery(query, this);
+//
+//            while (rs.next()) {
+//                cellName = rs.getString("demo_to") ;
+//                LocationOption tmp = new LocationOption();
+//                tmp.x = rs.getDouble("x");
+//                tmp.y = rs.getDouble("y");
+//                tmp.id = Integer.toString(rs.getInt("loc_id"));
+//                tmp.cappa = rs.getInt("loc_capacity");
+//                tmp.taz = rs.getInt("loc_taz_id");
+//                List<LocationOption> locs = external2TapasLocDestinations.get(cellName);
+//                if(locs == null){
+//                    locs = new ArrayList<>();
+//                }
+//                locs.add(tmp);
+//                count++;
+//                external2TapasLocDestinations.put(cellName,locs);
+//            }
+//            rs.close();
+//
+//            //load the external mapping for the "greater cells"
+//            query = "with cells as (" +
+//                        "SELECT demo_to FROM "+trafficTableName+" where not demo_to like 'w%' group by demo_to)," +
+//                        "locations as (select loc_id,loc_taz_id,loc_capacity, loc_coordinate  " +
+//                                        "from "+region+" where \"key\" = '"+loc_key+"' and loc_code = " +loc_code+" )," +
+//                        "zones as (select (zdm." + zonename1 +")::integer as " + zonename1 +", zdm." + zonename2 +",st_transform(zdm.the_geom,4326) as zone_geom " +
+//                                    "from "+dmod+" zdm where zdm.bland =3)," +
+//                        "locations2Zones as (select loc_id,loc_taz_id, loc_capacity, loc_coordinate, " + zonename1 +", " + zonename2 +" " +
+//                                                "from locations join zones on st_within(loc_coordinate, zone_geom))" +
+//                    "select demo_to, loc_id,loc_taz_id,loc_capacity, st_x(loc_coordinate) x, st_y(loc_coordinate) y, " + zonename1 +", " + zonename2 +
+//                    " from cells join locations2Zones on (cells.demo_to)::integer = " + zonename2 +";";
+//            rs = this.dbCon.executeQuery(query, this);
+//            count=0;
+//            while (rs.next()) {
+//                cellName = rs.getString("demo_to") ;
+//                LocationOption tmp = new LocationOption();
+//                tmp.x = rs.getDouble("x");
+//                tmp.y = rs.getDouble("y");
+//                tmp.id = Integer.toString(rs.getInt("loc_id"));
+//                tmp.cappa = rs.getInt("loc_capacity");
+//                tmp.taz = rs.getInt("loc_taz_id");
+//                List<LocationOption> locs = external2TapasLocDestinations.get(cellName);
+//                if(locs == null){
+//                    locs = new ArrayList<>();
+//                }
+//                locs.add(tmp);
+//                count++;
+//                external2TapasLocDestinations.put(cellName,locs);
+//            }
+//            rs.close();
+//
+//            for(Map.Entry<String, List<LocationOption>> e:external2TapasLocDestinations.entrySet()){
+//                if(this.external2TapasLoc.containsKey(e.getKey())) //skip known ones
+//                    continue;
+//                this.external2TapasLoc.put(e.getKey(),e.getValue());
+//                for(LocationOption l: e.getValue()){
+//                    this.internalLocs.put(l.id,l);
+//                }
+//                count+=e.getValue().size();
+//            }
+//
+//            //normalize the weight according to the volume of each entry of the map
+//            for(Map.Entry<String, List<LocationOption>> e:this.external2TapasLoc.entrySet()){
+//                double sum=0;
+//                //find the sum of all capacities
+//                for(LocationOption l: e.getValue()){
+//                    sum+=l.cappa;
+//                }
+//                //normalize by this value
+//                for(LocationOption l: e.getValue()){
+//                    l.weight= ((double)l.cappa) / sum;
+//                }
+//            }
+//
+//
+//            System.out.println("found " + this.external2TapasLoc.size() + " origin entires with "+count+"locations");
+//
+//            for(Map.Entry<String, ExternalCell> e:this.externalLoc.entrySet()) {
+//                if (this.external2TapasLoc.containsKey(e.getKey()))
+//                    continue;
+//                System.out.println(e.getKey() + " not found");
+//            }
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     private static int koFiFStringIDtoIntID(String input){
@@ -1095,164 +1095,164 @@ public class TPS_ExternalTrafficDistributionKoFiF  extends TPS_BasicConnectionCl
 
     public void saveToDB(String tablename, int modeNumber, boolean is_resticted, boolean createTable) {
         String query = "";
-        try {
-            if (createTable) {
-                query = "DROP TABLE IF EXISTS " + tablename;
-                this.dbCon.execute(query, this);
-
-                String[] tokens = tablename.split("\\.");
-                query = "CREATE TABLE " + tablename + " (" + "  p_id integer NOT NULL," + "  hh_id integer NOT NULL," +
-                        "  taz_id_start integer," + "  loc_id_start integer," + "  lon_start double precision," +
-                        "  lat_start double precision," + "  taz_id_end integer," + "  loc_id_end integer," +
-                        "  lon_end double precision," + "  lat_end double precision," +
-                        "  start_time_min integer NOT NULL," + "  travel_time_sec double precision," +
-                        "  mode integer," + "  car_type integer," + "  activity_duration_min integer," +
-                        "  sumo_type integer," + "  is_restricted boolean," + "  CONSTRAINT " +
-                        tokens[tokens.length - 1] + "_pkey PRIMARY KEY (p_id, hh_id, start_time_min))" +
-                        "WITH (  OIDS=FALSE);";
-                this.dbCon.execute(query, this);
-                query = "GRANT ALL ON TABLE " + tablename + " TO tapas_admin_group;" + //Krass! Tappas_admin_group darf das!
-                        "GRANT SELECT ON TABLE " + tablename + " TO tapas_user_group;" +
-                        "GRANT REFERENCES ON TABLE " + tablename + " TO tapas_user_group;" +
-                        "GRANT TRIGGER ON TABLE " + tablename + " TO tapas_user_group;";
-                this.dbCon.execute(query, this);
-            }
-            int num = -1;
-
-            //get the right number
-            query = "SELECT count(*) as c, MIN(p_id) as min from " + tablename;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                if (rs.getInt("c") > 0) {
-                    num += rs.getInt("min");
-                }
-            }
-            rs.close();
-
-
-            query = "INSERT INTO " + tablename + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?," + modeNumber + ",?,1,?," +
-                    is_resticted + ")";
-
-            PreparedStatement pS = this.dbCon.getConnection(this).prepareStatement(query);
-            int count = 0, maxBatch = 10000;
-            for (ODPair p : this.ODPairsGravityDistributed) {
-                //these values must be filled in the switch-case field
-                double lonStart =0,latStart=0,lonEnd=0,latEnd=0;
-                int tazStart =-1, locIDStart=-1, tazEnd =-1, locIDEnd=-1;
-                switch(p.type){
-                    case INBOUND: {
-                        ExternalCell origin = this.externalLoc.get(p.idOrigin);
-                        LocationOption destination = this.internalLocs.get(p.idDestination);
-                        lonStart = origin.x[0];
-                        latStart = origin.y[0];
-                        tazStart = koFiFStringIDtoIntID(origin.id);
-                        locIDStart = koFiFStringIDtoIntID(origin.id);
-                        lonEnd = destination.x;
-                        latEnd = destination.y;
-                        tazEnd = destination.taz;
-                        locIDEnd = koFiFStringIDtoIntID(destination.id);
-                    }
-                        break;
-                    case OUTBOUND: {
-                        ExternalCell destination = this.externalLoc.get(p.idDestination);
-                        LocationOption origin = this.internalLocs.get(p.idOrigin);
-                        lonStart = origin.x;
-                        latStart = origin.y;
-                        tazStart = origin.taz;
-                        locIDStart = koFiFStringIDtoIntID(origin.id);
-                        lonEnd = destination.x[1];
-                        latEnd = destination.y[1];
-                        tazEnd = koFiFStringIDtoIntID(destination.id);
-                        locIDEnd = koFiFStringIDtoIntID(destination.id);
-                    }
-                        break;
-                    case INTERNAL:{
-                        LocationOption destination = this.internalLocs.get(p.idDestination);
-                        LocationOption origin = this.internalLocs.get(p.idOrigin);
-                        lonStart = origin.x;
-                        latStart = origin.y;
-                        tazStart = origin.taz;
-                        locIDStart = koFiFStringIDtoIntID(origin.id);
-                        lonEnd = destination.x;
-                        latEnd = destination.y;
-                        tazEnd = destination.taz;
-                        locIDEnd = koFiFStringIDtoIntID(destination.id);
-                    }
-                        break;
-                    case DRIVETHROUGH:{
-                        ExternalCell origin = this.externalLoc.get(p.idOrigin);
-                        ExternalCell destination = this.externalLoc.get(p.idDestination);
-                        lonStart = origin.x[0];
-                        latStart = origin.y[0];
-                        tazStart = koFiFStringIDtoIntID(origin.id);
-                        locIDStart = koFiFStringIDtoIntID(origin.id);
-                        lonEnd = destination.x[1];
-                        latEnd = destination.y[1];
-                        tazEnd = koFiFStringIDtoIntID(destination.id);
-                        locIDEnd = koFiFStringIDtoIntID(destination.id);
-                    }
-
-                        break;
-                }
-
-
-
-
-                int start = p.hourOfDay * 60 + (int) (Math.random() * 60.0);
-                double time = TPS_Geometrics.getDistance(lonStart, latStart,
-                        lonEnd, latEnd);
-                time *= 1.2 / 7.7777; //1.2 ist der umwegefaktor, 28kmh= 7.7777m/s;
-                Vehicle tmp;
-                double vID, sum;
-                int v;
-                for (int i = 0; i < p.volume; ++i) {
-                    // get the cartype
-                    vID = Math.random();
-                    sum = this.carTypeDistribution.get(0).weight;
-                    v = 0;
-                    do {
-                        if (sum >= vID) {
-                            break;
-                        } else {
-                            v++;
-                            sum += this.carTypeDistribution.get(v).weight;
-                        }
-                    } while (v < this.carTypeDistribution.size() - 1);
-                    tmp = this.carTypeDistribution.get(v);
-
-                    pS.setInt(1, num);//p_id
-                    pS.setInt(2, num);//hh_id
-                    pS.setInt(3, tazStart); //taz_id_start
-                    pS.setInt(4, locIDStart); //loc_id_start
-                    pS.setDouble(5, lonStart); //lon_start
-                    pS.setDouble(6, latStart); //lat_start
-                    pS.setInt(7, tazEnd); //taz_id_end
-                    pS.setInt(8, locIDEnd); //loc_id_end
-                    pS.setDouble(9, lonEnd); //lon_end
-                    pS.setDouble(10, latEnd); //lat_end
-                    pS.setInt(11, start); // start_time_min
-                    pS.setDouble(12, time); //travel_time_sec
-                    pS.setInt(13, tmp.id);
-                    pS.setInt(14, tmp.getSumoVehicle());
-                    pS.addBatch();
-                    count++;
-                    if (count >= maxBatch) {
-                        pS.executeBatch();
-                        count = 0;
-                    }
-                    num--;
-                }
-
-            }
-            if (count > 0) {
-                pS.executeBatch();
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//            if (createTable) {
+//                query = "DROP TABLE IF EXISTS " + tablename;
+//                this.dbCon.execute(query, this);
+//
+//                String[] tokens = tablename.split("\\.");
+//                query = "CREATE TABLE " + tablename + " (" + "  p_id integer NOT NULL," + "  hh_id integer NOT NULL," +
+//                        "  taz_id_start integer," + "  loc_id_start integer," + "  lon_start double precision," +
+//                        "  lat_start double precision," + "  taz_id_end integer," + "  loc_id_end integer," +
+//                        "  lon_end double precision," + "  lat_end double precision," +
+//                        "  start_time_min integer NOT NULL," + "  travel_time_sec double precision," +
+//                        "  mode integer," + "  car_type integer," + "  activity_duration_min integer," +
+//                        "  sumo_type integer," + "  is_restricted boolean," + "  CONSTRAINT " +
+//                        tokens[tokens.length - 1] + "_pkey PRIMARY KEY (p_id, hh_id, start_time_min))" +
+//                        "WITH (  OIDS=FALSE);";
+//                this.dbCon.execute(query, this);
+//                query = "GRANT ALL ON TABLE " + tablename + " TO tapas_admin_group;" + //Krass! Tappas_admin_group darf das!
+//                        "GRANT SELECT ON TABLE " + tablename + " TO tapas_user_group;" +
+//                        "GRANT REFERENCES ON TABLE " + tablename + " TO tapas_user_group;" +
+//                        "GRANT TRIGGER ON TABLE " + tablename + " TO tapas_user_group;";
+//                this.dbCon.execute(query, this);
+//            }
+//            int num = -1;
+//
+//            //get the right number
+//            query = "SELECT count(*) as c, MIN(p_id) as min from " + tablename;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                if (rs.getInt("c") > 0) {
+//                    num += rs.getInt("min");
+//                }
+//            }
+//            rs.close();
+//
+//
+//            query = "INSERT INTO " + tablename + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?," + modeNumber + ",?,1,?," +
+//                    is_resticted + ")";
+//
+//            PreparedStatement pS = this.dbCon.getConnection(this).prepareStatement(query);
+//            int count = 0, maxBatch = 10000;
+//            for (ODPair p : this.ODPairsGravityDistributed) {
+//                //these values must be filled in the switch-case field
+//                double lonStart =0,latStart=0,lonEnd=0,latEnd=0;
+//                int tazStart =-1, locIDStart=-1, tazEnd =-1, locIDEnd=-1;
+//                switch(p.type){
+//                    case INBOUND: {
+//                        ExternalCell origin = this.externalLoc.get(p.idOrigin);
+//                        LocationOption destination = this.internalLocs.get(p.idDestination);
+//                        lonStart = origin.x[0];
+//                        latStart = origin.y[0];
+//                        tazStart = koFiFStringIDtoIntID(origin.id);
+//                        locIDStart = koFiFStringIDtoIntID(origin.id);
+//                        lonEnd = destination.x;
+//                        latEnd = destination.y;
+//                        tazEnd = destination.taz;
+//                        locIDEnd = koFiFStringIDtoIntID(destination.id);
+//                    }
+//                        break;
+//                    case OUTBOUND: {
+//                        ExternalCell destination = this.externalLoc.get(p.idDestination);
+//                        LocationOption origin = this.internalLocs.get(p.idOrigin);
+//                        lonStart = origin.x;
+//                        latStart = origin.y;
+//                        tazStart = origin.taz;
+//                        locIDStart = koFiFStringIDtoIntID(origin.id);
+//                        lonEnd = destination.x[1];
+//                        latEnd = destination.y[1];
+//                        tazEnd = koFiFStringIDtoIntID(destination.id);
+//                        locIDEnd = koFiFStringIDtoIntID(destination.id);
+//                    }
+//                        break;
+//                    case INTERNAL:{
+//                        LocationOption destination = this.internalLocs.get(p.idDestination);
+//                        LocationOption origin = this.internalLocs.get(p.idOrigin);
+//                        lonStart = origin.x;
+//                        latStart = origin.y;
+//                        tazStart = origin.taz;
+//                        locIDStart = koFiFStringIDtoIntID(origin.id);
+//                        lonEnd = destination.x;
+//                        latEnd = destination.y;
+//                        tazEnd = destination.taz;
+//                        locIDEnd = koFiFStringIDtoIntID(destination.id);
+//                    }
+//                        break;
+//                    case DRIVETHROUGH:{
+//                        ExternalCell origin = this.externalLoc.get(p.idOrigin);
+//                        ExternalCell destination = this.externalLoc.get(p.idDestination);
+//                        lonStart = origin.x[0];
+//                        latStart = origin.y[0];
+//                        tazStart = koFiFStringIDtoIntID(origin.id);
+//                        locIDStart = koFiFStringIDtoIntID(origin.id);
+//                        lonEnd = destination.x[1];
+//                        latEnd = destination.y[1];
+//                        tazEnd = koFiFStringIDtoIntID(destination.id);
+//                        locIDEnd = koFiFStringIDtoIntID(destination.id);
+//                    }
+//
+//                        break;
+//                }
+//
+//
+//
+//
+//                int start = p.hourOfDay * 60 + (int) (Math.random() * 60.0);
+//                double time = TPS_Geometrics.getDistance(lonStart, latStart,
+//                        lonEnd, latEnd);
+//                time *= 1.2 / 7.7777; //1.2 ist der umwegefaktor, 28kmh= 7.7777m/s;
+//                Vehicle tmp;
+//                double vID, sum;
+//                int v;
+//                for (int i = 0; i < p.volume; ++i) {
+//                    // get the cartype
+//                    vID = Math.random();
+//                    sum = this.carTypeDistribution.get(0).weight;
+//                    v = 0;
+//                    do {
+//                        if (sum >= vID) {
+//                            break;
+//                        } else {
+//                            v++;
+//                            sum += this.carTypeDistribution.get(v).weight;
+//                        }
+//                    } while (v < this.carTypeDistribution.size() - 1);
+//                    tmp = this.carTypeDistribution.get(v);
+//
+//                    pS.setInt(1, num);//p_id
+//                    pS.setInt(2, num);//hh_id
+//                    pS.setInt(3, tazStart); //taz_id_start
+//                    pS.setInt(4, locIDStart); //loc_id_start
+//                    pS.setDouble(5, lonStart); //lon_start
+//                    pS.setDouble(6, latStart); //lat_start
+//                    pS.setInt(7, tazEnd); //taz_id_end
+//                    pS.setInt(8, locIDEnd); //loc_id_end
+//                    pS.setDouble(9, lonEnd); //lon_end
+//                    pS.setDouble(10, latEnd); //lat_end
+//                    pS.setInt(11, start); // start_time_min
+//                    pS.setDouble(12, time); //travel_time_sec
+//                    pS.setInt(13, tmp.id);
+//                    pS.setInt(14, tmp.getSumoVehicle());
+//                    pS.addBatch();
+//                    count++;
+//                    if (count >= maxBatch) {
+//                        pS.executeBatch();
+//                        count = 0;
+//                    }
+//                    num--;
+//                }
+//
+//            }
+//            if (count > 0) {
+//                pS.executeBatch();
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
 
     }
 

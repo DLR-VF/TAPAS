@@ -8,13 +8,12 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SQLBackupExtractor extends TPS_BasicConnectionClass {
+public class SQLBackupExtractor {
 
     List<BlockProcessor> processors = new ArrayList<>();
 

@@ -8,14 +8,13 @@
 
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
-public class LocationCodesFromOSM extends TPS_BasicConnectionClass {
+public class LocationCodesFromOSM {
 
     /**
      * @param args

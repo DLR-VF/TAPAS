@@ -17,7 +17,6 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.parameter.*;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 
@@ -37,7 +36,7 @@ import java.util.StringTokenizer;
  * @author hein_mh
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
-public class TPS_VisumConverter extends TPS_BasicConnectionClass {
+public class TPS_VisumConverter {
 
     public TPS_ParameterClass parameterClass;
     /**
@@ -102,7 +101,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
      * standard constructor
      */
     public TPS_VisumConverter(TPS_ParameterClass parameterClass) {
-        super(parameterClass);
+
     }
 
     /**
@@ -114,7 +113,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
      * @param simKey key of the simulation
      */
     public TPS_VisumConverter(TPS_ParameterClass parameterClass, String file, String simKey) {
-        super(parameterClass, file);
+
         //TPS_Parameters.clear();
         if (simKey == null) simKey = TPS_Main.getDefaultSimKey();
 
@@ -122,27 +121,27 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
         this.parameterClass.setString(ParamString.RUN_IDENTIFIER, simKey);
         this.parameterClass.setString(ParamString.CURRENCY, CURRENCY.EUR.name());
 
-        try {
-            //Thread.sleep(10000);
-            File tmpFile = new File(file);
-            while (!tmpFile.getPath().endsWith(
-                    this.parameterClass.SIM_DIR.substring(0, this.parameterClass.SIM_DIR.length() - 1))) {
-                tmpFile = tmpFile.getParentFile();
-            }
-            this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getParent());
-
-            //try to load parameters from db
-            String query = "SELECT * FROM " + this.parameterClass.getString(
-                    ParamString.DB_TABLE_SIMULATION_PARAMETERS) + " WHERE sim_key = '" + simKey + "'";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            TPS_SumoConverter.readParametersFromDBMaintainLoginInfo(rs, this.parameterClass);
-            rs.close();
-            this.parameterClass.checkParameters();
-
-        } catch (Exception e) {
-            TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
-            throw new RuntimeException(e);
-        }
+//        try {
+//            //Thread.sleep(10000);
+//            File tmpFile = new File(file);
+//            while (!tmpFile.getPath().endsWith(
+//                    this.parameterClass.SIM_DIR.substring(0, this.parameterClass.SIM_DIR.length() - 1))) {
+//                tmpFile = tmpFile.getParentFile();
+//            }
+//            this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getParent());
+//
+//            //try to load parameters from db
+//            String query = "SELECT * FROM " + this.parameterClass.getString(
+//                    ParamString.DB_TABLE_SIMULATION_PARAMETERS) + " WHERE sim_key = '" + simKey + "'";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            TPS_SumoConverter.readParametersFromDBMaintainLoginInfo(rs, this.parameterClass);
+//            rs.close();
+//            this.parameterClass.checkParameters();
+//
+//        } catch (Exception e) {
+//            TPS_Logger.log(SeverityLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+//            throw new RuntimeException(e);
+//        }
     }
 
     /**
@@ -172,17 +171,17 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
         else tableName = this.parameterClass.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS);
 
         String query = "SELECT * FROM " + tableName + " WHERE info_name = '" + name + "'";
-        try {
-            ResultSet rs = dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                retrunVal = true;
-            }
-            rs.close();
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error!", e);
-            return false;
-
-        }
+//        try {
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                retrunVal = true;
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error!", e);
+//            return false;
+//
+//        }
         return retrunVal;
     }
 
@@ -197,16 +196,16 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
         //load the data from the db
         String query = "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) +
                 " WHERE \"matrix_name\" = '" + matrixName + "'";
-        try {
-            ResultSet rs = dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                returnVal = true;
-            }
-            rs.close();
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! ", e);
-            return false;
-        }
+//        try {
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                returnVal = true;
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! ", e);
+//            return false;
+//        }
         return returnVal;
     }
 
@@ -240,7 +239,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
         else tableName = this.parameterClass.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS);
 
         String query = "DELETE FROM " + tableName + " WHERE info_name = '" + name + "'";
-        dbCon.execute(query, this);
+//        dbCon.execute(query, this);
     }
 
     /**
@@ -251,7 +250,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
     public void deleteMatrix(String matrixName) {
         String query = "DELETE FROM " + this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) +
                 " WHERE \"matrix_name\" = '" + matrixName + "'";
-        dbCon.execute(query, this);
+//        dbCon.execute(query, this);
     }
 
     /**
@@ -694,90 +693,90 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
         String query = "";
         ResultSet rs = null;
         int taz, externalId;
-        try {
-            query = "SELECT taz_id, taz_num_id FROM " + this.parameterClass.getString(ParamString.DB_TABLE_TAZ);
-            rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                taz = rs.getInt("taz_id") - 1;
-                externalId = rs.getInt("taz_num_id");
-                if (externalId > 0) {
-                    if (idToIndex.get(externalId) == null) {//new tvz
-                        idToIndex.put(externalId, taz);
-                        indexToId.put(taz, externalId);
-                    }
-                }
-            }
-            rs.close();
-            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
-                TPS_Logger.log(SeverityLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! Query: " + query, e);
-            throw new SQLException("SQL error! Query: " + query, e);
-        }
+//        try {
+//            query = "SELECT taz_id, taz_num_id FROM " + this.parameterClass.getString(ParamString.DB_TABLE_TAZ);
+//            rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                taz = rs.getInt("taz_id") - 1;
+//                externalId = rs.getInt("taz_num_id");
+//                if (externalId > 0) {
+//                    if (idToIndex.get(externalId) == null) {//new tvz
+//                        idToIndex.put(externalId, taz);
+//                        indexToId.put(taz, externalId);
+//                    }
+//                }
+//            }
+//            rs.close();
+//            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+//                TPS_Logger.log(SeverityLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
+//            }
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! Query: " + query, e);
+//            throw new SQLException("SQL error! Query: " + query, e);
+//        }
     }
 
     private void readMatrix(ParamString matrixName, ParamMatrixMap matrix, SimulationType simType, int sIndex) {
         String query = "";
         ResultSet rs = null;
-        try {
-            query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
-                    this.parameterClass.getString(ParamString.DB_TABLE_MATRIXMAPS) + " WHERE \"matrixMap_name\"='" +
-                    this.parameterClass.getString(matrixName) + "'";
-            rs = dbCon.executeQuery(query, this);
-
-            if (rs.next()) {
-                // get number of matrices to load
-                int numOfMatrices = rs.getInt("matrixMap_num");
-                // get matrix names
-                String[] matrix_names = TPS_DB_IO.extractStringArray(rs, "matrixMap_matrixNames");
-                // get distribution
-                double[] distribution = TPS_DB_IO.extractDoubleArray(rs, "matrixMap_distribution");
-                rs.close();
-                // check sizes
-                if (numOfMatrices != matrix_names.length || numOfMatrices != distribution.length) {
-                    TPS_Logger.log(SeverityLogLevel.FATAL,
-                            "Couldn't load matrixmap " + this.parameterClass.getString(matrixName) +
-                                    " from database. Different array sizes (num, matrices, distribution): " +
-                                    numOfMatrices + " " + matrix_names.length + " " + distribution.length +
-                                    " SQL query: " + query);
-                }
-
-                // init matrix map
-                Matrix[] matrices = new Matrix[numOfMatrices];
-
-                // load matrix map
-                for (int i = 0; i < numOfMatrices; ++i) {
-                    query = "SELECT matrix_values FROM " + this.parameterClass.getString(
-                            ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrix_names[i] + "'";
-                    rs = dbCon.executeQuery(query, this);
-                    if (rs.next()) {
-                        int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                        int len = (int) Math.sqrt(iArray.length);
-                        matrices[i] = new Matrix(len, len, sIndex);
-                        for (int index = 0; index < iArray.length; index++) {
-                            matrices[i].setRawValue(index, iArray[index]);
-                        }
-                        rs.close();
-                    } else {
-                        TPS_Logger.log(SeverityLogLevel.FATAL,
-                                "Couldn't load matrix " + matrix_names[i] + " form matrix map" +
-                                        this.parameterClass.getString(matrixName) + ": No such matrix. SQL Query: " +
-                                        query);
-                        return;
-                    }
-                }
-
-                // set collected data
-                if (simType != null) this.parameterClass.paramMatrixMapClass.setMatrixMap(matrix, distribution,
-                        matrices, simType);
-                else this.parameterClass.paramMatrixMapClass.setMatrixMap(matrix, distribution, matrices);
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.FATAL,
-                    "Couldn't load matrixmap " + this.parameterClass.getString(matrixName) +
-                            " from database: No such entry. SQL Query: " + query, e);
-        }
+//        try {
+//            query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
+//                    this.parameterClass.getString(ParamString.DB_TABLE_MATRIXMAPS) + " WHERE \"matrixMap_name\"='" +
+//                    this.parameterClass.getString(matrixName) + "'";
+//            rs = dbCon.executeQuery(query, this);
+//
+//            if (rs.next()) {
+//                // get number of matrices to load
+//                int numOfMatrices = rs.getInt("matrixMap_num");
+//                // get matrix names
+//                String[] matrix_names = TPS_DB_IO.extractStringArray(rs, "matrixMap_matrixNames");
+//                // get distribution
+//                double[] distribution = TPS_DB_IO.extractDoubleArray(rs, "matrixMap_distribution");
+//                rs.close();
+//                // check sizes
+//                if (numOfMatrices != matrix_names.length || numOfMatrices != distribution.length) {
+//                    TPS_Logger.log(SeverityLogLevel.FATAL,
+//                            "Couldn't load matrixmap " + this.parameterClass.getString(matrixName) +
+//                                    " from database. Different array sizes (num, matrices, distribution): " +
+//                                    numOfMatrices + " " + matrix_names.length + " " + distribution.length +
+//                                    " SQL query: " + query);
+//                }
+//
+//                // init matrix map
+//                Matrix[] matrices = new Matrix[numOfMatrices];
+//
+//                // load matrix map
+//                for (int i = 0; i < numOfMatrices; ++i) {
+//                    query = "SELECT matrix_values FROM " + this.parameterClass.getString(
+//                            ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrix_names[i] + "'";
+//                    rs = dbCon.executeQuery(query, this);
+//                    if (rs.next()) {
+//                        int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                        int len = (int) Math.sqrt(iArray.length);
+//                        matrices[i] = new Matrix(len, len, sIndex);
+//                        for (int index = 0; index < iArray.length; index++) {
+//                            matrices[i].setRawValue(index, iArray[index]);
+//                        }
+//                        rs.close();
+//                    } else {
+//                        TPS_Logger.log(SeverityLogLevel.FATAL,
+//                                "Couldn't load matrix " + matrix_names[i] + " form matrix map" +
+//                                        this.parameterClass.getString(matrixName) + ": No such matrix. SQL Query: " +
+//                                        query);
+//                        return;
+//                    }
+//                }
+//
+//                // set collected data
+//                if (simType != null) this.parameterClass.paramMatrixMapClass.setMatrixMap(matrix, distribution,
+//                        matrices, simType);
+//                else this.parameterClass.paramMatrixMapClass.setMatrixMap(matrix, distribution, matrices);
+//            }
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.FATAL,
+//                    "Couldn't load matrixmap " + this.parameterClass.getString(matrixName) +
+//                            " from database: No such entry. SQL Query: " + query, e);
+//        }
     }
 
     /**
@@ -791,35 +790,35 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
         //load the data from the db
         String query = "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) +
                 " WHERE \"matrix_name\" = '" + matrixName + "'";
-        try {
-            ResultSet rs = dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                Object array = rs.getArray("matrix_values").getArray();
-                if (array instanceof Integer[]) {
-                    //parse data to memory model
-                    Integer[] matrixVal = (Integer[]) array;
-                    int size = (int) Math.sqrt(matrixVal.length);
-                    if (size != this.travelTime.length) {
-                        TPS_Logger.log(SeverityLogLevel.ERROR,
-                                "Matrix " + matrixName + " has a different size: " + size + " Expected: " +
-                                        this.travelTime.length);
-                        return null;
-                    }
-                    returnVal = new double[size][size];
-                    int k = 0;
-                    for (int i = 0; i < size; ++i) {
-                        for (int j = 0; j < size; ++j, ++k) {
-                            returnVal[i][j] = (double) matrixVal[k];
-                        }
-                    }
-                }
-            } else {
-                TPS_Logger.log(SeverityLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
-            }
-            rs.close();
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL Error: " + query, e);
-        }
+//        try {
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                Object array = rs.getArray("matrix_values").getArray();
+//                if (array instanceof Integer[]) {
+//                    //parse data to memory model
+//                    Integer[] matrixVal = (Integer[]) array;
+//                    int size = (int) Math.sqrt(matrixVal.length);
+//                    if (size != this.travelTime.length) {
+//                        TPS_Logger.log(SeverityLogLevel.ERROR,
+//                                "Matrix " + matrixName + " has a different size: " + size + " Expected: " +
+//                                        this.travelTime.length);
+//                        return null;
+//                    }
+//                    returnVal = new double[size][size];
+//                    int k = 0;
+//                    for (int i = 0; i < size; ++i) {
+//                        for (int j = 0; j < size; ++j, ++k) {
+//                            returnVal[i][j] = (double) matrixVal[k];
+//                        }
+//                    }
+//                }
+//            } else {
+//                TPS_Logger.log(SeverityLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL Error: " + query, e);
+//        }
         return returnVal;
     }
 
@@ -897,7 +896,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                 else query = "UPDATE " + tableName + " SET average_speed_mit =" + this.intraSpeed[i] +
                         ",beeline_factor_mit = " + this.intraBeeLineFactor[i] + " WHERE info_taz_id = " + (i + 1) +
                         " AND info_name = '" + name + "'";
-                dbCon.execute(query, this);
+//                dbCon.execute(query, this);
             }
 
         } else {
@@ -912,7 +911,7 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
                 else query = "INSERT INTO " + tableName +
                         " (info_taz_id, beeline_factor_mit, average_speed_mit, info_name ) VALUES (" + (i + 1) + "," +
                         this.intraBeeLineFactor[i] + "," + this.intraSpeed[i] + ",'" + name + "')";
-                dbCon.execute(query, this);
+//                dbCon.execute(query, this);
             }
         }
         if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
@@ -936,122 +935,122 @@ public class TPS_VisumConverter extends TPS_BasicConnectionClass {
             slices[j] = timeDistribution.matrices[j].value / 60; //seconds to minutes
         }
         String query = "";
-        try {
-            ResultSet rs = null;
-            query = "SELECT sim_finished FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATIONS) +
-                    " WHERE sim_key = '" + this.parameterClass.getString(ParamString.RUN_IDENTIFIER) + "'";
-            rs = dbCon.executeQuery(query, this);
-
-            // check if sim exists
-            if (!rs.next()) {
-                rs.close();
-                return;
-            }
-            // check if sim is finished
-            if (!rs.getBoolean("sim_finished")) {
-                rs.close();
-                return;
-            }
-
-            double sampleFactor = 1.0 / this.parameterClass.paramValueClass.getDoubleValue(
-                    ParamValue.DB_HH_SAMPLE_SIZE);
-            int numTAZ = this.indexToId.size();
-            int numModes = TPS_Mode.MODE_TYPE_ARRAY.length;
-            int thisTime, lastTime = 0;
-            double[][] ODMatrix = new double[numTAZ][numTAZ];
-            int i, j, k;
-            String filename;
-
-            File outputDir = new File(
-                    outputPath + this.parameterClass.getString(ParamString.DB_TABLE_TRIPS) + "_iter_" +
-                            this.parameterClass.paramValueClass.getIntValue(ParamValue.ITERATION));
-            if (!outputDir.exists()) {
-                if (!outputDir.mkdir()) {
-                    TPS_Logger.log(SeverityLogLevel.FATAL,
-                            "Exception during VISUM export! cannot create output dir: " + outputDir.getAbsolutePath());
-                    return;
-                }
-            }
-            //TODO is this linkedlist necessary? look at unused/VisumJob
-            LinkedList<String> tapasMatricesWithPaths = new LinkedList<>();
-            for (int slice : slices) {
-                thisTime = slice;
-
-                // get all trips for this mode in this timeslice
-                for (i = 0; i < numModes; ++i) {
-                    // init ODmatrix
-                    for (j = 0; j < numTAZ; ++j) {
-                        for (k = 0; k < numTAZ; ++k) {
-                            ODMatrix[j][k] = 0;
-                        }
-                    }
-
-                    query = "SELECT taz_id_start, taz_id_end FROM " + this.parameterClass.getString(
-                            ParamString.DB_TABLE_TRIPS) + " WHERE mode=" + i + " AND start_time_min<" + thisTime +
-                            " AND start_time_min>=" + lastTime;
-                    rs = dbCon.executeQuery(query, this);
-                    while (rs.next()) {
-                        j = rs.getInt("taz_id_start") - 1;
-                        k = rs.getInt("taz_id_end") - 1;
-                        ODMatrix[j][k] += sampleFactor;
-                    }
-                    rs.close();
-                    // create filename
-                    filename = "Mode_" + i + "_" + thisTime + ".mtx";
-                    File outPutFile = new File(outputDir, filename);
-                    tapasMatricesWithPaths.add(outPutFile.getPath());
-                    // open file
-                    FileWriter writer = new FileWriter(outPutFile);
-                    if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
-                        TPS_Logger.log(SeverityLogLevel.INFO,
-                                "Writing O/D matrices for mode " + i + ". Timeslot from " + (lastTime / 60) + "h to " +
-                                        (thisTime / 60) + "h to file: " + outPutFile.getAbsolutePath());
-                    }
-                    // header
-                    writer.append("$O;D3\n");
-                    writer.append("* Von  Bis\n");
-                    // append time
-                    writer.append(lastTime / 60 + ".");
-                    if (lastTime % 60 < 10) writer.append("0");
-                    writer.append(lastTime % 60 + "\t" + thisTime / 60 + ".");
-                    if (thisTime % 60 < 10) writer.append("0");
-                    writer.append(thisTime % 60 + "\n");
-                    // scale factor
-                    writer.append("* Faktor\n1.0\n");
-                    // writer.append(Double.toString(sampleFactor)+"\n");
-                    writer.append("*\n");
-                    writer.append("* DLR\n");
-                    writer.append("* ");
-                    Calendar now = Calendar.getInstance();
-
-                    writer.append(now.get(Calendar.DAY_OF_MONTH) + ".");
-                    if (now.get(Calendar.MONTH) < 8) {
-                        writer.append("0");
-                    }
-                    writer.append(Integer.toString(now.get(Calendar.MONTH) + 1) + now.get(Calendar.YEAR) + "\n");
-                    // data
-                    int from, to;
-                    for (j = 0; j < numTAZ; ++j) {
-                        from = this.indexToId.get(j);
-                        for (k = 0; k < numTAZ; ++k) {
-                            to = this.indexToId.get(k);
-                            writer.append(" " + from + "  " + to + " " + (int) ODMatrix[j][k] + ".000\n");
-                        }
-                    }
-                    // close file
-                    writer.close();
-                }
-                // update for next loop
-                lastTime = thisTime;
-            }
-
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.FATAL, "Exception during VISUM export! Error reading SQL! Query:" + query,
-                    e);
-            throw new SQLException("Exception during VISUM export! Error reading SQL! Query:" + query, e);
-        } catch (IOException e) {
-            TPS_Logger.log(SeverityLogLevel.FATAL, "Exception during VISUM export! Error writing cvs:", e);
-            throw new IOException("Exception during VISUM export! Error reading SQL! Query:" + query, e);
-        }
+//        try {
+//            ResultSet rs = null;
+//            query = "SELECT sim_finished FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATIONS) +
+//                    " WHERE sim_key = '" + this.parameterClass.getString(ParamString.RUN_IDENTIFIER) + "'";
+//            rs = dbCon.executeQuery(query, this);
+//
+//            // check if sim exists
+//            if (!rs.next()) {
+//                rs.close();
+//                return;
+//            }
+//            // check if sim is finished
+//            if (!rs.getBoolean("sim_finished")) {
+//                rs.close();
+//                return;
+//            }
+//
+//            double sampleFactor = 1.0 / this.parameterClass.paramValueClass.getDoubleValue(
+//                    ParamValue.DB_HH_SAMPLE_SIZE);
+//            int numTAZ = this.indexToId.size();
+//            int numModes = TPS_Mode.MODE_TYPE_ARRAY.length;
+//            int thisTime, lastTime = 0;
+//            double[][] ODMatrix = new double[numTAZ][numTAZ];
+//            int i, j, k;
+//            String filename;
+//
+//            File outputDir = new File(
+//                    outputPath + this.parameterClass.getString(ParamString.DB_TABLE_TRIPS) + "_iter_" +
+//                            this.parameterClass.paramValueClass.getIntValue(ParamValue.ITERATION));
+//            if (!outputDir.exists()) {
+//                if (!outputDir.mkdir()) {
+//                    TPS_Logger.log(SeverityLogLevel.FATAL,
+//                            "Exception during VISUM export! cannot create output dir: " + outputDir.getAbsolutePath());
+//                    return;
+//                }
+//            }
+//            //TODO is this linkedlist necessary? look at unused/VisumJob
+//            LinkedList<String> tapasMatricesWithPaths = new LinkedList<>();
+//            for (int slice : slices) {
+//                thisTime = slice;
+//
+//                // get all trips for this mode in this timeslice
+//                for (i = 0; i < numModes; ++i) {
+//                    // init ODmatrix
+//                    for (j = 0; j < numTAZ; ++j) {
+//                        for (k = 0; k < numTAZ; ++k) {
+//                            ODMatrix[j][k] = 0;
+//                        }
+//                    }
+//
+//                    query = "SELECT taz_id_start, taz_id_end FROM " + this.parameterClass.getString(
+//                            ParamString.DB_TABLE_TRIPS) + " WHERE mode=" + i + " AND start_time_min<" + thisTime +
+//                            " AND start_time_min>=" + lastTime;
+//                    rs = dbCon.executeQuery(query, this);
+//                    while (rs.next()) {
+//                        j = rs.getInt("taz_id_start") - 1;
+//                        k = rs.getInt("taz_id_end") - 1;
+//                        ODMatrix[j][k] += sampleFactor;
+//                    }
+//                    rs.close();
+//                    // create filename
+//                    filename = "Mode_" + i + "_" + thisTime + ".mtx";
+//                    File outPutFile = new File(outputDir, filename);
+//                    tapasMatricesWithPaths.add(outPutFile.getPath());
+//                    // open file
+//                    FileWriter writer = new FileWriter(outPutFile);
+//                    if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+//                        TPS_Logger.log(SeverityLogLevel.INFO,
+//                                "Writing O/D matrices for mode " + i + ". Timeslot from " + (lastTime / 60) + "h to " +
+//                                        (thisTime / 60) + "h to file: " + outPutFile.getAbsolutePath());
+//                    }
+//                    // header
+//                    writer.append("$O;D3\n");
+//                    writer.append("* Von  Bis\n");
+//                    // append time
+//                    writer.append(lastTime / 60 + ".");
+//                    if (lastTime % 60 < 10) writer.append("0");
+//                    writer.append(lastTime % 60 + "\t" + thisTime / 60 + ".");
+//                    if (thisTime % 60 < 10) writer.append("0");
+//                    writer.append(thisTime % 60 + "\n");
+//                    // scale factor
+//                    writer.append("* Faktor\n1.0\n");
+//                    // writer.append(Double.toString(sampleFactor)+"\n");
+//                    writer.append("*\n");
+//                    writer.append("* DLR\n");
+//                    writer.append("* ");
+//                    Calendar now = Calendar.getInstance();
+//
+//                    writer.append(now.get(Calendar.DAY_OF_MONTH) + ".");
+//                    if (now.get(Calendar.MONTH) < 8) {
+//                        writer.append("0");
+//                    }
+//                    writer.append(Integer.toString(now.get(Calendar.MONTH) + 1) + now.get(Calendar.YEAR) + "\n");
+//                    // data
+//                    int from, to;
+//                    for (j = 0; j < numTAZ; ++j) {
+//                        from = this.indexToId.get(j);
+//                        for (k = 0; k < numTAZ; ++k) {
+//                            to = this.indexToId.get(k);
+//                            writer.append(" " + from + "  " + to + " " + (int) ODMatrix[j][k] + ".000\n");
+//                        }
+//                    }
+//                    // close file
+//                    writer.close();
+//                }
+//                // update for next loop
+//                lastTime = thisTime;
+//            }
+//
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.FATAL, "Exception during VISUM export! Error reading SQL! Query:" + query,
+//                    e);
+//            throw new SQLException("Exception during VISUM export! Error reading SQL! Query:" + query, e);
+//        } catch (IOException e) {
+//            TPS_Logger.log(SeverityLogLevel.FATAL, "Exception during VISUM export! Error writing cvs:", e);
+//            throw new IOException("Exception during VISUM export! Error reading SQL! Query:" + query, e);
+//        }
     }
 }

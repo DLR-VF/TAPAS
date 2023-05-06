@@ -8,10 +8,7 @@
 
 package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
-import com.csvreader.CsvWriter;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.PropertyReader;
-import de.dlr.ivf.tapas.tools.TPS_Geometrics;
 import org.apache.commons.cli.*;
 
 import java.io.File;
@@ -28,7 +25,7 @@ import java.util.Properties;
 /**
  * @author Holger
  */
-public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
+public class CruisingSpeedValidate {
     final int BINS_WIDTH = 500;
     final int RECORDS_ALL = 3;
     final int RECORDS = RECORDS_ALL - 1;
@@ -295,34 +292,34 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
     private boolean readData() {
         String query = "";
         for (int i = 0; i < RECORDS; i++) {
-            try {
-                query = "SELECT matrix_values FROM " + records[i].matricesTable + " WHERE matrix_name = '" +
-                        records[i].dataName + "';";
-
-                ResultSet rs = dbCon.executeQuery(query, this);
-                if (rs.next()) {
-                    Object array = rs.getArray(1).getArray();
-                    Integer[] matrixVal = (Integer[]) array;
-                    records[i].data = TPS_BasicConnectionClass.array1Dto2D(matrixVal);
-                } else {
-                    System.err.println("Record " + records[i].dataName + " in table " + records[i].matricesTable +
-                            " does not exist!");
-                    return false;
-                }
-            } catch (SQLException ex) {
-                System.err.println(
-                        this.getClass().getCanonicalName() + " executeParameters: SQL-Error during statement: " +
-                                query);
-                ex.printStackTrace();
-            }
-
-            // generate bee-line-matrix to build factors of reference table
-            CruisingSpeedCalculate csc = new CruisingSpeedCalculate(calcData);
-            records[Data.BASE_DATA.value].data = csc.calcDistance(records[Data.BASE_DATA.value].matricesTable,
-                    records[Data.REFERENCE_DATA.value].matricesTable, modus, terrain, false);
-            calcFactors = csc.getFactors();
-
-            TPS_Geometrics.calcTop3(records[2].data);
+//            try {
+//                query = "SELECT matrix_values FROM " + records[i].matricesTable + " WHERE matrix_name = '" +
+//                        records[i].dataName + "';";
+//
+//                ResultSet rs = dbCon.executeQuery(query, this);
+//                if (rs.next()) {
+//                    Object array = rs.getArray(1).getArray();
+//                    Integer[] matrixVal = (Integer[]) array;
+//                    records[i].data = TPS_BasicConnectionClass.array1Dto2D(matrixVal);
+//                } else {
+//                    System.err.println("Record " + records[i].dataName + " in table " + records[i].matricesTable +
+//                            " does not exist!");
+//                    return false;
+//                }
+//            } catch (SQLException ex) {
+//                System.err.println(
+//                        this.getClass().getCanonicalName() + " executeParameters: SQL-Error during statement: " +
+//                                query);
+//                ex.printStackTrace();
+//            }
+//
+//            // generate bee-line-matrix to build factors of reference table
+//            CruisingSpeedCalculate csc = new CruisingSpeedCalculate(calcData);
+//            records[Data.BASE_DATA.value].data = csc.calcDistance(records[Data.BASE_DATA.value].matricesTable,
+//                    records[Data.REFERENCE_DATA.value].matricesTable, modus, terrain, false);
+//            calcFactors = csc.getFactors();
+//
+//            TPS_Geometrics.calcTop3(records[2].data);
         }
 
         return true;
@@ -441,50 +438,50 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
         for (int t = 0; t < RECORDS; t++) {
             String out = output + File.separator + "factors_" + Data.values()[t].toString() + ".csv";
 
-            try {
-                CsvWriter csvOutput = new CsvWriter(new FileWriter(out.toLowerCase(), false), ';');
-
-                // write out the header line
-                csvOutput.write("From TAZ");
-                csvOutput.write("To TAZ");
-                csvOutput.write("Distance");
-                csvOutput.write("Factor");
-                csvOutput.endRecord();
-
-                // write out a few records
-              /*  for(int i = 0; i < factors[t].data[0].length; i++)
-                {
-                    csvOutput.write(String.valueOf((int)factors[t].data[0][i]));
-                    csvOutput.write(String.valueOf(factors[t].data[1][i]).replace('.', ','));
-                    csvOutput.endRecord();
-                }*/
-
-                int count = 0;
-
-                for (int i = 0; i < length; i++) {
-                    for (int j = 0; j < length; j++) {
-                        if (j >= i && records[t].data[i][j] != 99999) {
-                            csvOutput.write(Integer.toString(i));
-                            csvOutput.write(Integer.toString(j));
-                         /*   if(count == records[t].diagonalCount)
-                            {
-                                System.out.println("i="+i);
-                                System.out.println("j="+j);
-                                System.out.println("count="+count);
-                                System.out.println("diagonalCount="+records[t].diagonalCount);
-                            }*/
-                            csvOutput.write(String.valueOf((int) factors[t].data[0][count]));
-                            csvOutput.write(String.valueOf(factors[t].data[1][count]).replace('.', ','));
-                            csvOutput.endRecord();
-                            count++;
-                        }
-                    }
-                }
-
-                csvOutput.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                CsvWriter csvOutput = new CsvWriter(new FileWriter(out.toLowerCase(), false), ';');
+//
+//                // write out the header line
+//                csvOutput.write("From TAZ");
+//                csvOutput.write("To TAZ");
+//                csvOutput.write("Distance");
+//                csvOutput.write("Factor");
+//                csvOutput.endRecord();
+//
+//                // write out a few records
+//              /*  for(int i = 0; i < factors[t].data[0].length; i++)
+//                {
+//                    csvOutput.write(String.valueOf((int)factors[t].data[0][i]));
+//                    csvOutput.write(String.valueOf(factors[t].data[1][i]).replace('.', ','));
+//                    csvOutput.endRecord();
+//                }*/
+//
+//                int count = 0;
+//
+//                for (int i = 0; i < length; i++) {
+//                    for (int j = 0; j < length; j++) {
+//                        if (j >= i && records[t].data[i][j] != 99999) {
+//                            csvOutput.write(Integer.toString(i));
+//                            csvOutput.write(Integer.toString(j));
+//                         /*   if(count == records[t].diagonalCount)
+//                            {
+//                                System.out.println("i="+i);
+//                                System.out.println("j="+j);
+//                                System.out.println("count="+count);
+//                                System.out.println("diagonalCount="+records[t].diagonalCount);
+//                            }*/
+//                            csvOutput.write(String.valueOf((int) factors[t].data[0][count]));
+//                            csvOutput.write(String.valueOf(factors[t].data[1][count]).replace('.', ','));
+//                            csvOutput.endRecord();
+//                            count++;
+//                        }
+//                    }
+//                }
+//
+//                csvOutput.close();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 
@@ -504,56 +501,56 @@ public class CruisingSpeedValidate extends TPS_BasicConnectionClass {
 
         String out = output + File.separator + "statistics.csv";
 
-        try {
-            CsvWriter csvOutput = new CsvWriter(new FileWriter(out, false), ';');
-
-            // write out the header line
-            for (int i = 0; i < statistics[0][i].count; i++)
-                csvOutput.write(String.valueOf(i * BINS_WIDTH));
-            csvOutput.endRecord();
-
-
-            // write out records
-            for (int t = 0; t < RECORDS * 2; t++) {
-                for (int i = 0; i < statistics[0][i].count; i++)
-                    csvOutput.write(String.valueOf(statistics[t][i].arithmeticAverage).replace('.', ','));
-
-                csvOutput.endRecord();
-            }
-
-            // write bee-line distance
-       /*     for( int i = 0; i < length; i++)
-            {
-                for(int j = 0; j < length; j++)
-                {
-                    if(j >= i && records[Data.BASE_DATA.value].data[i][j] < 99_000 )
-                        csvOutput.write(String.valueOf(records[Data.BASE_DATA.value].data[i][j]).replace('.', ','));
-                }
-                csvOutput.endRecord();
-            }*/
-
-            // write formel and factors
-            if (calcFactors != null) {
-                csvOutput.endRecord();
-                csvOutput.endRecord();
-                csvOutput.write("(" + calcFactors[0] + "/log10(" + calcFactors[1] + "*(x^" + calcFactors[2] + ")+" +
-                        calcFactors[3] + "))+" + calcFactors[4]);
-                csvOutput.endRecord();
-                csvOutput.write("modus = " + modus);
-                csvOutput.endRecord();
-                csvOutput.write("terrain = " + terrain);
-            }
-            csvOutput.endRecord();
-            csvOutput.write("PT(" + Modus.PT.getCorrectionFactor() + ")");
-            csvOutput.write("MIV(" + Modus.MIV.getCorrectionFactor() + ")");
-            csvOutput.write("BIKE(" + Modus.BIKE.getCorrectionFactor() + ")");
-            csvOutput.write("WALK(" + Modus.WALK.getCorrectionFactor() + ")");
-            csvOutput.endRecord();
-
-            csvOutput.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            CsvWriter csvOutput = new CsvWriter(new FileWriter(out, false), ';');
+//
+//            // write out the header line
+//            for (int i = 0; i < statistics[0][i].count; i++)
+//                csvOutput.write(String.valueOf(i * BINS_WIDTH));
+//            csvOutput.endRecord();
+//
+//
+//            // write out records
+//            for (int t = 0; t < RECORDS * 2; t++) {
+//                for (int i = 0; i < statistics[0][i].count; i++)
+//                    csvOutput.write(String.valueOf(statistics[t][i].arithmeticAverage).replace('.', ','));
+//
+//                csvOutput.endRecord();
+//            }
+//
+//            // write bee-line distance
+//       /*     for( int i = 0; i < length; i++)
+//            {
+//                for(int j = 0; j < length; j++)
+//                {
+//                    if(j >= i && records[Data.BASE_DATA.value].data[i][j] < 99_000 )
+//                        csvOutput.write(String.valueOf(records[Data.BASE_DATA.value].data[i][j]).replace('.', ','));
+//                }
+//                csvOutput.endRecord();
+//            }*/
+//
+//            // write formel and factors
+//            if (calcFactors != null) {
+//                csvOutput.endRecord();
+//                csvOutput.endRecord();
+//                csvOutput.write("(" + calcFactors[0] + "/log10(" + calcFactors[1] + "*(x^" + calcFactors[2] + ")+" +
+//                        calcFactors[3] + "))+" + calcFactors[4]);
+//                csvOutput.endRecord();
+//                csvOutput.write("modus = " + modus);
+//                csvOutput.endRecord();
+//                csvOutput.write("terrain = " + terrain);
+//            }
+//            csvOutput.endRecord();
+//            csvOutput.write("PT(" + Modus.PT.getCorrectionFactor() + ")");
+//            csvOutput.write("MIV(" + Modus.MIV.getCorrectionFactor() + ")");
+//            csvOutput.write("BIKE(" + Modus.BIKE.getCorrectionFactor() + ")");
+//            csvOutput.write("WALK(" + Modus.WALK.getCorrectionFactor() + ")");
+//            csvOutput.endRecord();
+//
+//            csvOutput.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     enum Data // Data types

@@ -8,15 +8,12 @@
 
 package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.tools.TPS_Geometrics;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CruisingSpeedCalculate extends TPS_BasicConnectionClass {
+public class CruisingSpeedCalculate{
     private final Map<String, Double> correctionFactorModus = new HashMap<>();
     private final Map<String, Double> correctionFactorTerrain = new HashMap<>();
 
@@ -64,36 +61,36 @@ public class CruisingSpeedCalculate extends TPS_BasicConnectionClass {
         double[][] coord = null;
         double[][] dist = null;
 
-        try {
-            ResultSet rs = dbCon.executeQuery(query, this);
-            if (rs.next()) countTVZ = (int) rs.getLong(1);
-
-            System.out.println("countTVZ = " + countTVZ);
-
-            if (countTVZ <= 0) return null;
-
-            coord = new double[countTVZ][2];
-            dist = new double[countTVZ][countTVZ];
-            travelTime = new double[countTVZ][countTVZ];
-            indirectWayFactor = new double[countTVZ][countTVZ];
-
-            query = "select taz_id, taz_bbr_type, st_x(taz_coordinate) as x, st_y(taz_coordinate) as y from " +
-                    this.calcData.getTazTable() + " order by taz_id;";
-            rs = dbCon.executeQuery(query, this);
-            int i = 0;
-            while (rs.next()) {
-                coord[i][0] = rs.getDouble(3);
-                coord[i][1] = rs.getDouble(4);
-                i++;
-            }
-
-            rs.close();
-
-        } catch (SQLException ex) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " executeParameters: SQL-Error during statement: " + query);
-            ex.printStackTrace();
-        }
+//        try {
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            if (rs.next()) countTVZ = (int) rs.getLong(1);
+//
+//            System.out.println("countTVZ = " + countTVZ);
+//
+//            if (countTVZ <= 0) return null;
+//
+//            coord = new double[countTVZ][2];
+//            dist = new double[countTVZ][countTVZ];
+//            travelTime = new double[countTVZ][countTVZ];
+//            indirectWayFactor = new double[countTVZ][countTVZ];
+//
+//            query = "select taz_id, taz_bbr_type, st_x(taz_coordinate) as x, st_y(taz_coordinate) as y from " +
+//                    this.calcData.getTazTable() + " order by taz_id;";
+//            rs = dbCon.executeQuery(query, this);
+//            int i = 0;
+//            while (rs.next()) {
+//                coord[i][0] = rs.getDouble(3);
+//                coord[i][1] = rs.getDouble(4);
+//                i++;
+//            }
+//
+//            rs.close();
+//
+//        } catch (SQLException ex) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " executeParameters: SQL-Error during statement: " + query);
+//            ex.printStackTrace();
+//        }
 
         if (dist != null && coord != null) {
             for (int i = 0; i < countTVZ; i++) {
@@ -101,8 +98,8 @@ public class CruisingSpeedCalculate extends TPS_BasicConnectionClass {
                     if (i == k) {
                         dist[i][k] = 0;
                     } else {
-                        dist[i][k] = TPS_Geometrics.getDistance(coord[i][0], coord[i][1], coord[k][0], coord[k][1]);
-                        indirectWayFactor[i][k] = getIndirectWayFactor(modus, this.calcData.getTerrain(), dist[i][k]);
+//                        dist[i][k] = TPS_Geometrics.getDistance(coord[i][0], coord[i][1], coord[k][0], coord[k][1]);
+//                        directWayFactor[i][k] = getIndirectWayFactor(modus, this.calcData.getTerrain(), dist[i][k]);
 
                         if (this.calcData.isIndirectWayFactor()) dist[i][k] *= indirectWayFactor[i][k];
                     }

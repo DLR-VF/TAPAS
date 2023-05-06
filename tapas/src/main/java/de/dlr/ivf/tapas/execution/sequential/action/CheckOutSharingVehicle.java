@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.model.mode.SharingDelegator;
+import de.dlr.ivf.tapas.mode.SharingDelegator;
 
 public class CheckOutSharingVehicle<T> implements TPS_PlanStateAction {
 

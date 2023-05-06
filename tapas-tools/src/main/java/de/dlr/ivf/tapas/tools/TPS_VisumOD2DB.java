@@ -10,7 +10,6 @@ package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 
 import java.io.BufferedReader;
@@ -27,7 +26,7 @@ import java.util.HashMap;
  *
  * @author hein_mh
  */
-public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
+public class TPS_VisumOD2DB  {
 
     /**
      * hashmap for id conversion
@@ -59,8 +58,8 @@ public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
 
         worker.generateIntraCellInfos(0.8); //top3
 
-        worker.getParameters().setString(ParamString.DB_TABLE_MATRICES, args[2]);
-        worker.storeInDB(args[3], worker.getMatrix(), 0);
+//        worker.getParameters().setString(ParamString.DB_TABLE_MATRICES, args[2]);
+//        worker.storeInDB(args[3], worker.getMatrix(), 0);
 
 
         System.out.println("Matrix successfully processed!");
@@ -238,26 +237,26 @@ public class TPS_VisumOD2DB extends TPS_BasicConnectionClass {
         String query = "";
         ResultSet rs = null;
         int taz, externalId;
-        try {
-            query = "SELECT taz_id, taz_num_id FROM " + table;
-            rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                taz = rs.getInt("taz_id") - 1;
-                externalId = rs.getInt("taz_num_id");
-                if (externalId > 0) {
-                    if (idToIndex.get(externalId) == null) {//new tvz
-                        idToIndex.put(externalId, taz);
-                        indexToId.put(taz, externalId);
-                    }
-                }
-            }
-            rs.close();
-            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
-                TPS_Logger.log(SeverityLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! Query: " + query, e);
-            throw new SQLException("SQL error! Query: " + query, e);
-        }
+//        try {
+//            query = "SELECT taz_id, taz_num_id FROM " + table;
+//            rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                taz = rs.getInt("taz_id") - 1;
+//                externalId = rs.getInt("taz_num_id");
+//                if (externalId > 0) {
+//                    if (idToIndex.get(externalId) == null) {//new tvz
+//                        idToIndex.put(externalId, taz);
+//                        indexToId.put(taz, externalId);
+//                    }
+//                }
+//            }
+//            rs.close();
+//            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+//                TPS_Logger.log(SeverityLogLevel.INFO, "Found " + this.idToIndex.size() + " TVZ-IDs");
+//            }
+//        } catch (SQLException e) {
+//            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error! Query: " + query, e);
+//            throw new SQLException("SQL error! Query: " + query, e);
+//        }
     }
 }

@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.util.PropertyReader;
 import org.apache.commons.cli.*;
 
@@ -17,7 +15,7 @@ import java.io.*;
 import java.util.Properties;
 
 
-public class CruisingSpeed extends TPS_BasicConnectionClass {
+public class CruisingSpeed  {
     public static final String propertyFileName = "crusingspeed.properties";
 
     public static final int DISTANCE = 0;
@@ -407,32 +405,32 @@ public class CruisingSpeed extends TPS_BasicConnectionClass {
       /*  try{System.in.read();}
         catch(IOException ex) {}*/
 
-        for (int i = 0; i < 4; i++) {
-            if (getCalcData().getCalculation()[i]) {
-                double[][] dist = calculation.calcDistance(Modus.values()[i].toString());
-
-                if (dist != null) {
-                    if (calcData.isTop3()) TPS_Geometrics.calcTop3(dist);
-
-                    sqlVektor = TPS_BasicConnectionClass.matrixToStringWriterSQL(dist, 0);
-                    writeMatrix(sqlVektor, Modus.values()[i].getName(), DISTANCE);
-
-                    if (getCalcData().getCalculation()[i + 4]) {
-                        double[][] travelTime = calculation.getTravelTime(Modus.values()[i].toString());
-                        if (travelTime != null) {
-                            sqlVektor = TPS_BasicConnectionClass.matrixToStringWriterSQL(travelTime, 0);
-                            writeMatrix(sqlVektor, Modus.values()[i].getName(), TRAVELTIME);
-                        } else {
-                            throw new RuntimeException("error in travel time calculation");
-                        }
-                    }
-                } else {
-                    throw new RuntimeException("error in distance calculation");
-                }
-            }
-
-
-        }
+//        for (int i = 0; i < 4; i++) {
+//            if (getCalcData().getCalculation()[i]) {
+//                double[][] dist = calculation.calcDistance(Modus.values()[i].toString());
+//
+//                if (dist != null) {
+//                    if (calcData.isTop3()) TPS_Geometrics.calcTop3(dist);
+//
+//                    sqlVektor = TPS_BasicConnectionClass.matrixToStringWriterSQL(dist, 0);
+//                    writeMatrix(sqlVektor, Modus.values()[i].getName(), DISTANCE);
+//
+//                    if (getCalcData().getCalculation()[i + 4]) {
+//                        double[][] travelTime = calculation.getTravelTime(Modus.values()[i].toString());
+//                        if (travelTime != null) {
+//                            sqlVektor = TPS_BasicConnectionClass.matrixToStringWriterSQL(travelTime, 0);
+//                            writeMatrix(sqlVektor, Modus.values()[i].getName(), TRAVELTIME);
+//                        } else {
+//                            throw new RuntimeException("error in travel time calculation");
+//                        }
+//                    }
+//                } else {
+//                    throw new RuntimeException("error in distance calculation");
+//                }
+//            }
+//
+//
+//        }
 
         if (validation) {
             CruisingSpeedValidate cv = new CruisingSpeedValidate(this.valData, this.calcData);
@@ -450,17 +448,17 @@ public class CruisingSpeed extends TPS_BasicConnectionClass {
         //ResultSet rs = null;
         String name = generateRecordName(modus, type);
         System.out.println(name);
-        String tableName = CruisingSpeed.properties.getProperty("matricesTable").trim();
-        String query = "DELETE FROM " + tableName + " where matrix_name = '" + name + "'";
-        dbCon.execute(query, this);
-        System.out.println("delete from db");
-
-        query = "INSERT INTO " + tableName + " (\"matrix_name\",\"matrix_values\")" + " VALUES('" + name + "',";
-        query += sqlVektor.toString() + ")";
-
-        dbCon.execute(query, this);
-
-        System.out.println("wrote to db");
+//        String tableName = CruisingSpeed.properties.getProperty("matricesTable").trim();
+//        String query = "DELETE FROM " + tableName + " where matrix_name = '" + name + "'";
+//        dbCon.execute(query, this);
+//        System.out.println("delete from db");
+//
+//        query = "INSERT INTO " + tableName + " (\"matrix_name\",\"matrix_values\")" + " VALUES('" + name + "',";
+//        query += sqlVektor.toString() + ")";
+//
+//        dbCon.execute(query, this);
+//
+//        System.out.println("wrote to db");
     }
 
     private void writeNewPropertyFile() {

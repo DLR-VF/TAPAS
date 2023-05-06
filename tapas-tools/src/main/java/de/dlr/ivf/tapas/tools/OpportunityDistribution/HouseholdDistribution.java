@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -27,7 +25,7 @@ import java.util.Map;
  *
  * @author boec_pa
  */
-public class HouseholdDistribution extends TPS_BasicConnectionClass {
+public class HouseholdDistribution{
 
     static final double MIN_PROB = 1E-5;
     static final int RESIDENTIAL = 0;// 2111;
@@ -56,69 +54,69 @@ public class HouseholdDistribution extends TPS_BasicConnectionClass {
      */
     public HouseholdDistribution() {
         // get all blocks
-        String query = "SELECT DISTINCT blk_id AS blk" + " FROM core.berlin_blocks";
-        try {
-            System.out.println(
-                    "Starting to fetch all blocks and their number of households." + "\nThis may take a while...");
-            ResultSet rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                blocks.add(rs.getInt("blk"));
-            }
-            rs.close();
-            System.out.println("I found " + blocks.size() + " blocks.");
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + query);
-            e.printStackTrace();
-            return;
-        }
-
-        // get all household keys
-        query = "SELECT DISTINCT hh_key AS key FROM core.berlin_households";
-        try {
-            ResultSet rs = dbCon.executeQuery(query, this);
-            while (rs.next()) keys.add(rs.getString("key"));
-            rs.close();
-
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + query);
-            e.printStackTrace();
-            return;
-        }
-
-        try {
-            updateHouseholds = dbCon.getConnection(this).prepareStatement(
-                    "UPDATE core.berlin_households AS hh " + " SET hh_coordinate_old = b.the_geom " +
-                            " FROM core.berlin_buildings AS b WHERE " + " hh.hh_id = ? AND hh_key = ? AND b.id = ?");
-
-            updateHouseholdsNoBuilding = dbCon.getConnection(this).prepareStatement(
-                    "UPDATE core.berlin_households AS hh " + " SET hh_coordinate_old = b.blk_coordinate " +
-                            " FROM core.berlin_blocks AS b " +
-                            " WHERE ST_DWITHIN(hh.hh_coordinate,b.blk_coordinate,0.00001) " + " AND b.blk_id = ? ");
-
-            fetchHouseholds = dbCon.getConnection(this).prepareStatement(
-                    "SELECT * FROM (SELECT DISTINCT h.hh_id as hh " + " FROM core.berlin_households AS h " +
-                            " JOIN core.berlin_blocks AS b " +
-                            " ON ST_DWITHIN(h.hh_coordinate,b.blk_coordinate,0.00001) " +
-                            " WHERE b.blk_id = ? AND h.hh_key = ? ) AS t ORDER BY RANDOM()");
-
-            fetchBuildings = dbCon.getConnection(this).prepareStatement(
-                    "WITH dlmblocks AS " + "(SELECT ST_TRANSFORM(d.the_geom,4326) AS geom, d.objart " +
-                            " FROM core.berlin_blocks_multiline AS b " + " JOIN core.gis_dlm_fot AS d " +
-                            " ON ST_INTERSECTS(d.the_geom,ST_TRANSFORM(b.the_geom, 31467)) " +
-                            " WHERE b.netzf = 'Block' " + " AND b.blocknr = ? " +
-                            " AND objart= ANY(ARRAY[2111,2112, 2113, 2114])" +
-                            " AND area(ST_INTERSECTION(ST_TRANSFORM(b.the_geom, 31467),d.the_geom))/area(d.the_geom) > 0.1 )" +
-                            " SELECT bld.id AS building, dlm.objart AS type" + " FROM core.berlin_buildings AS bld " +
-                            " JOIN dlmblocks AS dlm " + " ON ST_WITHIN(bld.the_geom, dlm.geom)");
-            fetchBuildingsSimple = dbCon.getConnection(this).prepareStatement(
-                    "SELECT bld.id AS building" + " FROM core.berlin_buildings AS bld " +
-                            " JOIN core.berlin_blocks_multiline AS block " +
-                            " ON ST_WITHIN(bld.the_geom,block.the_geom) " +
-                            " WHERE bld.bundesland='11' AND block.blocknr = ?");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+//        String query = "SELECT DISTINCT blk_id AS blk" + " FROM core.berlin_blocks";
+//        try {
+//            System.out.println(
+//                    "Starting to fetch all blocks and their number of households." + "\nThis may take a while...");
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                blocks.add(rs.getInt("blk"));
+//            }
+//            rs.close();
+//            System.out.println("I found " + blocks.size() + " blocks.");
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + query);
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//        // get all household keys
+//        query = "SELECT DISTINCT hh_key AS key FROM core.berlin_households";
+//        try {
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) keys.add(rs.getString("key"));
+//            rs.close();
+//
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + query);
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//        try {
+//            updateHouseholds = dbCon.getConnection(this).prepareStatement(
+//                    "UPDATE core.berlin_households AS hh " + " SET hh_coordinate_old = b.the_geom " +
+//                            " FROM core.berlin_buildings AS b WHERE " + " hh.hh_id = ? AND hh_key = ? AND b.id = ?");
+//
+//            updateHouseholdsNoBuilding = dbCon.getConnection(this).prepareStatement(
+//                    "UPDATE core.berlin_households AS hh " + " SET hh_coordinate_old = b.blk_coordinate " +
+//                            " FROM core.berlin_blocks AS b " +
+//                            " WHERE ST_DWITHIN(hh.hh_coordinate,b.blk_coordinate,0.00001) " + " AND b.blk_id = ? ");
+//
+//            fetchHouseholds = dbCon.getConnection(this).prepareStatement(
+//                    "SELECT * FROM (SELECT DISTINCT h.hh_id as hh " + " FROM core.berlin_households AS h " +
+//                            " JOIN core.berlin_blocks AS b " +
+//                            " ON ST_DWITHIN(h.hh_coordinate,b.blk_coordinate,0.00001) " +
+//                            " WHERE b.blk_id = ? AND h.hh_key = ? ) AS t ORDER BY RANDOM()");
+//
+//            fetchBuildings = dbCon.getConnection(this).prepareStatement(
+//                    "WITH dlmblocks AS " + "(SELECT ST_TRANSFORM(d.the_geom,4326) AS geom, d.objart " +
+//                            " FROM core.berlin_blocks_multiline AS b " + " JOIN core.gis_dlm_fot AS d " +
+//                            " ON ST_INTERSECTS(d.the_geom,ST_TRANSFORM(b.the_geom, 31467)) " +
+//                            " WHERE b.netzf = 'Block' " + " AND b.blocknr = ? " +
+//                            " AND objart= ANY(ARRAY[2111,2112, 2113, 2114])" +
+//                            " AND area(ST_INTERSECTION(ST_TRANSFORM(b.the_geom, 31467),d.the_geom))/area(d.the_geom) > 0.1 )" +
+//                            " SELECT bld.id AS building, dlm.objart AS type" + " FROM core.berlin_buildings AS bld " +
+//                            " JOIN dlmblocks AS dlm " + " ON ST_WITHIN(bld.the_geom, dlm.geom)");
+//            fetchBuildingsSimple = dbCon.getConnection(this).prepareStatement(
+//                    "SELECT bld.id AS building" + " FROM core.berlin_buildings AS bld " +
+//                            " JOIN core.berlin_blocks_multiline AS block " +
+//                            " ON ST_WITHIN(bld.the_geom,block.the_geom) " +
+//                            " WHERE bld.bundesland='11' AND block.blocknr = ?");
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private static int getLanduseFromCode(int landuseCode) {

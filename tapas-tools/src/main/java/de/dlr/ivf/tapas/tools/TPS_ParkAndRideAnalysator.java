@@ -47,76 +47,76 @@ public class TPS_ParkAndRideAnalysator extends TPS_ParkAndRideRouter {
         //store into DB
         String query = "";
 
-        try {
-
-            query = "SELECT taz_id_start, taz_id_end, start_time_min, activity_start_min, activity_duration_min FROM " +
-                    name + " where mode = 2";
-
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            int from, to, interchange = 0, num;
-            double interchangeD;
-            while (rs.next()) {
-                from = rs.getInt("taz_id_start");
-                if (!interchangeCounter.containsKey(from)) {
-                    interchangeCounter.put(from, 0);
-                }
-                from -= 1;
-                to = rs.getInt("taz_id_end") - 1;
-                interchangeD = (int) interchanges.getValue(from, to);
-                if (interchangeD >= 0.) {
-                    interchange = (int) (interchangeD + 1.5); //round plus index increment
-                    num = 1;
-                    if (interchangeCounter.containsKey(interchange)) {
-                        num += interchangeCounter.get(interchange);
-                    }
-                    interchangeCounter.put(interchange, num);
-                }
-                if (this.originalMIVTimes != null && this.pnrMIVTimes != null && interchangeD >= 0.) {
-
-                    double diff = this.pnrMIVTimes.getValue(from, to) - this.originalMIVTimes.getValue(from, to);
-                    int bin = (int) (diff / timeBinWitdh);
-                    int numCount = 1;
-                    if (connTimeHisto.containsKey(bin)) {
-                        numCount += connTimeHisto.get(bin);
-                    }
-                    connTimeHisto.put(bin, numCount);
-                }
-                if (this.isPnR.get(from) != this.isPnR.get(to) && interchange > 0) { //in or out the region
-                    if (this.isPnR.get(to)) {
-
-                        if (!this.pnrOccupancy.containsKey(interchange)) {
-                            this.pnrOccupancy.put(interchange, new PnRSpace());
-                        }
-                        PnRSpace tmp = this.pnrOccupancy.get(interchange);
-                        int start = rs.getInt("start_time_min");
-                        int duration = rs.getInt("activity_duration_min") + 2 * (rs.getInt("activity_start_min") -
-                                start); //duration + two times travel time
-                        tmp.bookParkingLot(start, duration);
-                    }
-                }
-            }
-            rs.close();
-            for (int i = 0; i < this.pnrMIVTimes.getNumberOfRows(); ++i) {
-                for (int j = 0; j < this.pnrMIVTimes.getNumberOfColums(); ++j) {
-                    interchangeD = (int) interchanges.getValue(i, j);
-                    if (this.originalMIVTimes != null && this.pnrMIVTimes != null && interchangeD >= 0.) {
-                        double diff = this.pnrMIVTimes.getValue(i, j) - this.originalMIVTimes.getValue(i, j);
-                        int bin = (int) (diff / timeBinWitdh);
-                        int numCount = 1;
-                        if (connTimeHisto.containsKey(bin)) {
-                            numCount += connTimeHisto.get(bin);
-                        }
-                        connTimeHisto.put(bin, numCount);
-                    }
-                }
-
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error during sql-statement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//
+//            query = "SELECT taz_id_start, taz_id_end, start_time_min, activity_start_min, activity_duration_min FROM " +
+//                    name + " where mode = 2";
+//
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            int from, to, interchange = 0, num;
+//            double interchangeD;
+//            while (rs.next()) {
+//                from = rs.getInt("taz_id_start");
+//                if (!interchangeCounter.containsKey(from)) {
+//                    interchangeCounter.put(from, 0);
+//                }
+//                from -= 1;
+//                to = rs.getInt("taz_id_end") - 1;
+//                interchangeD = (int) interchanges.getValue(from, to);
+//                if (interchangeD >= 0.) {
+//                    interchange = (int) (interchangeD + 1.5); //round plus index increment
+//                    num = 1;
+//                    if (interchangeCounter.containsKey(interchange)) {
+//                        num += interchangeCounter.get(interchange);
+//                    }
+//                    interchangeCounter.put(interchange, num);
+//                }
+//                if (this.originalMIVTimes != null && this.pnrMIVTimes != null && interchangeD >= 0.) {
+//
+//                    double diff = this.pnrMIVTimes.getValue(from, to) - this.originalMIVTimes.getValue(from, to);
+//                    int bin = (int) (diff / timeBinWitdh);
+//                    int numCount = 1;
+//                    if (connTimeHisto.containsKey(bin)) {
+//                        numCount += connTimeHisto.get(bin);
+//                    }
+//                    connTimeHisto.put(bin, numCount);
+//                }
+//                if (this.isPnR.get(from) != this.isPnR.get(to) && interchange > 0) { //in or out the region
+//                    if (this.isPnR.get(to)) {
+//
+//                        if (!this.pnrOccupancy.containsKey(interchange)) {
+//                            this.pnrOccupancy.put(interchange, new PnRSpace());
+//                        }
+//                        PnRSpace tmp = this.pnrOccupancy.get(interchange);
+//                        int start = rs.getInt("start_time_min");
+//                        int duration = rs.getInt("activity_duration_min") + 2 * (rs.getInt("activity_start_min") -
+//                                start); //duration + two times travel time
+//                        tmp.bookParkingLot(start, duration);
+//                    }
+//                }
+//            }
+//            rs.close();
+//            for (int i = 0; i < this.pnrMIVTimes.getNumberOfRows(); ++i) {
+//                for (int j = 0; j < this.pnrMIVTimes.getNumberOfColums(); ++j) {
+//                    interchangeD = (int) interchanges.getValue(i, j);
+//                    if (this.originalMIVTimes != null && this.pnrMIVTimes != null && interchangeD >= 0.) {
+//                        double diff = this.pnrMIVTimes.getValue(i, j) - this.originalMIVTimes.getValue(i, j);
+//                        int bin = (int) (diff / timeBinWitdh);
+//                        int numCount = 1;
+//                        if (connTimeHisto.containsKey(bin)) {
+//                            numCount += connTimeHisto.get(bin);
+//                        }
+//                        connTimeHisto.put(bin, numCount);
+//                    }
+//                }
+//
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error during sql-statement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
     }
 
     public void loadInterchanges(String name, String tableName) {
@@ -139,20 +139,20 @@ public class TPS_ParkAndRideAnalysator extends TPS_ParkAndRideRouter {
         //store into DB
         String query = "";
 
-        try {
-
-            query = "SELECT ft_taz_id, is_park_and_ride from " + table + " where ft_name = '" + name + "'";
-
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                this.isPnR.put((rs.getInt("ft_taz_id") - 1), rs.getBoolean("is_park_and_ride"));
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println("Error during sql-statement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//
+//            query = "SELECT ft_taz_id, is_park_and_ride from " + table + " where ft_name = '" + name + "'";
+//
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                this.isPnR.put((rs.getInt("ft_taz_id") - 1), rs.getBoolean("is_park_and_ride"));
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println("Error during sql-statement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
     }
 
     public void printConnHistoOnScreen() {
@@ -177,12 +177,12 @@ public class TPS_ParkAndRideAnalysator extends TPS_ParkAndRideRouter {
         //store into DB
         //delete old entry
         String query = "DROP TABLE IF EXISTS " + tableName;
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
         //create table
         query = "CREATE TABLE " + tableName +
                 " (taz_id integer, interchanges integer, max_parking integer, peak_hour integer, CONSTRAINT " +
                 tableName + "_pkey PRIMARY KEY (taz_id)) WITH (  OIDS = FALSE);";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
 
         //fill it!
         for (Entry<Integer, Integer> e : this.interchangeCounter.entrySet()) {
@@ -195,7 +195,7 @@ public class TPS_ParkAndRideAnalysator extends TPS_ParkAndRideRouter {
                         ")";
 
             }
-            this.dbCon.execute(query, this);
+//            this.dbCon.execute(query, this);
         }
     }
 

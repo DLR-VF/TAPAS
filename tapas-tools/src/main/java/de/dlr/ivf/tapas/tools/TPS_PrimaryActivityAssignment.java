@@ -8,8 +8,7 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -22,7 +21,7 @@ import java.util.*;
  * to individuals whose main activity is work, school, university or vocational training.
  * People from other groups are not assigned a fixed location.
  */
-public class TPS_PrimaryActivityAssignment extends TPS_BasicConnectionClass {
+public class TPS_PrimaryActivityAssignment {
     final int distanceBinSize;
     List<Person> persons = new ArrayList<>();
     Map<Integer, List<Location>> locations = new TreeMap<>();
@@ -51,7 +50,7 @@ public class TPS_PrimaryActivityAssignment extends TPS_BasicConnectionClass {
      * also initializes the distance of the bins for the length distribution for workers
      */
     public TPS_PrimaryActivityAssignment() {
-        super("T:\\Simulationen\\runtime_argos_admin.csv");
+
         this.distanceBinSize = 500;
     }
 
@@ -235,25 +234,25 @@ public class TPS_PrimaryActivityAssignment extends TPS_BasicConnectionClass {
      */
     public void createTable(String table) {
         String query = "";
-        try {
-            query = "DROP TABLE IF EXISTS " + table;
-            dbCon.execute(query, this);
-            query = "CREATE TABLE " + table + " (" + "p_id integer NOT NULL, " + "p_hh_id integer NOT NULL, " +
-                    "p_group integer, " + "p_sex integer, " + "p_age integer, " + "p_age_stba integer, " +
-                    "p_work_id integer, " + "p_working integer, " + "p_abo integer, " + "p_budget_pt integer, " +
-                    "p_budget_it integer, " + "p_budget_it_fi integer, " + "p_key character varying NOT NULL, " +
-                    "p_driver_license integer, " + "p_has_bike boolean, " + "p_education integer, " +
-                    "p_professional integer, " + "p_loc_id integer, " +
-                    "CONSTRAINT berlin_persons_fix_location_pkey PRIMARY KEY(p_id,p_hh_id,p_key)); " + "ALTER TABLE " +
-                    table + " OWNER TO tapas_admin_group; " + "GRANT ALL ON TABLE " + table +
-                    " TO tapas_admin_group; " + "GRANT ALL ON TABLE " + table + " TO tapas_user_group;";
-
-            dbCon.execute(query, this);
-
-        } catch (Exception e) {
-            System.err.println(this.getClass().getCanonicalName() + " SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "DROP TABLE IF EXISTS " + table;
+//            dbCon.execute(query, this);
+//            query = "CREATE TABLE " + table + " (" + "p_id integer NOT NULL, " + "p_hh_id integer NOT NULL, " +
+//                    "p_group integer, " + "p_sex integer, " + "p_age integer, " + "p_age_stba integer, " +
+//                    "p_work_id integer, " + "p_working integer, " + "p_abo integer, " + "p_budget_pt integer, " +
+//                    "p_budget_it integer, " + "p_budget_it_fi integer, " + "p_key character varying NOT NULL, " +
+//                    "p_driver_license integer, " + "p_has_bike boolean, " + "p_education integer, " +
+//                    "p_professional integer, " + "p_loc_id integer, " +
+//                    "CONSTRAINT berlin_persons_fix_location_pkey PRIMARY KEY(p_id,p_hh_id,p_key)); " + "ALTER TABLE " +
+//                    table + " OWNER TO tapas_admin_group; " + "GRANT ALL ON TABLE " + table +
+//                    " TO tapas_admin_group; " + "GRANT ALL ON TABLE " + table + " TO tapas_user_group;";
+//
+//            dbCon.execute(query, this);
+//
+//        } catch (Exception e) {
+//            System.err.println(this.getClass().getCanonicalName() + " SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -280,47 +279,47 @@ public class TPS_PrimaryActivityAssignment extends TPS_BasicConnectionClass {
     public void insertPersonsIntoTable(String table) {
         String query = "";
 
-        try {
-            query = "INSERT INTO " + table +
-                    " (p_id, p_hh_id, p_group, p_sex, p_age, p_age_stba, p_work_id, p_working, p_abo, p_budget_pt," +
-                    " p_budget_it, p_budget_it_fi, p_key, p_driver_license, p_has_bike, p_education, p_professional, p_loc_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
-            PreparedStatement ps = dbCon.getConnection(this).prepareStatement(query);
-            int pos;
-            int count = 0, chunk = 1024 * 16;
-            for (Person p : persons) {
-                pos = 1;
-                ps.setInt(pos++, p.p_id);
-                ps.setInt(pos++, p.p_hh_id);
-                ps.setInt(pos++, p.p_group);
-                ps.setInt(pos++, p.p_sex);
-                ps.setInt(pos++, p.p_age);
-                ps.setInt(pos++, p.p_age_stba);
-                ps.setInt(pos++, p.p_work_id);
-                ps.setInt(pos++, p.p_working);
-                ps.setInt(pos++, p.p_abo);
-                ps.setInt(pos++, p.p_budget_pt);
-                ps.setInt(pos++, p.p_budget_it);
-                ps.setInt(pos++, p.p_budget_it_fi);
-                ps.setString(pos++, p.p_key);
-                ps.setInt(pos++, p.p_driver_license);
-                ps.setBoolean(pos++, p.p_has_bike);
-                ps.setInt(pos++, p.p_education);
-                ps.setInt(pos++, p.p_professional);
-                ps.setInt(pos++, p.p_loc_id);
-                ps.addBatch();
-                count++;
-                if (count % chunk == 0) {
-                    ps.executeBatch();
-                    System.out.println("Stored " + count + " persons.");
-                }
-            }
-            ps.executeBatch();
-            System.out.println("Stored " + count + " persons.");
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + " SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "INSERT INTO " + table +
+//                    " (p_id, p_hh_id, p_group, p_sex, p_age, p_age_stba, p_work_id, p_working, p_abo, p_budget_pt," +
+//                    " p_budget_it, p_budget_it_fi, p_key, p_driver_license, p_has_bike, p_education, p_professional, p_loc_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+//
+//            PreparedStatement ps = dbCon.getConnection(this).prepareStatement(query);
+//            int pos;
+//            int count = 0, chunk = 1024 * 16;
+//            for (Person p : persons) {
+//                pos = 1;
+//                ps.setInt(pos++, p.p_id);
+//                ps.setInt(pos++, p.p_hh_id);
+//                ps.setInt(pos++, p.p_group);
+//                ps.setInt(pos++, p.p_sex);
+//                ps.setInt(pos++, p.p_age);
+//                ps.setInt(pos++, p.p_age_stba);
+//                ps.setInt(pos++, p.p_work_id);
+//                ps.setInt(pos++, p.p_working);
+//                ps.setInt(pos++, p.p_abo);
+//                ps.setInt(pos++, p.p_budget_pt);
+//                ps.setInt(pos++, p.p_budget_it);
+//                ps.setInt(pos++, p.p_budget_it_fi);
+//                ps.setString(pos++, p.p_key);
+//                ps.setInt(pos++, p.p_driver_license);
+//                ps.setBoolean(pos++, p.p_has_bike);
+//                ps.setInt(pos++, p.p_education);
+//                ps.setInt(pos++, p.p_professional);
+//                ps.setInt(pos++, p.p_loc_id);
+//                ps.addBatch();
+//                count++;
+//                if (count % chunk == 0) {
+//                    ps.executeBatch();
+//                    System.out.println("Stored " + count + " persons.");
+//                }
+//            }
+//            ps.executeBatch();
+//            System.out.println("Stored " + count + " persons.");
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + " SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     private void matrixConversion() {
@@ -337,17 +336,17 @@ public class TPS_PrimaryActivityAssignment extends TPS_BasicConnectionClass {
      */
     public List<String> pKeyList(String table) {
         String query = "";
-        try {
-            query = "SELECT DISTINCT p_key FROM " + table;
-            ResultSet rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                String s = rs.getString("p_key");
-                keys_var.add(s);
-            }
-        } catch (Exception e) {
-            System.err.println("Error: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT DISTINCT p_key FROM " + table;
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                String s = rs.getString("p_key");
+//                keys_var.add(s);
+//            }
+//        } catch (Exception e) {
+//            System.err.println("Error: " + query);
+//            e.printStackTrace();
+//        }
         return keys_var;
     }
 
@@ -431,92 +430,92 @@ public class TPS_PrimaryActivityAssignment extends TPS_BasicConnectionClass {
     public void readLocationsTable(String table) {
         String query = "";
         int locCounter = 0;
-        try {
-            query = "WITH l AS (SELECT loc_id, loc_code, loc_type, ST_X(loc_coordinate) AS lon, " +
-                    "ST_Y(loc_coordinate) AS lat, loc_taz_id, loc_capacity FROM " + table + ") " +
-                    "SELECT lon, lat, loc_capacity, loc_taz_id, loc_id, loc_code, loc_type FROM l";
-
-            ResultSet rs = dbCon.executeQuery(query, this);
-
-            while (rs.next()) {
-                Location location = new Location();
-                location.loc_id = rs.getInt("loc_id");
-                location.loc_code = rs.getInt("loc_code");
-                location.loc_type = rs.getString("loc_type");
-                location.loc_capacity = rs.getInt("loc_capacity");
-                location.x = rs.getDouble("lon");
-                location.y = rs.getDouble("lat");
-                location.loc_taz_id = rs.getInt("loc_taz_id");
-
-                if (workplaceMap.get(location.loc_taz_id) == null) {
-                    Map<Integer, List<Integer>> tempDistanceCategories = new TreeMap<>(distanceCategories);
-                    workplaceMap.put(location.loc_taz_id, tempDistanceCategories);
-                }
-
-                List<Location> tmpList = this.locations.computeIfAbsent(location.loc_code, k -> new ArrayList<>());
-//                List<Location> tmpList = this.locations.get(location.loc_code);
-//                if(tmpList == null){
-//                    tmpList = new ArrayList<>();
-//                    this.locations.put(location.loc_code,tmpList);
+//        try {
+//            query = "WITH l AS (SELECT loc_id, loc_code, loc_type, ST_X(loc_coordinate) AS lon, " +
+//                    "ST_Y(loc_coordinate) AS lat, loc_taz_id, loc_capacity FROM " + table + ") " +
+//                    "SELECT lon, lat, loc_capacity, loc_taz_id, loc_id, loc_code, loc_type FROM l";
+//
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//
+//            while (rs.next()) {
+//                Location location = new Location();
+//                location.loc_id = rs.getInt("loc_id");
+//                location.loc_code = rs.getInt("loc_code");
+//                location.loc_type = rs.getString("loc_type");
+//                location.loc_capacity = rs.getInt("loc_capacity");
+//                location.x = rs.getDouble("lon");
+//                location.y = rs.getDouble("lat");
+//                location.loc_taz_id = rs.getInt("loc_taz_id");
+//
+//                if (workplaceMap.get(location.loc_taz_id) == null) {
+//                    Map<Integer, List<Integer>> tempDistanceCategories = new TreeMap<>(distanceCategories);
+//                    workplaceMap.put(location.loc_taz_id, tempDistanceCategories);
 //                }
-                tmpList.add(location);
-
-                // capacities for all locations
-                int cappa = location.loc_capacity;
-                if (globalLocationCapacity.containsKey(location.loc_code)) {
-                    cappa += globalLocationCapacity.get(location.loc_code);
-                }
-                globalLocationCapacity.put(location.loc_code, cappa);
-
-                // capacities for workplace locations and fill workplaceTazIds
-                List<Integer> locIdsList = workplaceTazIds.get(location.loc_taz_id);
-                if (location.loc_code == 1001000000 && location.loc_capacity > 0) {
-                    workplaceCapacity.put(location.loc_id, location.loc_capacity);
-                    if (locIdsList == null) {
-                        locIdsList = new ArrayList<>();
-                        workplaceTazIds.put(location.loc_taz_id, locIdsList);
-                    }
-                    locIdsList.add(location.loc_id);
-                }
-
-                // capacities for tertiary education
-                if (location.loc_code == 1002004002 || location.loc_code == 1002004001) {
-                    tertiaryEduIDs.put(location.loc_id, location.loc_capacity);
-                }
-                locCounter++;
-            }
-            rs.close();
-            System.out.println("Number of locations = " + locCounter);
-
-            //removes the codes with 0 capacity
-            Iterator<Map.Entry<Integer, Integer>> it = globalLocationCapacity.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Integer, Integer> entry = it.next();
-                if (entry.getValue() == 0) {
-                    it.remove();
-                }
-            }
-
-            //creates a Map for the school codes and capacities
-            for (Map.Entry<Integer, Integer> entry : globalLocationCapacity.entrySet()) {
-                if (schoolType.contains(entry.getKey())) {
-                    globalSchoolCapacity.put(entry.getKey(), entry.getValue());
-                }
-            }
-
-            //pre-step of random-assignation of loc_codes for pupils in secondary schools
-            prepareSecondarySchoolLocations();
-
-            //pre-step of random-assignation of loc_ids for students in tertiary education
-            prepareTertiaryEduLocations();
-
-            //pre-step to prepare data containers for distance related information for workplace assignment
-            prepareDistanceCategories();
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " readlocationsTable: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//
+//                List<Location> tmpList = this.locations.computeIfAbsent(location.loc_code, k -> new ArrayList<>());
+////                List<Location> tmpList = this.locations.get(location.loc_code);
+////                if(tmpList == null){
+////                    tmpList = new ArrayList<>();
+////                    this.locations.put(location.loc_code,tmpList);
+////                }
+//                tmpList.add(location);
+//
+//                // capacities for all locations
+//                int cappa = location.loc_capacity;
+//                if (globalLocationCapacity.containsKey(location.loc_code)) {
+//                    cappa += globalLocationCapacity.get(location.loc_code);
+//                }
+//                globalLocationCapacity.put(location.loc_code, cappa);
+//
+//                // capacities for workplace locations and fill workplaceTazIds
+//                List<Integer> locIdsList = workplaceTazIds.get(location.loc_taz_id);
+//                if (location.loc_code == 1001000000 && location.loc_capacity > 0) {
+//                    workplaceCapacity.put(location.loc_id, location.loc_capacity);
+//                    if (locIdsList == null) {
+//                        locIdsList = new ArrayList<>();
+//                        workplaceTazIds.put(location.loc_taz_id, locIdsList);
+//                    }
+//                    locIdsList.add(location.loc_id);
+//                }
+//
+//                // capacities for tertiary education
+//                if (location.loc_code == 1002004002 || location.loc_code == 1002004001) {
+//                    tertiaryEduIDs.put(location.loc_id, location.loc_capacity);
+//                }
+//                locCounter++;
+//            }
+//            rs.close();
+//            System.out.println("Number of locations = " + locCounter);
+//
+//            //removes the codes with 0 capacity
+//            Iterator<Map.Entry<Integer, Integer>> it = globalLocationCapacity.entrySet().iterator();
+//            while (it.hasNext()) {
+//                Map.Entry<Integer, Integer> entry = it.next();
+//                if (entry.getValue() == 0) {
+//                    it.remove();
+//                }
+//            }
+//
+//            //creates a Map for the school codes and capacities
+//            for (Map.Entry<Integer, Integer> entry : globalLocationCapacity.entrySet()) {
+//                if (schoolType.contains(entry.getKey())) {
+//                    globalSchoolCapacity.put(entry.getKey(), entry.getValue());
+//                }
+//            }
+//
+//            //pre-step of random-assignation of loc_codes for pupils in secondary schools
+//            prepareSecondarySchoolLocations();
+//
+//            //pre-step of random-assignation of loc_ids for students in tertiary education
+//            prepareTertiaryEduLocations();
+//
+//            //pre-step to prepare data containers for distance related information for workplace assignment
+//            prepareDistanceCategories();
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " readlocationsTable: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -530,71 +529,71 @@ public class TPS_PrimaryActivityAssignment extends TPS_BasicConnectionClass {
     public void readPersonsTable(String p_table, String hh_table, String key) {
         persons.clear();
         String query = "";
-        try {
-            final int chunks = 20;
-            int count = 0;
-            for (int counter = 0; counter < chunks; counter++) {
-                query = "WITH p AS (SELECT p_id, p_hh_id, p_group, p_sex, p_age, p_age_stba, p_work_id, p_working, " +
-                        "p_abo, p_budget_pt, p_budget_it, p_budget_it_fi, p_key, p_driver_license, p_has_bike, p_education, p_professional " +
-                        "FROM " + p_table + " WHERE p_key = '" + key + "'), " +
-                        "h AS (SELECT hh_id, ST_X(hh_coordinate) AS lon, ST_Y(hh_coordinate) AS lat, hh_taz_id FROM " +
-                        hh_table + " WHERE hh_key = '" + key + "') " +
-                        "SELECT p_id, p_hh_id, p_group, p_sex, p_age, p_age_stba, p_work_id, p_working, p_abo, p_budget_pt, p_budget_it, " +
-                        "p_budget_it_fi, p_key, p_driver_license, p_has_bike, p_education, p_professional, lon, lat, hh_taz_id " +
-                        "FROM p, h WHERE p.p_hh_id = h.hh_id AND p.p_id%" + chunks + " = " + counter;
-
-                ResultSet rs = dbCon.executeQuery(query, this);
-
-                while (rs.next()) {
-                    Person person = new Person();
-                    person.p_id = rs.getInt("p_id");
-                    person.p_hh_id = rs.getInt("p_hh_id");
-                    person.p_group = rs.getInt("p_group");
-                    person.p_sex = rs.getInt("p_sex");
-                    person.p_age = rs.getInt("p_age");
-                    person.p_age_stba = rs.getInt("p_age_stba");
-                    person.p_work_id = rs.getInt("p_work_id"); //-1
-                    person.p_working = rs.getInt("p_working");
-                    person.p_abo = rs.getInt("p_abo");
-                    person.p_budget_pt = rs.getInt("p_budget_pt");
-                    person.p_budget_it = rs.getInt("p_budget_it");
-                    person.p_budget_it_fi = rs.getInt("p_budget_it_fi");
-                    person.p_key = rs.getString("p_key");
-                    person.p_driver_license = rs.getInt("p_driver_license");
-                    person.p_has_bike = rs.getBoolean("p_has_bike");
-                    person.p_education = rs.getInt("p_education");
-                    person.p_professional = rs.getInt("p_professional");
-                    person.p_loc_id = -1;
-                    person.x = rs.getDouble("lon");
-                    person.y = rs.getDouble("lat");
-                    person.taz_id = rs.getInt("hh_taz_id");
-                    person.loc_code = ((person.p_group == 3) || (person.p_group == 4) || (person.p_group == 5) ||
-                            (person.p_group == 9) || (person.p_group == 10) || (person.p_group == 11) ||
-                            (person.p_group == 12) || (person.p_group == 17) || (person.p_group == 18) ||
-                            (person.p_group == 19) || (person.p_group == 20)) ? 1001000000 //Workers
-                            : ((person.p_group == 1) && (person.p_age <= 12)) ? 1002001001 //elementary school
-                            : ((person.p_group == 2) &&
-                            ((person.p_education == 1) || (person.p_education == 2) || (person.p_education == 3))) ||
-                            ((person.p_group == 2) &&
-                                    (person.p_working != 0)) ? 1002004001 //Vocational training - stimmt das??
-                            : ((person.p_group == 2) && (person.p_working == 0)) ? 1002004002 //Students
-                            : ((person.p_group == 1) && (person.p_age > 12)) ? 0 //secondary school
-                            : -1;
-                    persons.add(person);
-
-                    count++;
-                    if (count % 10000 == 0) {
-                        System.out.println("Chunk: " + counter + " read " + count + " persons.");
-                    }
-                }
-                rs.close();
-                System.out.println("Chunk: " + counter + " read " + count + " persons.");
-            }
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " readPersonsTable: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            final int chunks = 20;
+//            int count = 0;
+//            for (int counter = 0; counter < chunks; counter++) {
+//                query = "WITH p AS (SELECT p_id, p_hh_id, p_group, p_sex, p_age, p_age_stba, p_work_id, p_working, " +
+//                        "p_abo, p_budget_pt, p_budget_it, p_budget_it_fi, p_key, p_driver_license, p_has_bike, p_education, p_professional " +
+//                        "FROM " + p_table + " WHERE p_key = '" + key + "'), " +
+//                        "h AS (SELECT hh_id, ST_X(hh_coordinate) AS lon, ST_Y(hh_coordinate) AS lat, hh_taz_id FROM " +
+//                        hh_table + " WHERE hh_key = '" + key + "') " +
+//                        "SELECT p_id, p_hh_id, p_group, p_sex, p_age, p_age_stba, p_work_id, p_working, p_abo, p_budget_pt, p_budget_it, " +
+//                        "p_budget_it_fi, p_key, p_driver_license, p_has_bike, p_education, p_professional, lon, lat, hh_taz_id " +
+//                        "FROM p, h WHERE p.p_hh_id = h.hh_id AND p.p_id%" + chunks + " = " + counter;
+//
+//                ResultSet rs = dbCon.executeQuery(query, this);
+//
+//                while (rs.next()) {
+//                    Person person = new Person();
+//                    person.p_id = rs.getInt("p_id");
+//                    person.p_hh_id = rs.getInt("p_hh_id");
+//                    person.p_group = rs.getInt("p_group");
+//                    person.p_sex = rs.getInt("p_sex");
+//                    person.p_age = rs.getInt("p_age");
+//                    person.p_age_stba = rs.getInt("p_age_stba");
+//                    person.p_work_id = rs.getInt("p_work_id"); //-1
+//                    person.p_working = rs.getInt("p_working");
+//                    person.p_abo = rs.getInt("p_abo");
+//                    person.p_budget_pt = rs.getInt("p_budget_pt");
+//                    person.p_budget_it = rs.getInt("p_budget_it");
+//                    person.p_budget_it_fi = rs.getInt("p_budget_it_fi");
+//                    person.p_key = rs.getString("p_key");
+//                    person.p_driver_license = rs.getInt("p_driver_license");
+//                    person.p_has_bike = rs.getBoolean("p_has_bike");
+//                    person.p_education = rs.getInt("p_education");
+//                    person.p_professional = rs.getInt("p_professional");
+//                    person.p_loc_id = -1;
+//                    person.x = rs.getDouble("lon");
+//                    person.y = rs.getDouble("lat");
+//                    person.taz_id = rs.getInt("hh_taz_id");
+//                    person.loc_code = ((person.p_group == 3) || (person.p_group == 4) || (person.p_group == 5) ||
+//                            (person.p_group == 9) || (person.p_group == 10) || (person.p_group == 11) ||
+//                            (person.p_group == 12) || (person.p_group == 17) || (person.p_group == 18) ||
+//                            (person.p_group == 19) || (person.p_group == 20)) ? 1001000000 //Workers
+//                            : ((person.p_group == 1) && (person.p_age <= 12)) ? 1002001001 //elementary school
+//                            : ((person.p_group == 2) &&
+//                            ((person.p_education == 1) || (person.p_education == 2) || (person.p_education == 3))) ||
+//                            ((person.p_group == 2) &&
+//                                    (person.p_working != 0)) ? 1002004001 //Vocational training - stimmt das??
+//                            : ((person.p_group == 2) && (person.p_working == 0)) ? 1002004002 //Students
+//                            : ((person.p_group == 1) && (person.p_age > 12)) ? 0 //secondary school
+//                            : -1;
+//                    persons.add(person);
+//
+//                    count++;
+//                    if (count % 10000 == 0) {
+//                        System.out.println("Chunk: " + counter + " read " + count + " persons.");
+//                    }
+//                }
+//                rs.close();
+//                System.out.println("Chunk: " + counter + " read " + count + " persons.");
+//            }
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " readPersonsTable: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     /**

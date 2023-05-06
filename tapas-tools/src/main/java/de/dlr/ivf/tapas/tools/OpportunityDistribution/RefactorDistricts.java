@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-
 import java.io.*;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +21,7 @@ import java.util.HashSet;
  *
  * @author boec_pa
  */
-public class RefactorDistricts extends TPS_BasicConnectionClass {
+public class RefactorDistricts {
 
 
     static String[] altBezirkNamen = {"Mitte", "Tiergarten", "Wedding", "Prenzlauer Berg", "Friedrichshain", "Kreuzberg", "Charlottenburg", "Spandau", "Wilmersdorf", "Zehlendorf", "Schöneberg", "Steglitz", "Tempelhof", "Neukölln", "Treptow", "Köpenick", "Lichtenberg", "Weißensee", "Pankow", "Reinickendorf", "Marzahn", "Hohenschönhausen", "Hellersdorf"};
@@ -81,9 +79,9 @@ public class RefactorDistricts extends TPS_BasicConnectionClass {
 
                 locUpdateNeu = qUpdateNeu.replaceAll("%%NAME%%", nName).replaceAll("%%NUM%%", nNum);
                 locUpdateStatG = qUpdateStatG.replaceAll("%%NAME%%", sName).replaceAll("%%NUM%%", sNum);
-                rd.dbCon.execute(locUpdateNeu, rd);
+//                rd.dbCon.execute(locUpdateNeu, rd);
                 cntBezirke++;
-                rd.dbCon.execute(locUpdateStatG, rd);
+//                rd.dbCon.execute(locUpdateStatG, rd);
                 cntStatG++;
 
                 //locGebiet = new Gebiet(number, tvz)
@@ -116,7 +114,7 @@ public class RefactorDistricts extends TPS_BasicConnectionClass {
                     "%%WHERECLAUSE%%", whereclause.toString());
 
             //System.out.println(locAB + "\n\n\n");
-            rd.dbCon.execute(locAB, rd);
+//            rd.dbCon.execute(locAB, rd);
             cntAB++;
         }
 

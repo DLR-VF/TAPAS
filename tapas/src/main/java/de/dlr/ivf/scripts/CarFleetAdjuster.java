@@ -8,12 +8,10 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -24,7 +22,7 @@ import java.util.Map;
  * Kept for historic reasons.
  */
 
-public class CarFleetAdjuster extends TPS_BasicConnectionClass {
+public class CarFleetAdjuster {
     String keyVal = "MID2008_Y2008";
     String newKeyVal = "ecoMove_2008_100";
     String tableName = "core.berlin_cars";
@@ -89,74 +87,74 @@ public class CarFleetAdjuster extends TPS_BasicConnectionClass {
     }
 
     public void makeModifiedFleet() {
-        String query = "";
-        ResultSet rs;
-        try {
-            //load cars
-            query = "SELECT car_id, kba_no, engine_type, is_company_car, car_key, emission_type, restriction, fix_costs FROM " +
-                    this.tableName + " WHERE car_key = '" + this.keyVal + "'";
-            rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                Car car = this.extractCarData(rs);
-                this.cars.put(car.car_id, car);
-            }
-            rs.close();
-
-            //modify cars
-            for (Car car : this.cars.values()) {
-                double random = Math.random();
-                ValueDistribution dist = this.kbaValueMapping.get(car.kba_no);
-                if (dist == null) {
-                    System.out.println(car.kba_no);
-                } else {
-                    if (dist.probability >= random) {
-                        car.kba_no = this.kbaValueMapping.get(car.kba_no).newKBA;
-                    }
-                }
-                car.car_key = this.newKeyVal;
-            }
-
-            //delete old entries
-            query = "DELETE FROM " + this.tableName + " WHERE car_key = '" + this.newKeyVal + "'";
-            dbCon.execute(query, this);
-
-            //save back with a prepared statement
-
-            PreparedStatement pS;
-
-
-            query = "INSERT INTO " + this.tableName +
-                    " ( car_id, kba_no, engine_type, is_company_car, car_key, emission_type, restriction, fix_costs ) VALUES (?,?,?,?,?,?,?,?)";
-            pS = this.dbCon.getConnection(this).prepareStatement(query);
-            int count = 0;
-            //now parse the values in the prepared statement
-            for (Car car : this.cars.values()) {
-
-                pS.setInt(1, car.car_id);
-                pS.setInt(2, car.kba_no);
-                pS.setInt(3, car.engine_type);
-                pS.setBoolean(4, car.is_company_car);
-                pS.setString(5, car.car_key);
-                pS.setInt(6, car.emission_type);
-                pS.setBoolean(7, car.restriction);
-                pS.setDouble(8, car.fix_costs);
-                pS.addBatch();
-                count++;
-                if (count > 1000) {
-                    count = 0;
-                    pS.executeBatch();
-                    pS.clearBatch();
-                }
-            }
-            pS.executeBatch();
-            pS.clearBatch();
-            pS.close();
-
-
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + " loadDB: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        String query = "";
+//        ResultSet rs;
+//        try {
+//            //load cars
+//            query = "SELECT car_id, kba_no, engine_type, is_company_car, car_key, emission_type, restriction, fix_costs FROM " +
+//                    this.tableName + " WHERE car_key = '" + this.keyVal + "'";
+//            rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                Car car = this.extractCarData(rs);
+//                this.cars.put(car.car_id, car);
+//            }
+//            rs.close();
+//
+//            //modify cars
+//            for (Car car : this.cars.values()) {
+//                double random = Math.random();
+//                ValueDistribution dist = this.kbaValueMapping.get(car.kba_no);
+//                if (dist == null) {
+//                    System.out.println(car.kba_no);
+//                } else {
+//                    if (dist.probability >= random) {
+//                        car.kba_no = this.kbaValueMapping.get(car.kba_no).newKBA;
+//                    }
+//                }
+//                car.car_key = this.newKeyVal;
+//            }
+//
+//            //delete old entries
+//            query = "DELETE FROM " + this.tableName + " WHERE car_key = '" + this.newKeyVal + "'";
+//            dbCon.execute(query, this);
+//
+//            //save back with a prepared statement
+//
+//            PreparedStatement pS;
+//
+//
+//            query = "INSERT INTO " + this.tableName +
+//                    " ( car_id, kba_no, engine_type, is_company_car, car_key, emission_type, restriction, fix_costs ) VALUES (?,?,?,?,?,?,?,?)";
+//            pS = this.dbCon.getConnection(this).prepareStatement(query);
+//            int count = 0;
+//            //now parse the values in the prepared statement
+//            for (Car car : this.cars.values()) {
+//
+//                pS.setInt(1, car.car_id);
+//                pS.setInt(2, car.kba_no);
+//                pS.setInt(3, car.engine_type);
+//                pS.setBoolean(4, car.is_company_car);
+//                pS.setString(5, car.car_key);
+//                pS.setInt(6, car.emission_type);
+//                pS.setBoolean(7, car.restriction);
+//                pS.setDouble(8, car.fix_costs);
+//                pS.addBatch();
+//                count++;
+//                if (count > 1000) {
+//                    count = 0;
+//                    pS.executeBatch();
+//                    pS.clearBatch();
+//                }
+//            }
+//            pS.executeBatch();
+//            pS.clearBatch();
+//            pS.close();
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + " loadDB: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     class ValueDistribution {

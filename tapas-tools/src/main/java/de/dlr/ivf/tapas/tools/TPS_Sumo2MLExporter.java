@@ -1,6 +1,5 @@
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,7 +19,7 @@ import java.util.zip.GZIPInputStream;
 /**
  * THis class provides all export fuctionality for the export to the "Mobilitätslabor"
  */
-public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
+public class TPS_Sumo2MLExporter {
 
 
 
@@ -42,33 +41,33 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
             output = output.substring(0, output.lastIndexOf(File.separatorChar));
 
         //gett all the needed strings and files as automatic as possible!
-        TPS_Sumo2MLExporter worker = new TPS_Sumo2MLExporter();
-        String coreSchema =  worker.dbCon.readSingleParameter(key,"DB_SCHEMA_CORE");
-        String activityTableName = coreSchema+ worker.dbCon.readSingleParameter(key,"DB_TABLE_CONSTANT_ACTIVITY");
-        String modeTableName = coreSchema +worker.dbCon.readSingleParameter(key,"DB_TABLE_CONSTANT_MODE");
-        String tazTableName = coreSchema +worker.dbCon.readSingleParameter(key,"DB_TABLE_TAZ");
-        String tripTable = worker.dbCon.readSingleParameter(key,"DB_TABLE_TRIPS")+"_"+key;
-        String scenarioDestination= worker.dbCon.readSingleParameter(key,"SUMO_DESTINATION_FOLDER");
-        String netName = tscBasePath+ File.separator+"scenario_workdir"+File.separator + scenarioDestination  + File.separator+"net.net.xml.gz";
-        String tazName = tscBasePath+File.separator+"scenario_templates" + File.separator+worker.dbCon.readSingleParameter(key,"SUMO_TEMPLATE_FOLDER")  +File.separator+tazFile;
-        int iteration = Integer.parseInt(worker.dbCon.readSingleParameter(key,"ITERATION"));
-        String routeName = tscBasePath+File.separator+"scenario_workdir" +File.separator+scenarioDestination +File.separator+"iteration" +String.format("%03d",iteration)+File.separator+"oneshot"+File.separator+"vehroutes_oneshot_meso.rou.xml";
-        String projectName = worker.dbCon.readSingleParameter(key,"PROJECT_NAME");
-        String outputName = output+File.separator+projectName+"-net_attrib.csv";
-        String edgeOutputName = output+File.separator+projectName+"-trip_attrib";
-
-        worker.readActivityMapping(activityTableName);
-        worker.readModeCodes(modeTableName);
-        worker.processTAZList(tazName,tazTableName);
-        worker.readTrips(tripTable);
-        worker.loadRoutes(routeName);
-
-        worker.writeEdgeAndTazAttributes(edgeOutputName);
-
-        if(net.equalsIgnoreCase("true")) {
-            worker.exportNetAttribute(netName, outputName);
-            worker.exportNetGeoJSON(netName, outputName + ".json");
-        }
+//        TPS_Sumo2MLExporter worker = new TPS_Sumo2MLExporter();
+//        String coreSchema =  worker.dbCon.readSingleParameter(key,"DB_SCHEMA_CORE");
+//        String activityTableName = coreSchema+ worker.dbCon.readSingleParameter(key,"DB_TABLE_CONSTANT_ACTIVITY");
+//        String modeTableName = coreSchema +worker.dbCon.readSingleParameter(key,"DB_TABLE_CONSTANT_MODE");
+//        String tazTableName = coreSchema +worker.dbCon.readSingleParameter(key,"DB_TABLE_TAZ");
+//        String tripTable = worker.dbCon.readSingleParameter(key,"DB_TABLE_TRIPS")+"_"+key;
+//        String scenarioDestination= worker.dbCon.readSingleParameter(key,"SUMO_DESTINATION_FOLDER");
+//        String netName = tscBasePath+ File.separator+"scenario_workdir"+File.separator + scenarioDestination  + File.separator+"net.net.xml.gz";
+//        String tazName = tscBasePath+File.separator+"scenario_templates" + File.separator+worker.dbCon.readSingleParameter(key,"SUMO_TEMPLATE_FOLDER")  +File.separator+tazFile;
+//        int iteration = Integer.parseInt(worker.dbCon.readSingleParameter(key,"ITERATION"));
+//        String routeName = tscBasePath+File.separator+"scenario_workdir" +File.separator+scenarioDestination +File.separator+"iteration" +String.format("%03d",iteration)+File.separator+"oneshot"+File.separator+"vehroutes_oneshot_meso.rou.xml";
+//        String projectName = worker.dbCon.readSingleParameter(key,"PROJECT_NAME");
+//        String outputName = output+File.separator+projectName+"-net_attrib.csv";
+//        String edgeOutputName = output+File.separator+projectName+"-trip_attrib";
+//
+//        worker.readActivityMapping(activityTableName);
+//        worker.readModeCodes(modeTableName);
+//        worker.processTAZList(tazName,tazTableName);
+//        worker.readTrips(tripTable);
+//        worker.loadRoutes(routeName);
+//
+//        worker.writeEdgeAndTazAttributes(edgeOutputName);
+//
+//        if(net.equalsIgnoreCase("true")) {
+//            worker.exportNetAttribute(netName, outputName);
+//            worker.exportNetGeoJSON(netName, outputName + ".json");
+//        }
 
     }
 
@@ -329,55 +328,55 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
     public void readTrips(String tripMap){
         String query = "";
-        try {
-            int activity, mode, p_id, hh_id, startTimeMin;
-            String id;
-            //load the mapping
-            query = "SELECT p_id,hh_id,start_time_min, activity, mode "+
-                    "FROM "+tripMap;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                p_id = rs.getInt("p_id");
-                hh_id = rs.getInt("hh_id");
-                startTimeMin = rs.getInt("start_time_min");
-                activity = rs.getInt("activity");
-                mode = rs.getInt("mode");
-                id = Integer.toString(p_id)+"_"+ Integer.toString(hh_id)+"_"+ Integer.toString(startTimeMin);
-                TripAttribute a = new  TripAttribute();
-                a.activity=activity;
-                a.mode = mode;
-                this.trips.put(id,a);
-            }
-            rs.close();
-            System.out.println("found " + this.trips.size() + " trip entries");
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            int activity, mode, p_id, hh_id, startTimeMin;
+//            String id;
+//            //load the mapping
+//            query = "SELECT p_id,hh_id,start_time_min, activity, mode "+
+//                    "FROM "+tripMap;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                p_id = rs.getInt("p_id");
+//                hh_id = rs.getInt("hh_id");
+//                startTimeMin = rs.getInt("start_time_min");
+//                activity = rs.getInt("activity");
+//                mode = rs.getInt("mode");
+//                id = Integer.toString(p_id)+"_"+ Integer.toString(hh_id)+"_"+ Integer.toString(startTimeMin);
+//                TripAttribute a = new  TripAttribute();
+//                a.activity=activity;
+//                a.mode = mode;
+//                this.trips.put(id,a);
+//            }
+//            rs.close();
+//            System.out.println("found " + this.trips.size() + " trip entries");
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void readActivityMapping(String activity_codes){
         String query = "";
-        try {
-            int zbeCode, tapasCode;
-            //load the mapping
-            query = "SELECT code_zbe, code_tapas "+
-                    "FROM "+activity_codes;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                zbeCode = rs.getInt("code_zbe");
-                tapasCode = rs.getInt("code_tapas");
-                if(tapasCode >=0) {
-                    this.activityMap.put(zbeCode, tapasCode);
-                    possibleActivites.add(tapasCode);
-                }
-            }
-            rs.close();
-            System.out.println("found " + this.activityMap.size() + " activity entries");
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            int zbeCode, tapasCode;
+//            //load the mapping
+//            query = "SELECT code_zbe, code_tapas "+
+//                    "FROM "+activity_codes;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                zbeCode = rs.getInt("code_zbe");
+//                tapasCode = rs.getInt("code_tapas");
+//                if(tapasCode >=0) {
+//                    this.activityMap.put(zbeCode, tapasCode);
+//                    possibleActivites.add(tapasCode);
+//                }
+//            }
+//            rs.close();
+//            System.out.println("found " + this.activityMap.size() + " activity entries");
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void readModeCodes(String mode_codes){

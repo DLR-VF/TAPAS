@@ -8,9 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -21,7 +18,7 @@ import java.util.Map.Entry;
  * This tool adjusts the capacity of given locations to a new population.
  */
 
-public class TPS_CapacityScale extends TPS_BasicConnectionClass {
+public class TPS_CapacityScale {
 
     Map<Integer, DistrictInfo> districts = new HashMap<>();
     Map<Integer, Integer> taz2District = new HashMap<>();
@@ -57,13 +54,13 @@ public class TPS_CapacityScale extends TPS_BasicConnectionClass {
                 "  loc_group_id integer NOT NULL DEFAULT (-1)," + "  loc_type text," + "  loc_unit text," +
                 "  CONSTRAINT " + newLoc + "_pkey PRIMARY KEY (loc_id)" + "  USING INDEX TABLESPACE index" + ")" +
                 "WITH (" + "  OIDS=FALSE" + ");";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
         query = "Select addgeometrycolumn('" + schema + "','" + newLoc + "','loc_coordinate', 4326,'POINT',2);";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
 
         //insert old values
         query = "INSERT INTO " + newtable + " (SELECT * FROM " + schema + "." + oldLoc + ")";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
 
         //do the update
         for (Entry<Integer, Integer> e : this.taz2District.entrySet()) {
@@ -72,58 +69,58 @@ public class TPS_CapacityScale extends TPS_BasicConnectionClass {
             query = "UPDATE " + newtable + " set loc_capacity =(loc_capacity*" + factor + ")::integer" +
                     " where loc_taz_id=" + e.getKey();
 
-            this.dbCon.execute(query, this);
+//            this.dbCon.execute(query, this);
         }
     }
 
     public void getLocationInfo(String locTable, String tazTable) {
         String query = "";
-        try {
-            query = "with l as (select sum(loc_capacity)as cappa, count(*) as num , loc_code, loc_taz_id from " +
-                    locTable + " group by loc_code, loc_taz_id)" +
-                    "select sum(cappa) as bez_cappa , sum(num) as bez_num,loc_code, ((no/100000)::integer%100)::integer as bez " +
-                    "from l join " + tazTable + " as m " + "	on l.loc_taz_id= m.gid " + "group by bez, loc_code";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                int district = rs.getInt("bez");
-                int num = rs.getInt("bez_cappa");
-                int code = rs.getInt("loc_code");
-                this.districts.get(district).addLocInfo(code, num);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + ": SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "with l as (select sum(loc_capacity)as cappa, count(*) as num , loc_code, loc_taz_id from " +
+//                    locTable + " group by loc_code, loc_taz_id)" +
+//                    "select sum(cappa) as bez_cappa , sum(num) as bez_num,loc_code, ((no/100000)::integer%100)::integer as bez " +
+//                    "from l join " + tazTable + " as m " + "	on l.loc_taz_id= m.gid " + "group by bez, loc_code";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                int district = rs.getInt("bez");
+//                int num = rs.getInt("bez_cappa");
+//                int code = rs.getInt("loc_code");
+//                this.districts.get(district).addLocInfo(code, num);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + ": SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void loadPersons(String table, String keyRef, String keyScen) {
         String query = "";
-        try {
-            query = "select sum(hh_persons) as persons, hh_taz_id from " + table + " where hh_key='" + keyRef +
-                    "' group by hh_taz_id";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                int taz = rs.getInt("hh_taz_id");
-                int num = rs.getInt("persons");
-                this.districts.get(this.taz2District.get(taz)).increasePersons(num);
-            }
-            rs.close();
-            query = "select sum(hh_persons) as persons, hh_taz_id from " + table + " where hh_key='" + keyScen +
-                    "' group by hh_taz_id";
-            rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                int taz = rs.getInt("hh_taz_id");
-                int num = rs.getInt("persons");
-                this.districts.get(this.taz2District.get(taz)).increasePersonsNew(num);
-            }
-            rs.close();
-
-
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + ": SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select sum(hh_persons) as persons, hh_taz_id from " + table + " where hh_key='" + keyRef +
+//                    "' group by hh_taz_id";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                int taz = rs.getInt("hh_taz_id");
+//                int num = rs.getInt("persons");
+//                this.districts.get(this.taz2District.get(taz)).increasePersons(num);
+//            }
+//            rs.close();
+//            query = "select sum(hh_persons) as persons, hh_taz_id from " + table + " where hh_key='" + keyScen +
+//                    "' group by hh_taz_id";
+//            rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                int taz = rs.getInt("hh_taz_id");
+//                int num = rs.getInt("persons");
+//                this.districts.get(this.taz2District.get(taz)).increasePersonsNew(num);
+//            }
+//            rs.close();
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + ": SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -134,19 +131,19 @@ public class TPS_CapacityScale extends TPS_BasicConnectionClass {
      */
     public void loadTaz2DistrictMapping(String table) {
         String query = "";
-        try {
-            query = "select gid, ((no/100000)::integer%100)::integer as bez from " + table;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                int taz = rs.getInt("gid");
-                int district = rs.getInt("bez");
-                this.taz2District.put(taz, district);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + ": SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select gid, ((no/100000)::integer%100)::integer as bez from " + table;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                int taz = rs.getInt("gid");
+//                int district = rs.getInt("bez");
+//                this.taz2District.put(taz, district);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + ": SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     class DistrictInfo {

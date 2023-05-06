@@ -8,9 +8,8 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.loc.TPS_Coordinate;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
+import de.dlr.ivf.tapas.model.location.TPS_Coordinate;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,7 +21,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
+public class TPS_ExternalTrafficDistribution {
 
 
     Map<Integer, TAZ> externalOrigins = new HashMap<>();
@@ -277,6 +276,7 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
                 }
                 double sum = 0;
                 for (TAZ d : dSet.values()) {
+                   // TPS_Coordinate cord;
                     if (o.useGravity) d.tempWeight = d.cappa * Math.pow(TPS_Geometrics
                             .getDistance(d.coordDestination.getValue(0), d.coordDestination.getValue(1),
                                     o.coordSource.getValue(0), o.coordSource.getValue(1)), -calib);
@@ -422,49 +422,49 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
 
     public void loadCordonDistricts(String tableName, String dmod, int berlinId) {
         String query = "";
-        try {
-            int id, taz;
-            double sLon, sLat, dLon, dLat;
-
-            //load the external mapping
-            query = "SELECT z.tapas_taz_id,z.vbz_no, vbz_6561, z.nuts_id ISNULL as isberlin, " +
-                    "st_X(st_transform(st_centroid(z.the_geom),4326)) as lon, " +
-                    "st_Y(st_transform(st_centroid(z.the_geom),4326)) as lat " + "  from " + tableName + " as z join " +
-                    dmod + " as d on z.vbz_no=d.ver_nr";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                if (!rs.getBoolean("isberlin")) {
-                    id = (int) (rs.getDouble("vbz_6561") + 0.1);
-                    sLat = rs.getDouble("lat");
-                    sLon = rs.getDouble("lon");
-                    dLat = rs.getDouble("lat");
-                    dLon = rs.getDouble("lon");
-                    taz = rs.getInt("tapas_taz_id");
-                    dModellZonen.put(id, taz);
-
-                    //create point informations
-                    TAZ entry = new TAZ();
-                    //now convert this id to a zone of the above mapping
-                    entry.id = taz;
-                    entry.taz_id = taz;
-                    entry.coordSource.setValues(sLon, sLat);
-                    entry.coordDestination.setValues(dLon, dLat);
-                    entry.cappa = 0;
-                    this.externalOrigins.put(entry.id, entry);
-                    this.internalDestinations.put(entry.id, entry);
-                }
-            }
-            rs.close();
-
-
-            System.out.println("found " + this.externalOrigins.size() + " origin entires");
-            berlinZone = berlinId;
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            int id, taz;
+//            double sLon, sLat, dLon, dLat;
+//
+//            //load the external mapping
+//            query = "SELECT z.tapas_taz_id,z.vbz_no, vbz_6561, z.nuts_id ISNULL as isberlin, " +
+//                    "st_X(st_transform(st_centroid(z.the_geom),4326)) as lon, " +
+//                    "st_Y(st_transform(st_centroid(z.the_geom),4326)) as lat " + "  from " + tableName + " as z join " +
+//                    dmod + " as d on z.vbz_no=d.ver_nr";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                if (!rs.getBoolean("isberlin")) {
+//                    id = (int) (rs.getDouble("vbz_6561") + 0.1);
+//                    sLat = rs.getDouble("lat");
+//                    sLon = rs.getDouble("lon");
+//                    dLat = rs.getDouble("lat");
+//                    dLon = rs.getDouble("lon");
+//                    taz = rs.getInt("tapas_taz_id");
+//                    dModellZonen.put(id, taz);
+//
+//                    //create point informations
+//                    TAZ entry = new TAZ();
+//                    //now convert this id to a zone of the above mapping
+//                    entry.id = taz;
+//                    entry.taz_id = taz;
+//                    entry.coordSource.setValues(sLon, sLat);
+//                    entry.coordDestination.setValues(dLon, dLat);
+//                    entry.cappa = 0;
+//                    this.externalOrigins.put(entry.id, entry);
+//                    this.internalDestinations.put(entry.id, entry);
+//                }
+//            }
+//            rs.close();
+//
+//
+//            System.out.println("found " + this.externalOrigins.size() + " origin entires");
+//            berlinZone = berlinId;
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void loadDayDistribution() {
@@ -620,159 +620,159 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
 
     public void loadExternalPositions(String tableName, String mappingTable) {
         StringBuilder query = new StringBuilder();
-        try {
-            int id, kreis;
-            double sLon, sLat, dLon, dLat;
-            int[] zonen;
-            Map<Integer, DModellKreisMapping> KreisMap = new HashMap<>();
-
-            //load the mapping
-            query = new StringBuilder(
-                    "SELECT id,source_lat,source_lon,destination_lat,destination_lon,mappings from " + mappingTable);
-            ResultSet rs = this.dbCon.executeQuery(query.toString(), this);
-            while (rs.next()) {
-                id = rs.getInt("id");
-                sLat = rs.getDouble("source_lat");
-                sLon = rs.getDouble("source_lon");
-                dLat = rs.getDouble("destination_lat");
-                dLon = rs.getDouble("destination_lon");
-                zonen = new int[0];
-                Object array = rs.getArray("mappings").getArray();
-                if (array instanceof int[]) {
-                    zonen = (int[]) array;
-                } else if (array instanceof Integer[]) {
-                    Integer[] IArray = (Integer[]) array;
-                    zonen = new int[IArray.length];
-                    for (int i = 0; i < IArray.length; i++) {
-                        zonen[i] = IArray[i];
-                    }
-                } else {
-                    System.err.println("Cannot cast to int array");
-                }
-                for (int j : zonen) {
-                    if (id != 0) {
-                        dModellZonen.put(j, id);
-
-                        //create point informations
-                        TAZ entry = new TAZ();
-                        //now convert this id to a zone of the above mapping
-                        entry.id = id;
-                        entry.taz_id = entry.id;
-                        entry.coordSource.setValues(sLon, sLat);
-                        entry.coordDestination.setValues(dLon, dLat);
-                        entry.cappa = 0;
-                        this.externalOrigins.put(entry.id, entry);
-                        this.internalDestinations.put(entry.id, entry);
-                    } else {
-                        dModellZonen.put(j,
-                                -j); //the 0-zone is a funny thing: it contains the taz WITHIN the A10 in Berlin
-                        //we will load the additional information later
-                    }
-                }
-            }
-            rs.close();
-
-            Set<Integer> idsToLookFor = new TreeSet<>();
-            for (Integer v : dModellZonen.values()) {
-                if (v < 0) {
-                    idsToLookFor.add(-v);
-                }
-            }
-
-            //now load the included cells
-            query = new StringBuilder(
-                    "select vbz_6561, vbz_412, " + "st_X(st_transform(st_centroid(the_geom),4326)) as lon, " +
-                            "st_Y(st_transform(st_centroid(the_geom),4326)) as lat " + "from	" + tableName +
-                            " as p " + "where vbz_6561 = any(ARRAY[");
-            for (Integer v : idsToLookFor) {
-                query.append(v).append("\n,");
-            }
-            query = new StringBuilder(query.substring(0, query.length() - 1) + "])");
-
-            rs = this.dbCon.executeQuery(query.toString(), this);
-            while (rs.next()) {
-                id = rs.getInt("vbz_6561");
-                sLon = rs.getDouble("lon");
-                sLat = rs.getDouble("lat");
-                TAZ entry = new TAZ();
-                // now convert this id to a zone of the above mapping
-                if (dModellZonen.containsKey(id)) {
-                    entry.id = dModellZonen.get(id);
-                    entry.taz_id = entry.id;
-                } else {
-                    System.err.println("ARG!");
-                    entry.id = id;
-                    entry.taz_id = -id;
-                }
-                entry.coordSource.setValues(sLon, sLat);
-                entry.coordDestination.setValues(sLon, sLat);
-                entry.cappa = 0;
-                this.externalOrigins.put(entry.id, entry);
-                this.internalDestinations.put(entry.id, entry);
-
-            }
-
-            System.out.println("found " + this.externalOrigins.size() + " origin entires");
-            rs.close();
-            //now find the kreis mapping
-            query = new StringBuilder("select vbz_6561, vbz_412 " + "from	" + tableName + " as p ");
-
-            rs = this.dbCon.executeQuery(query.toString(), this);
-            while (rs.next()) {
-
-                id = rs.getInt("vbz_6561");
-                kreis = rs.getInt("vbz_412");
-                if (dModellZonen.containsKey(id)) {
-                    //find the mapping entry
-                    TAZ entry = this.externalOrigins.get(dModellZonen.get(id));
-                    if (entry != null) {
-
-                        //now check the "Kreis mapping"
-                        DModellKreisMapping tmp = KreisMap.get(kreis);
-                        if (tmp == null) { //first time this kreis occures
-                            tmp = new DModellKreisMapping();
-                            tmp.d_vbz_412 = kreis;
-                            DVZMappingElement tmpKreis = new DVZMappingElement();
-                            tmpKreis.externalOrigin = entry.id;
-                            tmpKreis.count = 1;
-                            tmp.vzSet.put(entry.id, tmpKreis);
-                            KreisMap.put(kreis, tmp);
-                        } else {
-                            DVZMappingElement tmpKreis = tmp.vzSet.get(entry.id);
-                            if (tmpKreis == null) { //first time this external origin occures
-                                tmpKreis = new DVZMappingElement();
-                                tmpKreis.externalOrigin = entry.id;
-                                tmpKreis.count = 1;
-                                tmp.vzSet.put(entry.id, tmpKreis);
-                            } else { //just update the count
-                                tmpKreis.count += 1;
-                            }
-                        }
-                    }
-                } else { //we found berlin!
-                    berlinZone = kreis;
-                }
-            }
-
-            rs.close();
-
-            for (DModellKreisMapping e : KreisMap.values()) {
-                DVZMappingElement best = null;
-                for (DVZMappingElement tmp : e.vzSet.values()) {
-                    if (best == null || best.count < tmp.count) {
-                        best = tmp;
-                    }
-                }
-                // now i have the best mapping value
-                dModellZonen.put(e.d_vbz_412, best.externalOrigin);
-            }
-            System.out.println("Mapped " + KreisMap.size() + " district values to peripheral districts");
-
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            int id, kreis;
+//            double sLon, sLat, dLon, dLat;
+//            int[] zonen;
+//            Map<Integer, DModellKreisMapping> KreisMap = new HashMap<>();
+//
+//            //load the mapping
+//            query = new StringBuilder(
+//                    "SELECT id,source_lat,source_lon,destination_lat,destination_lon,mappings from " + mappingTable);
+//            ResultSet rs = this.dbCon.executeQuery(query.toString(), this);
+//            while (rs.next()) {
+//                id = rs.getInt("id");
+//                sLat = rs.getDouble("source_lat");
+//                sLon = rs.getDouble("source_lon");
+//                dLat = rs.getDouble("destination_lat");
+//                dLon = rs.getDouble("destination_lon");
+//                zonen = new int[0];
+//                Object array = rs.getArray("mappings").getArray();
+//                if (array instanceof int[]) {
+//                    zonen = (int[]) array;
+//                } else if (array instanceof Integer[]) {
+//                    Integer[] IArray = (Integer[]) array;
+//                    zonen = new int[IArray.length];
+//                    for (int i = 0; i < IArray.length; i++) {
+//                        zonen[i] = IArray[i];
+//                    }
+//                } else {
+//                    System.err.println("Cannot cast to int array");
+//                }
+//                for (int j : zonen) {
+//                    if (id != 0) {
+//                        dModellZonen.put(j, id);
+//
+//                        //create point informations
+//                        TAZ entry = new TAZ();
+//                        //now convert this id to a zone of the above mapping
+//                        entry.id = id;
+//                        entry.taz_id = entry.id;
+//                        entry.coordSource.setValues(sLon, sLat);
+//                        entry.coordDestination.setValues(dLon, dLat);
+//                        entry.cappa = 0;
+//                        this.externalOrigins.put(entry.id, entry);
+//                        this.internalDestinations.put(entry.id, entry);
+//                    } else {
+//                        dModellZonen.put(j,
+//                                -j); //the 0-zone is a funny thing: it contains the taz WITHIN the A10 in Berlin
+//                        //we will load the additional information later
+//                    }
+//                }
+//            }
+//            rs.close();
+//
+//            Set<Integer> idsToLookFor = new TreeSet<>();
+//            for (Integer v : dModellZonen.values()) {
+//                if (v < 0) {
+//                    idsToLookFor.add(-v);
+//                }
+//            }
+//
+//            //now load the included cells
+//            query = new StringBuilder(
+//                    "select vbz_6561, vbz_412, " + "st_X(st_transform(st_centroid(the_geom),4326)) as lon, " +
+//                            "st_Y(st_transform(st_centroid(the_geom),4326)) as lat " + "from	" + tableName +
+//                            " as p " + "where vbz_6561 = any(ARRAY[");
+//            for (Integer v : idsToLookFor) {
+//                query.append(v).append("\n,");
+//            }
+//            query = new StringBuilder(query.substring(0, query.length() - 1) + "])");
+//
+//            rs = this.dbCon.executeQuery(query.toString(), this);
+//            while (rs.next()) {
+//                id = rs.getInt("vbz_6561");
+//                sLon = rs.getDouble("lon");
+//                sLat = rs.getDouble("lat");
+//                TAZ entry = new TAZ();
+//                // now convert this id to a zone of the above mapping
+//                if (dModellZonen.containsKey(id)) {
+//                    entry.id = dModellZonen.get(id);
+//                    entry.taz_id = entry.id;
+//                } else {
+//                    System.err.println("ARG!");
+//                    entry.id = id;
+//                    entry.taz_id = -id;
+//                }
+//                entry.coordSource.setValues(sLon, sLat);
+//                entry.coordDestination.setValues(sLon, sLat);
+//                entry.cappa = 0;
+//                this.externalOrigins.put(entry.id, entry);
+//                this.internalDestinations.put(entry.id, entry);
+//
+//            }
+//
+//            System.out.println("found " + this.externalOrigins.size() + " origin entires");
+//            rs.close();
+//            //now find the kreis mapping
+//            query = new StringBuilder("select vbz_6561, vbz_412 " + "from	" + tableName + " as p ");
+//
+//            rs = this.dbCon.executeQuery(query.toString(), this);
+//            while (rs.next()) {
+//
+//                id = rs.getInt("vbz_6561");
+//                kreis = rs.getInt("vbz_412");
+//                if (dModellZonen.containsKey(id)) {
+//                    //find the mapping entry
+//                    TAZ entry = this.externalOrigins.get(dModellZonen.get(id));
+//                    if (entry != null) {
+//
+//                        //now check the "Kreis mapping"
+//                        DModellKreisMapping tmp = KreisMap.get(kreis);
+//                        if (tmp == null) { //first time this kreis occures
+//                            tmp = new DModellKreisMapping();
+//                            tmp.d_vbz_412 = kreis;
+//                            DVZMappingElement tmpKreis = new DVZMappingElement();
+//                            tmpKreis.externalOrigin = entry.id;
+//                            tmpKreis.count = 1;
+//                            tmp.vzSet.put(entry.id, tmpKreis);
+//                            KreisMap.put(kreis, tmp);
+//                        } else {
+//                            DVZMappingElement tmpKreis = tmp.vzSet.get(entry.id);
+//                            if (tmpKreis == null) { //first time this external origin occures
+//                                tmpKreis = new DVZMappingElement();
+//                                tmpKreis.externalOrigin = entry.id;
+//                                tmpKreis.count = 1;
+//                                tmp.vzSet.put(entry.id, tmpKreis);
+//                            } else { //just update the count
+//                                tmpKreis.count += 1;
+//                            }
+//                        }
+//                    }
+//                } else { //we found berlin!
+//                    berlinZone = kreis;
+//                }
+//            }
+//
+//            rs.close();
+//
+//            for (DModellKreisMapping e : KreisMap.values()) {
+//                DVZMappingElement best = null;
+//                for (DVZMappingElement tmp : e.vzSet.values()) {
+//                    if (best == null || best.count < tmp.count) {
+//                        best = tmp;
+//                    }
+//                }
+//                // now i have the best mapping value
+//                dModellZonen.put(e.d_vbz_412, best.externalOrigin);
+//            }
+//            System.out.println("Mapped " + KreisMap.size() + " district values to peripheral districts");
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void loadODPairs(String fileName, boolean useInternalTraffic) {
@@ -937,142 +937,142 @@ public class TPS_ExternalTrafficDistribution extends TPS_BasicConnectionClass {
                         "select \"NO\" as id, " + "loc_id, " + "loc_taz_id, " + "loc_capacity, " +
                         "st_X(loc_coordinate) as lon, " + "st_Y(loc_coordinate) as lat " + "from	l " + "join " +
                         zonierungsName + " as b " + "on within(trans,b.the_geom)";
-        try {
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            int id, count = 0;
-            double lon, lat;
-            Map<Integer, TAZ> globalList = new HashMap<>();
-            while (rs.next()) {
-                id = rs.getInt("id");
-                lon = rs.getDouble("lon");
-                lat = rs.getDouble("lat");
-
-                TAZ entry = new TAZ();
-                entry.id = rs.getInt("loc_id");
-                entry.taz_id = rs.getInt("loc_taz_id");
-                entry.coordSource.setValues(lon, lat);
-                entry.coordDestination.setValues(lon, lat);
-                entry.cappa = rs.getInt("loc_capacity");
-                Map<Integer, TAZ> list = this.berlinDModel.get(id);
-                if (list == null) {
-                    list = new HashMap<>();
-                }
-                list.put(entry.id, entry);
-                globalList.put(entry.id, entry);
-                this.internalDestinations.put(entry.id, entry);
-                this.berlinDModel.put(id, list);
-                count++;
-            }
-            rs.close();
-            this.berlinDModel.put(this.berlinZone, globalList);
-
-            System.out.println(
-                    "found " + this.berlinDModel.size() + " destination entires which are mapped to " + count +
-                            " work locations");
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            int id, count = 0;
+//            double lon, lat;
+//            Map<Integer, TAZ> globalList = new HashMap<>();
+//            while (rs.next()) {
+//                id = rs.getInt("id");
+//                lon = rs.getDouble("lon");
+//                lat = rs.getDouble("lat");
+//
+//                TAZ entry = new TAZ();
+//                entry.id = rs.getInt("loc_id");
+//                entry.taz_id = rs.getInt("loc_taz_id");
+//                entry.coordSource.setValues(lon, lat);
+//                entry.coordDestination.setValues(lon, lat);
+//                entry.cappa = rs.getInt("loc_capacity");
+//                Map<Integer, TAZ> list = this.berlinDModel.get(id);
+//                if (list == null) {
+//                    list = new HashMap<>();
+//                }
+//                list.put(entry.id, entry);
+//                globalList.put(entry.id, entry);
+//                this.internalDestinations.put(entry.id, entry);
+//                this.berlinDModel.put(id, list);
+//                count++;
+//            }
+//            rs.close();
+//            this.berlinDModel.put(this.berlinZone, globalList);
+//
+//            System.out.println(
+//                    "found " + this.berlinDModel.size() + " destination entires which are mapped to " + count +
+//                            " work locations");
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void saveToDB(String tablename, int modeNumber, boolean is_resticted, boolean createTable) {
         String query = "";
-        try {
-            if (createTable) {
-                query = "DROP TABLE IF EXISTS " + tablename;
-                this.dbCon.execute(query, this);
-
-                String[] tokens = tablename.split("\\.");
-                query = "CREATE TABLE " + tablename + " (" + "  p_id integer NOT NULL," + "  hh_id integer NOT NULL," +
-                        "  taz_id_start integer," + "  loc_id_start integer," + "  lon_start double precision," +
-                        "  lat_start double precision," + "  taz_id_end integer," + "  loc_id_end integer," +
-                        "  lon_end double precision," + "  lat_end double precision," +
-                        "  start_time_min integer NOT NULL," + "  travel_time_sec double precision," +
-                        "  mode integer," + "  car_type integer," + "  activity_duration_min integer," +
-                        "  sumo_type integer," + "  is_restricted boolean," + "  CONSTRAINT " +
-                        tokens[tokens.length - 1] + "_pkey PRIMARY KEY (p_id, hh_id, start_time_min)" +
-                        "  USING INDEX TABLESPACE index)" + "WITH (  OIDS=FALSE);";
-                this.dbCon.execute(query, this);
-            }
-            int num = -1;
-
-            //get the right number
-            query = "SELECT count(*) as c, MIN(p_id) as min from " + tablename;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                if (rs.getInt("c") > 0) {
-                    num += rs.getInt("min");
-                }
-            }
-            rs.close();
-
-
-            query = "INSERT INTO " + tablename + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?," + modeNumber + ",?,1,?," +
-                    is_resticted + ")";
-
-            PreparedStatement pS = this.dbCon.getConnection(this).prepareStatement(query);
-            int count = 0, maxBatch = 10000;
-            for (ODPair p : this.ODPairsGravityDistributed) {
-                if (Math.abs(p.idOrigin) == 20957 || Math.abs(p.idDestination) == 20957) {
-                    p.idOrigin = p.idOrigin; //TODO
-                }
-                TAZ o = this.internalDestinations.get(p.idOrigin);
-                TAZ d = this.internalDestinations.get(p.idDestination);
-                int start = p.hourOfDay * 60 + (int) (Math.random() * 60.0);
-                double time = TPS_Geometrics.getDistance(d.coordDestination.getValue(0), d.coordDestination.getValue(1),
-                        o.coordSource.getValue(0), o.coordSource.getValue(1));
-                time *= 1.4 / 7.7777; //1.4 ist der umwegefaktor, 28kmh= 7.7777m/s;
-                Vehicle tmp;
-                double vID, sum;
-                int v;
-                for (int i = 0; i < p.volume; ++i) {
-                    // get the cartype
-                    vID = Math.random();
-                    sum = this.carTypeDistribution.get(0).weight;
-                    v = 0;
-                    do {
-                        if (sum >= vID) {
-                            break;
-                        } else {
-                            v++;
-                            sum += this.carTypeDistribution.get(v).weight;
-                        }
-                    } while (v < this.carTypeDistribution.size() - 1);
-                    tmp = this.carTypeDistribution.get(v);
-
-                    pS.setInt(1, num);//p_id
-                    pS.setInt(2, num);//hh_id
-                    pS.setInt(3, o.taz_id); //taz_id_start
-                    pS.setInt(4, o.id); //loc_id_start
-                    pS.setDouble(5, o.coordSource.getValue(0)); //lon_start
-                    pS.setDouble(6, o.coordSource.getValue(1)); //lat_start
-                    pS.setInt(7, d.taz_id); //taz_id_end
-                    pS.setInt(8, d.id); //loc_id_end
-                    pS.setDouble(9, d.coordDestination.getValue(0)); //lon_end
-                    pS.setDouble(10, d.coordDestination.getValue(1)); //lat_end
-                    pS.setInt(11, start); // start_time_min
-                    pS.setDouble(12, time); //travel_time_sec
-                    pS.setInt(13, tmp.id);
-                    pS.setInt(14, tmp.getSumoVehicle());
-                    pS.addBatch();
-                    count++;
-                    if (count >= maxBatch) {
-                        pS.executeBatch();
-                        count = 0;
-                    }
-                    num--;
-                }
-
-            }
-            if (count > 0) {
-                pS.executeBatch();
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//            if (createTable) {
+//                query = "DROP TABLE IF EXISTS " + tablename;
+//                this.dbCon.execute(query, this);
+//
+//                String[] tokens = tablename.split("\\.");
+//                query = "CREATE TABLE " + tablename + " (" + "  p_id integer NOT NULL," + "  hh_id integer NOT NULL," +
+//                        "  taz_id_start integer," + "  loc_id_start integer," + "  lon_start double precision," +
+//                        "  lat_start double precision," + "  taz_id_end integer," + "  loc_id_end integer," +
+//                        "  lon_end double precision," + "  lat_end double precision," +
+//                        "  start_time_min integer NOT NULL," + "  travel_time_sec double precision," +
+//                        "  mode integer," + "  car_type integer," + "  activity_duration_min integer," +
+//                        "  sumo_type integer," + "  is_restricted boolean," + "  CONSTRAINT " +
+//                        tokens[tokens.length - 1] + "_pkey PRIMARY KEY (p_id, hh_id, start_time_min)" +
+//                        "  USING INDEX TABLESPACE index)" + "WITH (  OIDS=FALSE);";
+//                this.dbCon.execute(query, this);
+//            }
+//            int num = -1;
+//
+//            //get the right number
+//            query = "SELECT count(*) as c, MIN(p_id) as min from " + tablename;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                if (rs.getInt("c") > 0) {
+//                    num += rs.getInt("min");
+//                }
+//            }
+//            rs.close();
+//
+//
+//            query = "INSERT INTO " + tablename + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?," + modeNumber + ",?,1,?," +
+//                    is_resticted + ")";
+//
+//            PreparedStatement pS = this.dbCon.getConnection(this).prepareStatement(query);
+//            int count = 0, maxBatch = 10000;
+//            for (ODPair p : this.ODPairsGravityDistributed) {
+//                if (Math.abs(p.idOrigin) == 20957 || Math.abs(p.idDestination) == 20957) {
+//                    p.idOrigin = p.idOrigin; //TODO
+//                }
+//                TAZ o = this.internalDestinations.get(p.idOrigin);
+//                TAZ d = this.internalDestinations.get(p.idDestination);
+//                int start = p.hourOfDay * 60 + (int) (Math.random() * 60.0);
+//                double time = TPS_Geometrics.getDistance(d.coordDestination.getValue(0), d.coordDestination.getValue(1),
+//                        o.coordSource.getValue(0), o.coordSource.getValue(1));
+//                time *= 1.4 / 7.7777; //1.4 ist der umwegefaktor, 28kmh= 7.7777m/s;
+//                Vehicle tmp;
+//                double vID, sum;
+//                int v;
+//                for (int i = 0; i < p.volume; ++i) {
+//                    // get the cartype
+//                    vID = Math.random();
+//                    sum = this.carTypeDistribution.get(0).weight;
+//                    v = 0;
+//                    do {
+//                        if (sum >= vID) {
+//                            break;
+//                        } else {
+//                            v++;
+//                            sum += this.carTypeDistribution.get(v).weight;
+//                        }
+//                    } while (v < this.carTypeDistribution.size() - 1);
+//                    tmp = this.carTypeDistribution.get(v);
+//
+//                    pS.setInt(1, num);//p_id
+//                    pS.setInt(2, num);//hh_id
+//                    pS.setInt(3, o.taz_id); //taz_id_start
+//                    pS.setInt(4, o.id); //loc_id_start
+//                    pS.setDouble(5, o.coordSource.getValue(0)); //lon_start
+//                    pS.setDouble(6, o.coordSource.getValue(1)); //lat_start
+//                    pS.setInt(7, d.taz_id); //taz_id_end
+//                    pS.setInt(8, d.id); //loc_id_end
+//                    pS.setDouble(9, d.coordDestination.getValue(0)); //lon_end
+//                    pS.setDouble(10, d.coordDestination.getValue(1)); //lat_end
+//                    pS.setInt(11, start); // start_time_min
+//                    pS.setDouble(12, time); //travel_time_sec
+//                    pS.setInt(13, tmp.id);
+//                    pS.setInt(14, tmp.getSumoVehicle());
+//                    pS.addBatch();
+//                    count++;
+//                    if (count >= maxBatch) {
+//                        pS.executeBatch();
+//                        count = 0;
+//                    }
+//                    num--;
+//                }
+//
+//            }
+//            if (count > 0) {
+//                pS.executeBatch();
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
 
     }
 

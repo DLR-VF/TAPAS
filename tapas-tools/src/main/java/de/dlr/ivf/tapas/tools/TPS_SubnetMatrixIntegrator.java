@@ -1,7 +1,5 @@
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 
@@ -25,7 +23,7 @@ import java.util.TreeSet;
  * Save the new matrix
  */
 
-public class TPS_SubnetMatrixIntegrator extends TPS_BasicConnectionClass {
+public class TPS_SubnetMatrixIntegrator {
 
 
     Matrix subnet;
@@ -55,43 +53,43 @@ public class TPS_SubnetMatrixIntegrator extends TPS_BasicConnectionClass {
         //load the mappings
         String query = "";
         ResultSet rs = null;
-        try{
-            int tazIndex,tazNum;
-            String tazName=this.parameterClass.getString(
-                    ParamString.DB_TABLE_TAZ);
-            //do we have the taz table?
-            if(tazName != null && tazName.length()>0) {
-                query = "SELECT taz_id, taz_num_id FROM " + tazName;
-                rs = this.dbCon.executeQuery(query, this);
-
-                //clear old mapping in case we run this method twice
-                this.mappingOuternet.clear();
-                while (rs.next()) {
-                    tazIndex = rs.getInt("taz_id");
-                    tazNum = rs.getInt("taz_num_id");
-                    this.outerOffset = Math.min(this.outerOffset, tazIndex);
-                    this.mappingOuternet.put(tazNum, tazIndex);
-                }
-                rs.close();
-            }
-            //do we have the subnet taz table?
-            if(subnetTAZ != null && subnetTAZ.length()>0) {
-                query = "SELECT taz_id, taz_num_id FROM " + subnetTAZ;
-                rs = this.dbCon.executeQuery(query, this);
-                //clear old mapping in case we run this method twice
-                mappingSubnet.clear();
-                while (rs.next()) {
-                    tazIndex = rs.getInt("taz_id");
-                    tazNum = rs.getInt("taz_num_id");
-                    this.subOffset = Math.min(this.subOffset, tazIndex);
-                    this.mappingSubnet.put(tazNum, tazIndex);
-                }
-            }
-            rs.close();
-        } catch (SQLException throwables) {
-            System.err.println("Error in sql-query: " + query);
-            throwables.printStackTrace();
-        }
+//        try{
+//            int tazIndex,tazNum;
+//            String tazName=this.parameterClass.getString(
+//                    ParamString.DB_TABLE_TAZ);
+//            //do we have the taz table?
+//            if(tazName != null && tazName.length()>0) {
+//                query = "SELECT taz_id, taz_num_id FROM " + tazName;
+//                rs = this.dbCon.executeQuery(query, this);
+//
+//                //clear old mapping in case we run this method twice
+//                this.mappingOuternet.clear();
+//                while (rs.next()) {
+//                    tazIndex = rs.getInt("taz_id");
+//                    tazNum = rs.getInt("taz_num_id");
+//                    this.outerOffset = Math.min(this.outerOffset, tazIndex);
+//                    this.mappingOuternet.put(tazNum, tazIndex);
+//                }
+//                rs.close();
+//            }
+//            //do we have the subnet taz table?
+//            if(subnetTAZ != null && subnetTAZ.length()>0) {
+//                query = "SELECT taz_id, taz_num_id FROM " + subnetTAZ;
+//                rs = this.dbCon.executeQuery(query, this);
+//                //clear old mapping in case we run this method twice
+//                mappingSubnet.clear();
+//                while (rs.next()) {
+//                    tazIndex = rs.getInt("taz_id");
+//                    tazNum = rs.getInt("taz_num_id");
+//                    this.subOffset = Math.min(this.subOffset, tazIndex);
+//                    this.mappingSubnet.put(tazNum, tazIndex);
+//                }
+//            }
+//            rs.close();
+//        } catch (SQLException throwables) {
+//            System.err.println("Error in sql-query: " + query);
+//            throwables.printStackTrace();
+//        }
 
         //prefill the outer tazes
         this.outerTAZ.clear();
@@ -112,10 +110,10 @@ public class TPS_SubnetMatrixIntegrator extends TPS_BasicConnectionClass {
 
         //load the matrices
         if(subnet != null && subnet.length()>0) {
-            this.subnet = this.dbCon.readMatrix(subnet, this.subOffset, this);
+//            this.subnet = this.dbCon.readMatrix(subnet, this.subOffset, this);
         }
         if(outernet !=null && outernet.length()>0) {
-            this.outernet = this.dbCon.readMatrix(outernet, this.outerOffset, this);
+//            this.outernet = this.dbCon.readMatrix(outernet, this.outerOffset, this);
         }
     }
 
@@ -168,9 +166,9 @@ public class TPS_SubnetMatrixIntegrator extends TPS_BasicConnectionClass {
 
     public void saveMatrix(String name, Matrix m){
 
-        String query = "INSERT INTO "+parameterClass.getString(
-                ParamString.DB_TABLE_MATRICES)+" VALUES ('" + name + "', "+ TPS_DB_IO.matrixToSQLArray(m, 0) + ")";
-        dbCon.execute(query,this);
+//        String query = "INSERT INTO "+parameterClass.getString(
+//                ParamString.DB_TABLE_MATRICES)+" VALUES ('" + name + "', "+ TPS_DB_IO.matrixToSQLArray(m, 0) + ")";
+//        dbCon.execute(query,this);
         System.out.println("Matrix "+name+" saved.");
 
     }
@@ -206,10 +204,10 @@ public class TPS_SubnetMatrixIntegrator extends TPS_BasicConnectionClass {
      */
     public static void main(String[] args) {
         TPS_SubnetMatrixIntegrator worker = new TPS_SubnetMatrixIntegrator();
-        worker.parameterClass.setString(
-                ParamString.DB_TABLE_MATRICES,"core.berlin_matrices");
-        worker.parameterClass.setString(
-                ParamString.DB_TABLE_TAZ,"core.berlin_taz_1223");
+//        worker.parameterClass.setString(
+//                ParamString.DB_TABLE_MATRICES,"core.berlin_matrices");
+//        worker.parameterClass.setString(
+//                ParamString.DB_TABLE_TAZ,"core.berlin_taz_1223");
         String subNetTAZ= "core.berlin_move_urban_taz_1223", subNetName = null;
         subNetName="move_urban_bike_tt_hd";
         worker.loadMatricesAndMappings(subNetName, "BIKE_TT_HD", subNetTAZ);

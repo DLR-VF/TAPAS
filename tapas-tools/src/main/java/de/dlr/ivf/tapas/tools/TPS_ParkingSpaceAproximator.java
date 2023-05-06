@@ -8,15 +8,13 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
+public class TPS_ParkingSpaceAproximator {
 
     Map<Integer, Integer> personsPerTaz = new HashMap<>();
     Map<Integer, Integer> carsPerTaz = new HashMap<>();
@@ -177,55 +175,55 @@ public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
 
     public void loadPersonsAndCars(String db, String key) {
         String query = "";
-        try {
-            query = "SELECT hh_taz_id, sum(hh_persons)::integer as persons, sum(hh_cars)::integer as cars FROM " + db +
-                    " WHERE hh_key= '" + key + "' group by hh_taz_id";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            int taz;
-            int persons;
-            int cars;
-            while (rs.next()) {
-                taz = rs.getInt("hh_taz_id");
-                persons = rs.getInt("persons");
-                cars = rs.getInt("cars");
-                this.personsPerTaz.put(taz, persons);
-                this.carsPerTaz.put(taz, cars);
-            }
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " readParameters: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT hh_taz_id, sum(hh_persons)::integer as persons, sum(hh_cars)::integer as cars FROM " + db +
+//                    " WHERE hh_key= '" + key + "' group by hh_taz_id";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            int taz;
+//            int persons;
+//            int cars;
+//            while (rs.next()) {
+//                taz = rs.getInt("hh_taz_id");
+//                persons = rs.getInt("persons");
+//                cars = rs.getInt("cars");
+//                this.personsPerTaz.put(taz, persons);
+//                this.carsPerTaz.put(taz, cars);
+//            }
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " readParameters: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void loadTazArea(String db) {
         String query = "";
-        try {
-            query = "SELECT gid, st_area(geography(the_geom))::integer as sqrmeter FROM " + db;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            int taz;
-            int area;
-            while (rs.next()) {
-                taz = rs.getInt("gid");
-                area = rs.getInt("sqrmeter");
-                this.areaPerTaz.put(taz, area);
-                maxTAZ = Math.max(maxTAZ, taz);
-                minTAZ = Math.min(minTAZ, taz);
-            }
-            numberOfTaz = 1 + maxTAZ - minTAZ;
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " readParameters: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT gid, st_area(geography(the_geom))::integer as sqrmeter FROM " + db;
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            int taz;
+//            int area;
+//            while (rs.next()) {
+//                taz = rs.getInt("gid");
+//                area = rs.getInt("sqrmeter");
+//                this.areaPerTaz.put(taz, area);
+//                maxTAZ = Math.max(maxTAZ, taz);
+//                minTAZ = Math.min(minTAZ, taz);
+//            }
+//            numberOfTaz = 1 + maxTAZ - minTAZ;
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " readParameters: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void storeSQLMatrix(String db, String nameEgress, String nameAccess) {
         //delete old values
         String query = "DELETE FROM " + db + " WHERE matrix_name= '" + nameEgress + "'";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
         query = "DELETE FROM " + db + " WHERE matrix_name= '" + nameAccess + "'";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
 
         //create the access/egress matrix:
         //Egress: all values TO this cell have the same egress
@@ -242,15 +240,15 @@ public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
         //save to db!
         query = "INSERT INTO " + db + " (\"matrix_name\",\"matrix_values\")" + " VALUES('" + nameEgress + "',";
         // build array of matrix-ints
-        query += TPS_DB_IO.matrixToSQLArray(egressM, 0);
+//        query += TPS_DB_IO.matrixToSQLArray(egressM, 0);
         query += ")";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
 
         query = "INSERT INTO " + db + " (\"matrix_name\",\"matrix_values\")" + " VALUES('" + nameAccess + "',";
         // build array of matrix-ints
-        query += TPS_DB_IO.matrixToSQLArray(accessM, 0);
+//        query += TPS_DB_IO.matrixToSQLArray(accessM, 0);
         query += ")";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
     }
 
 }

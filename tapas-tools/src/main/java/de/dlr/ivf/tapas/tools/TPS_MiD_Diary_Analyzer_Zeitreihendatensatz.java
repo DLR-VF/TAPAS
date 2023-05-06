@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.PrintWriter;
@@ -18,7 +17,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.Map.Entry;
 
-public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnectionClass {
+public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz{
 
     static final int ONE_DAY = 24 * 60;
     static final int ANY_DIARY_GROUP = -1;
@@ -158,7 +157,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
 
     public void cleanUpDB(String table) {
         String query = "DELETE FROM " + table + " WHERE key = '" + tableKey + "'";
-        this.dbCon.execute(query, this);
+//        this.dbCon.execute(query, this);
     }
 
     public void clearEverything() {
@@ -251,73 +250,73 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 "INSERT INTO %s" + " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain, key) " +
                         "VALUES (?,?,?,?,?,?,?,'%s');", table_episode, tableKey);
 
-        try {
-            PreparedStatement pS = this.dbCon.getConnection(this).prepareStatement(tmpString);
-            int batchSize = 0, maxSize = 10000;
-
-            int schemes = 0, diaries = 0;
-            for (Entry<String, Diary> e : this.diaryMap.entrySet()) {
-                Diary tmp = e.getValue();
-                tmp.schemeID = schemeID;
-                tmpString = String.format(Locale.ENGLISH,
-                        "INSERT INTO %s (scheme_id, scheme_class_id, homework, key) VALUES (%d,%d,false,'%s');", table_schemes,
-                        tmp.schemeID, tmp.group, tableKey);
-                if (print) {
-                    pw.printf(tmpString + "\n");
-                } else {
-                    this.dbCon.execute(tmpString, this);
-                }
-                schemes++;
-
-                for (DiaryElement d : tmp.activities) {
-                    diaries++;
-                    start = d.start_min;
-                    duration = d.getDuration();
-                    key = new ImmutablePair<>(d.purpose,tmp.group);
-                    if (!activityMapping.containsKey(key)) {
-                        key = new ImmutablePair<>(d.purpose, ANY_DIARY_GROUP);
-                    }
-
-                    act_code_zbe = activityMapping.get(key);
-                    tourNumber = d.tourNumber;
-                    home = d.home && d.stay;
-                    workchain = d.workchain;
-                    if (!d.stay) act_code_zbe = 80;
-                    //System.out.printf("Scheme %6d Start %4d Duration %4d Act %3d tour %2d home %s workchain %s\n", schemeID, start, duration, act_code_zbe, tourNumber, (home?"T":"F"), (workchain?"T":"F"));
-                    tmpString = String.format(Locale.ENGLISH, "INSERT INTO %s" +
-                                    " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain, key) " +
-                                    "VALUES (%d,%d,%d,%d,%s,%d,%s,'%s'); --hhid: %d, pid: %d", table_episode, tmp.schemeID, start,
-                            duration, act_code_zbe, home, tourNumber, workchain, tableKey, tmp.hhID, tmp.pID);
-                    if (print) {
-                        pw.printf(tmpString + "\n");
-                    } else {
-                        int index = 1;
-                        pS.setInt(index++, tmp.schemeID);
-                        pS.setInt(index++, start);
-                        pS.setInt(index++, duration);
-                        pS.setInt(index++, act_code_zbe);
-                        pS.setBoolean(index++, home);
-                        pS.setInt(index++, tourNumber);
-                        pS.setBoolean(index++, workchain);
-                        pS.addBatch();
-                        batchSize++;
-                    }
-                }
-                schemeID++;
-                if (batchSize >= maxSize) {
-                    pS.executeBatch();
-                    batchSize = 0;
-                }
-            }
-            pS.executeBatch();
-            pw.flush();
-            if (!print) {
-                System.out.println("Inserted " + schemes + " schemes with " + diaries + " diaries.");
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + tmpString);
-            e.printStackTrace();
-        }
+//        try {
+//            PreparedStatement pS = this.dbCon.getConnection(this).prepareStatement(tmpString);
+//            int batchSize = 0, maxSize = 10000;
+//
+//            int schemes = 0, diaries = 0;
+//            for (Entry<String, Diary> e : this.diaryMap.entrySet()) {
+//                Diary tmp = e.getValue();
+//                tmp.schemeID = schemeID;
+//                tmpString = String.format(Locale.ENGLISH,
+//                        "INSERT INTO %s (scheme_id, scheme_class_id, homework, key) VALUES (%d,%d,false,'%s');", table_schemes,
+//                        tmp.schemeID, tmp.group, tableKey);
+//                if (print) {
+//                    pw.printf(tmpString + "\n");
+//                } else {
+//                    this.dbCon.execute(tmpString, this);
+//                }
+//                schemes++;
+//
+//                for (DiaryElement d : tmp.activities) {
+//                    diaries++;
+//                    start = d.start_min;
+//                    duration = d.getDuration();
+//                    key = new ImmutablePair<>(d.purpose,tmp.group);
+//                    if (!activityMapping.containsKey(key)) {
+//                        key = new ImmutablePair<>(d.purpose, ANY_DIARY_GROUP);
+//                    }
+//
+//                    act_code_zbe = activityMapping.get(key);
+//                    tourNumber = d.tourNumber;
+//                    home = d.home && d.stay;
+//                    workchain = d.workchain;
+//                    if (!d.stay) act_code_zbe = 80;
+//                    //System.out.printf("Scheme %6d Start %4d Duration %4d Act %3d tour %2d home %s workchain %s\n", schemeID, start, duration, act_code_zbe, tourNumber, (home?"T":"F"), (workchain?"T":"F"));
+//                    tmpString = String.format(Locale.ENGLISH, "INSERT INTO %s" +
+//                                    " (scheme_id, start, duration, act_code_zbe, home, tournumber, workchain, key) " +
+//                                    "VALUES (%d,%d,%d,%d,%s,%d,%s,'%s'); --hhid: %d, pid: %d", table_episode, tmp.schemeID, start,
+//                            duration, act_code_zbe, home, tourNumber, workchain, tableKey, tmp.hhID, tmp.pID);
+//                    if (print) {
+//                        pw.printf(tmpString + "\n");
+//                    } else {
+//                        int index = 1;
+//                        pS.setInt(index++, tmp.schemeID);
+//                        pS.setInt(index++, start);
+//                        pS.setInt(index++, duration);
+//                        pS.setInt(index++, act_code_zbe);
+//                        pS.setBoolean(index++, home);
+//                        pS.setInt(index++, tourNumber);
+//                        pS.setBoolean(index++, workchain);
+//                        pS.addBatch();
+//                        batchSize++;
+//                    }
+//                }
+//                schemeID++;
+//                if (batchSize >= maxSize) {
+//                    pS.executeBatch();
+//                    batchSize = 0;
+//                }
+//            }
+//            pS.executeBatch();
+//            pw.flush();
+//            if (!print) {
+//                System.out.println("Inserted " + schemes + " schemes with " + diaries + " diaries.");
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in sqlstatement: " + tmpString);
+//            e.printStackTrace();
+//        }
 
 
     }
@@ -342,7 +341,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         //clean up
         if (!print) {
             query = "DELETE FROM " + tablename + " where name ='" + name + "' AND key = '" + tableKey + "';";
-            this.dbCon.execute(query, this);
+//            this.dbCon.execute(query, this);
         }
 
         for (Integer pgroup : this.personGroupDistribution.keySet()) {
@@ -355,7 +354,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 if (print) {
                     pw.printf(query + "\n");
                 } else {
-                    this.dbCon.execute(query, this);
+//                    this.dbCon.execute(query, this);
                 }
             }
         }
@@ -509,7 +508,7 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
                 query = String.format(Locale.ENGLISH,
                         "INSERT INTO %s (scheme_class_id, avg_travel_time, proz_std_dev, key) VALUES (%d,%f,%f,'%s');", table,
                         i, avg, within, tableKey);
-                this.dbCon.execute(query, this);
+//                this.dbCon.execute(query, this);
 
             }
         }
@@ -554,88 +553,88 @@ public class TPS_MiD_Diary_Analyzer_Zeitreihendatensatz extends TPS_BasicConnect
         DiaryElement lastActivity = null;
         int doubleReturnDiaries = 0;
 
-        try {
-            query = "select \"Erhebung\", h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
-                    "w_folgetag, wegmin, "+ pgTapasCol +", " + diaryGroupCol + " from " + table +
-                    " where w_szs != 99 and w_szs != 701 and w_azs != 99 and w_azs != 701 and " +
-                    " w_szm != 99 and w_szm != 701 and w_azm != 99 and w_azm != 701 and" +
-                    " \"Erhebung\" = " + ERHEBUNG + " and wegmin != 9994 and " + pgTapasCol + " != -1 and " + filter +
-                    " order by h_id, p_id, w_id";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            String key, lastKey = "";
-            long hhID;
-            int pID, start, end, purpose, group, pGroup, personStatus, erhebung;
-            boolean clean = true, home, addTripElement;
-
-            while (rs.next()) {
-                hhID = rs.getLong("h_id");
-                pID = rs.getInt("p_id");
-                start = rs.getInt("w_szs") * 60 + rs.getInt("w_szm");
-                end = rs.getInt("w_folgetag") * ONE_DAY + rs.getInt("w_azs") * 60 + rs.getInt("w_azm");
-                purpose = rs.getInt("w_zweck");
-                group = rs.getInt(diaryGroupCol);
-                pGroup = rs.getInt(pgTapasCol);
-                personStatus = rs.getInt("hp_taet");
-                home = purpose == 8;
-                erhebung = rs.getInt("Erhebung");
-                key = makeDiaryKey(hhID, pID, erhebung);
-                if (key.equals(lastKey)) { //same diary?
-                    actualDiary = this.diaryMap.get(key);
-                } else {
-                    if (clean) {
-                        //finish the old one
-                        if (lastDiary != null) {
-                            lastDiary.finishDiary();
-                        }
-                    } else {
-                        this.diaryMap.remove(lastKey);
-                    }
-                    clean = true;
-                    actualDiary = new Diary(hhID, pID, group, pGroup, personStatus);
-                    this.diaryMap.put(key, actualDiary);
-                    lastActivity = null;
-                }
-                addTripElement = true; //default value, only changed if start or end time equal to the prev trip
-                if (actualDiary.activities.size() == 1 && (purpose == 8 || purpose == 9)) {
-                    numOfDiariesStartingWithATrip++;
-                } else if (lastActivity != null && lastActivity.home && purpose == 8) { // two consecutive "trips home"
-//                    System.err.println("Diary " + hhID + " pid " + pID + " has two consecutive trips home");
-//                    doubleReturnDiaries++;
-                    if (lastActivity.start_min == start) { //take the longer trip
-                        lastActivity.end_min = Math.max(lastActivity.end_min, end);
-                        addTripElement = false; //don't add the current trip element
-                    } else if (lastActivity.end_min == end) {// take the longer trip
-                        lastActivity.start_min = Math.max(lastActivity.start_min, start);
-                        addTripElement = false; //don't add the current trip element
-                    } else {
-                        lastActivity.purpose = 10; //change prev trip purpose to "anderer Zweck"
-                        if (lastActivity.end_min >= start) {//merge the trips and take the first one
-                            if (lastActivity.end_min - lastActivity.start_min >= end - start) {//which trip is the longer one?
-                                lastActivity.end_min = start - 5; //reduce the first/prev trip duration
-                            } else {
-                                start = lastActivity.end_min + 5; //reduce the second/current trip duration
-                            }
-                        }
-                    }
-                }
-                if (addTripElement){
-                    if (start != end) {
-                        clean &= actualDiary.addNextElement(start, end, purpose, home);
-                        int diaryIndex = actualDiary.activities.size() - 1;
-                        lastActivity = actualDiary.activities.get(diaryIndex);
-                    }
-                }
-
-
-                lastDiary = actualDiary;
-                activities.add(purpose); //collect all possible activities
-                diaryGroups.add(actualDiary.group);
-                lastKey = key;
-            }
-        } catch (SQLException e) {
-            System.err.println("Error in SQL statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "select \"Erhebung\", h_id, p_id, w_id, hp_taet, w_zweck, w_szs, w_szm, w_azs, w_azm, " +
+//                    "w_folgetag, wegmin, "+ pgTapasCol +", " + diaryGroupCol + " from " + table +
+//                    " where w_szs != 99 and w_szs != 701 and w_azs != 99 and w_azs != 701 and " +
+//                    " w_szm != 99 and w_szm != 701 and w_azm != 99 and w_azm != 701 and" +
+//                    " \"Erhebung\" = " + ERHEBUNG + " and wegmin != 9994 and " + pgTapasCol + " != -1 and " + filter +
+//                    " order by h_id, p_id, w_id";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            String key, lastKey = "";
+//            long hhID;
+//            int pID, start, end, purpose, group, pGroup, personStatus, erhebung;
+//            boolean clean = true, home, addTripElement;
+//
+//            while (rs.next()) {
+//                hhID = rs.getLong("h_id");
+//                pID = rs.getInt("p_id");
+//                start = rs.getInt("w_szs") * 60 + rs.getInt("w_szm");
+//                end = rs.getInt("w_folgetag") * ONE_DAY + rs.getInt("w_azs") * 60 + rs.getInt("w_azm");
+//                purpose = rs.getInt("w_zweck");
+//                group = rs.getInt(diaryGroupCol);
+//                pGroup = rs.getInt(pgTapasCol);
+//                personStatus = rs.getInt("hp_taet");
+//                home = purpose == 8;
+//                erhebung = rs.getInt("Erhebung");
+//                key = makeDiaryKey(hhID, pID, erhebung);
+//                if (key.equals(lastKey)) { //same diary?
+//                    actualDiary = this.diaryMap.get(key);
+//                } else {
+//                    if (clean) {
+//                        //finish the old one
+//                        if (lastDiary != null) {
+//                            lastDiary.finishDiary();
+//                        }
+//                    } else {
+//                        this.diaryMap.remove(lastKey);
+//                    }
+//                    clean = true;
+//                    actualDiary = new Diary(hhID, pID, group, pGroup, personStatus);
+//                    this.diaryMap.put(key, actualDiary);
+//                    lastActivity = null;
+//                }
+//                addTripElement = true; //default value, only changed if start or end time equal to the prev trip
+//                if (actualDiary.activities.size() == 1 && (purpose == 8 || purpose == 9)) {
+//                    numOfDiariesStartingWithATrip++;
+//                } else if (lastActivity != null && lastActivity.home && purpose == 8) { // two consecutive "trips home"
+////                    System.err.println("Diary " + hhID + " pid " + pID + " has two consecutive trips home");
+////                    doubleReturnDiaries++;
+//                    if (lastActivity.start_min == start) { //take the longer trip
+//                        lastActivity.end_min = Math.max(lastActivity.end_min, end);
+//                        addTripElement = false; //don't add the current trip element
+//                    } else if (lastActivity.end_min == end) {// take the longer trip
+//                        lastActivity.start_min = Math.max(lastActivity.start_min, start);
+//                        addTripElement = false; //don't add the current trip element
+//                    } else {
+//                        lastActivity.purpose = 10; //change prev trip purpose to "anderer Zweck"
+//                        if (lastActivity.end_min >= start) {//merge the trips and take the first one
+//                            if (lastActivity.end_min - lastActivity.start_min >= end - start) {//which trip is the longer one?
+//                                lastActivity.end_min = start - 5; //reduce the first/prev trip duration
+//                            } else {
+//                                start = lastActivity.end_min + 5; //reduce the second/current trip duration
+//                            }
+//                        }
+//                    }
+//                }
+//                if (addTripElement){
+//                    if (start != end) {
+//                        clean &= actualDiary.addNextElement(start, end, purpose, home);
+//                        int diaryIndex = actualDiary.activities.size() - 1;
+//                        lastActivity = actualDiary.activities.get(diaryIndex);
+//                    }
+//                }
+//
+//
+//                lastDiary = actualDiary;
+//                activities.add(purpose); //collect all possible activities
+//                diaryGroups.add(actualDiary.group);
+//                lastKey = key;
+//            }
+//        } catch (SQLException e) {
+//            System.err.println("Error in SQL statement: " + query);
+//            e.printStackTrace();
+//        }
         if (lastDiary != null) {
             lastDiary.finishDiary();
         }

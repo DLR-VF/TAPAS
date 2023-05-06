@@ -1,7 +1,5 @@
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
 
 import java.sql.ResultSet;
@@ -11,7 +9,7 @@ import java.util.Map;
 
 //superfast hacked - no doku!
 // Matthias Heinrichs
-public class TPS_MoveUrbanAdjuster extends TPS_BasicConnectionClass {
+public class TPS_MoveUrbanAdjuster {
 
     Matrix interchanges;
     Matrix ttTimes;
@@ -103,22 +101,22 @@ public class TPS_MoveUrbanAdjuster extends TPS_BasicConnectionClass {
     protected Matrix readMatrix(String matrixName, String tableName) {
         Matrix m = null;
         String query = "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
-        try {
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                int len = (int) Math.sqrt(iArray.length);
-                m = new Matrix(len, len);
-                for (int index = 0; index < iArray.length; index++) {
-                    m.setRawValue(index, iArray[index]);
-                }
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println("Error during sql-statement: " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                int len = (int) Math.sqrt(iArray.length);
+//                m = new Matrix(len, len);
+//                for (int index = 0; index < iArray.length; index++) {
+//                    m.setRawValue(index, iArray[index]);
+//                }
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println("Error during sql-statement: " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
         return m;
     }
 
@@ -128,7 +126,7 @@ public class TPS_MoveUrbanAdjuster extends TPS_BasicConnectionClass {
         //delete old entry
         StringBuilder query = new StringBuilder(
                 "DELETE FROM " + tableName + " WHERE matrix_name = '" + matrixName + "'");
-        this.dbCon.execute(query.toString(), this);
+//        this.dbCon.execute(query.toString(), this);
 
 
 
@@ -144,6 +142,6 @@ public class TPS_MoveUrbanAdjuster extends TPS_BasicConnectionClass {
             query.append(buffer);
         }
         query.append("}' )");
-        this.dbCon.execute(query.toString(), this);
+//        this.dbCon.execute(query.toString(), this);
     }
 }

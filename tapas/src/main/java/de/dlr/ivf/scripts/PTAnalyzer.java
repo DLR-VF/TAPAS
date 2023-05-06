@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.scripts.SrVCalculator.TAZ;
+
 import de.dlr.ivf.tapas.tools.TPS_VisumOeVToDB;
 
 import java.io.FileWriter;
@@ -165,13 +165,13 @@ public class PTAnalyzer extends TPS_VisumOeVToDB {
                         badTaz.put(j, oldVal);
                         //TAZ from = this.TAZes.get(this.reverseTAZIDMap.get(i));
                         //TAZ to = this.TAZes.get(this.reverseTAZIDMap.get(j));
-                        TAZ from = this.TAZes.get(this.reverseTAZIDMap.get(i));
-                        TAZ to = this.TAZes.get(this.reverseTAZIDMap.get(j));
-                        //if(from.taz_id == 110502911 || to.taz_id == 110502911 )
-                        System.out.println(
-                                "Speed: " + val + "km/h from " + from.taz_id + "(" + from.description + ") to " +
-                                        to.taz_id + "(" + to.description + ") tt " + travelTime[i][j] + " dist " +
-                                        distance[i][j] + " bl " + from.getDistance(to));
+//                        TAZ from = this.TAZes.get(this.reverseTAZIDMap.get(i));
+//                        TAZ to = this.TAZes.get(this.reverseTAZIDMap.get(j));
+//                        //if(from.taz_id == 110502911 || to.taz_id == 110502911 )
+//                        System.out.println(
+//                                "Speed: " + val + "km/h from " + from.taz_id + "(" + from.description + ") to " +
+//                                        to.taz_id + "(" + to.description + ") tt " + travelTime[i][j] + " dist " +
+//                                        distance[i][j] + " bl " + from.getDistance(to));
                     }
                 }
             }
@@ -186,8 +186,8 @@ public class PTAnalyzer extends TPS_VisumOeVToDB {
         }
 
         for (TAZCounter entry : tazSet.toArray(new TAZCounter[0])) {
-            TAZ taz = this.TAZes.get(this.reverseTAZIDMap.get(entry.TAZ));
-            System.out.println("Bad Taz " + taz.taz_id + " " + taz.description + " count: " + entry.val);
+//            TAZ taz = this.TAZes.get(this.reverseTAZIDMap.get(entry.TAZ));
+//            System.out.println("Bad Taz " + taz.taz_id + " " + taz.description + " count: " + entry.val);
         }
         System.out.println("Speed: min: " + min + " max: " + max + " avg : " + avg / count);
     }

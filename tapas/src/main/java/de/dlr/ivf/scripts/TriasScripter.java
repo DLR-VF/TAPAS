@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,7 +16,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TriasScripter extends TPS_BasicConnectionClass {
+public class TriasScripter {
 
     private final static String HOST = "http://v1.api.efa.de";
     private final static String FILEPATH = "T:\\Daten\\Trias_BSW\\2output";
@@ -41,21 +39,21 @@ public class TriasScripter extends TPS_BasicConnectionClass {
      */
     void readTazes(String Region) {
         String query = "";
-        try {
-            query = "SELECT taz_id, st_X(taz_coordinate) as x, st_Y(taz_coordinate) as y FROM core." + Region + "_taz";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                TazElement taz = new TazElement();
-                taz.id = rs.getInt("taz_id");
-                taz.x = rs.getDouble("x");
-                taz.y = rs.getDouble("y");
-                tazes.add(taz);
-            }
-
-        } catch (SQLException e) {
-            System.out.println("SQL error! Query: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT taz_id, st_X(taz_coordinate) as x, st_Y(taz_coordinate) as y FROM core." + Region + "_taz";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                TazElement taz = new TazElement();
+//                taz.id = rs.getInt("taz_id");
+//                taz.x = rs.getDouble("x");
+//                taz.y = rs.getDouble("y");
+//                tazes.add(taz);
+//            }
+//
+//        } catch (SQLException e) {
+//            System.out.println("SQL error! Query: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     /**

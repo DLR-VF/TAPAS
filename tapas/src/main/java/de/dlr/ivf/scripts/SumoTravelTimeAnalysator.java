@@ -9,7 +9,6 @@
 package de.dlr.ivf.scripts;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class SumoTravelTimeAnalysator extends TPS_BasicConnectionClass {
+public class SumoTravelTimeAnalysator {
 
     static final String region = "berlin";
     static final String tt_name = "CAR_1193_2010_T0_TT_TOP3_2016y_09m_23d_12h_45m_01s_459ms_IT_3";
@@ -130,142 +129,142 @@ public class SumoTravelTimeAnalysator extends TPS_BasicConnectionClass {
         if (size == 0) return null;
         int[][] mat = new int[size][size];
         String query = "";
-        try {
-            query = "SELECT matrix_values FROM core." + region + "_matrices WHERE matrix_name = '" + name + "'";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                int[] numbers = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                //parse array
-                if (numbers.length == size * size) {
-                    int k = 0;
-                    for (int i = 0; i < size; ++i) {
-                        for (int j = 0; j < size; ++j, ++k) {
-                            mat[i][j] = numbers[k];
-                        }
-                    }
-                } else {
-                    return null;
-                }
-            }
-        } catch (SQLException e) {
-            System.out.println("SQL error! Query: " + query);
-            e.printStackTrace();
-            return null;
-        }
+//        try {
+//            query = "SELECT matrix_values FROM core." + region + "_matrices WHERE matrix_name = '" + name + "'";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                int[] numbers = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                //parse array
+//                if (numbers.length == size * size) {
+//                    int k = 0;
+//                    for (int i = 0; i < size; ++i) {
+//                        for (int j = 0; j < size; ++j, ++k) {
+//                            mat[i][j] = numbers[k];
+//                        }
+//                    }
+//                } else {
+//                    return null;
+//                }
+//            }
+//        } catch (SQLException e) {
+//            System.out.println("SQL error! Query: " + query);
+//            e.printStackTrace();
+//            return null;
+//        }
         return mat;
     }
 
     void readSumoValues(String simkey) {
         String query = "";
-        try {
-            String simName1 = "temp.sumo_od_" + simkey;
-            String simName2 = "temp.sumo_od_entry_" + simkey;
-            query = "SELECT taz_id_start, taz_id_end, travel_time_sec[3] FROM " + simName1 + " as st JOIN " + simName2 +
-                    " as se on st.entry_id = se.entry_id";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            String key;
-            int from, to;
-            double tt;
-            TazTimeElement ref;
-            double binSize = 60;
-            while (rs.next()) {
-                from = tazMap.get(rs.getInt("taz_id_start"));
-                to = tazMap.get(rs.getInt("taz_id_end"));
-                tt = rs.getDouble("travel_time_sec");
-                key = this.generateKey(from, to);
-                ref = this.analysis.get(key);
-                ref.setNewTTFrom(Math.round(tt));
-                key = this.generateKey(to, from);
-                ref = this.analysis.get(key);
-                ref.setNewTTTo(Math.round(tt));
-
-                int ttDiff = (int) ((ref.ttOld - tt) / binSize);
-                int count = 1;
-                if (this.histogram.containsKey(ttDiff)) {
-                    count += this.histogram.get(ttDiff);
-                }
-                this.histogram.put(ttDiff, count);
-            }
-        } catch (SQLException e) {
-            System.out.println("SQL error! Query: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            String simName1 = "temp.sumo_od_" + simkey;
+//            String simName2 = "temp.sumo_od_entry_" + simkey;
+//            query = "SELECT taz_id_start, taz_id_end, travel_time_sec[3] FROM " + simName1 + " as st JOIN " + simName2 +
+//                    " as se on st.entry_id = se.entry_id";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            String key;
+//            int from, to;
+//            double tt;
+//            TazTimeElement ref;
+//            double binSize = 60;
+//            while (rs.next()) {
+//                from = tazMap.get(rs.getInt("taz_id_start"));
+//                to = tazMap.get(rs.getInt("taz_id_end"));
+//                tt = rs.getDouble("travel_time_sec");
+//                key = this.generateKey(from, to);
+//                ref = this.analysis.get(key);
+//                ref.setNewTTFrom(Math.round(tt));
+//                key = this.generateKey(to, from);
+//                ref = this.analysis.get(key);
+//                ref.setNewTTTo(Math.round(tt));
+//
+//                int ttDiff = (int) ((ref.ttOld - tt) / binSize);
+//                int count = 1;
+//                if (this.histogram.containsKey(ttDiff)) {
+//                    count += this.histogram.get(ttDiff);
+//                }
+//                this.histogram.put(ttDiff, count);
+//            }
+//        } catch (SQLException e) {
+//            System.out.println("SQL error! Query: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     void readTazes(String Region) {
         String query = "";
-        try {
-            query = "SELECT taz_id, taz_num_id, st_X(taz_coordinate) as x, st_Y(taz_coordinate) as y FROM core." +
-                    Region + "_taz";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                TazElement taz = new TazElement();
-                taz.id = rs.getInt("taz_id");
-                taz.x = rs.getDouble("x");
-                taz.y = rs.getDouble("y");
-                tazes.put(taz.id, taz);
-                tazMap.put(rs.getInt("taz_num_id"), taz.id);
-            }
-
-        } catch (SQLException e) {
-            System.out.println("SQL error! Query: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT taz_id, taz_num_id, st_X(taz_coordinate) as x, st_Y(taz_coordinate) as y FROM core." +
+//                    Region + "_taz";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                TazElement taz = new TazElement();
+//                taz.id = rs.getInt("taz_id");
+//                taz.x = rs.getDouble("x");
+//                taz.y = rs.getDouble("y");
+//                tazes.put(taz.id, taz);
+//                tazMap.put(rs.getInt("taz_num_id"), taz.id);
+//            }
+//
+//        } catch (SQLException e) {
+//            System.out.println("SQL error! Query: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     void saveToDB(String tableName, List<AggregatedResult> res) {
         String query = "";
-        try {
-
-            //check for old tables
-            query = "SELECT count(*) > 0 AS exsits FROM pg_tables WHERE tablename='" + tableName +
-                    "' AND schemaname='core'";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                if (rs.getBoolean("exsits")) {
-                    //clean up
-                    query = "select dropgeometrycolumn('core','" + tableName + "','taz_coordinate')";
-                    this.dbCon.execute(query, this);
-                    query = "select dropgeometrycolumn('core','" + tableName + "','line_best')";
-                    this.dbCon.execute(query, this);
-                    query = "select dropgeometrycolumn('core','" + tableName + "','line_worst')";
-                    this.dbCon.execute(query, this);
-
-                    query = "DROP TABLE core." + tableName;
-                    this.dbCon.execute(query, this);
-                }
-            }
-
-
-            //create
-            query = "CREATE TABLE core." + tableName +
-                    "(  taz_id integer NOT NULL, taz_id_worst integer, taz_id_best integer, score double precision, scoreTo double precision," +
-                    " CONSTRAINT " + tableName +
-                    "_pk PRIMARY KEY (taz_id) USING INDEX TABLESPACE index) WITH ( OIDS=FALSE);";
-            this.dbCon.execute(query, this);
-
-            //add geometry
-            query = "SELECT AddGeometryColumn('core','" + tableName + "','taz_coordinate','4326','POINT',2)";
-            this.dbCon.execute(query, this);
-            query = "SELECT AddGeometryColumn('core','" + tableName + "','line_worst','4326','LINESTRING',2)";
-            this.dbCon.execute(query, this);
-            query = "SELECT AddGeometryColumn('core','" + tableName + "','line_best','4326','LINESTRING',2)";
-            this.dbCon.execute(query, this);
-
-            for (AggregatedResult agg : res) {
-                query = "INSERT INTO core." + tableName + " VALUES(	" + agg.ref.id + "," + agg.worst.to.id + "," +
-                        agg.best.to.id + "," + agg.scoreSumFrom / (this.tazes.size() - 1) + "," +
-                        +agg.scoreSumTo / (this.tazes.size() - 1) + "," + "st_setsrid(st_makepoint(" + agg.ref.x + "," +
-                        agg.ref.y + "), 4326)," + "st_setsrid(st_makeline(st_makepoint(" + agg.ref.x + "," + agg.ref.y +
-                        "),st_makepoint(" + agg.worst.to.x + "," + agg.worst.to.y + ")), 4326)," +
-                        "st_setsrid(st_makeline(st_makepoint(" + agg.ref.x + "," + agg.ref.y + "),st_makepoint(" +
-                        agg.best.to.x + "," + agg.best.to.y + ")), 4326)" + ")";
-                this.dbCon.execute(query, this);
-            }
-        } catch (SQLException e) {
-            System.out.println("SQL error! Query: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//
+//            //check for old tables
+//            query = "SELECT count(*) > 0 AS exsits FROM pg_tables WHERE tablename='" + tableName +
+//                    "' AND schemaname='core'";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                if (rs.getBoolean("exsits")) {
+//                    //clean up
+//                    query = "select dropgeometrycolumn('core','" + tableName + "','taz_coordinate')";
+//                    this.dbCon.execute(query, this);
+//                    query = "select dropgeometrycolumn('core','" + tableName + "','line_best')";
+//                    this.dbCon.execute(query, this);
+//                    query = "select dropgeometrycolumn('core','" + tableName + "','line_worst')";
+//                    this.dbCon.execute(query, this);
+//
+//                    query = "DROP TABLE core." + tableName;
+//                    this.dbCon.execute(query, this);
+//                }
+//            }
+//
+//
+//            //create
+//            query = "CREATE TABLE core." + tableName +
+//                    "(  taz_id integer NOT NULL, taz_id_worst integer, taz_id_best integer, score double precision, scoreTo double precision," +
+//                    " CONSTRAINT " + tableName +
+//                    "_pk PRIMARY KEY (taz_id) USING INDEX TABLESPACE index) WITH ( OIDS=FALSE);";
+//            this.dbCon.execute(query, this);
+//
+//            //add geometry
+//            query = "SELECT AddGeometryColumn('core','" + tableName + "','taz_coordinate','4326','POINT',2)";
+//            this.dbCon.execute(query, this);
+//            query = "SELECT AddGeometryColumn('core','" + tableName + "','line_worst','4326','LINESTRING',2)";
+//            this.dbCon.execute(query, this);
+//            query = "SELECT AddGeometryColumn('core','" + tableName + "','line_best','4326','LINESTRING',2)";
+//            this.dbCon.execute(query, this);
+//
+//            for (AggregatedResult agg : res) {
+//                query = "INSERT INTO core." + tableName + " VALUES(	" + agg.ref.id + "," + agg.worst.to.id + "," +
+//                        agg.best.to.id + "," + agg.scoreSumFrom / (this.tazes.size() - 1) + "," +
+//                        +agg.scoreSumTo / (this.tazes.size() - 1) + "," + "st_setsrid(st_makepoint(" + agg.ref.x + "," +
+//                        agg.ref.y + "), 4326)," + "st_setsrid(st_makeline(st_makepoint(" + agg.ref.x + "," + agg.ref.y +
+//                        "),st_makepoint(" + agg.worst.to.x + "," + agg.worst.to.y + ")), 4326)," +
+//                        "st_setsrid(st_makeline(st_makepoint(" + agg.ref.x + "," + agg.ref.y + "),st_makepoint(" +
+//                        agg.best.to.x + "," + agg.best.to.y + ")), 4326)" + ")";
+//                this.dbCon.execute(query, this);
+//            }
+//        } catch (SQLException e) {
+//            System.out.println("SQL error! Query: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     class TazElement implements Comparable<TazElement> {

@@ -11,7 +11,6 @@ package de.dlr.ivf.scripts;
 import de.dlr.ivf.tapas.model.person.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Car.CarSize;
 import de.dlr.ivf.tapas.model.person.TPS_Car.FuelType;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,7 +22,7 @@ import java.util.Map.Entry;
  * Kept for historic reasons.
  */
 
-public class FleetAnalyzer extends TPS_BasicConnectionClass {
+public class FleetAnalyzer  {
 
     String key = "";
     String hh_key = "";
@@ -128,73 +127,73 @@ public class FleetAnalyzer extends TPS_BasicConnectionClass {
 
     public void readParameters() {
         String query = "";
-        try {
-            query = "SELECT param_key , param_value FROM simulation_parameters WHERE sim_key= '" + this.key + "'";
-            ResultSet rs = dbCon.executeQuery(query, this);
-
-            while (rs.next()) {
-                if (rs.getString("param_key").equals("DB_HOUSEHOLD_AND_PERSON_KEY")) {
-                    hh_key = rs.getString("param_value");
-                }
-
-                if (rs.getString("param_key").equals("DB_CAR_FLEET_KEY")) {
-                    fleet_key = rs.getString("param_value");
-                }
-
-                if (rs.getString("param_key").equals("DB_REGION")) {
-                    regionName = rs.getString("param_value");
-                }
-            }
-
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " readParameters: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT param_key , param_value FROM simulation_parameters WHERE sim_key= '" + this.key + "'";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//
+//            while (rs.next()) {
+//                if (rs.getString("param_key").equals("DB_HOUSEHOLD_AND_PERSON_KEY")) {
+//                    hh_key = rs.getString("param_value");
+//                }
+//
+//                if (rs.getString("param_key").equals("DB_CAR_FLEET_KEY")) {
+//                    fleet_key = rs.getString("param_value");
+//                }
+//
+//                if (rs.getString("param_key").equals("DB_REGION")) {
+//                    regionName = rs.getString("param_value");
+//                }
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " readParameters: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public void readTrips() {
         String query = "";
-        try {
-            boolean recordsFound;
-            int step = 0;
-            int chunk = 1000000;
-            int pID = -1, hhID = -1;
-            do {
-                recordsFound = false;
-                query = "SELECT trip.p_id, trip.hh_id, trip.start_time_min, trip.mode, trip.car_type, trip.distance_real_m as dist,  cars.kba_no, cars.engine_type FROM " +
-                        regionName + "_trips_" + key + " as trip LEFT OUTER JOIN core." + regionName +
-                        "_cars as cars ON (trip.car_type=cars.car_id AND cars.car_key='" + fleet_key +
-                        "') WHERE trip.mode =2 ORDER BY hh_id, p_id, start_time_min LIMIT " + chunk + " OFFSET " +
-                        (step * chunk);
-                ResultSet rs = dbCon.executeQuery(query, this);
-                step++;
-                while (rs.next()) {
-                    recordsFound = true;
-                    int actPID = rs.getInt("p_id");
-                    int actHHID = rs.getInt("hh_id");
-                    if (pID != actPID || hhID != actHHID) {
-                        this.tripCounter++;
-                        pID = actPID;
-                        hhID = actHHID;
-                    }
-                    Trip trip = new Trip(actPID, actHHID, rs.getInt("start_time_min"));
-                    trip.car_id = rs.getInt("car_type");
-                    trip.car_kba = rs.getInt("kba_no");
-                    trip.fuelType = TPS_Car.FUEL_TYPE_ARRAY[rs.getInt("engine_type")];
-                    trip.dist = rs.getDouble("dist");
-                    trip.mode = rs.getInt("mode");
-
-                    this.trips.add(trip);
-
-                }
-                rs.close();
-            } while (recordsFound);
-
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + " readTrips: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            boolean recordsFound;
+//            int step = 0;
+//            int chunk = 1000000;
+//            int pID = -1, hhID = -1;
+//            do {
+//                recordsFound = false;
+//                query = "SELECT trip.p_id, trip.hh_id, trip.start_time_min, trip.mode, trip.car_type, trip.distance_real_m as dist,  cars.kba_no, cars.engine_type FROM " +
+//                        regionName + "_trips_" + key + " as trip LEFT OUTER JOIN core." + regionName +
+//                        "_cars as cars ON (trip.car_type=cars.car_id AND cars.car_key='" + fleet_key +
+//                        "') WHERE trip.mode =2 ORDER BY hh_id, p_id, start_time_min LIMIT " + chunk + " OFFSET " +
+//                        (step * chunk);
+//                ResultSet rs = dbCon.executeQuery(query, this);
+//                step++;
+//                while (rs.next()) {
+//                    recordsFound = true;
+//                    int actPID = rs.getInt("p_id");
+//                    int actHHID = rs.getInt("hh_id");
+//                    if (pID != actPID || hhID != actHHID) {
+//                        this.tripCounter++;
+//                        pID = actPID;
+//                        hhID = actHHID;
+//                    }
+//                    Trip trip = new Trip(actPID, actHHID, rs.getInt("start_time_min"));
+//                    trip.car_id = rs.getInt("car_type");
+//                    trip.car_kba = rs.getInt("kba_no");
+//                    trip.fuelType = TPS_Car.FUEL_TYPE_ARRAY[rs.getInt("engine_type")];
+//                    trip.dist = rs.getDouble("dist");
+//                    trip.mode = rs.getInt("mode");
+//
+//                    this.trips.add(trip);
+//
+//                }
+//                rs.close();
+//            } while (recordsFound);
+//
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + " readTrips: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     public class EcoMoveCar {

@@ -8,9 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.scripts.SrVCalculator;
-import de.dlr.ivf.scripts.SrVCalculator.TAZ;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 
 import java.io.BufferedReader;
@@ -27,12 +24,12 @@ import java.util.Map.Entry;
  *
  * @author hein_mh
  */
-public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
+public class TPS_VisumOeVToDB  {
 
     /**
      * Map for Taz-id to TAZ-Class form SrVCalculator
      */
-    public HashMap<Integer, TAZ> TAZes = new HashMap<>();
+    //public HashMap<Integer, TAZ> TAZes = new HashMap<>();
     /**
      * The array for all pTNOdes
      */
@@ -46,12 +43,11 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
      */
     HashMap<Integer, Integer> TAZIDMap = new HashMap<>();
 
-    public TPS_VisumOeVToDB(String loginFile) {
-        super(loginFile);
-    }
+//    public TPS_VisumOeVToDB(String loginFile) {
+//        super(loginFile);
+//    }
 
     public TPS_VisumOeVToDB() {
-        super();
     }
 
     /**
@@ -83,9 +79,9 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
 
         //program starts here
         boolean tazInitialized = false;
-        TPS_VisumOeVToDB importer = new TPS_VisumOeVToDB(loginFile);
-        importer.dbCon.getParameters().setString(ParamString.DB_TABLE_MATRICES, matrixTableName);
-        importer.loadTAZ(tazMultilineName);
+        //TPS_VisumOeVToDB importer = new TPS_VisumOeVToDB(loginFile);
+        //importer.dbCon.getParameters().setString(ParamString.DB_TABLE_MATRICES, matrixTableName);
+        //importer.loadTAZ(tazMultilineName);
 
 
         for (int i = 0; i < start.length; i++) {
@@ -108,60 +104,60 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
             System.out.println("Run:" + i + " Path: " + path);
             System.out.println("Run:" + i + " File: " + file);
             System.out.println("Run:" + i + " Name: " + basename);
-            if (!tazInitialized) {
-                tazInitialized = true;
-                importer.initTAZIDs(path + file + "ACT");
-                importer.calcBeelines();
-            }
-
-            importer.clearPTNodes();
-
-            importer.readValues(path + file + "ACT", PTNodeField.ACT, 900000, 0);
-            importer.readValues(path + file + "EGT", PTNodeField.EGT, 900000, 0);
-
-            importer.readValues(path + file + "JRD", PTNodeField.JRD, 900000, 0);
-            importer.readValues(path + file + "NTR", PTNodeField.NTR, 10, 0);
-            if (usePercievedJourneyTime) {
-                importer.readValues(path + file + "PJT", PTNodeField.SUMTT, 900000, 0);
-                if (fixPJT[i]) importer.removeACTandEGTfromPJT();
-
-                importer.transformUnits();
-            } else {
-                importer.readValues(path + file + "SFQ", PTNodeField.BDH, 900000, 0);
-                importer.readValues(path + file + "OWTA", PTNodeField.SWT, 900000, 0);
-                importer.readValues(path + file + "TWT", PTNodeField.TWT, 12000, 0);
-                importer.readValues(path + file + "IVT", PTNodeField.IVT, 12000, 0);
-                importer.transformUnits();
-                importer.transformNumOfConnectionToInitialWaiting((end[i] - start[i] + cappaAddon[i]) * 60, a, E);
-
-                if (constantInitialWaiting >= 0) {
-                    importer.constantInitialWaiting(constantInitialWaiting);
-                }
-                if (maxTransferTime >= 0) {
-                    importer.calcTTWithoutWaiting(maxTransferTime);
-                } else {
-                    importer.calcSumOfTT();
-                }
-            }
-
-            //for statistics
-            importer.findMissingValues();
-
-            // fill diagonal
-            if (calcDiagonal) importer.calcTop3(top3Weight);
-
-            //store in db
-            if (storeInDB) {
-                //importer.storeInDB(basename + "DIS", importer.getMatrixForField(PTNodeField.JRD), 0);
-                //importer.storeInDB(basename + "ACT", importer.getMatrixForField(PTNodeField.ACT), 0);
-                //importer.storeInDB(basename + "EGT", importer.getMatrixForField(PTNodeField.EGT), 0);
-                //importer.storeInDB(basename+"TT", importer.getMatrixForField(PTNodeField.IVT), 0);
-                //importer.storeInDB(basename + "IWT", importer.getMatrixForField(PTNodeField.SWT), 0);
-                importer.storeInDB(basename+"TWT", importer.getMatrixForField(PTNodeField.TWT), 0);
-                //importer.storeInDB(basename + "BDH", importer.getMatrixForField(PTNodeField.BDH), 0);
-                //importer.storeInDB(basename + "NTR", importer.getMatrixForField(PTNodeField.NTR), 0);
-                //importer.storeInDB(basename + "SUM_TT", importer.getMatrixForField(PTNodeField.SUMTT), 0);
-            }
+//            if (!tazInitialized) {
+//                tazInitialized = true;
+//                importer.initTAZIDs(path + file + "ACT");
+//                importer.calcBeelines();
+//            }
+//
+//            importer.clearPTNodes();
+//
+//            importer.readValues(path + file + "ACT", PTNodeField.ACT, 900000, 0);
+//            importer.readValues(path + file + "EGT", PTNodeField.EGT, 900000, 0);
+//
+//            importer.readValues(path + file + "JRD", PTNodeField.JRD, 900000, 0);
+//            importer.readValues(path + file + "NTR", PTNodeField.NTR, 10, 0);
+//            if (usePercievedJourneyTime) {
+//                importer.readValues(path + file + "PJT", PTNodeField.SUMTT, 900000, 0);
+//                if (fixPJT[i]) importer.removeACTandEGTfromPJT();
+//
+//                importer.transformUnits();
+//            } else {
+//                importer.readValues(path + file + "SFQ", PTNodeField.BDH, 900000, 0);
+//                importer.readValues(path + file + "OWTA", PTNodeField.SWT, 900000, 0);
+//                importer.readValues(path + file + "TWT", PTNodeField.TWT, 12000, 0);
+//                importer.readValues(path + file + "IVT", PTNodeField.IVT, 12000, 0);
+//                importer.transformUnits();
+//                importer.transformNumOfConnectionToInitialWaiting((end[i] - start[i] + cappaAddon[i]) * 60, a, E);
+//
+//                if (constantInitialWaiting >= 0) {
+//                    importer.constantInitialWaiting(constantInitialWaiting);
+//                }
+//                if (maxTransferTime >= 0) {
+//                    importer.calcTTWithoutWaiting(maxTransferTime);
+//                } else {
+//                    importer.calcSumOfTT();
+//                }
+//            }
+//
+//            //for statistics
+//            importer.findMissingValues();
+//
+//            // fill diagonal
+//            if (calcDiagonal) importer.calcTop3(top3Weight);
+//
+//            //store in db
+//            if (storeInDB) {
+//                //importer.storeInDB(basename + "DIS", importer.getMatrixForField(PTNodeField.JRD), 0);
+//                //importer.storeInDB(basename + "ACT", importer.getMatrixForField(PTNodeField.ACT), 0);
+//                //importer.storeInDB(basename + "EGT", importer.getMatrixForField(PTNodeField.EGT), 0);
+//                //importer.storeInDB(basename+"TT", importer.getMatrixForField(PTNodeField.IVT), 0);
+//                //importer.storeInDB(basename + "IWT", importer.getMatrixForField(PTNodeField.SWT), 0);
+//                importer.storeInDB(basename+"TWT", importer.getMatrixForField(PTNodeField.TWT), 0);
+//                //importer.storeInDB(basename + "BDH", importer.getMatrixForField(PTNodeField.BDH), 0);
+//                //importer.storeInDB(basename + "NTR", importer.getMatrixForField(PTNodeField.NTR), 0);
+//                //importer.storeInDB(basename + "SUM_TT", importer.getMatrixForField(PTNodeField.SUMTT), 0);
+//            }
         }
     }
 
@@ -171,24 +167,24 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
     public void calcBeelines() {
         double bl;
         Integer from, to;
-        for (Entry<Integer, TAZ> i : this.TAZes.entrySet()) {
-            for (Entry<Integer, TAZ> j : this.TAZes.entrySet()) {
-                if (i.getValue().ignore || j.getValue().ignore) continue;
-                from = i.getValue().taz_id - 1;
-                to = j.getValue().taz_id - 1;
-                bl = 0;
-                this.nodes[from][to].idStart = i.getKey();
-                this.nodes[from][to].idEnd = j.getKey();
-                this.nodes[to][from].idStart = j.getKey();
-                this.nodes[to][from].idEnd = i.getKey();
-                if (!from.equals(to)) {
-                    bl = this.TAZes.get(i.getKey()).getDistance(this.TAZes.get(j.getKey()));
-                }
-                bl /= 1000.0; //km
-                //symmetric!
-                this.nodes[from][to].bld = this.nodes[to][from].bld = bl;
-            }
-        }
+//        for (Entry<Integer, TAZ> i : this.TAZes.entrySet()) {
+//            for (Entry<Integer, TAZ> j : this.TAZes.entrySet()) {
+//                if (i.getValue().ignore || j.getValue().ignore) continue;
+//                from = i.getValue().taz_id - 1;
+//                to = j.getValue().taz_id - 1;
+//                bl = 0;
+//                this.nodes[from][to].idStart = i.getKey();
+//                this.nodes[from][to].idEnd = j.getKey();
+//                this.nodes[to][from].idStart = j.getKey();
+//                this.nodes[to][from].idEnd = i.getKey();
+//                if (!from.equals(to)) {
+//                    bl = this.TAZes.get(i.getKey()).getDistance(this.TAZes.get(j.getKey()));
+//                }
+//                bl /= 1000.0; //km
+//                //symmetric!
+//                this.nodes[from][to].bld = this.nodes[to][from].bld = bl;
+//            }
+//        }
     }
 
     /**
@@ -509,14 +505,14 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
             fr.close();
 
             for (Integer entry : ids.toArray(new Integer[0])) {
-                if (this.TAZes.get(entry) != null) {
-                    if (!this.TAZes.get(entry).ignore) {
-                        reverseTAZIDMap.put(tazIndex, entry);
-                        TAZIDMap.put(entry, tazIndex++);
-                    }
-                } else {
-                    System.err.println("Unknown TAZ: " + entry);
-                }
+//                if (this.TAZes.get(entry) != null) {
+//                    if (!this.TAZes.get(entry).ignore) {
+//                        reverseTAZIDMap.put(tazIndex, entry);
+//                        TAZIDMap.put(entry, tazIndex++);
+//                    }
+//                } else {
+//                    System.err.println("Unknown TAZ: " + entry);
+//                }
             }
 
         } catch (IOException e) {
@@ -587,47 +583,47 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
     public boolean loadTAZ(String table) {
         //load the data from the db
         String query = "";
-        try {
+//        try {
+//
+//            //query = "SELECT no, st_X(centroid(the_geom)) as lat, st_Y(centroid(the_geom)) as lon, name FROM core.berlin_taz_multiline order by no";
+//            query = "SELECT tapas_taz_id, no, st_X(st_centroid(st_transform(the_geom,4326))) as lat, st_Y(st_centroid(st_transform(the_geom,4326))) as lon, vbz_no, no, name FROM " +
+//                    table + " order by tapas_taz_id";
 
-            //query = "SELECT no, st_X(centroid(the_geom)) as lat, st_Y(centroid(the_geom)) as lon, name FROM core.berlin_taz_multiline order by no";
-            query = "SELECT tapas_taz_id, no, st_X(st_centroid(st_transform(the_geom,4326))) as lat, st_Y(st_centroid(st_transform(the_geom,4326))) as lon, vbz_no, no, name FROM " +
-                    table + " order by tapas_taz_id";
-
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            int taz, stat_area, maxTaz = 0;
-            double lat, lon;
-            SrVCalculator helper = new SrVCalculator(dbCon);
-            while (rs.next()) {
-                taz = rs.getInt("vbz_no");
-                //taz = rs.getInt("no");
-                stat_area = (taz / 100) % 1000;
-                lat = rs.getDouble("lat");
-                lon = rs.getDouble("lon");
-                TAZ tmp = helper.new TAZ();
-                //tmp.taz_id = taz;
-                tmp.taz_id = rs.getInt("tapas_taz_id");
-                tmp.stat_area = stat_area;
-                tmp.lat = lat;
-                tmp.lon = lon;
-                tmp.description = rs.getString("name");
-                tmp.ignore = rs.getInt("vbz_no") < 100000000;
-                if (!tmp.ignore) maxTaz++;
-                this.TAZes.put(taz, tmp);
-
-            }
-            //init array
-            nodes = new PTNode[maxTaz][maxTaz];
-            for (int i = 0; i < maxTaz; ++i) {
-                for (int j = 0; j < maxTaz; ++j) {
-                    nodes[i][j] = new PTNode();
-                }
-            }
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            int taz, stat_area, maxTaz = 0;
+//            double lat, lon;
+//            SrVCalculator helper = new SrVCalculator(dbCon);
+//            while (rs.next()) {
+//                taz = rs.getInt("vbz_no");
+//                //taz = rs.getInt("no");
+//                stat_area = (taz / 100) % 1000;
+//                lat = rs.getDouble("lat");
+//                lon = rs.getDouble("lon");
+//                TAZ tmp = helper.new TAZ();
+//                //tmp.taz_id = taz;
+//                tmp.taz_id = rs.getInt("tapas_taz_id");
+//                tmp.stat_area = stat_area;
+//                tmp.lat = lat;
+//                tmp.lon = lon;
+//                tmp.description = rs.getString("name");
+//                tmp.ignore = rs.getInt("vbz_no") < 100000000;
+//                if (!tmp.ignore) maxTaz++;
+//                this.TAZes.put(taz, tmp);
+//
+//            }
+//            //init array
+//            nodes = new PTNode[maxTaz][maxTaz];
+//            for (int i = 0; i < maxTaz; ++i) {
+//                for (int j = 0; j < maxTaz; ++j) {
+//                    nodes[i][j] = new PTNode();
+//                }
+//            }
             return true;
-        } catch (SQLException e) {
-            System.out.println("SQL error! Query: " + query);
-            e.printStackTrace();
-            return false;
-        }
+//        } catch (SQLException e) {
+//            System.out.println("SQL error! Query: " + query);
+//            e.printStackTrace();
+//            return false;
+
     }
 
     public void readValues(String filename, PTNodeField field, int maxValue, int minValue) {
@@ -665,7 +661,7 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
             int fromID = 0, toID = 0, fromIndex, toIndex;
             int value;
             double dValue;
-            TAZ fromTAZ, toTAZ;
+           // TAZ fromTAZ, toTAZ;
             PTNode act;
             line = fr.readLine();
             int numTokens = 3;
@@ -714,54 +710,54 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
 
                 dValue = this.checkValue(dValue, maxValue, minValue);
 
-                fromTAZ = this.TAZes.get(fromID);
-                toTAZ = this.TAZes.get(toID);
-                fromIndex = fromTAZ.taz_id - 1;
-                toIndex = toTAZ.taz_id - 1;
-                if (fromTAZ.ignore || toTAZ.ignore) continue;
+//                fromTAZ = this.TAZes.get(fromID);
+//                toTAZ = this.TAZes.get(toID);
+//                fromIndex = fromTAZ.taz_id - 1;
+//                toIndex = toTAZ.taz_id - 1;
+//                if (fromTAZ.ignore || toTAZ.ignore) continue;
                 //fromIndex = this.TAZIDMap.get(fromID);
                 //toIndex = this.TAZIDMap.get(toID);
-                act = this.nodes[fromIndex][toIndex];
-                act.isDefined = true;
-                act.idStart = fromID;
-                act.idEnd = toID;
-                switch (field) {
-                    case ACT:
-                        act.act = dValue;
-                        break;
-                    case EGT:
-                        act.egt = dValue;
-                        break;
-                    case SWT:
-                        act.swt = dValue;
-                        break;
-                    case IVT:
-                        act.ivt = dValue;
-                        break;
-                    case TWT:
-                        act.twt = dValue;
-                        break;
-                    case WKT:
-                        act.wkt = dValue;
-                        break;
-                    case BDH:
-                        act.bdh = dValue;
-                        break;
-                    case NTR:
-                        //no interchange
-                        if (value == 777777) // no value is ok!
-                            dValue = 0;
-                        act.nrt = dValue;
-                        break;
-                    case JRD:
-                        act.jrd = dValue;
-                        break;
-                    case SUMTT:
-                        act.sumTT = dValue;
-                        break;
-                    default:
-                        break;
-                }
+//                act = this.nodes[fromIndex][toIndex];
+//                act.isDefined = true;
+//                act.idStart = fromID;
+//                act.idEnd = toID;
+//                switch (field) {
+//                    case ACT:
+//                        act.act = dValue;
+//                        break;
+//                    case EGT:
+//                        act.egt = dValue;
+//                        break;
+//                    case SWT:
+//                        act.swt = dValue;
+//                        break;
+//                    case IVT:
+//                        act.ivt = dValue;
+//                        break;
+//                    case TWT:
+//                        act.twt = dValue;
+//                        break;
+//                    case WKT:
+//                        act.wkt = dValue;
+//                        break;
+//                    case BDH:
+//                        act.bdh = dValue;
+//                        break;
+//                    case NTR:
+//                        //no interchange
+//                        if (value == 777777) // no value is ok!
+//                            dValue = 0;
+//                        act.nrt = dValue;
+//                        break;
+//                    case JRD:
+//                        act.jrd = dValue;
+//                        break;
+//                    case SUMTT:
+//                        act.sumTT = dValue;
+//                        break;
+//                    default:
+//                        break;
+//                }
             }
             fr.close();
         } catch (IOException e) {
@@ -784,7 +780,7 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
             int value;
             double dValue;
             PTNode act;
-            TAZ fromTAZ, toTAZ;
+            //TAZ fromTAZ, toTAZ;
             int startID = -1;
             boolean startIDFound = false;
             line = fr.readLine();
@@ -811,73 +807,73 @@ public class TPS_VisumOeVToDB extends TPS_BasicConnectionClass {
                 if (!startIDFound) continue;
                 line = this.unifyFormat(line);
                 tokens = line.split(" ");
-                fromTAZ = this.TAZes.get(startID);
-                fromID = fromTAZ.taz_id;
-
-                if (fromTAZ.ignore) // is this a taz we should ignore?
-                    continue;
-                for (String token : tokens) {
-                    //should we considder the target tvz?
-                    toTAZ = this.TAZes.get(reverseTAZIDMap.get(tokenIndex));
-                    tokenIndex++;
-                    if (toTAZ.ignore) // is this a taz we should ignore?
-                        continue;
-                    if (!token.matches("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?")) { //not a number!
-                        fr.close();
-                        throw new RuntimeException(
-                                "Parsing not a number-exception! File: " + filename + " Line: " + line);
-                    }
-                    //get values
-                    toID = toTAZ.taz_id;
-                    dValue = Double.parseDouble(token);
-                    value = (int) Math.round(dValue);
-                    dValue = this.checkValue(dValue, maxValue, minValue);
-                    fromIndex = fromID - 1;
-                    toIndex = toID - 1;
-                    if (fromIndex == 0 && toIndex == 0) fromIndex *= 1;
-                    act = this.nodes[fromIndex][toIndex];
-                    act.isDefined = true;
-                    act.idStart = fromID;
-                    act.idEnd = toID;
-                    switch (field) {
-                        case ACT:
-                            act.act = dValue;
-                            break;
-                        case EGT:
-                            act.egt = dValue;
-                            break;
-                        case SWT:
-                            act.swt = dValue;
-                            break;
-                        case IVT:
-                            act.ivt = dValue;
-                            break;
-                        case TWT:
-                            act.twt = dValue;
-                            break;
-                        case WKT:
-                            act.wkt = dValue;
-                            break;
-                        case BDH:
-                            //walkers
-                            act.bdh = dValue;
-                            break;
-                        case NTR:
-                            //no interchange
-                            if (value == 777777) // no value is ok!
-                                dValue = 0;
-                            act.nrt = dValue;
-                            break;
-                        case JRD:
-                            act.jrd = dValue;
-                            break;
-                        case SUMTT:
-                            act.sumTT = dValue;
-                            break;
-                        default:
-                            break;
-                    }
-                }
+//                fromTAZ = this.TAZes.get(startID);
+//                fromID = fromTAZ.taz_id;
+//
+//                if (fromTAZ.ignore) // is this a taz we should ignore?
+//                    continue;
+//                for (String token : tokens) {
+//                    //should we considder the target tvz?
+//                    toTAZ = this.TAZes.get(reverseTAZIDMap.get(tokenIndex));
+//                    tokenIndex++;
+//                    if (toTAZ.ignore) // is this a taz we should ignore?
+//                        continue;
+//                    if (!token.matches("[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?")) { //not a number!
+//                        fr.close();
+//                        throw new RuntimeException(
+//                                "Parsing not a number-exception! File: " + filename + " Line: " + line);
+//                    }
+//                    //get values
+//                    toID = toTAZ.taz_id;
+//                    dValue = Double.parseDouble(token);
+//                    value = (int) Math.round(dValue);
+//                    dValue = this.checkValue(dValue, maxValue, minValue);
+//                    fromIndex = fromID - 1;
+//                    toIndex = toID - 1;
+//                    if (fromIndex == 0 && toIndex == 0) fromIndex *= 1;
+//                    act = this.nodes[fromIndex][toIndex];
+//                    act.isDefined = true;
+//                    act.idStart = fromID;
+//                    act.idEnd = toID;
+//                    switch (field) {
+//                        case ACT:
+//                            act.act = dValue;
+//                            break;
+//                        case EGT:
+//                            act.egt = dValue;
+//                            break;
+//                        case SWT:
+//                            act.swt = dValue;
+//                            break;
+//                        case IVT:
+//                            act.ivt = dValue;
+//                            break;
+//                        case TWT:
+//                            act.twt = dValue;
+//                            break;
+//                        case WKT:
+//                            act.wkt = dValue;
+//                            break;
+//                        case BDH:
+//                            //walkers
+//                            act.bdh = dValue;
+//                            break;
+//                        case NTR:
+//                            //no interchange
+//                            if (value == 777777) // no value is ok!
+//                                dValue = 0;
+//                            act.nrt = dValue;
+//                            break;
+//                        case JRD:
+//                            act.jrd = dValue;
+//                            break;
+//                        case SUMTT:
+//                            act.sumTT = dValue;
+//                            break;
+//                        default:
+//                            break;
+//                    }
+//                }
             }
             fr.close();
         } catch (IOException e) {

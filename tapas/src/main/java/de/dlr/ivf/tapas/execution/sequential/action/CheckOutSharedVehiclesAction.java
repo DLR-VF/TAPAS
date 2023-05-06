@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.model.mode.SharingDelegator;
+import de.dlr.ivf.tapas.mode.SharingDelegator;
 import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;

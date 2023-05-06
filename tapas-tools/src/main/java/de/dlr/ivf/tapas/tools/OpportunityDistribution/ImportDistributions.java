@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
 import java.io.*;
 
@@ -27,7 +26,7 @@ import java.io.*;
  *
  * @author boec_pa
  */
-public class ImportDistributions extends TPS_BasicConnectionClass {
+public class ImportDistributions{
 
 
     /**
@@ -81,7 +80,7 @@ public class ImportDistributions extends TPS_BasicConnectionClass {
 
                     curQ = query.replaceAll("%%PLZ%%", plz).replaceAll("%%VOL%%", vol);
 
-                    dbCon.execute(curQ, this);
+                    //dbCon.execute(curQ, this);
                     cnt++;
                 }
 
@@ -135,7 +134,7 @@ public class ImportDistributions extends TPS_BasicConnectionClass {
 
                     curQ = query.replaceAll("%%AREA%%", gebiet).replaceAll("%%VOL%%", vol);
 
-                    dbCon.execute(curQ, this);
+                    //dbCon.execute(curQ, this);
                     cnt++;
                 }
 

@@ -8,18 +8,21 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
-public class VP2030Comparator extends TPS_BasicConnectionClass {
+public class VP2030Comparator {
+    private final Supplier<Connection> connectionSupplier;
     Map<Integer, Integer[]> vp2taz = new HashMap<>();
+
+    public VP2030Comparator(Supplier<Connection> connectionSupplier){
+        this.connectionSupplier = connectionSupplier;
+    }
 
     public static void main(String[] args) {
         if (args.length != 4) {
@@ -27,7 +30,7 @@ public class VP2030Comparator extends TPS_BasicConnectionClass {
                     "Parameters: <region> <tablename> <boolean: use only destination> <boolean: use only source>");
             return;
         }
-        VP2030Comparator worker = new VP2030Comparator();
+        VP2030Comparator worker = new VP2030Comparator(null);
         String region = args[0];
         worker.loadVP2TAZValues(region);
         int num = 0;
@@ -90,104 +93,104 @@ public class VP2030Comparator extends TPS_BasicConnectionClass {
     }
 
     public List<VP2030Data> loadTrafficVolumes(String table, boolean useOnlyDestination, boolean useOnlySource) {
-        String query = "";
-        List<VP2030Data> cells = new ArrayList<>();
-        try {
-            ResultSet rs;
-            query = "SELECT quelle, ziel," + "bahn_ber, bahn_ausb, bahn_eink, bahn_gesch, bahn_url," +
-                    "bahn_priv, miv_ber, miv_ausb, miv_eink, miv_gesch, miv_url, miv_priv," +
-                    "luft_ber, luft_ausb, luft_eink, luft_gesch, luft_url, luft_priv," +
-                    "oespv_ber, oespv_ausb, oespv_eink, oespv_gesch, oespv_url, oespv_priv," +
-                    "rad_ber, rad_ausb, rad_eink, rad_gesch, rad_url, rad_priv, fuss_ber," +
-                    "fuss_ausb, fuss_eink, fuss_gesch, fuss_url, fuss_priv, bahn_all," +
-                    "miv_all, luft_all, oespv_all, rad_all, fuss_all, filter_, rnb_raum_first " + "FROM " + table;
-
-            rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                VP2030Data e = new VP2030Data();
-                e.quelle = rs.getInt("quelle");
-                e.ziel = rs.getInt("ziel");
-                //check if this entry should be added
-                if (useOnlyDestination && !this.vp2taz.containsKey(e.ziel)) continue;
-                if (useOnlySource && !this.vp2taz.containsKey(e.quelle)) continue;
-                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("bahn_ber");
-                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("bahn_ausb");
-                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("bahn_eink");
-                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("bahn_gesch");
-                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("bahn_url");
-                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("bahn_priv");
-                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("bahn_ber");
-
-                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("miv_ber");
-                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("miv_ausb");
-                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("miv_eink");
-                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("miv_gesch");
-                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("miv_url");
-                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("miv_priv");
-                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("miv_ber");
-
-                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("luft_ber");
-                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("luft_ausb");
-                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("luft_eink");
-                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("luft_gesch");
-                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("luft_url");
-                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("luft_priv");
-                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("luft_ber");
-
-                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("oespv_ber");
-                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("oespv_ausb");
-                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("oespv_eink");
-                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("oespv_gesch");
-                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("oespv_url");
-                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("oespv_priv");
-                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("oespv_ber");
-
-                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("rad_ber");
-                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("rad_ausb");
-                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("rad_eink");
-                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("rad_gesch");
-                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("rad_url");
-                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("rad_priv");
-                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("rad_ber");
-
-                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("fuss_ber");
-                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("fuss_ausb");
-                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("fuss_eink");
-                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("fuss_gesch");
-                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("fuss_url");
-                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("fuss_priv");
-                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("fuss_ber");
-
-                cells.add(e);
-            }
-            rs.close();
-
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            System.out.println("SQL error! " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
-        return cells;
+//        String query = "";
+//        List<VP2030Data> cells = new ArrayList<>();
+//        try {
+//            ResultSet rs;
+//            query = "SELECT quelle, ziel," + "bahn_ber, bahn_ausb, bahn_eink, bahn_gesch, bahn_url," +
+//                    "bahn_priv, miv_ber, miv_ausb, miv_eink, miv_gesch, miv_url, miv_priv," +
+//                    "luft_ber, luft_ausb, luft_eink, luft_gesch, luft_url, luft_priv," +
+//                    "oespv_ber, oespv_ausb, oespv_eink, oespv_gesch, oespv_url, oespv_priv," +
+//                    "rad_ber, rad_ausb, rad_eink, rad_gesch, rad_url, rad_priv, fuss_ber," +
+//                    "fuss_ausb, fuss_eink, fuss_gesch, fuss_url, fuss_priv, bahn_all," +
+//                    "miv_all, luft_all, oespv_all, rad_all, fuss_all, filter_, rnb_raum_first " + "FROM " + table;
+//
+//            rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                VP2030Data e = new VP2030Data();
+//                e.quelle = rs.getInt("quelle");
+//                e.ziel = rs.getInt("ziel");
+//                //check if this entry should be added
+//                if (useOnlyDestination && !this.vp2taz.containsKey(e.ziel)) continue;
+//                if (useOnlySource && !this.vp2taz.containsKey(e.quelle)) continue;
+//                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("bahn_ber");
+//                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("bahn_ausb");
+//                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("bahn_eink");
+//                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("bahn_gesch");
+//                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("bahn_url");
+//                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("bahn_priv");
+//                e.modusZweck[Modus.BAHN.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("bahn_ber");
+//
+//                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("miv_ber");
+//                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("miv_ausb");
+//                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("miv_eink");
+//                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("miv_gesch");
+//                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("miv_url");
+//                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("miv_priv");
+//                e.modusZweck[Modus.MIV.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("miv_ber");
+//
+//                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("luft_ber");
+//                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("luft_ausb");
+//                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("luft_eink");
+//                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("luft_gesch");
+//                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("luft_url");
+//                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("luft_priv");
+//                e.modusZweck[Modus.LUFT.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("luft_ber");
+//
+//                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("oespv_ber");
+//                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("oespv_ausb");
+//                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("oespv_eink");
+//                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("oespv_gesch");
+//                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("oespv_url");
+//                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("oespv_priv");
+//                e.modusZweck[Modus.OESP.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("oespv_ber");
+//
+//                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("rad_ber");
+//                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("rad_ausb");
+//                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("rad_eink");
+//                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("rad_gesch");
+//                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("rad_url");
+//                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("rad_priv");
+//                e.modusZweck[Modus.RAD.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("rad_ber");
+//
+//                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.BERUF.ordinal()] = rs.getInt("fuss_ber");
+//                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.BILDUNG.ordinal()] = rs.getInt("fuss_ausb");
+//                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.EINKAUF.ordinal()] = rs.getInt("fuss_eink");
+//                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.DIENST.ordinal()] = rs.getInt("fuss_gesch");
+//                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.URLAUB.ordinal()] = rs.getInt("fuss_url");
+//                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.PRIVAT.ordinal()] = rs.getInt("fuss_priv");
+//                e.modusZweck[Modus.FUSS.ordinal()][Wegzweck.ALL.ordinal()] = rs.getInt("fuss_ber");
+//
+//                cells.add(e);
+//            }
+//            rs.close();
+//
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            System.out.println("SQL error! " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
+        return null;
     }
 
     public void loadVP2TAZValues(String region) {
         String query = "";
-        try {
-            query = "select vp_id, tapas_id from quesadillas.vp2030_kreise where tapas_region ='" + region + "'";
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                Integer vpID = rs.getInt("vp_id");
-                Integer[] tazArray = (Integer[]) rs.getArray("tapas_id").getArray();
-                vp2taz.put(vpID, tazArray);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            System.out.println("SQL error! " + query);
-            e.printStackTrace();
-            e.getNextException().printStackTrace();
-        }
+//        try {
+//            query = "select vp_id, tapas_id from quesadillas.vp2030_kreise where tapas_region ='" + region + "'";
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                Integer vpID = rs.getInt("vp_id");
+//                Integer[] tazArray = (Integer[]) rs.getArray("tapas_id").getArray();
+//                vp2taz.put(vpID, tazArray);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            System.out.println("SQL error! " + query);
+//            e.printStackTrace();
+//            e.getNextException().printStackTrace();
+//        }
     }
 
     enum Wegzweck {BERUF, BILDUNG, EINKAUF, DIENST, URLAUB, PRIVAT, ALL}
