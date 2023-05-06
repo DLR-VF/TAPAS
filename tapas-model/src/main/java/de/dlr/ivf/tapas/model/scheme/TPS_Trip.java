@@ -21,6 +21,11 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 public class TPS_Trip extends TPS_Episode {
 
 
+    public TPS_Trip(int id, TPS_ActivityConstant actCode, int start, int duration){
+        super(id,actCode,start,duration);
+    }
+
+
     /**
      * constructor
      *

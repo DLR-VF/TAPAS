@@ -41,7 +41,7 @@ import java.util.function.Supplier;
  * The class provides a basic method selectLocation in which for a specific stay a location from the region is selected.
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
-public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysisZone> {
+public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
     /// The reference to the persistence manager
 
     /// All CFN values for this region
@@ -70,10 +70,10 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
     /**
      * Initialises the map for the traffic analysis zones
      */
-    public TPS_Region() {
+    public TPS_Region(TPS_LocationChoiceSet locationChoiceSet, TPS_LocationSelectModel locationSelectModel) {
         this.TAZ_Map = new TreeMap<>();
-        initLocationSelectModel();
-        initLocationChoiceSet();
+        initLocationSelectModel(locationSelectModel);
+        initLocationChoiceSet(locationChoiceSet);
     }
 
     /**
@@ -416,9 +416,7 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
     TPS_Location selectDefaultLocation(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
         TPS_ActivityConstant actCode = locatedStay.getEpisode().getActCode();
         if (actCode.hasAttribute(TPS_ActivityConstantAttribute.DEFAULT)) {
-            TPS_Logger.log(SeverityLogLevel.ERROR,
-                    "Can't continue without locations for at least the default activity " +
-                            this.PM.getParameters().getIntValue(ParamValue.DEFAULT_ACT_CODE_ZBE) + ". Driving home!");
+
             // no location for the default activity: drive home!
             return plan.getPerson().getHousehold().getLocation();
         }
@@ -484,8 +482,9 @@ public class TPS_Region implements ExtendedWritable, Iterable<TPS_TrafficAnalysi
         TPS_TourPart tour_part = (TPS_TourPart) locatedStay.getStay().getSchemePart();
         //Supplier<TPS_Stay> coming_from = () -> tour_part.getStayHierarchy(locatedStay.getStay()).getPrevStay();
        // Supplier<TPS_Stay> going_to = () -> tour_part.getStayHierarchy(locatedStay.getStay()).getNextStay();
-        TPS_RegionResultSet resultSet = this.getLocationChoiceSet().getLocationRepresentatives(plan, pc, locatedStay,
-                this.PM.getParameters(),coming_from,going_to);
+
+        TPS_RegionResultSet resultSet = this.getLocationChoiceSet().getLocationRepresentatives(plan, pc, locatedStay
+                ,coming_from,going_to);
         //locComingFrom, td.getArrivalDuration(), locGoingTo, td.getDepartureDuration(), actCode,tourpart);
         //select a location from the choice set
         return this.getLocationSelectModel().selectLocationFromChoiceSet(resultSet, plan, pc, locatedStay, coming_from, going_to);

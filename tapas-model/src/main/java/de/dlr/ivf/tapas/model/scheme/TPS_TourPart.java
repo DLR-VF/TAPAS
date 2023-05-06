@@ -61,6 +61,10 @@ public class TPS_TourPart extends TPS_SchemePart {
      */
     private double tourPartDistance;
 
+    private double walkVelocity;
+
+    private int mindist;
+
     /**
      * This constructor builds a new tourpart with the given id. It instantiates all Collections which are used in this
      * instance.
@@ -181,7 +185,8 @@ public class TPS_TourPart extends TPS_SchemePart {
      */
     public void setCar(TPS_Car car) {
         this.car = car;
-        lastMode = TPS_ExtMode.simpleMIT;
+        //todo implement a work around
+//        lastMode = TPS_ExtMode.simpleMIT;
         //this.car.pickCar(this.start, this.end);
     }
 
@@ -424,27 +429,6 @@ public class TPS_TourPart extends TPS_SchemePart {
         this.lastMode = null;
     }
 
-    /**
-     * method to set the initial travel durations to their original values
-     *
-     * @param parameterClass parameter class reference
-     */
-    public void setInitialTravelDurations(TPS_ParameterClass parameterClass) {
-        int minTime = (int) (parameterClass.getDoubleValue(ParamValue.MIN_DIST) / parameterClass.getDoubleValue(
-                TPS_Mode.get(ModeType.WALK).getVelocity()));
-        for (TPS_Stay stay : this.travelDurationsMap.keySet()) {
-            int arrTime = minTime, depTime = minTime;
-            if (this.getPreviousTrip(stay) != null) {
-                arrTime = this.getPreviousTrip(stay).getOriginalDuration();
-            }
-            this.travelDurationsMap.get(stay).arrivalDuration = arrTime;
-
-            if (this.getNextTrip(stay) != null) {
-                depTime = this.getNextTrip(stay).getOriginalDuration();
-            }
-            this.travelDurationsMap.get(stay).departureDuration = depTime;
-        }
-    }
 
     /**
      * This method stores the last used departure mode from a stay
@@ -514,31 +498,6 @@ public class TPS_TourPart extends TPS_SchemePart {
         return sb.toString();
     }
 
-    /**
-     * Method to update the travel distances for this plan up to this point
-     */
-    public void updateActualTravelDistances(TPS_Plan plan) {
-        for (TPS_Stay stay : this.getPriorisedStayIterable()) {
-            TPS_PlannedTrip arrivalTrip = null;
-            TPS_PlannedTrip departureTrip = null;
-            int minTime = (int) (plan.getPM().getParameters().getDoubleValue(ParamValue.MIN_DIST) /
-                    plan.getPM().getParameters().getDoubleValue(TPS_Mode.get(ModeType.WALK).getVelocity()));
-            //get arrival trip
-            if (!this.isFirst(stay)) {
-                arrivalTrip = plan.getPlannedTrip(this.getPreviousTrip(stay));
-            }
-            //get departure trip
-            if (!this.isLast(stay)) {
-                departureTrip = plan.getPlannedTrip(this.getNextTrip(stay));
-            }
-            if (arrivalTrip.getMode() != null) {
-                this.travelDurationsMap.get(stay).arrivalDuration = Math.max(arrivalTrip.getDuration(), minTime);
-            }
-            if (departureTrip.getMode() != null) {
-                this.travelDurationsMap.get(stay).departureDuration = Math.max(departureTrip.getDuration(), minTime);
-            }
-        }
-    }
 
     /**
      * Method to update the travel durations for this plan up to this point
@@ -588,16 +547,14 @@ public class TPS_TourPart extends TPS_SchemePart {
          * @return the arrivalDuration
          */
         public double getArrivalDuration(TPS_ParameterClass parameterClass) {
-            return Math.max(arrivalDuration, parameterClass.getDoubleValue(ParamValue.MIN_DIST) /
-                    parameterClass.getDoubleValue(TPS_Mode.get(ModeType.WALK).getVelocity()));
+            return Math.max(arrivalDuration, mindist / walkVelocity);
         }
 
         /**
          * @return the departureDuration
          */
         public double getDepartureDuration(TPS_ParameterClass parameterClass) {
-            return Math.max(departureDuration, parameterClass.getDoubleValue(ParamValue.MIN_DIST) /
-                    parameterClass.getDoubleValue(TPS_Mode.get(ModeType.WALK).getVelocity()));
+            return Math.max(departureDuration, mindist / walkVelocity);
         }
 
         /**

@@ -88,10 +88,14 @@ public class TPS_Scheme implements Iterable<TPS_SchemePart>, ExtendedWritable {
                         Math.min(this.parameterClass.getIntValue(ParamValue.SEC_TIME_SLOT),
                                 sp.getLastEpisode().getOriginalDuration() - this.parameterClass
                                         .getIntValue(ParamValue.SEC_TIME_SLOT))); //make the last stay 5 min shorter
+
+                //double startEarlier, double startLater,
+                //                    double durationMinus, double durationPlus, double scaleShift, double scaleStretch
+
+
                 TPS_ActivityConstant activity = TPS_ActivityConstant.getActivityCodeByTypeAndCode(
                         TPS_ActivityCodeType.ZBE, 80); // activity: moving
-                TPS_Trip takeMeHome = new TPS_Trip(sp.getId(), activity, (int) sp.getLastEpisode().getOriginalEnd(), 5,
-                        this.parameterClass); // insert a "take me home in 5 minutes"-trip
+                TPS_Trip takeMeHome = new TPS_Trip(sp.getId(), activity, (int) sp.getLastEpisode().getOriginalEnd(), 5); // insert a "take me home in 5 minutes"-trip
                 ((TPS_TourPart) sp).addTrip(takeMeHome);
             }
             sp = new TPS_HomePart();
@@ -118,20 +122,6 @@ public class TPS_Scheme implements Iterable<TPS_SchemePart>, ExtendedWritable {
         return true;
     }
 
-    public TPS_Scheme clone() {
-        TPS_Scheme returnVal = new TPS_Scheme(this.id, this.parameterClass);
-
-        returnVal.schemeClass = this.schemeClass;
-
-        for (TPS_SchemePart sp : this.schemeParts) {
-            for (TPS_Episode e : sp.episodes) {
-                TPS_Episode clone = e.clone();
-                returnVal.addEpisode(clone);
-            }
-        }
-        returnVal.init();
-        return returnVal;
-    }
 
     /**
      * @return An instance of EpisodeIterator
@@ -267,7 +257,8 @@ public class TPS_Scheme implements Iterable<TPS_SchemePart>, ExtendedWritable {
         for (TPS_SchemePart sp : this.schemeParts) {
             if (sp.isTourPart()) {
                 ((TPS_TourPart) sp).initHierarchy();
-                ((TPS_TourPart) sp).setInitialTravelDurations(this.parameterClass);
+                //todo need a work around
+                //((TPS_TourPart) sp).setInitialTravelDurations(this.parameterClass);
             }
         }
         this.originalTravelDuration = 0;

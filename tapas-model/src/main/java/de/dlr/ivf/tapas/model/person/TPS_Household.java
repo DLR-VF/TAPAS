@@ -12,6 +12,7 @@ import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
+
 import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
@@ -270,7 +271,7 @@ public class TPS_Household implements ExtendedWritable {
     public int getNumCarDrivers() {
         int sum = 0;
         for (TPS_Person p : members.values()) {
-            if (p.mayDriveACar(null,null)) {
+            if (p.mayDriveACar(null,0,0)) {
                 ++sum;
             }
         }

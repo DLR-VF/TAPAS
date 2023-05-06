@@ -30,6 +30,7 @@ import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.Timeline;
 import de.dlr.ivf.tapas.model.scheme.*;
+import de.dlr.ivf.tapas.parameter.CURRENCY;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -65,7 +66,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
     /// A map of planned trips so far
     private final Map<TPS_Trip, TPS_PlannedTrip> plannedTrips;
     /// the actual selected scheme
-    private final TPS_Scheme scheme;
+    private TPS_Scheme scheme;
     /// the feasibility flag
     private boolean feasible = false;
     /// variable for time adaptation analysis
@@ -87,8 +88,9 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
         this.locatedStays = new HashMap<>();
         this.plannedTrips = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
 
-        this.scheme = schemeIn.clone();
-
+        //no need to clone, each scheme will be completely immutable and only contexts will hold derivations of the original scheme
+//        this.scheme = schemeIn.clone();
+//
         myAttributes.put(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE,
                 TPS_Income.getCode(person.getHousehold().getIncome()));
         myAttributes.put(TPS_Attribute.PERSON_AGE, person.getAge());
@@ -128,7 +130,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
                     this.locatedStays.put(stay, locatedStay);
                 } else {
                     TPS_Trip trip = (TPS_Trip) e;
-                    this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip, this.getPM().getParameters()));
+                    this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip));
                 }
             }
         }
@@ -137,7 +139,6 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
 
     public TPS_Plan(TPS_Plan src) {
         this.pe = src.pe;
-        this.PM = src.PM;
         src.usedCars.addAll(this.usedCars);
 
         this.locatedStays = new HashMap<>();
@@ -160,7 +161,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
                 continue;
             }
             TPS_Trip trip = (TPS_Trip) e;
-            this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip, this.getPM().getParameters()));
+            this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip));
         }
     }
 
@@ -266,81 +267,6 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
         }
 
         return absAdaptation;
-    }
-
-    /**
-     * This method returns if the selected plan is feasible.
-     * If any start of a stay/trip is after the end of the previous trip/stay it returns false.
-     * If everythig is ok or there are no stays or trips it returns true.
-     *
-     * @return result if this plan is feasible
-     */
-    public void calcPlanFeasiblity() {
-        feasible = true;
-        Timeline tl = new Timeline();
-        int start = 0, end = 0;
-        Vector<TPS_Episode> sortedEpisodes = new Vector<>();
-
-        //copy episodes from iterator to vector
-        for (TPS_Episode e : this.scheme.getEpisodeIterator()) {
-            sortedEpisodes.add(e);
-        }
-
-        //sort episodes according original start time
-        sortedEpisodes.sort(Comparator.comparingInt(TPS_Episode::getOriginalStart));
-        //insert episodes in the timeline
-        double dist = 0;
-        for (TPS_Episode e : sortedEpisodes) {
-            TPS_AdaptedEpisode es = this.getAdaptedEpisode(e);
-            if (es.isPlannedTrip()) dist += es.getDistance();
-            //set minimum duration!
-            if (es.getDuration() < this.PM.getParameters().getIntValue(ParamValue.SEC_TIME_SLOT)) es.setDuration(
-                    this.PM.getParameters().getIntValue(ParamValue.SEC_TIME_SLOT));
-            start = es.getStart();
-            end = es.getDuration() + es.getStart();
-
-            //if(start<0||end<0){ //quick bugfix for negative start times
-            //	feasible = false;
-            //	break;
-            //}
-            if (!tl.add(start, end)) {
-                feasible = false;
-                break;
-            }
-        }
-
-        boolean bookCar = feasible;
-
-        if (bookCar && //disable car booking for COST_OPTIMUM sorting
-                this.PM.getParameters().isDefined(ParamString.HOUSEHOLD_MEMBERSORTING) &&
-                this.PM.getParameters().getString(ParamString.HOUSEHOLD_MEMBERSORTING).equalsIgnoreCase(
-                        TPS_Household.Sorting.COST_OPTIMUM.name())) {
-            bookCar = false;
-        }
-
-        //now we check if the cars are used and if they have enough range to fullfill the plan
-        if (bookCar) {
-            Map<TPS_Car, Double> cars = new HashMap<>();
-            for (TPS_SchemePart schemePart : this.scheme) { //collect car specific distances
-                if (schemePart.isTourPart()) {
-                    TPS_Car car = ((TPS_TourPart) schemePart).getCar();
-                    if (car != null) { //trip with car
-                        dist = 0;
-                        if (cars.containsKey(car)) {
-                            dist = cars.get(car);
-                        }
-                        cars.put(car, dist + ((TPS_TourPart) schemePart).getTourpartDistance());
-                    }
-                }
-            }
-            //now check every used car, if it has enough range left
-            for (Entry<TPS_Car, Double> e : cars.entrySet()) {
-                if (e.getKey().getRangeLeft() < e.getValue()) { // not enough?
-                    feasible = false;
-                    break;
-                }
-            }
-        }
     }
 
     /**
@@ -639,15 +565,6 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
 
 
     /**
-     * Return the parameter class reference (through the persistence manager)
-     *
-     * @return parameter class reference
-     */
-    public TPS_ParameterClass getParameters() {
-        return this.PM.getParameters();
-    }
-
-    /**
      * gets the person for this plan from the plan environment
      *
      * @return
@@ -858,275 +775,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
         }
     }
 
-    /**
-     * Initiates the determination of locations and modes for stays and trips of the scheme
-     */
-    public void selectLocationsAndModesAndTravelTimes(TPS_PlanningContext pc) {
-        if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
-            TPS_Logger.log(SeverityLogLevel.DEBUG,
-                    "Start select locations procedure for plan (number=" + pe.getNumberOfRejectedPlans() +
-                            ") with scheme (id=" + this.scheme.getId() + ")");
-        }
-        long start = System.currentTimeMillis();
 
-        // We need several loops to resolve the hierarchy of episodes.
-        // No we can use the priority of the stays to solve all locations searches in one loop
-        for (TPS_SchemePart schemePart : this.scheme) {
-            if (schemePart.isHomePart()) {
-                // Home Parts are already set
-                if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
-                    TPS_Logger.log(SeverityLogLevel.FINE, "Skip home part (id=" + schemePart.getId() + ")");
-                }
-                continue;
-            }
-
-            TPS_TourPart tourpart = (TPS_TourPart) schemePart;
-            if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
-                TPS_Logger.log(SeverityLogLevel.FINE,
-                        "Start select location for each stay in tour part (id=" + tourpart.getId() + ")");
-            }
-
-            // check mobility options
-            if (tourpart.isCarUsed()) {
-                pc.carForThisPlan = tourpart.getCar();
-            } else if (!pc.influenceCarUsageInPlan) {
-                //check if a car could be used
-                pc.carForThisPlan = null; // will be overwritten, if a car can be used
-                TPS_Car tmpCar = TPS_Car.selectCar(this, tourpart);
-                if(tmpCar != null) {
-                    if (this.getPerson().mayDriveACar(this.PM,tmpCar)){
-                        pc.carForThisPlan = tmpCar; // this person can use this car
-                        myAttributes.put(TPS_Attribute.PERSON_DRIVING_LICENSE_CODE,
-                                TPS_DrivingLicenseInformation.CAR.getCode());   //update this attribute because
-                                                                                //an automated car may have changed it
-                    }
-                }
-            }
-
-            if (tourpart.isBikeUsed()) { //was the bike used before?
-                pc.isBikeAvailable = true;
-            } else if (!pc.influenceBikeUsageInPlan) { // is the bike availability modded outside?
-                pc.isBikeAvailable = this.getPerson().hasBike();
-            }
-            myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
-
-            if (pc.carForThisPlan == null) {
-                myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, 0);
-            } else {
-                myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, this.getPerson().getHousehold().getNumberOfCars());
-            }
-
-            for (TPS_Stay stay : tourpart.getPriorisedStayIterable()) {
-                myAttributes.put(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_TAPAS,
-                        stay.getActCode().getCode(TPS_ActivityCodeType.TAPAS));
-
-                pc.pe.getPerson().estimateAccessibilityPreference(stay,
-                        this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
-
-                TPS_LocatedStay currentLocatedStay = this.getLocatedStay(stay);
-                if (!currentLocatedStay.isLocated()) {
-                    setCurrentAdaptedEpisode(currentLocatedStay);
-                    TPS_ActivityConstant currentActCode = stay.getActCode();
-                    // Register locations for activities where the location will be used again.
-                    // Flag for the case of a activity with unique location.
-                    pc.fixLocationAtBase = currentActCode.isFix() && this.PM.getParameters().isTrue(
-                            ParamFlag.FLAG_USE_FIXED_LOCS_ON_BASE) && !this.fixLocations.containsKey(currentActCode);
-
-                    // when all tour parts are correctly instantiated the else case will never happen, because every
-                    // tour part starts with a trip. In the current episode file there exist tour parts with no first
-                    // trip (e.g. shopping in the same building where you live)
-                    //TPS_Trip previousTrip = null;
-                    if (!tourpart.isFirst(stay)) {
-                        pc.previousTrip = tourpart.getPreviousTrip(stay);
-                    } else {
-                        pc.previousTrip = new TPS_Trip(-999, TPS_ActivityConstant.DUMMY, -999, 0, this.getParameters());
-                    }
-
-                    //First execution: fix locations will be set (ELSE branch)
-                    //Further executions: fix locations are set already, take locations from map (IF branch)
-                    //Non fix location, i.e. everything except home and work: also ELSE branch
-                    //E.g.: Provides a work location, when ActCode is working in ELSE
-
-                    if (currentActCode.isFix() && this.fixLocations.containsKey(currentActCode)) {
-                        //now we check if the mode is fix and if we can reach the fix location with the fix mode!
-                        //TODO: check only for restricted cars, but bike could also be fixed and no connection!
-                        if (pc.carForThisPlan != null && // we have a car
-                                pc.carForThisPlan.isRestricted() && //we have a restricted car
-                                this.fixLocations.get(currentActCode).getTrafficAnalysisZone()
-                                                 .isRestricted()) // we have a restricted car wanting to go to a restricted area! -> BAD!
-                        {
-                            currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getPrevStay(), () -> tourpart.getStayHierarchy(stay).getNextStay());
-                            if (currentActCode.isFix()) {
-                                this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
-                            }
-                        } else {
-                            currentLocatedStay.setLocation(this.fixLocations.get(currentActCode));
-                        }
-
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.FINE)) {
-                            TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.FINE,
-                                    "Set location from fix locations");
-                        }
-                    } else {
-                        currentLocatedStay.selectLocation(this, pc, () -> tourpart.getStayHierarchy(stay).getPrevStay(), () -> tourpart.getStayHierarchy(stay).getNextStay());
-                        if (currentActCode.isFix()) {
-                            this.fixLocations.put(currentActCode, this.getLocatedStay(stay).getLocation());
-                        }
-                    }
-
-                    if (currentLocatedStay.getLocation() == null) {
-                        TPS_Logger.log(SeverityLogLevel.ERROR, "No Location found!");
-                    }
-                    if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
-                        String s = "gewählte Location zu Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
-                                currentLocatedStay.getLocation().getId() + " in TAZ:" +
-                                currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() + " in block: " +
-                                (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                 .getBlock()
-                                                                                                 .getId() : -1) +
-                                " via" + currentLocatedStay.getModeArr().getName() + "/" +
-                                currentLocatedStay.getModeDep().getName();
-                        TPS_Logger.log(SeverityLogLevel.DEBUG, s);
-                        TPS_Logger.log(SeverityLogLevel.DEBUG,
-                                "Selected location (id=" + currentLocatedStay.getLocation().getId() +
-                                        ") for stay (id=" + currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
-                                        currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                        ") in block (id= " +
-                                        (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                         .getBlock()
-                                                                                                         .getId() : -1) +
-                                        ") via modes " + currentLocatedStay.getModeArr().getName() + "/" +
-                                        currentLocatedStay.getModeDep().getName());
-                    }
-                }
-                // fetch previous and next stay
-                TPS_Stay prevStay = tourpart.getStayHierarchy(stay).getPrevStay();
-                Supplier<TPS_Stay> prevStaySupplier = () -> tourpart.getStayHierarchy(stay).getPrevStay();
-                TPS_Stay goingTo = tourpart.getStayHierarchy(stay).getNextStay();
-                Supplier<TPS_Stay> goingToSupplier = () -> tourpart.getStayHierarchy(stay).getNextStay();
-                if (currentLocatedStay.getModeArr() == null || currentLocatedStay.getModeDep() == null) {
-                    if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
-                        TPS_Logger.log(SeverityLogLevel.FINE,
-                                "Start select mode for each stay in tour part (id=" + tourpart.getId() + ")");
-                    }
-                    //do we have a fixed mode from the previous trip?
-                    if (tourpart.isFixedModeUsed()) {
-                        currentLocatedStay.setModeArr(tourpart.getUsedMode());
-                        currentLocatedStay.setModeDep(tourpart.getUsedMode());
-                    } else {
-                        TPS_Location pLocGoingTo = this.getLocatedStay(goingTo).getLocation();
-                        TPS_Car tmpCar = pc.carForThisPlan;
-                        if (tmpCar != null && tmpCar.isRestricted() &&
-                                (currentLocatedStay.getLocation().getTrafficAnalysisZone().isRestricted() ||
-                                        pLocGoingTo.getTrafficAnalysisZone().isRestricted())) {
-                            pc.carForThisPlan = null;
-                        }
-                        PM.getModeSet().selectMode(this, prevStaySupplier, currentLocatedStay, goingToSupplier, pc);
-                        pc.carForThisPlan = tmpCar;
-                        //set the mode and car (if used)
-                        tourpart.setUsedMode(currentLocatedStay.getModeDep(), pc.carForThisPlan);
-
-                        //set some variables for the fixed modes
-                        TPS_ExtMode em = tourpart.getUsedMode();
-                        usesBike = em.isBikeUsed();
-                        if (em.isCarUsed()) {
-                            usedCars.add(pc.carForThisPlan);
-                        }
-
-                        //set variables for fixed modes:
-                        pc.carForThisPlan = tourpart.getCar();
-                        pc.isBikeAvailable = tourpart.isBikeUsed();
-                        if (pc.carForThisPlan == null) {
-                            myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, 0);
-                        } else {
-                            myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS,
-                                    this.getPerson().getHousehold().getNumberOfCars());
-                        }
-                        myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, pc.isBikeAvailable ? 1 : 0);
-                    }
-                }
-                if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
-                    String s = "Chosen mode of Stay: " + currentLocatedStay.getEpisode().getId() + ": " +
-                            currentLocatedStay.getModeArr() == null ? "NULL" :
-                            currentLocatedStay.getModeArr().getName() + " in TAZ:" +
-                                    currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                    " in block: " +
-                                    (currentLocatedStay.getLocation().hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                     .getBlock()
-                                                                                                     .getId() : -1) +
-                                    " via" + currentLocatedStay.getModeArr().getName() + "/" +
-                                    currentLocatedStay.getModeDep().getName();
-                    TPS_Logger.log(SeverityLogLevel.DEBUG, s);
-                    TPS_Logger.log(SeverityLogLevel.DEBUG,
-                            "Selected mode (id=" + currentLocatedStay.getModeArr() == null ? "NULL" :
-                                    currentLocatedStay.getModeArr().getName() + ") for stay (id=" +
-                                            currentLocatedStay.getEpisode().getId() + " in TAZ (id=" +
-                                            currentLocatedStay.getLocation().getTrafficAnalysisZone().getTAZId() +
-                                            ") in block (id= " + (currentLocatedStay.getLocation()
-                                                                                    .hasBlock() ? currentLocatedStay.getLocation()
-                                                                                                                    .getBlock()
-                                                                                                                    .getId() : -1) +
-                                            ") via modes " + currentLocatedStay.getModeArr().getName() + "/" +
-                                            currentLocatedStay.getModeDep().getName());
-                }
-
-                //set travel time for the arriving mode
-                if (!tourpart.isFirst(stay)) {
-                    this.getPlannedTrip(tourpart.getPreviousTrip(stay)).setTravelTime(this.getLocatedStay(prevStay),
-                            this.getLocatedStay(stay));
-                }
-                //set travel time for the departure mode
-                if (!tourpart.isLast(stay)) {
-                    this.getPlannedTrip(tourpart.getNextTrip(stay)).setTravelTime(this.getLocatedStay(stay),
-                            this.getLocatedStay(goingTo));
-                }
-                //update the travel durations for this plan
-                tourpart.updateActualTravelDurations(this);
-                myAttributes.put(TPS_Attribute.CURRENT_TAZ_SETTLEMENT_CODE_TAPAS,
-                        currentLocatedStay.getLocation().getTrafficAnalysisZone().getBbrType()
-                                          .getCode(TPS_SettlementSystemType.TAPAS));
-            }//end for tourpart
-        }
-
-        /* At this point everything should be ready, but:
-         * locations within the same location group (malls etc.) should be accessed by foot.
-         * You should not drive through a mall with an SUV, unless you play cruel video games.
-         *
-         * So check, if two adjacent locations are within the same group and adopt the mode accordingly.
-         * This is done AFTER mode estimation, this might result in slightly wrong travel times within a mall.
-         * TODO: Check if this inaccuracy is acceptable.
-         */
-        //tourpart.setUsedMode(null, null);
-
-        TPS_LocatedStay prevLocatedStay = null;
-        for (TPS_LocatedStay locatedStay : this.getLocatedStays()) {
-            if (prevLocatedStay != null) { // not for the first stay, which starts at home
-                if (locatedStay.isLocated() && prevLocatedStay.isLocated()) {
-                    if (locatedStay.getLocation().isSameLocationGroup(prevLocatedStay.getLocation())) {
-                        prevLocatedStay.setModeDep(TPS_ExtMode.simpleWalk);
-                        locatedStay.setModeArr(TPS_ExtMode.simpleWalk);
-                    }
-                } else {
-                    if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
-                        TPS_Logger.log(SeverityLogLevel.WARN, "One location is null");
-                    }
-                }
-            }
-            prevLocatedStay = locatedStay;
-        }
-
-        //now we set the final travel times
-        for (TPS_SchemePart schemePart : this.scheme) {
-            if (schemePart.isTourPart()) {
-                TPS_TourPart tourpart = (TPS_TourPart) schemePart;
-                //update the travel durations for this plan
-                tourpart.updateActualTravelDurations(this);
-            }
-        }
-
-        TPS_Logger.log(SeverityLogLevel.DEBUG,
-                "Selected all locations in " + (System.currentTimeMillis() - start) + "ms");
-    }
 
     /**
      * Setter for a specific attribute of this plan

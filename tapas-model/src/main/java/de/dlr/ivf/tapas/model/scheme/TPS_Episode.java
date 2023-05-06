@@ -20,14 +20,14 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public abstract class TPS_Episode {
-    private final double scaleShift;
-    private final double scaleStretch;
+    private double scaleShift;
+    private double scaleStretch;
     /// Variable which determines, if this part is a HomePart
     public boolean isHomePart;
     /// tour number
     public int tourNumber;
     /// id of the episode
-    private final int id;
+    private int id;
     /// activity code of the episode
     private TPS_ActivityConstant actCode;
     /// shift parameter for balancing episode starts: earlier
@@ -52,6 +52,8 @@ public abstract class TPS_Episode {
     private double startEarlier;
     /// allowed later start of the episode in seconds
     private double startLater;
+
+    public TPS_Episode(int id, TPS_ActivityConstant actCode, int start, int duration){}
 
     /**
      * Constructor

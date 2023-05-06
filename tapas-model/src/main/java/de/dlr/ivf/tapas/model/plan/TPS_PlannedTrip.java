@@ -58,7 +58,8 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode {
      * @return cost of the trip
      */
     public double getCosts(CURRENCY currency) {
-        return currency.convert(costs, CURRENCY.valueOf(plan.getParameters().getString(ParamString.CURRENCY)));
+                    //todo revise this
+        return 0; //currency.convert(costs, CURRENCY.valueOf(plan.getParameters().getString(ParamString.CURRENCY)));
     }
 
     /*
@@ -114,12 +115,13 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode {
      * @param pComingFrom location coming from
      * @param pGoingTo    location going to
      */
+    //todo revise
     public boolean setTravelTime(TPS_LocatedStay pComingFrom, TPS_LocatedStay pGoingTo) {
         // Do not get confused with 'pComingFrom' and 'myPComingFrom'. 'pComingFrom' is needed for the hierarchy of the
         // trips in the tour.
         if (pComingFrom.getStay().isAtHome() && pGoingTo.getStay().isAtHome() && mode == null) {
             // This shouldn't be a big problem. Skip the message; Use mode 'walk' as this are most of the time walks with dogs.
-            mode = TPS_ExtMode.simpleWalk;
+           // mode = TPS_ExtMode.simpleWalk;
         }
 
         if (!pComingFrom.isLocated()) {
@@ -134,8 +136,10 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode {
 
         TPS_Location pLocComingFrom = pComingFrom.getLocation();
         TPS_Location pLocGoingTo = pGoingTo.getLocation();
-        this.setDistanceBeeline(TPS_Geometrics
-                .getDistance(pLocComingFrom, pLocGoingTo, plan.getParameters().getDoubleValue(ParamValue.MIN_DIST)));
+
+        //todo revise this
+//        this.setDistanceBeeline(TPS_Geometrics
+//                .getDistance(pLocComingFrom, pLocGoingTo, plan.getParameters().getDoubleValue(ParamValue.MIN_DIST)));
 
         TPS_TrafficAnalysisZone goingToTVZ = pLocGoingTo.getTrafficAnalysisZone();
         TPS_TrafficAnalysisZone comingFromTVZ = pLocComingFrom.getTrafficAnalysisZone();
@@ -170,165 +174,167 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode {
         // If different modes are used for leave and to get to the locations of these episodes then the priority of the
         // episodes determines the mode choice.
 
-        if(this.plan.getParameters().isFalse(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)) {
-            if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
-                if (pComingFrom.getStay().isAtHome()) {
-                    setMode(pModeGoingTo);
-                } else {
-                    setMode(pModeComingFrom);
-                }
-            } else {
-                if (pGoingTo.getStay().isAtHome()) {
-                    setMode(pModeComingFrom);
-                } else {
-                    setMode(pModeGoingTo);
-                }
-            }
-        }
-
-        this.setDistanceEmptyNet(
-                TPS_Mode.get(ModeType.WALK).getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, null));
-
-        /*
-         * Da anders als in der Vorlage die Klassen für die verschiedenen Modes nicht in einer Datei definiert werden
-         * können, bin ich auch bei der Vererbung und dem Zugriff auf die richtige Funktion skeptisch. Deshalb wird hier
-         * explizit nach dem Mode unterschieden und per cast die entsprechende Routine genutzt.
-         *
-         *
-         * TYPECAST UNNÖTIG
-         *
-         *
-         * Für die KFZ-modes MIV, Taxi und Passagier werden die entspr. Funktionen getDistance aufgerufen. Da
-         * distanceBeeline immer einen minimalen Wert hat, kann es in diesen Funktionen nicht zu Komplikationen kommen.
-         *
-         * Den getTravelTime-Routinen werden ebenfalls die actCodes der beteiligten Episoden (comingFrom & goingTo) und
-         * die Job-ID der Person übergeben. Derzeit werden diese nur für die Modes PubTrans und Train zur Berechnung der
-         * Schulbusreisezeiten genutzt.
-         */
-
-        TPS_Mode primaryMode = mode.primary;
-
-        if (primaryMode.isType(ModeType.PT)) {
-            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
-                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
-            if (pLocComingFrom.getTrafficAnalysisZone().equals(pLocGoingTo.getTrafficAnalysisZone())) {
-                if (TPS_Mode.noConnection(tt)) {
-                    if (this.plan.getParameters().isFalse(ParamFlag.FLAG_USE_BLOCK_LEVEL)) {
-                        tt = TPS_Mode.get(ModeType.WALK).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
-                                SimulationType.SCENARIO, pComingFrom.getStay().getActCode(),
-                                pGoingTo.getStay().getActCode(), plan.getPerson(), null);
-                    } else if (this.plan.getParameters().isTrue(ParamFlag.FLAG_USE_BLOCK_LEVEL)) {
-                        if (pLocComingFrom.getBlock() == null || pLocGoingTo.getBlock() == null) {
-                            tt = TPS_Mode.get(ModeType.WALK).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
-                                    SimulationType.SCENARIO, pComingFrom.getStay().getActCode(),
-                                    pGoingTo.getStay().getActCode(), plan.getPerson(), null);
-                        } else if (pLocComingFrom.getBlock().equals(pLocGoingTo.getBlock())) {
-                            tt = TPS_Mode.get(ModeType.WALK).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
-                                    SimulationType.SCENARIO, pComingFrom.getStay().getActCode(),
-                                    pGoingTo.getStay().getActCode(), plan.getPerson(), null);
-
-                        }
-                    }
-                }
-            }
-        } else if (primaryMode.isType(ModeType.CAR_SHARING) && this.plan.getParameters().isDefined(
-                ParamFlag.FLAG_USE_CARSHARING) && this.plan.getParameters().isTrue(
-                ParamFlag.FLAG_USE_CARSHARING)) { // carsharing faker!
-            tt = TPS_Mode.get(ModeType.MIT).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
-                    SimulationType.SCENARIO, pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(),
-                    plan.getPerson(), null);
-        } else {
-            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
-                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), carForTrip);
-        }
-
-        if (TPS_Mode.noConnection(tt)) { //you can always walk!
-            //TODO: really walk?!?
-            primaryMode = TPS_Mode.get(ModeType.WALK);
-            this.mode.primary = primaryMode;
-            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
-                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
-        }
-
-        double dist = primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip);
-
-        if (primaryMode.isType(ModeType.WALK) && dist / (Math.max(60, tt)) > 10) {
-            //runners!
-            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
-                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
-            dist = primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip);
-
-        }
-
-        this.setDistance(primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip));
-        if (Double.isNaN(tt)) {
-            System.err.println("Arg!");
-            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
-                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
-        }
-        this.setDuration((int) tt);
-
-        /*
-         * Abschließend werden für jeden Trip in Abhängigkeit vom Modus die Kosten für den Trip berechnet und in der
-         * Variablen myFinancialCosts abgelegt; dabei erfolgt die Rückrechnung der Kosten in Euro
-         */
-
-        double costVal = 0, costStay = 0;
-        if (!primaryMode.isType(ModeType.MIT)) {
-            costVal = primaryMode.getCost_per_km(SimulationType.SCENARIO);
-        } else {
-            // Bestimmen, ob durch Wegfall der Pendlerpauschale betroffen: erwerbstätig und HHEinkommen über 2600 Euro
-            double pendlerkosten = 0.0;
-
-            // determine whether working and income over average such that commuting tax benefit is appropriate
-            if (this.plan.getPerson().isWorking() &&
-                    plan.getPerson().getHousehold().getIncome() >= this.plan.getParameters().getIntValue(
-                            ParamValue.MIT_INCOME_CLASS_COMMUTE)) {
-                pendlerkosten += this.plan.getParameters().getDoubleValue(ParamValue.MIT_FUEL_COST_PER_KM_COMMUTE);
-            }
-
-            costVal = pendlerkosten;
-            if (carForTrip == null) {
-                // default distance related costs
-                costVal += this.plan.getParameters().getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM) +
-                        this.plan.getParameters().getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM);
-            } else {
-                // car-depending distance related costs
-                costVal += carForTrip.getCostPerKilometer(SimulationType.SCENARIO) +
-                        carForTrip.getVariableCostPerKilometer(SimulationType.SCENARIO);
-
-            }
-
-            // location related costs
-            // determine whether parking fee or toll is charged in the destination zone; toll only relevant when coming
-            // from an toll free zone
-            costStay = 0.0;
-
-            // toll fee
-            if (goingToTVZ.hasToll(SimulationType.SCENARIO) && !comingFromTVZ.hasToll(SimulationType.SCENARIO)) {
-                // Scenario: toll has to be payed on entrance into a toll zone (cordon toll)
-                costStay += goingToTVZ.getTollFee(SimulationType.SCENARIO);
-            }
-
-            // toll fees leaving a toll zone
-            if (this.plan.getParameters().isTrue(ParamFlag.FLAG_USE_EXIT_MAUT)) {
-                if (!goingToTVZ.hasToll(SimulationType.SCENARIO) && comingFromTVZ.hasToll(SimulationType.SCENARIO)) {
-                    // Scenario: toll has to be payed leaving a toll zone (cordon toll)
-                    costStay += comingFromTVZ.getTollFee(SimulationType.SCENARIO);
-                    if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
-                        TPS_Logger.log(SeverityLogLevel.FINE,
-                                "MIV - trip has maut: " + comingFromTVZ.getTollFee(SimulationType.SCENARIO) +
-                                        " costSum: " + costStay);
-                    }
-                }
-            }
+        ////todo revise the following huge block and extract it
+//        if(this.plan.getParameters().isFalse(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)) {
+//            if (pComingFrom.getStay().getPriority() < pGoingTo.getStay().getPriority()) {
+//                if (pComingFrom.getStay().isAtHome()) {
+//                    setMode(pModeGoingTo);
+//                } else {
+//                    setMode(pModeComingFrom);
+//                }
+//            } else {
+//                if (pGoingTo.getStay().isAtHome()) {
+//                    setMode(pModeComingFrom);
+//                } else {
+//                    setMode(pModeGoingTo);
+//                }
+//            }
+//        }
+//
+//        this.setDistanceEmptyNet(
+//                TPS_Mode.get(ModeType.WALK).getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, null));
+//
+//        /*
+//         * Da anders als in der Vorlage die Klassen für die verschiedenen Modes nicht in einer Datei definiert werden
+//         * können, bin ich auch bei der Vererbung und dem Zugriff auf die richtige Funktion skeptisch. Deshalb wird hier
+//         * explizit nach dem Mode unterschieden und per cast die entsprechende Routine genutzt.
+//         *
+//         *
+//         * TYPECAST UNNÖTIG
+//         *
+//         *
+//         * Für die KFZ-modes MIV, Taxi und Passagier werden die entspr. Funktionen getDistance aufgerufen. Da
+//         * distanceBeeline immer einen minimalen Wert hat, kann es in diesen Funktionen nicht zu Komplikationen kommen.
+//         *
+//         * Den getTravelTime-Routinen werden ebenfalls die actCodes der beteiligten Episoden (comingFrom & goingTo) und
+//         * die Job-ID der Person übergeben. Derzeit werden diese nur für die Modes PubTrans und Train zur Berechnung der
+//         * Schulbusreisezeiten genutzt.
+//         */
+//
+//        TPS_Mode primaryMode = mode.primary;
+//
+//        if (primaryMode.isType(ModeType.PT)) {
+//            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
+//                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
+//            if (pLocComingFrom.getTrafficAnalysisZone().equals(pLocGoingTo.getTrafficAnalysisZone())) {
+//                if (TPS_Mode.noConnection(tt)) {
+//                    if (this.plan.getParameters().isFalse(ParamFlag.FLAG_USE_BLOCK_LEVEL)) {
+//                        tt = TPS_Mode.get(ModeType.WALK).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
+//                                SimulationType.SCENARIO, pComingFrom.getStay().getActCode(),
+//                                pGoingTo.getStay().getActCode(), plan.getPerson(), null);
+//                    } else if (this.plan.getParameters().isTrue(ParamFlag.FLAG_USE_BLOCK_LEVEL)) {
+//                        if (pLocComingFrom.getBlock() == null || pLocGoingTo.getBlock() == null) {
+//                            tt = TPS_Mode.get(ModeType.WALK).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
+//                                    SimulationType.SCENARIO, pComingFrom.getStay().getActCode(),
+//                                    pGoingTo.getStay().getActCode(), plan.getPerson(), null);
+//                        } else if (pLocComingFrom.getBlock().equals(pLocGoingTo.getBlock())) {
+//                            tt = TPS_Mode.get(ModeType.WALK).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
+//                                    SimulationType.SCENARIO, pComingFrom.getStay().getActCode(),
+//                                    pGoingTo.getStay().getActCode(), plan.getPerson(), null);
+//
+//                        }
+//                    }
+//                }
+//            }
+//        } else if (primaryMode.isType(ModeType.CAR_SHARING) && this.plan.getParameters().isDefined(
+//                ParamFlag.FLAG_USE_CARSHARING) && this.plan.getParameters().isTrue(
+//                ParamFlag.FLAG_USE_CARSHARING)) { // carsharing faker!
+//            tt = TPS_Mode.get(ModeType.MIT).getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(),
+//                    SimulationType.SCENARIO, pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(),
+//                    plan.getPerson(), null);
+//        } else {
+//            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
+//                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), carForTrip);
+//        }
+//
+//        if (TPS_Mode.noConnection(tt)) { //you can always walk!
+//            //TODO: really walk?!?
+//            primaryMode = TPS_Mode.get(ModeType.WALK);
+//            this.mode.primary = primaryMode;
+//            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
+//                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
+//        }
+//
+//        double dist = primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip);
+//
+//        if (primaryMode.isType(ModeType.WALK) && dist / (Math.max(60, tt)) > 10) {
+//            //runners!
+//            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
+//                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
+//            dist = primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip);
+//
+//        }
+//
+//        this.setDistance(primaryMode.getDistance(pLocComingFrom, pLocGoingTo, SimulationType.SCENARIO, carForTrip));
+//        if (Double.isNaN(tt)) {
+//            System.err.println("Arg!");
+//            tt = primaryMode.getTravelTime(pLocComingFrom, pLocGoingTo, this.getStart(), SimulationType.SCENARIO,
+//                    pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(), plan.getPerson(), null);
+//        }
+//        this.setDuration((int) tt);
+//
+//        /*
+//         * Abschließend werden für jeden Trip in Abhängigkeit vom Modus die Kosten für den Trip berechnet und in der
+//         * Variablen myFinancialCosts abgelegt; dabei erfolgt die Rückrechnung der Kosten in Euro
+//         */
+//
+//        double costVal = 0, costStay = 0;
+//        if (!primaryMode.isType(ModeType.MIT)) {
+//            costVal = primaryMode.getCost_per_km(SimulationType.SCENARIO);
+//        } else {
+//            // Bestimmen, ob durch Wegfall der Pendlerpauschale betroffen: erwerbstätig und HHEinkommen über 2600 Euro
+//            double pendlerkosten = 0.0;
+//
+//            // determine whether working and income over average such that commuting tax benefit is appropriate
+//            if (this.plan.getPerson().isWorking() &&
+//                    plan.getPerson().getHousehold().getIncome() >= this.plan.getParameters().getIntValue(
+//                            ParamValue.MIT_INCOME_CLASS_COMMUTE)) {
+//                pendlerkosten += this.plan.getParameters().getDoubleValue(ParamValue.MIT_FUEL_COST_PER_KM_COMMUTE);
+//            }
+//
+//            costVal = pendlerkosten;
+//            if (carForTrip == null) {
+//                // default distance related costs
+//                costVal += this.plan.getParameters().getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM) +
+//                        this.plan.getParameters().getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM);
+//            } else {
+//                // car-depending distance related costs
+//                costVal += carForTrip.getCostPerKilometer(SimulationType.SCENARIO) +
+//                        carForTrip.getVariableCostPerKilometer(SimulationType.SCENARIO);
+//
+//            }
+//
+//            // location related costs
+//            // determine whether parking fee or toll is charged in the destination zone; toll only relevant when coming
+//            // from an toll free zone
+//            costStay = 0.0;
+//
+//            // toll fee
+//            if (goingToTVZ.hasToll(SimulationType.SCENARIO) && !comingFromTVZ.hasToll(SimulationType.SCENARIO)) {
+//                // Scenario: toll has to be payed on entrance into a toll zone (cordon toll)
+//                costStay += goingToTVZ.getTollFee(SimulationType.SCENARIO);
+//            }
+//
+//            // toll fees leaving a toll zone
+//            if (this.plan.getParameters().isTrue(ParamFlag.FLAG_USE_EXIT_MAUT)) {
+//                if (!goingToTVZ.hasToll(SimulationType.SCENARIO) && comingFromTVZ.hasToll(SimulationType.SCENARIO)) {
+//                    // Scenario: toll has to be payed leaving a toll zone (cordon toll)
+//                    costStay += comingFromTVZ.getTollFee(SimulationType.SCENARIO);
+//                    if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
+//                        TPS_Logger.log(SeverityLogLevel.FINE,
+//                                "MIV - trip has maut: " + comingFromTVZ.getTollFee(SimulationType.SCENARIO) +
+//                                        " costSum: " + costStay);
+//                    }
+//                }
+//            }
 
             // parking fee
             if (goingToTVZ.hasParkingFee(SimulationType.SCENARIO)) {
                 double costSzen = goingToTVZ.getParkingFee(SimulationType.SCENARIO);
                 if (costSzen > 0) {
                     double stayingHours = this.getDuration() * 2.7777777777e-4;// converting into seconds
-                    costStay += (costSzen * stayingHours);
+                    //todo revise this
+                    //costStay += (costSzen * stayingHours);
                 }
                 if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
                     TPS_Logger.log(SeverityLogLevel.FINE,
@@ -336,9 +342,9 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode {
                                     "; duration: " + this.getDuration() + "; costSum: " + costSzen);
                 }
             }
-        }
-
-        costs = (this.getDistance() * 0.001 * costVal) + costStay;
+        //}
+    //todo revise this
+    //    costs = (this.getDistance() * 0.001 * costVal) + costStay;
         if (TPS_Logger.isLogging(SeverityLogLevel.FINE)) {
             TPS_Logger.log(SeverityLogLevel.FINE, this.mode.toString() + " - trip-costs: " + costs);
             TPS_Logger.log(SeverityLogLevel.FINE, "Set travel time " + this.toString());
