@@ -16,7 +16,6 @@ import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.api.io.implementation.ResultSetConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
-import de.dlr.ivf.tapas.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeBuilder;
 import de.dlr.ivf.tapas.model.*;
@@ -864,7 +863,7 @@ public class TPS_DB_IO {
      * @return The tree read from the db.
      * @throws SQLException
      */
-    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource) throws SQLException {
+    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource, Collection<TPS_Mode> modes) throws SQLException {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -885,97 +884,52 @@ public class TPS_DB_IO {
             String splitVar = ekNode.getSplitVariable();
             TPS_Attribute sv = (splitVar != null && splitVar.length() > 1) ? TPS_Attribute.valueOf(splitVar) : null;
 
-            double[] values = ekNode.getSummand();
-            TPS_DiscreteDistribution<TPS_Mode> summand = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-            for (int i = 0; i < values.length; i++) {
-                summand.setValueByPosition(i, values[i]);
+            double[] summandValues = ekNode.getSummand();
+            TPS_DiscreteDistribution<TPS_Mode> summand = new TPS_DiscreteDistribution<>(modes);
+            for (int i = 0; i < summandValues.length; i++) {
+                summand.setValueByPosition(i, summandValues[i]);
             }
 
-            values = extractDoubleArray(rs, "factor");
-            TPS_DiscreteDistribution<TPS_Mode> factor = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-            for (int i = 0; i < values.length; i++) {
-                factor.setValueByPosition(i, values[i]);
+            double[] factorValues = ekNode.getFactor();
+            TPS_DiscreteDistribution<TPS_Mode> factor = new TPS_DiscreteDistribution<>(modes);
+            for (int i = 0; i < factorValues.length; i++) {
+                factor.setValueByPosition(i, factorValues[i]);
             }
 
+            if (root == null) {
+                root = new TPS_ExpertKnowledgeNode(ekNode.getNodeId(), sv, c, summand, factor, null);
+            } else {
+                TPS_ExpertKnowledgeNode parent = (TPS_ExpertKnowledgeNode) root.getChild(ekNode.getParentNodeId());
+                TPS_ExpertKnowledgeNode child = new TPS_ExpertKnowledgeNode(ekNode.getNodeId(), sv, c, summand, factor, parent);
 
+                // if (parent.getId() != idParent) {
+                // log.error("\t\t\t\t '--> ModeChoiceTree.readTable: Parent not found -> Id: " + idParent);
+                // throw new IOException("ModeChoiceTree.readTable: Parent not found -> Id: " + idParent);
+                // }
+
+                parent.addChild(child);
+            }
         }
 
+        return new TPS_ExpertKnowledgeTree(root);
+    }
 
-        TPS_ExpertKnowledgeNode root = null;
-        if (this.PM.getParameters().isDefined(ParamString.DB_TABLE_EKT) && this.PM.getParameters().getString(
-                ParamString.DB_TABLE_EKT) != null && !this.PM.getParameters().getString(ParamString.DB_TABLE_EKT)
-                                                             .equals("") && this.PM.getParameters().isDefined(
-                ParamString.DB_NAME_EKT) && this.PM.getParameters().getString(ParamString.DB_NAME_EKT) != null &&
-                !this.PM.getParameters().getString(ParamString.DB_NAME_EKT).equals("")) {
+    public TPS_ExpertKnowledgeTree newDummyExpertKnowledgeTree(Collection<TPS_Mode> modes){
+        //no expert knowledge: create a root-node with dummy values
+        List<Integer> c = new LinkedList<>();
+        c.add(0);
 
-            String query = "SELECT node_id, parent_node_id, attribute_values, split_variable, summand, factor FROM " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_EKT) + " WHERE name='" +
-                    this.PM.getParameters().getString(ParamString.DB_NAME_EKT) + "' ORDER BY node_id";
-            ResultSet rs = PM.executeQuery(query);
-            while (rs.next()) {
-                int id = rs.getInt("node_id");
-                // skip level
-                // skip size
-                int idParent = rs.getInt("parent_node_id");
-
-                List<Integer> c = new LinkedList<>();
-                for (Integer i : extractIntArray(rs, "attribute_values")) {
-                    c.add(i);
-                }
-
-                String splitVar = rs.getString("split_variable");
-                TPS_Attribute sv = null;
-                if (splitVar != null && splitVar.length() > 1) {
-                    sv = TPS_Attribute.valueOf(splitVar);
-                }
-
-                double[] values = extractDoubleArray(rs, "summand");
-                TPS_DiscreteDistribution<TPS_Mode> summand = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-                for (int i = 0; i < values.length; i++) {
-                    summand.setValueByPosition(i, values[i]);
-                }
-
-                values = extractDoubleArray(rs, "factor");
-                TPS_DiscreteDistribution<TPS_Mode> factor = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-                for (int i = 0; i < values.length; i++) {
-                    factor.setValueByPosition(i, values[i]);
-                }
-
-
-                // We assume that the first row contains the root node data.
-                if (root == null) {
-                    root = new TPS_ExpertKnowledgeNode(id, sv, c, summand, factor, null);
-                } else {
-                    TPS_ExpertKnowledgeNode parent = (TPS_ExpertKnowledgeNode) root.getChild(idParent);
-                    TPS_ExpertKnowledgeNode child = new TPS_ExpertKnowledgeNode(id, sv, c, summand, factor, parent);
-
-                    // if (parent.getId() != idParent) {
-                    // log.error("\t\t\t\t '--> ModeChoiceTree.readTable: Parent not found -> Id: " + idParent);
-                    // throw new IOException("ModeChoiceTree.readTable: Parent not found -> Id: " + idParent);
-                    // }
-
-                    parent.addChild(child);
-                }
-            }
-            rs.close();
+        TPS_DiscreteDistribution<TPS_Mode> summand = new TPS_DiscreteDistribution<>(modes);
+        for (int i = 0; i < summand.size(); i++) {
+            summand.setValueByPosition(i, 0);
         }
 
-        if (root == null) {
-            //no expert knowledge: create a root-node with dummy values
-            List<Integer> c = new LinkedList<>();
-            c.add(0);
-
-            TPS_DiscreteDistribution<TPS_Mode> summand = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-            for (int i = 0; i < summand.size(); i++) {
-                summand.setValueByPosition(i, 0);
-            }
-
-            TPS_DiscreteDistribution<TPS_Mode> factor = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-            for (int i = 0; i < factor.size(); i++) {
-                factor.setValueByPosition(i, 1);
-            }
-            root = new TPS_ExpertKnowledgeNode(0, null, c, summand, factor, null);
+        TPS_DiscreteDistribution<TPS_Mode> factor = new TPS_DiscreteDistribution<>(modes);
+        for (int i = 0; i < factor.size(); i++) {
+            factor.setValueByPosition(i, 1);
         }
+        TPS_ExpertKnowledgeNode root = new TPS_ExpertKnowledgeNode(0, null, c, summand, factor, null);
+
         return new TPS_ExpertKnowledgeTree(root);
     }
 
@@ -1322,7 +1276,7 @@ public class TPS_DB_IO {
      * @return The tree read from the db.
      * @throws SQLException
      */
-    public TPS_ModeChoiceTree readModeChoiceTree() throws SQLException {
+    public TPS_ModeChoiceTree readModeChoiceTree(DataSource dataSource) throws SQLException {
         String query = "SELECT node_id, parent_node_id, attribute_values, split_variable, distribution FROM " +
                 this.PM.getParameters().getString(ParamString.DB_TABLE_MCT) + " WHERE name='" +
                 this.PM.getParameters().getString(ParamString.DB_NAME_MCT) + "' ORDER BY node_id";
