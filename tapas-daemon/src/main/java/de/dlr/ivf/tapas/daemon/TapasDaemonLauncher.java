@@ -1,19 +1,12 @@
 package de.dlr.ivf.tapas.daemon;
 
-import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.ConnectionManager;
-import de.dlr.ivf.api.io.ConnectionProvider;
 import de.dlr.ivf.tapas.daemon.configuration.DaemonConfiguration;
-import de.dlr.ivf.tapas.logger.LoggerConfiguration;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -53,7 +46,7 @@ public class TapasDaemonLauncher {
 
 
         //initialize the connection Provider
-        ConnectionManager<Connection> connectionManager = ConnectionManager.newJdbcConnectionManager();
+//        ConnectionManager<Connection> connectionManager = ConnectionManager.newJdbcConnectionManager();
 //        connectionManager.a
 //
 //    }

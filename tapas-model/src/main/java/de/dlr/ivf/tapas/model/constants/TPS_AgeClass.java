@@ -8,7 +8,11 @@
 
 package de.dlr.ivf.tapas.model.constants;
 
+import lombok.Builder;
+import lombok.Singular;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 
@@ -18,6 +22,7 @@ import java.util.HashMap;
  * constant. It includes all ages from 0 to infinite. When there exists no appropriate age class in the first layer, this
  * constant is used as the default age class.
  */
+@Builder
 public class TPS_AgeClass {
 
     /**
@@ -33,14 +38,6 @@ public class TPS_AgeClass {
      */
     private final int max;
 
-    public int getMax() {
-        return max;
-    }
-
-    public int getMin() {
-        return min;
-    }
-
     /**
      * Included minimum value
      */
@@ -52,7 +49,10 @@ public class TPS_AgeClass {
     /**
      * mapping of the {@link TPS_AgeCodeType} to the internal representation
      */
-    private final EnumMap<TPS_AgeCodeType, TPS_InternalConstant<TPS_AgeCodeType>> map;
+    private final EnumMap<TPS_AgeCodeType, TPS_InternalConstant<TPS_AgeCodeType>> internalAgeConstants;
+
+    @Singular
+    private final Collection<TPS_InternalConstant<TPS_AgeCodeType>> attributes;
 
     /**
      * Basic constructor for a TPS_AgeClass
@@ -65,7 +65,8 @@ public class TPS_AgeClass {
         this.min = min;
         this.max = max;
         this.id = id;
-        this.map = new EnumMap<>(TPS_AgeCodeType.class);
+        this.attributes = new ArrayList<>();
+        this.internalAgeConstants = new EnumMap<>(TPS_AgeCodeType.class);
         if (attributes.length % 3 != 0) {
             throw new RuntimeException("TPS_AgeClass need n*3 attributes n*(name, code, type): " + attributes.length);
         }
@@ -74,11 +75,11 @@ public class TPS_AgeClass {
         for (int i = 0; i < attributes.length; i += 3) {
             tic = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
                     TPS_AgeCodeType.valueOf(attributes[i + 2]));
-            this.map.put(tic.getType(), tic);
+            this.internalAgeConstants.put(tic.getType(), tic);
         }
 
         for (TPS_AgeCodeType type : TPS_AgeCodeType.values()) {
-            if (!this.map.containsKey(type)) {
+            if (!this.internalAgeConstants.containsKey(type)) {
                 throw new RuntimeException("Age code for " + type.name() + " for type " + type.name() + " not defined");
             }
         }
@@ -145,7 +146,7 @@ public class TPS_AgeClass {
      * @return the corresponding code as int
      */
     public int getCode(TPS_AgeCodeType type) {
-        return this.map.get(type).getCode();
+        return this.internalAgeConstants.get(type).getCode();
     }
 
     /**

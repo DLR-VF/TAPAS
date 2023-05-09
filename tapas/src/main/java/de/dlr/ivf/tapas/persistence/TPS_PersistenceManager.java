@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.persistence;
 
-import de.dlr.ivf.tapas.model.location.TPS_Region;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
+import de.dlr.ivf.tapas.legacy.TPS_Region;
+import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemeSet;

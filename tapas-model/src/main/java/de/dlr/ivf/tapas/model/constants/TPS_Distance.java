@@ -8,14 +8,16 @@
 
 package de.dlr.ivf.tapas.model.constants;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.TreeMap;
+import lombok.Builder;
+import lombok.Singular;
+
+import java.util.*;
 
 /**
  * This class represents the constants for the distances. They are all stored in one distribution to retrieve the best
  * fitting distance constant to each distant value.
  */
+@Builder
 public class TPS_Distance {
 
     /**
@@ -27,6 +29,8 @@ public class TPS_Distance {
      */
     private static final TreeMap<Integer, Integer> MAX_VALUES = new TreeMap<>();
 
+    @Singular
+    private final Collection<TPS_InternalConstant<TPS_DistanceCodeType>> internalDistanceCodes;
 
     /**
      * maximum value of a distance category
@@ -52,6 +56,8 @@ public class TPS_Distance {
      * @param max        maximum value of the distance constant category
      */
     public TPS_Distance(int id, String[] attributes, int max) {
+
+        internalDistanceCodes = new ArrayList<>();
         if (attributes.length % 3 != 0) {
             throw new RuntimeException("TPS_Distance need n*3 attributes n*(name, code, type): " + attributes.length);
         }
@@ -64,6 +70,7 @@ public class TPS_Distance {
         for (int i = 0; i < attributes.length; i += 3) {
             tic = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
                     TPS_DistanceCodeType.valueOf(attributes[i + 2]));
+            internalDistanceCodes.add(tic);
             this.map.put(tic.getType(), tic);
         }
 

@@ -8,6 +8,11 @@
 
 package de.dlr.ivf.tapas.model.constants;
 
+import lombok.Builder;
+import lombok.Singular;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 
@@ -15,6 +20,7 @@ import java.util.HashMap;
 /**
  * This class represents the activity constants.
  */
+@Builder
 public class TPS_ActivityConstant {
 
     /**
@@ -25,8 +31,7 @@ public class TPS_ActivityConstant {
      * dummy activity constant
      * This constant is used for calculating the travel times to the representatives of the traffic analysis zones
      */
-    public static TPS_ActivityConstant DUMMY = new TPS_ActivityConstant(-1,
-            new String[]{"null", "-999", "ZBE", "null", "-999", "VOT", "null", "-999", "TAPAS", "null", "-999", "MCT", "null", "-999", "PRIORITY"},
+    public static TPS_ActivityConstant DUMMY = new TPS_ActivityConstant(-1,new String[]{"null", "-999", "ZBE", "null", "-999", "VOT", "null", "-999", "TAPAS", "null", "-999", "MCT", "null", "-999", "PRIORITY"},
             false, false, null);
     /**
      * maps ids from the db to {@link TPS_ActivityConstant} objects constructed from corresponding db data
@@ -53,7 +58,10 @@ public class TPS_ActivityConstant {
     /**
      * mapping enum TPS_ActivityCodeType to internal constant, i.e. its three properties (name, code, type)
      */
-    private final EnumMap<TPS_ActivityCodeType, TPS_InternalConstant<TPS_ActivityCodeType>> map;
+    private final EnumMap<TPS_ActivityCodeType, TPS_InternalConstant<TPS_ActivityCodeType>> internalAttributes;
+
+    @Singular
+    private final Collection<TPS_InternalConstant<TPS_ActivityCodeType>> internalConstants;
 
     /**
      * Basic constructor for a TPS_ActivityConstant
@@ -70,17 +78,19 @@ public class TPS_ActivityConstant {
             throw new RuntimeException(
                     "ActivityConstant need n*3 attributes n*(name, code, type): " + attributes.length);
         }
+        internalConstants = new ArrayList<>();
         this.id = id;
-        this.map = new EnumMap<>(TPS_ActivityCodeType.class);
+        this.internalAttributes = new EnumMap<>(TPS_ActivityCodeType.class);
         TPS_InternalConstant<TPS_ActivityCodeType> iac;
         for (int i = 0; i < attributes.length; i += 3) {
             iac = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
                     TPS_ActivityCodeType.valueOf(attributes[i + 2]));
-            this.map.put(iac.getType(), iac);
+            this.internalAttributes.put(iac.getType(), iac);
+            internalConstants.add(iac);
         }
 
         for (TPS_ActivityCodeType type : TPS_ActivityCodeType.values()) {
-            if (!this.map.containsKey(type)) {
+            if (!this.internalAttributes.containsKey(type)) {
                 throw new RuntimeException(
                         "Activity code for " + this.getId() + " for type " + type.name() + " not " + "defined");
             }
@@ -133,7 +143,7 @@ public class TPS_ActivityConstant {
      * @return the corresponding code as int
      */
     public int getCode(TPS_ActivityCodeType type) {
-        return this.map.get(type).getCode();
+        return this.internalAttributes.get(type).getCode();
     }
 
     /**
