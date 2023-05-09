@@ -13,6 +13,7 @@ import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_GX;
@@ -26,6 +27,12 @@ import de.dlr.ivf.tapas.model.parameter.ParamValue;
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
+
+    private final TPS_ParameterClass parameterClass;
+
+    public TPS_PlanEVA1Acceptance(TPS_ParameterClass parameterClass){
+        this.parameterClass = parameterClass;
+    }
 
     /**
      * Calculates the acceptance probability of the plan constructed resulting from the financial expenditures
@@ -50,12 +57,12 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
             budgetAcceptanceProbability = 1;
         } else {
             // Anschmiegeparameter der EVA1-Funktion
-            double EBottom = plan.getParameters().getDoubleValue(ParamValue.FINANCE_BUDGET_E);
+            double EBottom = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_E);
             // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
-            double FTop = plan.getParameters().getDoubleValue(ParamValue.FINANCE_BUDGET_F);
+            double FTop = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_F);
             // Wendepunkt der Funktion; ein Wendepunkt von 0.5 besagt, dass es bei einer Überschreitung der Budget-
             // vorgaben um 50 % zu einem starken Abfall der Akzeptanz des Plans kommt
-            double TurningPoint = plan.getParameters().getDoubleValue(ParamValue.FINANCE_BUDGET_WP);
+            double TurningPoint = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_WP);
             // Verhältnis des Ausgaben zum Budget; nur bei Überschreitung (>1) wird auf Akzeptanz getestet, sonst
             // immer 1
             double ratio = plan.getTravelCosts() / myFinancialBudgetVariable;
@@ -93,9 +100,9 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
     private double calculateAcceptanceProbTimeConstraints(TPS_Plan plan) {
         double timeAcceptanceProbability = 0.0;
         // Anschmiegeparameter der EVA1-Funktion
-        double EBottom = plan.getParameters().getDoubleValue(ParamValue.TIME_BUDGET_E);
+        double EBottom = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_E);
         // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflusst
-        double FTop = plan.getParameters().getDoubleValue(ParamValue.TIME_BUDGET_F);
+        double FTop = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_F);
         // stattdessen Infos aus Tagebuchklasse!
         // double TurningPoint = myTurningPointTime;
 
@@ -134,7 +141,7 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
     public boolean isPlanAccepted(TPS_Plan plan) {
         boolean accepted = this.isPlanAcceptedByOverallTravelTime(plan);
         // Check additional constraints (average travel time of scheme class and budget) if plan is accepted in general
-        if (accepted && plan.getParameters().isTrue(ParamFlag.FLAG_CHECK_BUDGET_CONSTRAINTS)) {
+        if (accepted && parameterClass.isTrue(ParamFlag.FLAG_CHECK_BUDGET_CONSTRAINTS)) {
             accepted = this.isPlanAcceptedByAdditionalConstraints(plan);
         }
         return accepted;
@@ -181,10 +188,10 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
 
         } else {
             // Anschmiegeparameter der EVA1-Funktion
-            double EBottom = plan.getParameters().getDoubleValue(ParamValue.OVERALL_TIME_E);
+            double EBottom = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_E);
             // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
-            double FTop = plan.getParameters().getDoubleValue(ParamValue.OVERALL_TIME_F);
-            double TurningPoint = plan.getParameters().getDoubleValue(ParamValue.MAX_TIME_DIFFERENCE);
+            double FTop = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_F);
+            double TurningPoint = parameterClass.getDoubleValue(ParamValue.MAX_TIME_DIFFERENCE);
 
             ratio = realDuration / originalDuration;
             ratio = Math.abs(ratio -

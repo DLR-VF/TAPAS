@@ -8,6 +8,7 @@
 
 package de.dlr.ivf.tapas.model.parameter;
 
+import com.csvreader.CsvReader;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
@@ -19,6 +20,11 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 
@@ -41,10 +47,7 @@ public class TPS_ParameterClass {
      * Name of the output folder
      */
     public String OUTPUT_DIR;
-    /**
-     * Name of the binary folder
-     */
-    public String SIM_DIR;
+
     /**
      * Name of the log folder
      */
@@ -73,7 +76,6 @@ public class TPS_ParameterClass {
         this.BIN_DIR = "Program/";
         this.INPUT_DIR = "Inputfiles/";
         this.OUTPUT_DIR = "Outputfiles/";
-        this.SIM_DIR = "Simulations/";
         this.LOG_DIR = "Log/";
         this.parameterFiles = new Stack<>();
         this.paramFlagClass = new ParamFlagClass();
@@ -131,6 +133,163 @@ public class TPS_ParameterClass {
             tmp = tmp.endsWith("/") ? tmp : tmp + "/";
             this.setString(param, tmp);
         }
+    }
+
+    /**
+     * This method reads all properties for the Application and stores them in
+     * the constants of type ParamString , ParamFlag and ParamValue. If one
+     * constant is not defined in the properties files a warning is logged. If
+     * an exception occurs during reading the application stops and logs a fatal
+     * message.
+     *
+     * @param rs the SQL-result set to look for parameters
+     * @throws SQLException This exception is thrown if there occurs an error
+     *                      while
+     *                      reading from a file
+     */
+    public void readRuntimeParametersFromDB(ResultSet rs) throws SQLException {
+        if (rs.next()) {
+
+            EnumSet<ParamFlag> flagSet = EnumSet.allOf(ParamFlag.class);
+            EnumSet<ParamString> stringSet = EnumSet.allOf(ParamString.class);
+            EnumSet<ParamValue> valueSet = EnumSet.allOf(ParamValue.class);
+
+            // not needed!
+            stringSet.remove(ParamString.PATH_ABS_PROPERTIES);
+            stringSet.remove(ParamString.PATH_ABS_INPUT);
+            stringSet.remove(ParamString.PATH_ABS_OUTPUT);
+
+            String key = "";
+            String value = "";
+            String sim_key = "sim key not found";
+            int counter = 0;
+            // the first rs.next() was called to determine, if any results are
+            // present
+            sim_key = rs.getString(1);
+            do {
+                key = rs.getString(2);
+                value = rs.getString(3);
+                if (updateParameter(key, value, flagSet, stringSet, valueSet)) {
+                    counter++;
+                }
+            } while (rs.next());
+
+            if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
+                TPS_Logger.log(SeverityLogLevel.INFO,
+                        "Load db parameters " + "for " + sim_key + " with " + counter + " key-value pairs");
+            }
+
+            generateTemporaryParameters();
+
+            this.setString(ParamString.FILE_DATABASE_PROPERTIES, "loadedFromDB");
+            this.setString(ParamString.FILE_LOGGING_PROPERTIES, "loadedFromDB");
+            this.setString(ParamString.FILE_PARAMETER_PROPERTIES, "loadedFromDB");
+            if (this.isDefined(ParamString.LOG_CLASS)) {
+               // TPS_Logger.setLoggingClass(this.getString(ParamString.LOG_CLASS), this);
+            }
+        }
+    }
+
+    /**
+     * This method processes exactly one parameter and its given value. It
+     * returns true if the parameter is successfully consumed
+     *
+     * @param key       the parameter name for the value
+     * @param value     the parameter value
+     * @param flagSet   set with all instances of {@link ParamFlag}, which
+     *                  are not defined yet
+     * @param stringSet set with all instances of {@link ParamString}, which
+     *                  are not defined yet
+     * @param valueSet  set with all instances of {@link ParamValue}, which
+     *                  are not defined yet
+     * @return true, if successful
+     */
+    private boolean updateParameter(String key, String value, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) {
+        boolean consumed = false;
+        if (!consumed) {
+            try {
+                ParamFlag pf = ParamFlag.valueOf(key);
+                if (flagSet.contains(pf)) {
+                    if (value.equalsIgnoreCase("true")) {
+                        this.setFlag(pf, true);
+                        flagSet.remove(pf);
+                    } else if (value.equalsIgnoreCase("false")) {
+                        this.setFlag(pf, false);
+                        flagSet.remove(pf);
+                    } else {
+                        TPS_Logger.log(SeverityLogLevel.SEVERE,
+                                "Illegal Parameter value: " + key + " -> " + value + " not in {true, false}");
+                    }
+                } else {
+                    TPS_Logger.log(SeverityLogLevel.SEVERE,
+                            "Parameter already defined: " + key + " -> " + this.paramFlagClass.isTrue(pf));
+                }
+                consumed = true;
+            } catch (IllegalArgumentException e) {
+                /*
+                 * ParamFlag pf = ParamFlag.valueOf(key.toString()); this line
+                 * throws the exception, i.e. that there exists no enum constant
+                 * with this name
+                 */
+            }
+        }
+        if (!consumed) {
+            try {
+                ParamString ps = ParamString.valueOf(key);
+                if (stringSet.contains(ps) || ParamString.FILE_PARENT_PROPERTIES.equals(ps)) {
+                    this.setString(ps, value);
+                    stringSet.remove(ps);
+                    consumed = true;
+
+                    switch (ps) {
+                        case FILE_DATABASE_PROPERTIES:
+                        case FILE_LOGGING_PROPERTIES:
+                        case FILE_PARAMETER_PROPERTIES:
+                        case FILE_PARENT_PROPERTIES:
+                            break;
+                        default:
+                            // everything ok
+                    }
+                } else {
+                    TPS_Logger.log(SeverityLogLevel.SEVERE,
+                            "Parameter already defined: " + key + " -> " + this.getString(ps));
+                }
+            } catch (IllegalArgumentException e) {
+                /*
+                 * ParamString ps = ParamString.valueOf(key.toString()); this
+                 * line throws the exception, i.e. that there exists no enum
+                 * constant with this name
+                 */
+            }
+        }
+        if (!consumed) {
+            try {
+                ParamValue pv = ParamValue.valueOf(key);
+                if (valueSet.contains(pv)) {
+                    this.paramValueClass.setValue(pv, Double.parseDouble(value));
+                    valueSet.remove(pv);
+                    consumed = true;
+                } else {
+                    TPS_Logger.log(SeverityLogLevel.SEVERE,
+                            "Parameter already defined: " + key + " -> " + this.paramValueClass.getDoubleValue(pv));
+                }
+            } catch (NumberFormatException e) {
+                TPS_Logger.log(SeverityLogLevel.SEVERE, "Illegal parameter value: " + key, e);
+                consumed = true;
+            } catch (IllegalArgumentException e) {
+                /*
+                 * ParamValue pv = ParamValue.valueOf(key.toString()); this line
+                 * throws the exception, i.e. that there exists no enum constant
+                 * with this name
+                 */
+            }
+        }
+        if (!consumed) {
+            if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
+                TPS_Logger.log(SeverityLogLevel.WARN, "Unknown parameter defined in file: " + key);
+            }
+        }
+        return consumed;
     }
 
     /**
@@ -194,9 +353,6 @@ public class TPS_ParameterClass {
      * This method processes exactly one parameter and its given value. It
      * returns true if the parameter is successfully consumed
      *
-     * @param currentPath the path for other files, leave null if the
-     *                    parameters are
-     *                    read from the database
      * @param key         the parameter name for the value
      * @param value       the parameter value
      * @param flagSet     set with all instances of {@link ParamFlag}, which
@@ -212,7 +368,7 @@ public class TPS_ParameterClass {
      * @throws IOException           This exception is thrown if there occurs
      *                               a read error
      */
-    private boolean consumeParameter(File currentPath, String key, String value, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) {
+    private boolean consumeParameter(String key, String value, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) {
         boolean consumed = false;
         if (!consumed) {
             try {
@@ -258,15 +414,13 @@ public class TPS_ParameterClass {
                         case FILE_LOGGING_PROPERTIES:
                         case FILE_PARAMETER_PROPERTIES:
                         case FILE_PARENT_PROPERTIES:
-                            if (currentPath != null) {
-                                String propertiesFileName = this.getString(ps);
-                                File thisPath = new File(currentPath.getAbsolutePath());
-                                while (propertiesFileName.startsWith("./")) {
-                                    thisPath = thisPath.getParentFile();
-                                    propertiesFileName = propertiesFileName.substring(2);
-                                }
-                                this.parameterFiles.push(new File(thisPath, propertiesFileName));
-                            }
+                            String propertiesFileName = this.getString(ps);
+                            Path parentFile = Paths.get(propertiesFileName);
+                            if(!Files.isRegularFile(parentFile))
+                                throw new IllegalArgumentException("an invalid file path for: "+propertiesFileName);
+
+                            this.parameterFiles.push(parentFile.toFile());
+
                             break;
                         default:
                             // everything ok
@@ -474,6 +628,71 @@ public class TPS_ParameterClass {
         for (ParamMatrixMap pmm : EnumSet.allOf(ParamMatrixMap.class)) {
             if (this.isDefined(pmm)) System.out.println(this.toString(pmm));
         }
+    }
+
+    /**
+     * This method reads all properties for the Application and stores them in
+     * the constants of type ParamString , ParamFlag and ParamValue. If one
+     * constant is not defined in the properties files a warning is logged. If
+     * an exception occurs during reading the application stops and logs a fatal
+     * message.
+     *
+     * @param runPropertiesFile file name of the properties file with the run
+     *                          parameters
+     * @throws IOException if there occurs an error while reading from a file
+     */
+    public void loadRuntimeParameters(File runPropertiesFile) throws IOException {
+        EnumSet<ParamFlag> flagSet = EnumSet.allOf(ParamFlag.class);
+        EnumSet<ParamString> stringSet = EnumSet.allOf(ParamString.class);
+        EnumSet<ParamValue> valueSet = EnumSet.allOf(ParamValue.class);
+
+//        absPath = absPath.getParentFile();
+//        File absInput = new File(absPath, INPUT_DIR);
+//        this.setString(ParamString.PATH_ABS_INPUT, absInput.getPath());
+//        this.setString(ParamString.PATH_ABS_OUTPUT, this.getString(ParamString.PATH_ABS_PROPERTIES));
+//        stringSet.remove(ParamString.PATH_ABS_INPUT);
+//        stringSet.remove(ParamString.PATH_ABS_OUTPUT);
+
+        load(runPropertiesFile, flagSet, stringSet, valueSet);
+
+        generateTemporaryParameters();
+    }
+
+    /**
+     * This method opens the file and stores all key value pairs in a property
+     * instance. If the file is in csv format the key is in the first column and
+     * the value in the second one.<br>
+     * In the second step the value all values are set to enum constants of type
+     * ParamString, ParamFlag and ParamValue. If the constant is found and the
+     * parameter has a wrong format an error is logged (e.g. you try to define
+     * an instance of ParamValue with "true"). If no constant was found to set
+     * the value a warning is logged.
+     *
+     * @param propertiesFile file name of the current properties file; file can be in java properties or in standard
+     *                       csv format
+     * @param flagSet        set with all instances of ParamFlag, which are not defined yet
+     * @param stringSet      set with all instances of ParamString, which are not defined yet
+     * @param valueSet       set with all instances of ParamValue, which are not defined
+     *                       yet
+     * @throws FileNotFoundException if the file is not found
+     * @throws IOException           if there occurs a read error
+     */
+    private void load(File propertiesFile, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) throws FileNotFoundException, IOException {
+        boolean consumed;
+        String key;
+        String value;
+        int counter = 0;
+        CsvReader reader = new CsvReader(new FileReader(propertiesFile));
+        reader.readHeaders();
+        while (reader.readRecord()) {
+            key = reader.get(0);
+            value = reader.get(1);
+            consumed = consumeParameter(key, value, flagSet, stringSet, valueSet);
+            if (consumed) {
+                counter++;
+            }
+        }
+        reader.close();
     }
 
     /**

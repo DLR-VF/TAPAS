@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
@@ -18,19 +18,18 @@ import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.model.location.TPS_Block;
+import de.dlr.ivf.tapas.model.location.TPS_CFN;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.model.TPS_VariableMap;
-import de.dlr.ivf.tapas.model.parameter.ParamString;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -95,7 +94,6 @@ public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
     private boolean addTrafficAnalysisZone(TPS_TrafficAnalysisZone taz) {
         if (!containsTrafficAnalysisZone(taz.getTAZId())) {
             TAZ_Map.put(taz.getTAZId(), taz);
-            taz.setRegion(this);
             return true;
         }
         return false;

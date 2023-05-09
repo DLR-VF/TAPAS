@@ -8,13 +8,11 @@
 
 package de.dlr.ivf.tapas.tools.riesel;
 
-import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.BlockingQueue;
+import java.util.function.Supplier;
 
 /**
  * <p>
@@ -24,8 +22,7 @@ import java.util.concurrent.BlockingQueue;
  * </p>
  * <p>
  * The update is done in batches of size
- * {@link UpdateAddressesWorker#BATCH_MAX_SIZE}. The last batch can be emptied
- * by notifying this object via {@link TPS_Main.TPS_State#setFinished()}.
+ * {@link UpdateAddressesWorker#BATCH_MAX_SIZE}.
  * </p>
  */
 public class UpdateAddressesWorker implements Runnable {
@@ -36,11 +33,11 @@ public class UpdateAddressesWorker implements Runnable {
     private final Connection connection;
     private int BATCH_SIZE = 0;
 
-    public UpdateAddressesWorker(BlockingQueue<AddressPojo> queue, TPS_DB_Connector dbCon) throws SQLException {
+    public UpdateAddressesWorker(BlockingQueue<AddressPojo> queue, Supplier<Connection> dbCon) throws SQLException {
         super();
         this.queue = queue;
 
-        connection = dbCon.getConnection(this);
+        connection = dbCon.get();
         connection.setAutoCommit(false);
         updateBatch = connection.prepareStatement("UPDATE address_bkg SET inhabitants = ? WHERE id = ?");
     }

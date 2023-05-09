@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.implementation.utilityfunction;
+package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
@@ -144,7 +144,8 @@ public class TPS_Node implements ExtendedWritable, Comparable<TPS_Node> {
      * @return mode distribution of this node
      */
     public TPS_DiscreteDistribution<TPS_Mode> getCopyOfValueDistribution() {
-        TPS_DiscreteDistribution<TPS_Mode> returnVal = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
+        //todo revise this
+        TPS_DiscreteDistribution<TPS_Mode> returnVal = null; //new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
         returnVal.setValues(this.distribution.getValues());
         return returnVal;
     }

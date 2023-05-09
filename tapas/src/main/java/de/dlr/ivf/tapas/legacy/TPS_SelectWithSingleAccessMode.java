@@ -6,22 +6,33 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBased {
+
+    private final int maxWalkDistance;
+
+    public TPS_SelectWithSingleAccessMode(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator, TPS_ModeSet modeSet, TravelTimeCalculator travelTimeCalculator) {
+        super(parameterClass);
+        this.distanceCalculator = distanceCalculator;
+        this.modeSet = modeSet;
+        this.maxWalkDistance = parameterClass.getIntValue(ParamValue.MAX_WALK_DIST);
+        this.travelTimeCalculator = travelTimeCalculator;
+    }
 
     public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {
         return new InterveningOpportunitiesWeightedResult(result, travelTime,parameter);
@@ -43,19 +54,15 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBase
         double ttC0, ttC1, modeProb, arrModeProb, depModeProb;
 
         // The WALK-mode is used to get distances on the net.
-        TPS_Mode walkMode = TPS_Mode.get(ModeType.WALK);
-        distanceNetFrom = Math.max(parameterClass.getDoubleValue(ParamValue.MIN_DIST),
-                walkMode.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, SimulationType.SCENARIO, null));
-        distanceNetTo = Math.max(parameterClass.getDoubleValue(ParamValue.MIN_DIST),
-                walkMode.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, SimulationType.SCENARIO, null));
+        distanceNetFrom = distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK);
+        distanceNetTo = distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK);
 
-        TPS_Mode mode;
-        TPS_DiscreteDistribution<TPS_Mode> arrDis = PM.getModeSet().getModeDistribution(plan, distanceNetFrom, prevMCC);
-        TPS_DiscreteDistribution<TPS_Mode> dstDis = PM.getModeSet().getModeDistribution(plan, distanceNetTo, nextMCC);
-        TPS_DiscreteDistribution<TPS_Mode> dist = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-        for (ModeType mt : TPS_Mode.MODE_TYPE_ARRAY) {
+        TPS_DiscreteDistribution<TPS_Mode> arrDis = modeSet.getModeDistribution(plan, distanceNetFrom, prevMCC);
+        TPS_DiscreteDistribution<TPS_Mode> dstDis = modeSet.getModeDistribution(plan, distanceNetTo, nextMCC);
+        TPS_DiscreteDistribution<TPS_Mode> dist = new TPS_DiscreteDistribution<>(modeSet.getModes());
+
+        for (TPS_Mode mode : modeSet.getModes()) {
             // calc the mode probabilities and omit forbidden modes
-            mode = TPS_Mode.get(mt);
             arrModeProb = arrDis.getValueByKey(mode);
             if (arrModeProb <= 0) {
                 continue;
@@ -65,12 +72,10 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBase
                 continue;
             }
             // restricted cars will not enter restricted areas
-            if (pc.carForThisPlan != null && pc.carForThisPlan.isRestricted() && taz.isRestricted() && mode.isType(
-                    ModeType.MIT)) {
+            if (pc.carForThisPlan != null && pc.carForThisPlan.isRestricted() && taz.isRestricted() && mode.getModeType() == ModeType.MIT) {
                 continue;
             }
-            if (mt.equals(ModeType.WALK) && (distanceNetTo + distanceNetFrom) > parameterClass.getIntValue(
-                    ParamValue.MAX_WALK_DIST)) {
+            if (mode.getModeType() == ModeType.WALK && (distanceNetTo + distanceNetFrom) > maxWalkDistance) {
                 continue;
             }
             modeProb = (arrModeProb + depModeProb) * 0.5;
@@ -80,15 +85,15 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBase
 
         dist.normalize();
         while (weightedTT < 0) {
-            mode = dist.drawKey();
+            TPS_Mode mode = dist.drawKey();
             // get the traveltime
-            plan.setAttributeValue(TPS_Attribute.CURRENT_MODE_CODE_VOT, mode.getCode(TPS_ModeCodeType.VOT));
-            ttC0 = mode.getTravelTime(prevMCC.fromStayLocation, prevMCC.toStayLocation,
-                    (int) prevMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, prevMCC.fromStay.getActCode(),
+            plan.setAttributeValue(TPS_Attribute.CURRENT_MODE_CODE_VOT, mode.getCodeVot());
+            ttC0 = travelTimeCalculator.getTravelTime(mode,prevMCC.fromStayLocation, prevMCC.toStayLocation,
+                    (int) prevMCC.fromStay.getOriginalEnd(), prevMCC.fromStay.getActCode(),
                     prevMCC.toStay.getActCode(), plan.getPerson(), null);
             //prevMCC.carForThisPlan);
-            ttC1 = mode.getTravelTime(nextMCC.fromStayLocation, nextMCC.toStayLocation,
-                    (int) nextMCC.fromStay.getOriginalEnd(), SimulationType.SCENARIO, nextMCC.fromStay.getActCode(),
+            ttC1 = travelTimeCalculator.getTravelTime(mode, nextMCC.fromStayLocation, nextMCC.toStayLocation,
+                    (int) nextMCC.fromStay.getOriginalEnd(), nextMCC.fromStay.getActCode(),
                     nextMCC.toStay.getActCode(), plan.getPerson(), null);
             //nextMCC.carForThisPlan);
             // modify travel time for specuial cases

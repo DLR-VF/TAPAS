@@ -10,6 +10,7 @@ package de.dlr.ivf.tapas.model.plan;
 
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanAcceptance;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
@@ -43,8 +44,8 @@ public class TPS_PlanEnvironment {
      *
      * @param person The person that gets this plan environment
      */
-    public TPS_PlanEnvironment(TPS_Person person) {
-        this.acceptance = new TPS_PlanEVA1Acceptance();
+    public TPS_PlanEnvironment(TPS_Person person, TPS_ParameterClass parameterClass) {
+        this.acceptance = new TPS_PlanEVA1Acceptance(parameterClass);
         this.plans = new ArrayList<>();
         this.person = person;
     }

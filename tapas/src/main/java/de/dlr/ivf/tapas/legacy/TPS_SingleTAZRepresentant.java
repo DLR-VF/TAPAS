@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
 public class TPS_SingleTAZRepresentant extends TPS_MultipleTAZRepresentant {
     public TPS_SingleTAZRepresentant() {

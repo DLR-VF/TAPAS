@@ -6,14 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model;
+package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 
 /**
@@ -36,7 +35,6 @@ public interface TPS_UtilityFunction {
     /**
      * This function calculates the deltafactor in the utility values for the given parameters
      *
-     * @param mode        The mode to check
      * @param distanceNet The net distance
      * @param plan        The plan we are working on
      * @param mcc

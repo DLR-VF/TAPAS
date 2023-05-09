@@ -4,9 +4,8 @@ import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.location.TPS_Region;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
+import de.dlr.ivf.tapas.legacy.TPS_Region;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -23,9 +22,11 @@ public class LocationSelector {
 
 
     private final TPS_Region region;
+    private final TravelDistanceCalculator distanceCalculator;
 
-    public LocationSelector(TPS_Region region){
+    public LocationSelector(TPS_Region region, TravelDistanceCalculator distanceCalculator){
         this.region = region;
+        this.distanceCalculator = distanceCalculator;
     }
 
     /**
@@ -95,9 +96,7 @@ public class LocationSelector {
         }
 
         // Get distance from home The MIV-mode is used to get distances on the net.
-        locatedStay.setDistance(TPS_Mode.get(TPS_Mode.ModeType.MIT)
-                .getDistance(plan.getLocatedStay(comingFrom).getLocation(), locatedStay.getLocation(),
-                        SimulationType.SCENARIO, null));
+        locatedStay.setDistance(distanceCalculator.getDistance(plan.getLocatedStay(comingFrom).getLocation(), locatedStay.getLocation(), ModeType.MIT));
 
         return locatedStay;
     }

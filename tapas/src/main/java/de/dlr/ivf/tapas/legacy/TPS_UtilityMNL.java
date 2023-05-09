@@ -6,23 +6,24 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.implementation.utilityfunction;
+package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.model.TPS_UtilityFunction;
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
+import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeDistribution;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
-import de.dlr.ivf.tapas.model.plan.TPS_Plan;
-import de.dlr.ivf.tapas.util.TPS_FastMath;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
+import de.dlr.ivf.tapas.util.TPS_FastMath;
 
 import java.util.HashMap;
 
@@ -33,18 +34,31 @@ import java.util.HashMap;
  */
 public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
 
+    private final ModeDistributionCalculator distributionCalculator;
+    private final boolean useTaxi;
+    final Modes modes;
     /**
      * A Hashmap for the mode depending parameters
      */
     protected HashMap<TPS_Mode, double[]> parameterMap = new HashMap<>();
 
+    final TravelTimeCalculator travelTimeCalculator;
+
+    public TPS_UtilityMNL(TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes){
+        this.travelTimeCalculator = travelTimeCalculator;
+        this.distributionCalculator = distributionCalculator;
+        this.useTaxi = parameterClass.isTrue(ParamFlag.FLAG_USE_TAXI);
+        this.modes = modes;
+    }
+
     public double calculateDelta(TPS_Mode mode, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
-        double tt1 = mode.getTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                SimulationType.SCENARIO, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(),
-                mcc.carForThisPlan);
+        double tt1 = 0;
+        tt1 = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
+                 TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
         double tt2 = 0;
+
         if (mode.isUseBase()) { //differences in times
-            tt2 = mode.getTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime, SimulationType.BASE,
+            tt2 = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
                     TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
         } else {
             tt2 = tt1;
@@ -72,23 +86,22 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
 
     public TPS_DiscreteDistribution<TPS_Mode> getDistributionSet(TPS_ModeSet modeSet, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
         // init
-        TPS_DiscreteDistribution<TPS_Mode> dist = TPS_ModeDistribution.getDistribution(null);
+        TPS_DiscreteDistribution<TPS_Mode> dist = distributionCalculator.getDistribution(null);
         double[] utilities = new double[dist.getValues().length];
         double sumOfUtilities = 0;
         // calculate utilities
         for (int i = 0; i < utilities.length; ++i) {
             // get the parameter set
-            TPS_Mode mode = TPS_Mode.get(TPS_Mode.MODE_TYPE_ARRAY[i]);
-            if (!mcc.isBikeAvailable && mode.isType(ModeType.BIKE) || //no bike
-                    mcc.carForThisPlan == null && mode.isType(ModeType.MIT) || //no car
-                    (mode.isType(ModeType.TAXI) && mode.getParameters().isFalse(ParamFlag.FLAG_USE_TAXI)) //disable TAXI
+            TPS_Mode mode = modes.getMode(TPS_Mode.MODE_TYPE_ARRAY[i]);
+            if (!mcc.isBikeAvailable && mode.getModeType() == ModeType.BIKE || //no bike
+                    mcc.carForThisPlan == null && mode.getModeType() == ModeType.MIT || //no car
+                    (mode.getModeType() == ModeType.TAXI && useTaxi) //disable TAXI
             ) {
                 utilities[i] = minModeProbability;
             } else {
                 //travel time
-                double travelTime = mode.getTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                        SimulationType.SCENARIO, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
-                        plan.getPerson(), mcc.carForThisPlan);
+                double travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
+                        TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
                 if (TPS_Mode.noConnection(travelTime)) { //no connection
                     utilities[i] = minModeProbability;
                 } else {
@@ -114,15 +127,16 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
             // calc probabilities
             for (int i = 0; i < utilities.length; ++i) {
                 //dist.setIndexedValue(TPS_Mode.get(TPS_Mode.MODE_TYPE_ARRAY[i]), utilities[i]/(sumOfUtilities-utilities[i]));
-                dist.setValueByKey(TPS_Mode.get(TPS_Mode.MODE_TYPE_ARRAY[i]),
+                dist.setValueByKey(modes.getMode(TPS_Mode.MODE_TYPE_ARRAY[i]),
                         utilities[i]); //according to http://en.wikipedia.org/wiki/Multinomial_logistic_regression this the mnl!
             }
         } else { //no possible mode!
             // clear probabilities
+            //todo revise this
             for (int i = 0; i < utilities.length; ++i) {
-                dist.setValueByKey(TPS_Mode.get(TPS_Mode.MODE_TYPE_ARRAY[i]), 0);
+                dist.setValueByKey(modes.getMode(TPS_Mode.MODE_TYPE_ARRAY[i]), 0);
             }
-            dist.setValueByKey(TPS_Mode.get(ModeType.MIT_PASS),
+            dist.setValueByKey(modes.getMode(ModeType.MIT_PASS),
                     1);// if we erased all possible modes we have to prepare an exit plan!
             if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
                 TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
@@ -132,12 +146,13 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
 
         boolean expertCheck = TPS_ExpertKnowledgeTree.applyExpertKnowledge(modeSet, plan, distanceNet, mcc, false,
                 dist);
-        if (!expertCheck) {
-            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
-                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE, "No possible modes!");
-                dist.setValueByKey(TPS_Mode.get(ModeType.MIT_PASS), 1); // you have to find someone taking you there!
-            }
-        }
+        //todo revise this
+//        if (!expertCheck) {
+//            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
+//                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE, "No possible modes!");
+//                dist.setValueByKey(TPS_Mode.get(ModeType.MIT_PASS), 1); // you have to find someone taking you there!
+//            }
+//        }
         return dist;
     }
 

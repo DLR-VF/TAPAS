@@ -6,7 +6,6 @@ import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.*;
-import de.dlr.ivf.tapas.scheme.*;
 import java.util.*;
 import java.util.stream.Collectors;
 

@@ -6,11 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 public class TPS_SelectWithMultipleAccessModeGravity extends TPS_SelectWithMultipleAccessMode {
+    public TPS_SelectWithMultipleAccessModeGravity(TPS_ParameterClass parameterClass) {
+        super(parameterClass);
+    }
+
     @Override
     public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {
         return new GravityWeightedResults(result, travelTime, parameter);

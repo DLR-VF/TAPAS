@@ -546,14 +546,14 @@ public class TPS_TourPart extends TPS_SchemePart {
         /**
          * @return the arrivalDuration
          */
-        public double getArrivalDuration(TPS_ParameterClass parameterClass) {
+        public double getArrivalDuration() {
             return Math.max(arrivalDuration, mindist / walkVelocity);
         }
 
         /**
          * @return the departureDuration
          */
-        public double getDepartureDuration(TPS_ParameterClass parameterClass) {
+        public double getDepartureDuration() {
             return Math.max(departureDuration, mindist / walkVelocity);
         }
 

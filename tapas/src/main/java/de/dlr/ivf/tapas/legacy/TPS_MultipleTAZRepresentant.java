@@ -6,15 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -23,7 +24,6 @@ import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart.TravelDurations;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.util.ArrayList;
@@ -31,8 +31,18 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
+    private final int maxTriesLocationSelection;
+    private final boolean filterShoppingSet;
+    private final double maxSystemSpeed;
     /// The number of representants to choose
     int numOfTazRepresentants = 3;
+
+    public TPS_MultipleTAZRepresentant(TPS_ParameterClass parameterClass){
+        this.maxTriesLocationSelection = parameterClass.getIntValue(ParamValue.MAX_TRIES_LOCATION_SELECTION);
+        this.filterShoppingSet = parameterClass.isTrue(ParamFlag.FLAG_FILTER_SHOPPING_CHOICE_SET);
+        this.maxSystemSpeed = parameterClass.getDoubleValue(ParamValue.MAX_SYSTEM_SPEED);
+
+    }
 
     public List<TPS_Location> generateLocationRepr(TPS_ActivityConstant actCode, TPS_TrafficAnalysisZone taz) {
         if (taz.allowsActivity(actCode)) {
@@ -48,10 +58,9 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
      * @param plan           the plan to use
      * @param pc             planning context
      * @param locatedStay    the located stay we are coming from
-     * @param parameterClass parameter container reference
      * @return A TPS_RegionResultSet of appropriate locations
      */
-    public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
+    public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
 
         long time = System.nanoTime();
         TPS_RegionResultSet regionRS = new TPS_RegionResultSet();
@@ -64,31 +73,14 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
         TravelDurations td = tourpart.getTravelDurations(stay);
-        double arrivalDuration = td.getArrivalDuration(plan.getPM().getParameters());
-        double departureDuration = td.getDepartureDuration(plan.getPM().getParameters());
-
-        //store some statistics:
-        Integer[] tupel = TPS_Main.actStats.get(activityCode.getCode(TPS_ActivityCodeType.ZBE));
-
-        if (tupel == null) {
-            tupel = new Integer[3];
-            tupel[0] = 0;
-            tupel[1] = 0;
-            tupel[2] = 0;
-        }
-
-        tupel[0]++;
-        tupel[1] += (int) arrivalDuration;
-        tupel[2] += (int) departureDuration;
-
-        TPS_Main.actStats.put(activityCode.getCode(TPS_ActivityCodeType.ZBE), tupel);
-
+        double arrivalDuration = td.getArrivalDuration();
+        double departureDuration = td.getDepartureDuration();
 
         int i;
         // normal case
         // speed slices from MAX_SYSTEM_SPEED/ MAX_TRIES_LOCATION_SELECTION to
         // MAX_SYSTEM_SPEED
-        double incFactor = 1.0 / parameterClass.getDoubleValue(ParamValue.MAX_TRIES_LOCATION_SELECTION);
+        double incFactor = 1.0 / this.maxTriesLocationSelection;
         //double incFactorTime = 1.0 / ParamValue.MAX_TRIES_LOCATION_SELECTION.getDoubleValue();
         double arrivalDistance = 0, departureDistance = 0, actDistance;
 
@@ -98,7 +90,7 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
         switch (activityCode.getCode(TPS_ActivityCodeType.TAPAS)) {
             case 1: // work
                 // always look at the maximum range!
-                i = parameterClass.getIntValue(ParamValue.MAX_TRIES_LOCATION_SELECTION);
+                i = (int)this.maxTriesLocationSelection;
                 break;
             case 0:
             case 2: // school
@@ -112,7 +104,7 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
                 break;
         }
 
-        for (; i <= parameterClass.getIntValue(ParamValue.MAX_TRIES_LOCATION_SELECTION) + 1 &&
+        for (; i <= maxTriesLocationSelection + 1 &&
                 regionRS.size() < 2 * numOfTazRepresentants; i++) {
 
             regionRS.clear();
@@ -130,19 +122,21 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
                 if (tourpart.getCar() != null && tourpart.isCarUsed() && tourpart.getCar().isRestricted() &&
                         taz.isRestricted()) continue;
 
-                if (parameterClass.isTrue(ParamFlag.FLAG_FILTER_SHOPPING_CHOICE_SET) || !stay.isShopping()) {
+                if (filterShoppingSet || !stay.isShopping()) {
 
-                    actDistance = TPS_Mode.get(ModeType.WALK).getDistance(taz, locGoingTo, SimulationType.SCENARIO,
-                            null);
-                    actDistance += TPS_Mode.get(ModeType.WALK).getDistance(locComingFrom, taz, SimulationType.SCENARIO,
-                            null);
+                    //todo workaround for now
+                    actDistance = TPS_Geometrics.getDistance(taz, locGoingTo,0);
+                    actDistance += TPS_Geometrics.getDistance(locComingFrom, taz,0);
+//                    actDistance = TPS_Mode.get(ModeType.WALK).getDistance(taz, locGoingTo, SimulationType.SCENARIO,
+//                            null);
+//                    actDistance += TPS_Mode.get(ModeType.WALK).getDistance(locComingFrom, taz, SimulationType.SCENARIO,
+//                            null);
 
 
-                    if (i <= parameterClass.getIntValue(ParamValue.MAX_TRIES_LOCATION_SELECTION)) {
-                        arrivalDistance = arrivalDuration * parameterClass.getDoubleValue(ParamValue.MAX_SYSTEM_SPEED) *
+                    if (i <= maxTriesLocationSelection) {
+                        arrivalDistance = arrivalDuration * maxSystemSpeed *
                                 incFactor * (double) i;
-                        departureDistance = departureDuration * parameterClass.getDoubleValue(
-                                ParamValue.MAX_SYSTEM_SPEED) * incFactor * (double) i;
+                        departureDistance = departureDuration * maxSystemSpeed * incFactor * (double) i;
                         if (actDistance > (departureDistance + arrivalDistance)) {
                             continue;
                         }

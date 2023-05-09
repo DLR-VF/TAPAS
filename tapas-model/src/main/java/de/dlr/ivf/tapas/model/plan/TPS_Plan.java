@@ -714,7 +714,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
      * travel times exceed the maximum difference defined in the configuration
      */
     public boolean isPlanAccepted() {
-        return this.pe.isPlanAccepted(this) && this.isPlanFeasible();
+        return this.pe.isPlanAccepted(this);
     }
 
     /**

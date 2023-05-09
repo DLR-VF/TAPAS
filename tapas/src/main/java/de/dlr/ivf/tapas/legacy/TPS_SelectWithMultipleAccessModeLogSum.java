@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
@@ -17,12 +17,12 @@ import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
+import de.dlr.ivf.tapas.model.location.TPS_CFN;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeDistribution;
-import de.dlr.ivf.tapas.model.TPS_UtilityFunction;
-import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_UtilityMNL;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -41,6 +41,13 @@ import java.util.function.Supplier;
 
 public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultipleAccessMode {
 
+
+    private final boolean useTaxi;
+
+    public TPS_SelectWithMultipleAccessModeLogSum(TPS_ParameterClass parameterClass) {
+        super(parameterClass);
+        this.useTaxi = parameterClass.isFalse(ParamFlag.FLAG_USE_TAXI);
+    }
 
     public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {
         return new LogSumWeightedResult(result, travelTime, parameter);
@@ -63,15 +70,9 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
 
 
         // The WALK-mode is used to get distances on the net.
-        double distanceNetTo = Math.max(parameterClass.getDoubleValue(ParamValue.MIN_DIST), TPS_Mode.get(ModeType.WALK)
-                                                                                                    .getDistance(
-                                                                                                            prevMCC.fromStayLocation,
-                                                                                                            prevMCC.toStayLocation,
-                                                                                                            SimulationType.SCENARIO,
-                                                                                                            null));
+        double distanceNetTo = Math.max(parameterClass.getDoubleValue(ParamValue.MIN_DIST), distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
         double distanceNetFrom = Math.max(parameterClass.getDoubleValue(ParamValue.MIN_DIST),
-                TPS_Mode.get(ModeType.WALK)
-                        .getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, SimulationType.SCENARIO, null));
+                distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK));
 
         arrModeLogSum = this.getModeLogSum(plan, pc, taz, distanceNetFrom, distanceNetFrom + distanceNetTo, prevMCC,
                 parameterClass, mu);
@@ -102,7 +103,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
 
         // init
 
-        TPS_DiscreteDistribution<TPS_Mode> dist = TPS_ModeDistribution.getDistribution(null);
+        TPS_DiscreteDistribution<TPS_Mode> dist = distributionCalculator.getDistribution(null);
 
         double[] utilities = new double[dist.size()];
         double sumOfUtilities = 0;
@@ -110,18 +111,17 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         for (int i = 0; i < utilities.length; ++i) {
             utilities[i] = 0; //old habbit: init the value...
             // get the parameter set
-            TPS_Mode mode = TPS_Mode.get(TPS_Mode.MODE_TYPE_ARRAY[i]);
-            if (!mcc.isBikeAvailable && mode.isType(ModeType.BIKE) || //no bike
-                    mcc.carForThisPlan == null && mode.isType(ModeType.MIT) || //no car
-                    (mode.isType(ModeType.TAXI) && mode.getParameters().isFalse(ParamFlag.FLAG_USE_TAXI)) //disable TAXI
+            TPS_Mode mode = modeSet.getMode(TPS_Mode.MODE_TYPE_ARRAY[i]);
+            if (!mcc.isBikeAvailable && mode.getModeType() == ModeType.BIKE || //no bike
+                    mcc.carForThisPlan == null && mode.getModeType() == ModeType.MIT || //no car
+                    (mode.getModeType() == ModeType.TAXI && useTaxi) //disable TAXI
             ) {
                 utilities[i] = TPS_UtilityFunction.minModeProbability;
                 continue;
             }
             //travel time
-            double travelTime = mode.getTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                    SimulationType.SCENARIO, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(),
-                    mcc.carForThisPlan);
+            double travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
+                    TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
             if (TPS_Mode.noConnection(travelTime)) { //no connection
                 utilities[i] = TPS_UtilityFunction.minModeProbability;
                 continue;

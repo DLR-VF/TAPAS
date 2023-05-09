@@ -8,15 +8,21 @@
 
 package de.dlr.ivf.tapas.person;
 
+import de.dlr.ivf.tapas.choice.FeasibilityCalculator;
+import de.dlr.ivf.tapas.choice.LocationAndModeChooser;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
+import de.dlr.ivf.tapas.model.parameter.ParamValue;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.person.*;
 import de.dlr.ivf.tapas.model.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanEnvironment;
+import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.model.scheme.TPS_Scheme;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;
@@ -37,6 +43,8 @@ import java.util.concurrent.Callable;
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.THREAD)
 public class TPS_Worker implements Callable<Exception> {
+    private final LocationAndModeChooser locationAndModeChooser;
+    private final FeasibilityCalculator feasibilityCalculator;
     TPS_PreferenceParameters prefParams = new TPS_PreferenceParameters();
     /**
      * This is a list of single instances of the preference Model.
@@ -56,10 +64,12 @@ public class TPS_Worker implements Callable<Exception> {
      *
      * @param pm a reference to the persistence manager to be able to read some data
      */
-    public TPS_Worker(TPS_PersistenceManager pm, String name) {
+    public TPS_Worker(TPS_PersistenceManager pm, String name, LocationAndModeChooser locationAndModeChooser, FeasibilityCalculator feasibilityCalculator) {
         this.PM = pm;
         this.prefParams.readParams();
         this.name = name;
+        this.locationAndModeChooser = locationAndModeChooser;
+        this.feasibilityCalculator = feasibilityCalculator;
     }
 
     /**
@@ -183,7 +193,7 @@ public class TPS_Worker implements Callable<Exception> {
             // select a scheme randomly
             TPS_Scheme scheme = PM.getSchemesSet().findScheme(person);
             // use the scheme to build a plan and adapt the plan if needed
-            TPS_Plan masterplan = new TPS_Plan(person, pe, scheme, this.PM);
+            TPS_Plan masterplan = new TPS_Plan(person, pe, scheme);
             /* @see Manits entry 0002615
              *
              * This hack is necessary, because the current schemes have no university code (411). The hack method
@@ -201,13 +211,12 @@ public class TPS_Worker implements Callable<Exception> {
             while (!finishedPlanSearch) {
                 TPS_Plan modedPlan = new TPS_Plan(masterplan); // build a copy of the master plan
                 TPS_PlanningContext pc = new TPS_PlanningContext(pe, carDummy, isBikeAvailable);
-                modedPlan.selectLocationsAndModesAndTravelTimes(
-                        pc); // mode choice for all trips and location choice for not fixed locations
+                locationAndModeChooser.selectLocationsAndModesAndTravelTimes(pc,modedPlan); // mode choice for all trips and location choice for not fixed locations
                 modedPlan.setTravelTimes();
                 modedPlan.balanceStarts(); // the sum of travel times and its discrepancy from the travel times reported
-                modedPlan.calcPlanFeasiblity();
+
                 pe.addPlan(modedPlan);
-                if (modedPlan.isPlanAccepted()) {
+                if (feasibilityCalculator.calcPlanFeasibility(modedPlan) && modedPlan.isPlanAccepted()) {
                     finished = true; //we found a good plan!
                 }
                 if (!pc.needsOtherModeAlternatives(modedPlan)) {
@@ -300,7 +309,7 @@ public class TPS_Worker implements Callable<Exception> {
                     }
                 }
 
-                TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person);
+                TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, getParameters());
                 createPersonPlans(pe, null);
                 TPS_Plan plan = pe.getBestPlan();
                 PM.writePlan(plan);
@@ -316,8 +325,10 @@ public class TPS_Worker implements Callable<Exception> {
                 leastLimitedCar = hh.getCar(0); // TODO: get the car that poses the least limitations
             }
             Vector<TPS_Person> competingCarDrivers = new Vector<>();
+            int avLevel = PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL);
+            int avMinAge = PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE);
             for (TPS_Person person : hh.getMembers(sortAlgo)) {
-                if (person.mayDriveACar(this.PM, leastLimitedCar)) {
+                if (person.mayDriveACar(leastLimitedCar,avMinAge,avLevel)) {
                     competingCarDrivers.add(person);
                 }
             }
@@ -362,12 +373,12 @@ public class TPS_Worker implements Callable<Exception> {
                 }
                 // check car
                 TPS_Car carDummy = null;
-                if (person.mayDriveACar(this.PM,leastLimitedCar)) {
+                if (person.mayDriveACar(leastLimitedCar,avMinAge,avLevel)) {
                     carDummy = leastLimitedCar;
                 }
 
                 // build plan environment for the person
-                TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person);
+                TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, PM.getParameters());
                 createPersonPlans(pe, carDummy);
                 TPS_Plan bestPlan = pe.getBestPlan();
                 if (!carAssignmentNecessary || !competingCarDrivers.contains(person) || !bestPlan.usesCar()) {

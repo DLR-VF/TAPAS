@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
@@ -14,6 +14,9 @@ import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeTyp
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.model.location.TPS_CFN;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
@@ -23,12 +26,23 @@ import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
+import de.dlr.ivf.tapas.util.Randomizer;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 
 public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectModel {
+    private final double gammaLocationWeight;
+    private final boolean gammaLocationWeightDefined;
+
+
+    public TPS_SelectLocationWeightBased(TPS_ParameterClass parameterClass) {
+        super(parameterClass);
+        this.gammaLocationWeight = parameterClass.getDoubleValue(ParamValue.GAMMA_LOCATION_WEIGHT);
+        this.gammaLocationWeightDefined = parameterClass.isDefined(ParamValue.GAMMA_LOCATION_WEIGHT);
+    }
+
     abstract public WeightedResult createLocationOption(Result result, double travelTime, double parameter);
 
     /**
@@ -41,15 +55,11 @@ public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectMo
      * @param taz
      * @return
      */
-    abstract public double getTravelTime(TPS_Plan plan, TPS_PlanningContext pc, TPS_ModeChoiceContext prevMCC, TPS_ModeChoiceContext nextMCC, TPS_TrafficAnalysisZone taz, TPS_ParameterClass parameterClass);
+    abstract public double getTravelTime(TPS_Plan plan, TPS_PlanningContext pc, TPS_ModeChoiceContext prevMCC, TPS_ModeChoiceContext nextMCC, TPS_TrafficAnalysisZone taz);
 
     @Override
     public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
-        if (this.PM == null) {
-            TPS_Logger.log(SeverityLogLevel.FATAL,
-                    "TPS_LocationSelectModel not properly initialized! Persistance manager is null?!?! Driving home!");
-            return plan.getPerson().getHousehold().getLocation();
-        }
+
         if (this.region == null) {
             TPS_Logger.log(SeverityLogLevel.FATAL,
                     "TPS_LocationSelectModel not properly initialized! Region is null?!?! Driving home!");
@@ -103,7 +113,7 @@ public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectMo
             nextMCC.toStayLocation = locGoingTo;
             nextMCC.toStay = goingTo;
 
-            double weightedTT = this.getTravelTime(plan, pc, prevMCC, nextMCC, taz, this.PM.getParameters());
+            double weightedTT = this.getTravelTime(plan, pc, prevMCC, nextMCC, taz);
             if (weightedTT > 0) {
                 //here we can switch between different Opportunity-weighting
                 WeightedResult weightedResult = this.createLocationOption(result,
@@ -123,8 +133,8 @@ public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectMo
 //			}
 
             //double posMicro = ( Math.log(1.0 - rand) / Math.log(1.0 - cfn4));
-            if (this.PM.getParameters().isDefined(ParamValue.GAMMA_LOCATION_WEIGHT)) {
-                posMicro = Math.pow(posMicro, this.PM.getParameters().getDoubleValue(ParamValue.GAMMA_LOCATION_WEIGHT));
+            if (gammaLocationWeightDefined) {
+                posMicro = Math.pow(posMicro, this.gammaLocationWeight);
             }
             //double posMicro = 1.0 - rand;
             posMicro *= sumWeight; // norm to max weight

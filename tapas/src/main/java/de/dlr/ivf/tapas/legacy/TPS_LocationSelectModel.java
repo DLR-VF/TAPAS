@@ -6,9 +6,14 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
+import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -19,7 +24,18 @@ import java.util.function.Supplier;
 
 public abstract class TPS_LocationSelectModel {
 
+    protected TravelTimeCalculator travelTimeCalculator;
+    protected TravelDistanceCalculator distanceCalculator;
+    protected TPS_ModeSet modeSet;
+
+    protected ModeDistributionCalculator distributionCalculator;
     TPS_Region region = null;
+    protected final TPS_ParameterClass parameterClass;
+
+    public TPS_LocationSelectModel(TPS_ParameterClass parameterClass) {
+        this.parameterClass = parameterClass;
+    }
+
 
     /**
      * The interface method to select a location from the given choice set

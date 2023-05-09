@@ -25,10 +25,7 @@ import java.util.*;
 public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZone>, Locatable {
 
     /// Mapping between corresponding codes
-    public static ArrayListValuedHashMap<TPS_ActivityConstant, TPS_LocationConstant> ACTIVITY2LOCATIONS_MAP = new ArrayListValuedHashMap<>();
-    //public static MultiMap<TPS_ActivityConstant, TPS_LocationConstant, List<TPS_LocationConstant>> ACTIVITY2LOCATIONS_MAP =  new MultiMap<>(new ArrayList<>());
 
-    public static ArrayListValuedHashMap<TPS_LocationConstant, TPS_ActivityConstant> LOCATION2ACTIVITIES_MAP = new ArrayListValuedHashMap<>();
 //    public static MultiMap<TPS_LocationConstant, TPS_ActivityConstant, List<TPS_ActivityConstant>> LOCATION2ACTIVITIES_MAP = new MultiMap<>(new ArrayList<>());
 
     // locations storage
@@ -41,8 +38,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     private TPS_Coordinate center;
     /// id of the traffic analysis zone
     private final int id;
-    /// Reference to the region
-    private TPS_Region region;
     /// score value for the quality of pt access and service in the traffic analysis zone
     private double score = 3;
     /// Category of the score for the quality of pt in the traffic analysis zone
@@ -239,23 +234,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         return this.getSimulationTypeValues(scenario).getFeeParking();
     }
 
-    /**
-     * Returns the region the traffic analysis zone lies within
-     *
-     * @return reference to the region
-     */
-    public TPS_Region getRegion() {
-        return region;
-    }
-
-    /**
-     * Sets the reference of the region
-     *
-     * @param region The region this TAZ belongs to
-     */
-    public void setRegion(TPS_Region region) {
-        this.region = region;
-    }
 
     /**
      * Returns the score indicating the PT quality in the traffic analysis zone

@@ -1,29 +1,16 @@
-/*
- * Copyright (c) 2020 DLR Institute of Transport Research
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
+package de.dlr.ivf.tapas.choice;
 
-package de.dlr.ivf.tapas.model.mode;
-
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_Distance;
-import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ExpertKnowledgeTree;
-import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ModeChoiceTree;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
+import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
+import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
@@ -34,114 +21,15 @@ import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 
 import java.util.function.Supplier;
 
+public class ModeSelector {
 
-/**
- * Class for the organisation of the modes available for choice as well as the choice of a mode considering the existing
- * alternatives
- *
- * @author mark_ma
- */
-public class TPS_ModeSet {
+    private final TPS_ModeSet modeSet;
+    private final boolean flagUseExitMaut;
 
-    final double obscureDistanceCorrectionNumber = 500;
-    /**
-     * Mode Choice Tree for this mode set
-     */
-    private TPS_ModeChoiceTree modeChoiceTree;
+    public ModeSelector(TPS_ModeSet modeSet, TPS_ParameterClass parameterClass){
 
-    /**
-     * Mode Choice Tree for this mode set
-     */
-    private final TPS_ExpertKnowledgeTree expertKnowledgeTree;
-
-    private final TPS_ParameterClass parameterClass;
-
-    /**
-     * Standard constructor for a mode set
-     *
-     * @param modeChoiceTree      The choice tree for pivot point models
-     * @param expertKnowledgeTree
-     * @param parameterClass      parameter class reference
-     */
-    public TPS_ModeSet(TPS_ModeChoiceTree modeChoiceTree, TPS_ExpertKnowledgeTree expertKnowledgeTree, TPS_ParameterClass parameterClass) {
-        super();
-        this.modeChoiceTree = modeChoiceTree;
-        this.expertKnowledgeTree = expertKnowledgeTree;
-        this.parameterClass = parameterClass;
-    }
-
-    /**
-     * returns the initial expert knowledge tree
-     *
-     * @return mode choice tree
-     */
-    public TPS_ExpertKnowledgeTree getExpertKnowledgeTree() {
-        return expertKnowledgeTree;
-    }
-
-    /**
-     * returns the initial mode choice tree
-     *
-     * @return mode choice tree
-     */
-    public TPS_ModeChoiceTree getModeChoiceTree() {
-        return modeChoiceTree;
-    }
-
-    /**
-     * Sets the initial mode choice tree.
-     *
-     * @param modeChoiceTree
-     */
-    public void setModeChoiceTree(TPS_ModeChoiceTree modeChoiceTree) {
-        this.modeChoiceTree = modeChoiceTree;
-    }
-
-    /**
-     * Calculates the mode distribution
-     *
-     * @param plan        day plan
-     * @param distanceNet distance between the locations
-     * @param mcc
-     * @return mode chosen mode TPS_ModeSet
-     */
-    public TPS_DiscreteDistribution<TPS_Mode> getModeDistribution(TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
-        // getting the distribution of modes from the mode choice tree according to the attributes of the plan
-        plan.setAttributeValue(TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_MCT,
-                TPS_Distance.getCode(TPS_DistanceCodeType.MCT, distanceNet));
-        //these attributes need to be set here again, because it is not guarantied, that they are set elsewhere
-        TPS_ActivityConstant currentActCode = mcc.toStay.getActCode();
-        plan.setAttributeValue(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_MCT,
-                currentActCode.getCode(TPS_ActivityCodeType.MCT));
-        plan.setAttributeValue(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_VOT,
-                currentActCode.getCode(TPS_ActivityCodeType.VOT));
-        plan.setAttributeValue(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_TAPAS,
-                currentActCode.getCode(TPS_ActivityCodeType.TAPAS));
-
-        TPS_DiscreteDistribution<TPS_Mode> srcDis = TPS_Mode.getUtilityFunction().getDistributionSet(
-                this, plan, distanceNet,
-                mcc);//locComingFrom, currentStayLocation, stay.getOriginalStart(), durationStay, car, fBike,stay);
-        plan.removeAttribute(TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_MCT);
-
-        TPS_DiscreteDistribution<TPS_Mode> dstDis = null;
-
-        // in the scenario case: calculating the differences in mode distribution
-        if (this.parameterClass.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
-            dstDis = TPS_ModeDistribution.calculateDistribution(srcDis, plan, distanceNet, mcc);
-        } else {
-            dstDis = srcDis;
-        }
-
-        return dstDis;
-    }
-
-    /**
-     * Returns the parameter class reference
-     *
-     * @return parameter class reference
-     */
-    public TPS_ParameterClass getParameters() {
-        return this.parameterClass;
+        this.modeSet = modeSet;
+        this.flagUseExitMaut = parameterClass.isTrue(ParamFlag.FLAG_USE_EXIT_MAUT);
     }
 
     /**
@@ -172,10 +60,11 @@ public class TPS_ModeSet {
             TPS_Location currentStayLocation = locatedStay.getLocation();
 
             // The mode "walking" is used to get distances on the net.
-            double distanceNet = Math.max(this.parameterClass.getDoubleValue(ParamValue.MIN_DIST),
-                    TPS_Mode.get(ModeType.WALK)
-                            .getDistance(previousStayLocation, currentStayLocation, SimulationType.SCENARIO, null) -
-                            obscureDistanceCorrectionNumber);
+            //todo extract this
+            double distanceNet = 0;//Math.max(this.parameterClass.getDoubleValue(ParamValue.MIN_DIST),
+//                    TPS_Mode.get(ModeType.WALK)
+//                            .getDistance(previousStayLocation, currentStayLocation, SimulationType.SCENARIO, null) -
+//                            obscureDistanceCorrectionNumber);
             TPS_ModeChoiceContext mcc = new TPS_ModeChoiceContext();
 
 
@@ -264,20 +153,21 @@ public class TPS_ModeSet {
             TPS_Location arrival_location = arrival_stay.getLocation();
 
             // The mode "walking" is used to get distances on the net.
-            double distanceNet = Math.max(this.parameterClass.getDoubleValue(ParamValue.MIN_DIST),
-                    TPS_Mode.get(ModeType.WALK)
-                            .getDistance(departure_location, arrival_location, SimulationType.SCENARIO, null) -
-                            obscureDistanceCorrectionNumber);
+            //todo extract this
+            double distanceNet = 0;//Math.max(this.parameterClass.getDoubleValue(ParamValue.MIN_DIST),
+//                    TPS_Mode.get(ModeType.WALK)
+//                            .getDistance(departure_location, arrival_location, SimulationType.SCENARIO, null) -
+//                            obscureDistanceCorrectionNumber);
 
             TPS_ModeChoiceContext mcc = new TPS_ModeChoiceContext();
 
-             mcc.fromStayLocation = departure_location;
-             mcc.toStayLocation = arrival_location;
-             mcc.toStay = arrival_stay.getStay();
-             mcc.duration = mcc.toStay.getOriginalDuration();
-             mcc.startTime = mcc.toStay.getOriginalStart();
-             mcc.isBikeAvailable = pc.isBikeAvailable;
-             mcc.carForThisPlan = pc.carForThisPlan;
+            mcc.fromStayLocation = departure_location;
+            mcc.toStayLocation = arrival_location;
+            mcc.toStay = arrival_stay.getStay();
+            mcc.duration = mcc.toStay.getOriginalDuration();
+            mcc.startTime = mcc.toStay.getOriginalStart();
+            mcc.isBikeAvailable = pc.isBikeAvailable;
+            mcc.carForThisPlan = pc.carForThisPlan;
 
             chosen_mode = selectMode0(plan, distanceNet, mcc);
 
@@ -314,22 +204,22 @@ public class TPS_ModeSet {
 		TPS_Stay prevStay = tourpart.getStayHierarchy(currentStay).getPrevStay();
 		TPS_Stay nextStay = tourpart.getStayHierarchy(currentStay).getNextStay();
 		TPS_Location previousStayLocation = plan.getLocatedStay(prevStay).getLocation();
-	
-			
+
+
 		// The MIV-mode is used to get distances on the net.
 		double distanceNet = Math.max(TPS_Parameters.ParamValue.MIN_DIST.getDoubleValue(), TPS_Mode.get(ModeType.WALK).getDistance(previousStayLocation, currentStayLocation, SimulationType.SCENARIO));
-	
-			
-		currentArrivalMode = selectMode0(	plan, distanceNet, bikeIsAvailable, car,	
+
+
+		currentArrivalMode = selectMode0(	plan, distanceNet, bikeIsAvailable, car,
 											previousStayLocation, currentStay, locatedStay.getLocation(), currentStay.getOriginalDuration());
 		locatedStay.setModeArr(currentArrivalMode);
-					
-		if (currentArrivalMode.isFix()) { // do we have to stick to the mode 
+
+		if (currentArrivalMode.isFix()) { // do we have to stick to the mode
 			currentDepartureMode = currentArrivalMode;
-			locatedStay.setModeDep(currentDepartureMode);				
+			locatedStay.setModeDep(currentDepartureMode);
 		} else {
 			currentDepartureMode = selectMode0(plan, distanceNet, tourpart.isBikeUsed(), tourpart.getCar(), currentStayLocation, nextStay, plan.getLocatedStay(nextStay).getLocation(), nextStay.getOriginalDuration());
-			locatedStay.setModeDep(currentDepartureMode);				
+			locatedStay.setModeDep(currentDepartureMode);
 		}
 	}
 	*/
@@ -345,7 +235,7 @@ public class TPS_ModeSet {
     private TPS_ExtMode selectMode0(TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
         // log.debug("\t\t\t\t '--> In tpsSelectMode.selectMode");
 
-        TPS_DiscreteDistribution<TPS_Mode> dstDis = getModeDistribution(plan, distanceNet, mcc);
+        TPS_DiscreteDistribution<TPS_Mode> dstDis = this.modeSet.getModeDistribution(plan, distanceNet, mcc);
         //for calculating the weighted acceptance probability
         //mcc.toStay.setModeDistribution(dstDis);
         // if (TPS_Region.WRITE)
@@ -358,7 +248,8 @@ public class TPS_ModeSet {
                 TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
                         "Distribution is empty. Using 'WALK' as default.");
             }
-            primary = TPS_Mode.get(ModeType.WALK);
+            //todo check this
+            primary = null;//TPS_Mode.get(ModeType.WALK);
         } else {
             primary = dstDis.drawKey();
         }
@@ -369,7 +260,9 @@ public class TPS_ModeSet {
         goingToTVZ = mcc.toStayLocation.getTrafficAnalysisZone();
 
         //check if toll must be charged
-        if (primary.isType(ModeType.MIT) && !plan.mustPayToll) {
+        //todo get a work around
+        //if (primary.isType(ModeType.MIT) && !plan.mustPayToll) {
+        if (!plan.mustPayToll) {
             boolean carMustPayToll = true;
             if (mcc.carForThisPlan != null && mcc.carForThisPlan.hasPaidToll) carMustPayToll = false;
             // set "must pay toll flag"
@@ -378,7 +271,7 @@ public class TPS_ModeSet {
                 plan.mustPayToll = true;
             }
 
-            if (this.getParameters().isTrue(ParamFlag.FLAG_USE_EXIT_MAUT) && !goingToTVZ.hasToll(
+            if (this.flagUseExitMaut && !goingToTVZ.hasToll(
                     SimulationType.SCENARIO) && comingFromTVZ.hasToll(SimulationType.SCENARIO) && carMustPayToll) {
                 // scenario: toll is relevant as leaving a cordon toll zone
                 plan.mustPayToll = true;
@@ -408,46 +301,22 @@ public class TPS_ModeSet {
 //			}
 //		}
 
-        //TODO: should a forbidden bike be set to PT?
+
         //correct forbidden modes MIT->PT and BIKE-> WALK
-        if (primary.isType(ModeType.MIT) && mcc.carForThisPlan == null) {
-                primary = TPS_Mode.get(ModeType.PT);
-        }
-
-        if (primary.isType(ModeType.BIKE) && !mcc.isBikeAvailable) {
-            primary = TPS_Mode.get(ModeType.PT);
-        }
-
+        //todo revise this
+//        if (primary.isType(ModeType.MIT) && mcc.carForThisPlan == null) {
+//                primary = TPS_Mode.get(ModeType.PT);
+//        }
+//
+//        if (primary.isType(ModeType.BIKE) && !mcc.isBikeAvailable) {
+//            primary = TPS_Mode.get(ModeType.PT);
+//        }
+//
         TPS_Mode secondary = null;
-        if (primary.isType(ModeType.PT)) {
-            secondary = mcc.combinedMode;
-        }
+        //todo revise this
+        //        if (primary.isType(ModeType.PT)) {
+//            secondary = mcc.combinedMode;
+//        }
         return new TPS_ExtMode(primary, secondary);
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return this.toString("");
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see de.dlr.de.dlr.ivf.util.tapas.ivf.ExtendedWritable#toString(java.lang.String)
-     */
-    public String toString(String prefix) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(prefix + "TAPAS ModeSet\n");
-        sb.append(this.modeChoiceTree.toString(prefix + " ") + "\n");
-        for (TPS_Mode mode : TPS_Mode.getConstants()) {
-            sb.append(mode.toString(prefix + " ") + "\n");
-        }
-        sb.setLength(sb.length() - 1);
-        return sb.toString();
     }
 }
