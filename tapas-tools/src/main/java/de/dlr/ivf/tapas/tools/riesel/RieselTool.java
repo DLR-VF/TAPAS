@@ -8,11 +8,20 @@
 
 package de.dlr.ivf.tapas.tools.riesel;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.ConnectionProvider;
+import de.dlr.ivf.api.io.JdbcConnectionProvider;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.tools.TPS_CapacityAdjuster;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
@@ -20,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 
 /**
  * This tool distributes households given on some geometries on the addresses
@@ -31,18 +41,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RieselTool {
 
     static final double MIN_PROB = 1E-5;
-    private final TPS_DB_Connector dbCon;
     private final BlockingQueue<AddressPojo> queue = new LinkedBlockingQueue<>();
     private final UpdateAddressesWorker updateWorker;
+    private final Supplier<Connection> connectionProvider;
 
     /**
-     * @param dbCon
      * @throws SQLException if the database connection cannot be established.
      */
-    public RieselTool(TPS_DB_Connector dbCon) throws SQLException {
-        this.dbCon = dbCon;
+    public RieselTool(Supplier<Connection> connectionProvider) throws SQLException {
+        this.connectionProvider = connectionProvider;
 
-        updateWorker = new UpdateAddressesWorker(queue, dbCon);
+        updateWorker = new UpdateAddressesWorker(queue, connectionProvider);
         Thread thread = new Thread(updateWorker);
         thread.start();
     }
@@ -51,21 +60,17 @@ public class RieselTool {
      * @param args
      * @throws SQLException
      */
-    public static void main(String[] args) throws SQLException {
-        String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
-        try {
-            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-            parameterClass.loadRuntimeParameters(new File(loginInfo));
-            parameterClass.setValue("DB_DBNAME", "dlm");
-            TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
-            RieselTool rt = new RieselTool(dbCon);
+    public static void main(String[] args) throws IOException, SQLException {
 
-            rt.updateAll();
+        Path configFile = Paths.get(args[0]);
+        if (!Files.isRegularFile(configFile))
+            throw new IllegalArgumentException("The provided argument is not a file.");
 
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
 
+        RieselTool rt = new RieselTool(() -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector));
+
+        rt.updateAll();
     }
 
     /**
@@ -76,18 +81,23 @@ public class RieselTool {
      * @throws SQLException if the query fails which might happen if the database
      *                      connection fails.
      */
-    public List<EWZPojo> getAllInhabitants() throws SQLException {
+    public List<EWZPojo> getAllInhabitants(){
 
         ArrayList<EWZPojo> result = new ArrayList<>();
 
         String query = "SELECT rs,ewz FROM vg250_ew_nam WHERE use=6 AND ewz > 0";
-        ResultSet rs = dbCon.executeQuery(query, this);
-        while (rs.next()) {
-            int ewz = rs.getInt("ewz");
-            String key = rs.getString("rs");
-            result.add(new EWZPojo(key, ewz));
+        try(Connection  connection = connectionProvider.get();
+            PreparedStatement st = connection.prepareStatement(query);
+            ResultSet rs = st.executeQuery()) {
+
+            while (rs.next()) {
+                int ewz = rs.getInt("ewz");
+                String key = rs.getString("rs");
+                result.add(new EWZPojo(key, ewz));
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
         }
-        rs.close();
 
         return result;
     }
@@ -118,16 +128,24 @@ public class RieselTool {
 
         EnumMap<LAND_USE, ArrayList<Long>> result = new EnumMap<>(LAND_USE.class);
 
-        for (LAND_USE lu : LAND_USE.values()) {
-            String luQuery = query.replaceAll("_LU_", String.valueOf(lu.dbKey));
-            ResultSet rs = dbCon.executeQuery(luQuery, this);
-            ArrayList<Long> luBuildings = new ArrayList<>();
-            while (rs.next()) {
-                luBuildings.add(rs.getLong("id"));
-                hasBuildings = true;
+        try(Connection connection = connectionProvider.get()){
+            for (LAND_USE lu : LAND_USE.values()) {
+                String luQuery = query.replaceAll("_LU_", String.valueOf(lu.dbKey));
+
+                try(PreparedStatement st = connection.prepareStatement(luQuery);
+                    ResultSet rs = st.executeQuery()) {
+                    ArrayList<Long> luBuildings = new ArrayList<>();
+                    while (rs.next()) {
+                        luBuildings.add(rs.getLong("id"));
+                        hasBuildings = true;
+                    }
+                    result.put(lu, luBuildings);
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }
             }
-            rs.close();
-            result.put(lu, luBuildings);
+        }catch (SQLException e){
+            e.printStackTrace();
         }
         if (hasBuildings) return result;
         else return null;
@@ -146,9 +164,15 @@ public class RieselTool {
                 " SELECT id  FROM address_bkg AS ad " + " JOIN geom ON ST_WITHIN(ad.the_geom,geom.fot_geom)";
 
         ArrayList<Integer> addr = new ArrayList<>();
-        ResultSet rs = dbCon.executeQuery(query, this);
-        while (rs.next()) {
-            addr.add(rs.getInt("id"));
+        try(Connection connection = connectionProvider.get();
+            PreparedStatement st = connection.prepareStatement(query);
+            ResultSet rs = st.executeQuery()) {
+
+            while (rs.next()) {
+                addr.add(rs.getInt("id"));
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
         }
 
         return addr.size();
