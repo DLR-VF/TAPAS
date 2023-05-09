@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.BufferedReader;
@@ -76,7 +75,7 @@ public class TPS_VisumToDB {
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(loginFile);
         TPS_VisumConverter worker = new TPS_VisumConverter(parameterClass, file, args[3]);
-        parameterClass.loadSingleParameterFile(new File(args[3]));
+       // parameterClass.loadSingleParameterFile(new File(args[3]));
         parameterClass.generateTemporaryParameters();
 
         if (args.length == 6) {

@@ -8,26 +8,13 @@
 
 package de.dlr.ivf.tapas.model.plan;
 
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
-import de.dlr.ivf.tapas.model.location.TPS_Region;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
-import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
-
-import java.util.function.Supplier;
 
 /**
  * @author cyga_ri

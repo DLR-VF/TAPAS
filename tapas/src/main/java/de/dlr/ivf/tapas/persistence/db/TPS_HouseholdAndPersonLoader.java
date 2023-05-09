@@ -6,7 +6,7 @@ import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.util.StateMachineUtils;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
-import de.dlr.ivf.tapas.model.location.TPS_Region;
+import de.dlr.ivf.tapas.legacy.TPS_Region;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;

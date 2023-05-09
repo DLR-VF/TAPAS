@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas.mode;
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.person.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -14,10 +14,13 @@ import java.util.function.Predicate;
 public class TPS_ModeValidator {
 
     private final TazBasedCarSharingDelegator car_sharing_delegator;
+    private final Modes modes;
+
     //todo emergency mode / taz based fallback
-    public TPS_ModeValidator(TazBasedCarSharingDelegator car_sharing_mediator){
+    public TPS_ModeValidator(TazBasedCarSharingDelegator car_sharing_mediator, Modes modes){
 
         this.car_sharing_delegator = car_sharing_mediator;
+        this.modes = modes;
     }
 
     public void validateMode(TPS_PlanningContext planning_context, ModeContext mode_context, TPS_Location start_location, TPS_Location end_location, TPS_PlannedTrip planned_trip, Predicate<TPS_Car> car_filter){
@@ -40,18 +43,18 @@ public class TPS_ModeValidator {
 
         car_sharing_car.ifPresentOrElse(
                 car -> planning_context.setCarSharingCar(car),
-                () -> chosen_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT)
+                () -> chosen_mode.primary = modes.getMode(ModeType.PT)
         );
     }
 
     private void validateBikeWithChosenMode(boolean isBikeAvailable, TPS_ExtMode chosen_mode) {
         if(!isBikeAvailable)
-            chosen_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT);
+            chosen_mode.primary = modes.getMode(ModeType.PT);
     }
 
     private void validateHouseHoldCarWithChosenMode(TPS_Car household_car, TPS_ExtMode chosen_mode) {
 
         if(household_car == null)
-            chosen_mode.primary = TPS_Mode.get(TPS_Mode.ModeType.PT);
+            chosen_mode.primary = modes.getMode(ModeType.PT);
     }
 }

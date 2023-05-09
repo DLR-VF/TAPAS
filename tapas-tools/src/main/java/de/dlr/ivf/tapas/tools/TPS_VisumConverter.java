@@ -6,26 +6,21 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.iteration;
+package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.TPS_Main;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.parameter.*;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.model.Matrix;
+
 import de.dlr.ivf.tapas.model.MatrixMap;
 
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 /**
@@ -115,7 +110,7 @@ public class TPS_VisumConverter {
     public TPS_VisumConverter(TPS_ParameterClass parameterClass, String file, String simKey) {
 
         //TPS_Parameters.clear();
-        if (simKey == null) simKey = TPS_Main.getDefaultSimKey();
+
 
 
         this.parameterClass.setString(ParamString.RUN_IDENTIFIER, simKey);

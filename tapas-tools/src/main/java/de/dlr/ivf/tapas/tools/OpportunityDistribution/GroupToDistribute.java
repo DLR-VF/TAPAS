@@ -8,9 +8,6 @@
 
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -36,59 +33,57 @@ public class GroupToDistribute {
     int workEnterpriseId;
     String region;
     int totalNumerOfPickedOpportunities = 0;
-    TPS_DB_Connector dbCon;
     private HashMap<Integer, String> sqlQueryForRegions = new HashMap<>();
 
-    public GroupToDistribute(TPS_DB_Connector dbCon, String region) {
-        this.dbCon = dbCon;
+    public GroupToDistribute(String region) {
         this.region = region;
 
         //init the id and enterprise counter
         String query = "";
-
-        try {
-            //get the max id
-            query = "SELECT loc_id FROM core." + region + "_locations ORDER BY loc_ID DESC LIMIT 1";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            //get the data and store them internally, to avoid database conflicts with nested requests.
-            if (rs.next()) {
-                this.locID = rs.getInt("loc_id");
-                this.newID = this.locID + 1;
-
-            }
-            rs.close();
-
-            //get the max enterprise even if it is deprecated
-            query = "SELECT DISTINCT loc_enterprise FROM core." + region + "_locations WHERE loc_code = 4";
-            rs = dbCon.executeQuery(query, this);
-            //get the data and store them internally, to avoid database conflicts with nested requests.
-            while (rs.next()) {
-                //get the max number after the starting 'w', unfortunately 1000000 is "bigger" than 9, this we have to search the whole record set
-                this.workEnterpriseId = Math.max(this.workEnterpriseId,
-                        Integer.parseInt(rs.getString("loc_enterprise").substring(1)));
-            }
-            rs.close();
-            //increment
-            this.workEnterpriseId++;
-
-            query = " SELECT type, unit, work_factor_min, work_factor_max, person_factor_min, person_factor_max FROM core.global_unit_to_capacity_factors";
-            rs = dbCon.executeQuery(query, this);
-            //get the data and store them internally, to avoid database conflicts with nested requests.
-            while (rs.next()) {
-                ConversionUnitToCapacity thisOne = new ConversionUnitToCapacity(rs);
-
-
-                this.factors.put(thisOne.getKeyValue(), thisOne);
-            }
-            rs.close();
-
-
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " GroupToDistribute: SQL-Error during statement: " + query);
-            e.printStackTrace();
-
-        }
+//todo revise this
+//        try {
+//            //get the max id
+//            query = "SELECT loc_id FROM core." + region + "_locations ORDER BY loc_ID DESC LIMIT 1";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            //get the data and store them internally, to avoid database conflicts with nested requests.
+//            if (rs.next()) {
+//                this.locID = rs.getInt("loc_id");
+//                this.newID = this.locID + 1;
+//
+//            }
+//            rs.close();
+//
+//            //get the max enterprise even if it is deprecated
+//            query = "SELECT DISTINCT loc_enterprise FROM core." + region + "_locations WHERE loc_code = 4";
+//            rs = dbCon.executeQuery(query, this);
+//            //get the data and store them internally, to avoid database conflicts with nested requests.
+//            while (rs.next()) {
+//                //get the max number after the starting 'w', unfortunately 1000000 is "bigger" than 9, this we have to search the whole record set
+//                this.workEnterpriseId = Math.max(this.workEnterpriseId,
+//                        Integer.parseInt(rs.getString("loc_enterprise").substring(1)));
+//            }
+//            rs.close();
+//            //increment
+//            this.workEnterpriseId++;
+//
+//            query = " SELECT type, unit, work_factor_min, work_factor_max, person_factor_min, person_factor_max FROM core.global_unit_to_capacity_factors";
+//            rs = dbCon.executeQuery(query, this);
+//            //get the data and store them internally, to avoid database conflicts with nested requests.
+//            while (rs.next()) {
+//                ConversionUnitToCapacity thisOne = new ConversionUnitToCapacity(rs);
+//
+//
+//                this.factors.put(thisOne.getKeyValue(), thisOne);
+//            }
+//            rs.close();
+//
+//
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " GroupToDistribute: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//
+//        }
     }
 
     public static String generateConversionUnitToCapacityKey(String type, String unit) {
@@ -98,29 +93,30 @@ public class GroupToDistribute {
 
     public void adaptCapacities() {
         String query = "";
-        try {
-            query = "SELECT loc_id, loc_blk_id, loc_taz_id, loc_code, loc_type, loc_unit, loc_capacity, st_X(loc_coordinate) AS x, st_Y(loc_coordinate) AS y FROM core." +
-                    this.region + "_locations";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                this.opportunities.add(new LocationInDB(rs));
-            }
-            rs.close();
-
-            for (LocationInDB loc : this.opportunities) {
-                String key = generateConversionUnitToCapacityKey(loc.getType(), loc.getUnit());
-                if (key != null) {
-                    loc.setCapacity(this.factors.get(key).getCapacity(loc, false));
-                } else {
-                    System.out.println("No key for location " + loc.getId());
-                }
-            }
-
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " initOpportunities: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+        //todo revise this
+//        try {
+//            query = "SELECT loc_id, loc_blk_id, loc_taz_id, loc_code, loc_type, loc_unit, loc_capacity, st_X(loc_coordinate) AS x, st_Y(loc_coordinate) AS y FROM core." +
+//                    this.region + "_locations";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                this.opportunities.add(new LocationInDB(rs));
+//            }
+//            rs.close();
+//
+//            for (LocationInDB loc : this.opportunities) {
+//                String key = generateConversionUnitToCapacityKey(loc.getType(), loc.getUnit());
+//                if (key != null) {
+//                    loc.setCapacity(this.factors.get(key).getCapacity(loc, false));
+//                } else {
+//                    System.out.println("No key for location " + loc.getId());
+//                }
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " initOpportunities: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     //TODO: make this more sophisticated
@@ -196,162 +192,164 @@ public class GroupToDistribute {
 
     private void fillLocationList(int map_id, int volume, int[] locationCodes) {
         StringBuilder query = new StringBuilder();
-        try {
-            if (locationCodes != null) {
-                //we go for location codes!
-                query = new StringBuilder(
-                        "SELECT loc_id, loc_blk_id, loc_taz_id, loc_code, loc_type, loc_unit, loc_capacity, st_X(loc_coordinate) AS x, st_Y(loc_coordinate) AS y FROM core." +
-                                this.region + "_locations " + "WHERE ST_WITHIN(loc_coordinate,(" +
-                                this.sqlQueryForRegions.get(map_id) + ")) AND " + "loc_code = ANY(ARRAY[");
-                for (int i = 0; i < locationCodes.length; ++i) {
-                    query.append(i).append(",");
-                }
-                query.deleteCharAt(query.length() - 1); //delete last comma
-                query.append("])");
-                ResultSet rs = dbCon.executeQuery(query.toString(), this);
-                while (rs.next()) {
-                    LocationInDB loc = new LocationInDB(rs);
-
-                    int numberOfOpportunities = capacityToOpportunity(loc, true);
-                    //now add this locationID as often as we have this opportunities
-                    for (int i = 0; i < numberOfOpportunities; ++i)
-                        this.opportunities.add(loc);
-                }
-                rs.close();
-
-                volume = pickOpportunitiesFromList(volume, preFixLocation);
-            }
-
-            //we go for a dlm-request or have to fill up opportunities with dlm data
-            if (volume > 0) { //something to do!
-                //select all areas from dlm within the given region
-                query = new StringBuilder("SELECT gid, objart, area(the_geom) as area FROM " + dlm_table +
-                        " WHERE ST_WITHIN(the_geom, ST_TRANSFORM((" + this.sqlQueryForRegions.get(map_id) +
-                        "),31467))  AND objart >=2111 AND objart<=2114");
-                ResultSet rs = dbCon.executeQuery(query.toString(), this);
-                while (rs.next()) {
-                    LocationInDB loc = new LocationInDB();
-                    int gID = rs.getInt("gid");
-                    int code = rs.getInt("objart");
-                    double area = rs.getDouble("area");
-                    loc.setId(gID + this.locID); //this is a safe id
-                    loc.setCode(code);    //fortunately this code does not overlap with
-                    //the tapas codes, so we can distinguish these
-                    //dlm locations later on
-                    loc.setCapacity((int) area);
-                    loc.setFixedCapacity(true);
-
-                    //taz, coordinate and blk are set after this loop!
-
-                    int numberOfOpportunities = areaToOpportunity(code, area, true);
-                    //now add this locationID as often as we have this opportunities
-                    for (int i = 0; i < numberOfOpportunities; ++i)
-                        this.opportunities.add(loc);
-                }
-                rs.close();
-                int i = 0;
-                for (LocationInDB loc : this.opportunities) {
-                    ++i;
-                    if (i % 100 == 0) System.out.println(
-                            "Processed " + i + " form " + this.opportunities.size() + " DLM-objects for mapping id " +
-                                    map_id);
-                    if (loc.getId() > this.locID) { // dlm location: find taz, address and block
-                        BlockInDB myBlock;
-                        if (!this.blocks.containsKey(loc.getId())) { //do we know this location already?
-                            myBlock = findBlockAndAdressForDLMObject(loc.getId());
-                        } else {
-                            myBlock = this.blocks.get(loc.getId());
-                        }
-                        if (myBlock != null) { // could be null if there is no block in the dlm object
-                            loc.setBlk_id(myBlock.getBlk_id());
-                            loc.setTaz_id(myBlock.getTaz_id());
-                            loc.getCoordinate()[0] = myBlock.getCoord()[0];
-                            loc.getCoordinate()[1] = myBlock.getCoord()[1];
-                        } else {
-                            //huh repair geometry from dlm and find the taz
-                            query = new StringBuilder(
-                                    "SELECT taz_id, st_X(taz_coordinate) AS x, st_Y(taz_coordinate) AS y FROM core." +
-                                            this.region +
-                                            "_taz ORDER BY ST_DISTANCE_SPHERE(ST_TRANSFORM((SELECT the_geom FROM " +
-                                            dlm_table + " AS dlm WHERE dlm.gid=" + (loc.getId() - this.locID) +
-                                            "),4326), taz_coordinate)  LIMIT 1");
-                            rs = dbCon.executeQuery(query.toString(), this);
-                            if (rs.next()) {
-                                loc.setTaz_id(rs.getInt("taz_id"));
-                                loc.getCoordinate()[0] = rs.getDouble("x");
-                                loc.getCoordinate()[1] = rs.getDouble("y");
-                            }
-                            rs.close();
-                        }
-                    }
-                }
-
-                volume = pickOpportunitiesFromList(volume, preFixDLM);
-            }
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " fillLocationList: SQL-Error during statement: " + query);
-            e.printStackTrace();
-
-        }
+        //todo revise this
+//        try {
+//            if (locationCodes != null) {
+//                //we go for location codes!
+//                query = new StringBuilder(
+//                        "SELECT loc_id, loc_blk_id, loc_taz_id, loc_code, loc_type, loc_unit, loc_capacity, st_X(loc_coordinate) AS x, st_Y(loc_coordinate) AS y FROM core." +
+//                                this.region + "_locations " + "WHERE ST_WITHIN(loc_coordinate,(" +
+//                                this.sqlQueryForRegions.get(map_id) + ")) AND " + "loc_code = ANY(ARRAY[");
+//                for (int i = 0; i < locationCodes.length; ++i) {
+//                    query.append(i).append(",");
+//                }
+//                query.deleteCharAt(query.length() - 1); //delete last comma
+//                query.append("])");
+//                ResultSet rs = dbCon.executeQuery(query.toString(), this);
+//                while (rs.next()) {
+//                    LocationInDB loc = new LocationInDB(rs);
+//
+//                    int numberOfOpportunities = capacityToOpportunity(loc, true);
+//                    //now add this locationID as often as we have this opportunities
+//                    for (int i = 0; i < numberOfOpportunities; ++i)
+//                        this.opportunities.add(loc);
+//                }
+//                rs.close();
+//
+//                volume = pickOpportunitiesFromList(volume, preFixLocation);
+//            }
+//
+//            //we go for a dlm-request or have to fill up opportunities with dlm data
+//            if (volume > 0) { //something to do!
+//                //select all areas from dlm within the given region
+//                query = new StringBuilder("SELECT gid, objart, area(the_geom) as area FROM " + dlm_table +
+//                        " WHERE ST_WITHIN(the_geom, ST_TRANSFORM((" + this.sqlQueryForRegions.get(map_id) +
+//                        "),31467))  AND objart >=2111 AND objart<=2114");
+//                ResultSet rs = dbCon.executeQuery(query.toString(), this);
+//                while (rs.next()) {
+//                    LocationInDB loc = new LocationInDB();
+//                    int gID = rs.getInt("gid");
+//                    int code = rs.getInt("objart");
+//                    double area = rs.getDouble("area");
+//                    loc.setId(gID + this.locID); //this is a safe id
+//                    loc.setCode(code);    //fortunately this code does not overlap with
+//                    //the tapas codes, so we can distinguish these
+//                    //dlm locations later on
+//                    loc.setCapacity((int) area);
+//                    loc.setFixedCapacity(true);
+//
+//                    //taz, coordinate and blk are set after this loop!
+//
+//                    int numberOfOpportunities = areaToOpportunity(code, area, true);
+//                    //now add this locationID as often as we have this opportunities
+//                    for (int i = 0; i < numberOfOpportunities; ++i)
+//                        this.opportunities.add(loc);
+//                }
+//                rs.close();
+//                int i = 0;
+//                for (LocationInDB loc : this.opportunities) {
+//                    ++i;
+//                    if (i % 100 == 0) System.out.println(
+//                            "Processed " + i + " form " + this.opportunities.size() + " DLM-objects for mapping id " +
+//                                    map_id);
+//                    if (loc.getId() > this.locID) { // dlm location: find taz, address and block
+//                        BlockInDB myBlock;
+//                        if (!this.blocks.containsKey(loc.getId())) { //do we know this location already?
+//                            myBlock = findBlockAndAdressForDLMObject(loc.getId());
+//                        } else {
+//                            myBlock = this.blocks.get(loc.getId());
+//                        }
+//                        if (myBlock != null) { // could be null if there is no block in the dlm object
+//                            loc.setBlk_id(myBlock.getBlk_id());
+//                            loc.setTaz_id(myBlock.getTaz_id());
+//                            loc.getCoordinate()[0] = myBlock.getCoord()[0];
+//                            loc.getCoordinate()[1] = myBlock.getCoord()[1];
+//                        } else {
+//                            //huh repair geometry from dlm and find the taz
+//                            query = new StringBuilder(
+//                                    "SELECT taz_id, st_X(taz_coordinate) AS x, st_Y(taz_coordinate) AS y FROM core." +
+//                                            this.region +
+//                                            "_taz ORDER BY ST_DISTANCE_SPHERE(ST_TRANSFORM((SELECT the_geom FROM " +
+//                                            dlm_table + " AS dlm WHERE dlm.gid=" + (loc.getId() - this.locID) +
+//                                            "),4326), taz_coordinate)  LIMIT 1");
+//                            rs = dbCon.executeQuery(query.toString(), this);
+//                            if (rs.next()) {
+//                                loc.setTaz_id(rs.getInt("taz_id"));
+//                                loc.getCoordinate()[0] = rs.getDouble("x");
+//                                loc.getCoordinate()[1] = rs.getDouble("y");
+//                            }
+//                            rs.close();
+//                        }
+//                    }
+//                }
+//
+//                volume = pickOpportunitiesFromList(volume, preFixDLM);
+//            }
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " fillLocationList: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//
+//        }
     }
 
     private BlockInDB findBlockAndAdressForDLMObject(int id) {
-        try {
-            boolean adressNotFound = true;
-            int blkID = -1, tazID = -1;
-            double[] coordinates = new double[2];
-            String query =
-                    "SELECT blk_id, blk_taz_id, st_X(blk_coordinate) AS x, st_Y(blk_coordinate) AS y FROM core." +
-                            region +
-                            "_blocks WHERE ST_WITHIN(ST_TRANSFORM(blk_coordinate, 31467),(SELECT the_geom FROM core.gis_dlm_fot WHERE gid=" +
-                            (id - this.locID) + "))";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            List<BlockInDB> actBlocks = new LinkedList<>();
-            //collect all possible blocks
-            while (rs.next()) {
-                BlockInDB myBlock = new BlockInDB();
-                myBlock.setBlk_id(rs.getInt("blk_id"));
-                myBlock.setTaz_id(rs.getInt("blk_taz_id"));
-                myBlock.getCoord()[0] = rs.getDouble("x");
-                myBlock.getCoord()[1] = rs.getDouble("y");
-                actBlocks.add(myBlock);
-            }
-            rs.close();
-            //now look if we have an address, if not take the last block coordinate
-            while (adressNotFound && actBlocks.size() > 0) {
-                //store actual data
-                blkID = actBlocks.get(0).getBlk_id();
-                tazID = actBlocks.get(0).getTaz_id();
-                coordinates[0] = actBlocks.get(0).getCoord()[0];
-                coordinates[1] = actBlocks.get(0).getCoord()[1];
-                //remove
-                actBlocks.remove(0);
-                //look if we find an adress in this block
-                query = "SELECT st_X(the_geom) AS x, st_Y(the_geom) AS y FROM core." + region +
-                        "_buildings WHERE ST_WITHIN( the_geom,(SELECT the_geom FROM core." + region +
-                        "_blocks_multiline WHERE blocknr=" + blkID + ")) LIMIT 1";
-                rs = dbCon.executeQuery(query, this);
-                if (rs.next()) {
-                    adressNotFound = false;
-                    coordinates[0] = rs.getDouble("x");
-                    coordinates[1] = rs.getDouble("y");
-                }
-            }
-            if (blkID >= 0) {
-                //finally we have everything we need!
-                BlockInDB myBlock = new BlockInDB();
-                myBlock.setBlk_id(blkID);
-                myBlock.setTaz_id(tazID);
-                myBlock.getCoord()[0] = coordinates[0];
-                myBlock.getCoord()[1] = coordinates[1];
-                this.blocks.put(id, myBlock);
-                return myBlock;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        //todo revise this
+//        try {
+//            boolean adressNotFound = true;
+//            int blkID = -1, tazID = -1;
+//            double[] coordinates = new double[2];
+//            String query =
+//                    "SELECT blk_id, blk_taz_id, st_X(blk_coordinate) AS x, st_Y(blk_coordinate) AS y FROM core." +
+//                            region +
+//                            "_blocks WHERE ST_WITHIN(ST_TRANSFORM(blk_coordinate, 31467),(SELECT the_geom FROM core.gis_dlm_fot WHERE gid=" +
+//                            (id - this.locID) + "))";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            List<BlockInDB> actBlocks = new LinkedList<>();
+//            //collect all possible blocks
+//            while (rs.next()) {
+//                BlockInDB myBlock = new BlockInDB();
+//                myBlock.setBlk_id(rs.getInt("blk_id"));
+//                myBlock.setTaz_id(rs.getInt("blk_taz_id"));
+//                myBlock.getCoord()[0] = rs.getDouble("x");
+//                myBlock.getCoord()[1] = rs.getDouble("y");
+//                actBlocks.add(myBlock);
+//            }
+//            rs.close();
+//            //now look if we have an address, if not take the last block coordinate
+//            while (adressNotFound && actBlocks.size() > 0) {
+//                //store actual data
+//                blkID = actBlocks.get(0).getBlk_id();
+//                tazID = actBlocks.get(0).getTaz_id();
+//                coordinates[0] = actBlocks.get(0).getCoord()[0];
+//                coordinates[1] = actBlocks.get(0).getCoord()[1];
+//                //remove
+//                actBlocks.remove(0);
+//                //look if we find an adress in this block
+//                query = "SELECT st_X(the_geom) AS x, st_Y(the_geom) AS y FROM core." + region +
+//                        "_buildings WHERE ST_WITHIN( the_geom,(SELECT the_geom FROM core." + region +
+//                        "_blocks_multiline WHERE blocknr=" + blkID + ")) LIMIT 1";
+//                rs = dbCon.executeQuery(query, this);
+//                if (rs.next()) {
+//                    adressNotFound = false;
+//                    coordinates[0] = rs.getDouble("x");
+//                    coordinates[1] = rs.getDouble("y");
+//                }
+//            }
+//            if (blkID >= 0) {
+//                //finally we have everything we need!
+//                BlockInDB myBlock = new BlockInDB();
+//                myBlock.setBlk_id(blkID);
+//                myBlock.setTaz_id(tazID);
+//                myBlock.getCoord()[0] = coordinates[0];
+//                myBlock.getCoord()[1] = coordinates[1];
+//                this.blocks.put(id, myBlock);
+//                return myBlock;
+//            }
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
         return null;
     }
 
@@ -361,14 +359,15 @@ public class GroupToDistribute {
      * @param name the name of the mapping
      */
     public void initRegionsFromTazGrouper(String name) {
-        GroupToTAZ grouper = new GroupToTAZ(this.dbCon);
-        grouper.initRegion(this.region);
-        grouper.loadMapping(name);
-        this.sqlQueryForRegions.clear();
-        this.opportunities.clear();
-        for (Integer i : grouper.getMappingValues()) {
-            this.sqlQueryForRegions.put(i, grouper.getShapeSQLQuery(i));
-        }
+        //todo revise this
+//        GroupToTAZ grouper = new GroupToTAZ(this.dbCon);
+//        grouper.initRegion(this.region);
+//        grouper.loadMapping(name);
+//        this.sqlQueryForRegions.clear();
+//        this.opportunities.clear();
+//        for (Integer i : grouper.getMappingValues()) {
+//            this.sqlQueryForRegions.put(i, grouper.getShapeSQLQuery(i));
+//        }
     }
 
     private int pickOpportunitiesFromList(int volume, String idPrefix) {
@@ -401,34 +400,35 @@ public class GroupToDistribute {
 
     public void processOpportunities(String opportunityDistribution) {
         String query = "";
-        try {
-            query = "SELECT map_id,volume, loc_codes FROM core." + this.region + opportunityDistributionTableSuffix +
-                    " WHERE name='" + opportunityDistribution + "' ORDER BY level";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            HashMap<Integer, VolumeDistribution> mappingValues = new HashMap<>();
-            //get the data and store them internally, to avoid database conflicts with nested requests.
-            int entry = 0;
-            while (rs.next()) {
-                int id = rs.getInt("map_id");
-                int volume = rs.getInt("volume");
-                int[] locationCodes = null;
-                if (rs.getArray("loc_codes") != null) {
-                    locationCodes = TPS_DB_IO.extractIntArray(rs, "loc_codes");
-                }
-                mappingValues.put(++entry, new VolumeDistribution(id, volume, locationCodes));
-            }
-            rs.close();
-            //fill the internal list
-            for (Entry<Integer, VolumeDistribution> es : mappingValues.entrySet()) {
-                fillLocationList(es.getValue().getMap_id(), es.getValue().getVolume(),
-                        es.getValue().getLocationCodes());
-            }
-
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " initOpportunities: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+        //todo revise this
+//        try {
+//            query = "SELECT map_id,volume, loc_codes FROM core." + this.region + opportunityDistributionTableSuffix +
+//                    " WHERE name='" + opportunityDistribution + "' ORDER BY level";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            HashMap<Integer, VolumeDistribution> mappingValues = new HashMap<>();
+//            //get the data and store them internally, to avoid database conflicts with nested requests.
+//            int entry = 0;
+//            while (rs.next()) {
+//                int id = rs.getInt("map_id");
+//                int volume = rs.getInt("volume");
+//                int[] locationCodes = null;
+//                if (rs.getArray("loc_codes") != null) {
+//                    locationCodes = TPS_DB_IO.extractIntArray(rs, "loc_codes");
+//                }
+//                mappingValues.put(++entry, new VolumeDistribution(id, volume, locationCodes));
+//            }
+//            rs.close();
+//            //fill the internal list
+//            for (Entry<Integer, VolumeDistribution> es : mappingValues.entrySet()) {
+//                fillLocationList(es.getValue().getMap_id(), es.getValue().getVolume(),
+//                        es.getValue().getLocationCodes());
+//            }
+//
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " initOpportunities: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
     }
 
     /**

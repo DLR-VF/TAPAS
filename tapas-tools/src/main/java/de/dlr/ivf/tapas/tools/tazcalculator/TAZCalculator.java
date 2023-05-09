@@ -8,19 +8,30 @@
 
 package de.dlr.ivf.tapas.tools.tazcalculator;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.JdbcConnectionProvider;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.tools.TPS_CapacityAdjuster;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 public class TAZCalculator {
 
+    private final Supplier<Connection> connectionSupplier;
+    Supplier<Connection> manager;
 
-    TPS_DB_Connector manager = null;
+    public TAZCalculator(Supplier<Connection> connectionSupplier){
+        this.connectionSupplier = connectionSupplier;
+    }
 
     /**
      * @param args
@@ -33,11 +44,14 @@ public class TAZCalculator {
 
         String region = args[0];
 
-        File configFile = new File("T:/Simulationen/runtime.csv");
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        parameterClass.loadRuntimeParameters(configFile);
-        TAZCalculator worker = new TAZCalculator();
-        worker.manager = new TPS_DB_Connector(parameterClass);
+        Path configFile = Paths.get(args[0]);
+        if (!Files.isRegularFile(configFile))
+            throw new IllegalArgumentException("The provided argument is not a file.");
+
+        ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
+
+        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector);
+        TAZCalculator worker = new TAZCalculator(connectionSupplier);
         HashMap<Integer, Integer> mapping;
 //		worker.updateTAZ(region, 1);
 
@@ -72,66 +86,70 @@ public class TAZCalculator {
         HashMap<Integer, Integer> TAZRecalculated = new HashMap<>();
 
 
-        try {
-            Connection con = this.manager.getConnection(this);
-
-            Statement st = con.createStatement();
-
-
+        try (Connection connection = connectionSupplier.get()){
             String query = "SELECT " + idColumn + " FROM core." + region + table + " WHERE " + sqlCondition;
-            ResultSet rs = st.executeQuery(query);
 
-            while (rs.next()) {
-                TAZRecalculated.put(rs.getInt(idColumn), -1);
+            try(PreparedStatement st = connection.prepareStatement(query);
+                ResultSet rs = st.executeQuery()) {
+
+
+                while (rs.next()) {
+                    TAZRecalculated.put(rs.getInt(idColumn), -1);
+                }
+            }catch (SQLException e){
+                e.printStackTrace();
             }
-            rs.close();
 
             query = "SELECT gid, text(the_geom) FROM core." + region + "_taz_multiline ORDER BY gid";
-            rs = st.executeQuery(query);
-            Statement st2 = con.createStatement();
-            ResultSet rs2;
-            int taz, count;
-            while (rs.next()) {
-                taz = rs.getInt("gid");
-                count = 0;
-                try {
-                    query = "SELECT " + idColumn + " FROM core." + region + table + " WHERE within(" +
+
+            try(PreparedStatement st = connection.prepareStatement(query);
+                ResultSet rs = st.executeQuery()) {
+
+                int taz, count;
+                while (rs.next()) {
+                    taz = rs.getInt("gid");
+                    count = 0;
+
+                    String query2 = "SELECT " + idColumn + " FROM core." + region + table + " WHERE within(" +
                             coordinateColumn + ",geometry('" + rs.getString(2) + "')) AND " + sqlCondition;
+                    try (PreparedStatement st2 = connection.prepareStatement(query2);
+                         ResultSet rs2 = st2.executeQuery()) {
 
-                    rs2 = st2.executeQuery(query);
-                    while (rs2.next()) {
-                        TAZRecalculated.put(rs2.getInt(idColumn), taz);
-                        count++;
+                        while (rs2.next()) {
+                            TAZRecalculated.put(rs2.getInt(idColumn), taz);
+                            count++;
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
                     }
-                    rs2.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    System.out.printf("Table core.%s : %7d enries for TAZ %7d\n", region + table, count, taz);
                 }
-                System.out.printf("Table core.%s : %7d enries for TAZ %7d\n", region + table, count, taz);
-            }
-            rs.close();
 
-            for (Entry<Integer, Integer> i : TAZRecalculated.entrySet()) {
-                if (i.getValue() < 0) {
-                    query = "SELECT gid FROM core." + region +
-                            "_taz_multiline ORDER BY distance_sphere(the_geom, (SELECT " + coordinateColumn +
-                            " FROM core." + region + table + " WHERE " + idColumn + " = " + i.getKey() + " AND " +
-                            sqlCondition + ")) LIMIT 1";
-                    rs2 = st2.executeQuery(query);
-                    if (rs2.next()) {
-                        taz = rs2.getInt("gid");
-                        TAZRecalculated.put(i.getKey(), taz);
-                    } else {
-                        taz = -1;
+                for (Entry<Integer, Integer> i : TAZRecalculated.entrySet()) {
+                    if (i.getValue() < 0) {
+                        query = "SELECT gid FROM core." + region +
+                                "_taz_multiline ORDER BY distance_sphere(the_geom, (SELECT " + coordinateColumn +
+                                " FROM core." + region + table + " WHERE " + idColumn + " = " + i.getKey() + " AND " +
+                                sqlCondition + ")) LIMIT 1";
+                        try (PreparedStatement st2 = connection.prepareStatement(query);
+                             ResultSet rs2 = st2.executeQuery()) {
+
+                            if (rs2.next()) {
+                                taz = rs2.getInt("gid");
+                                TAZRecalculated.put(i.getKey(), taz);
+                            } else {
+                                taz = -1;
+                            }
+                            System.out.printf("%s: id %7d is outside any borders. Closest border id: %4d\n", region + table,
+                                    i.getKey(), taz);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    System.out.printf("%s: id %7d is outside any borders. Closest border id: %4d\n", region + table,
-                            i.getKey(), taz);
-                    rs2.close();
                 }
+            }catch (SQLException e){
+                e.printStackTrace();
             }
-
-            st2.close();
-            st.close();
         } catch (SQLException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -141,55 +159,14 @@ public class TAZCalculator {
         return TAZRecalculated;
     }
 
-    @SuppressWarnings("unused")
-    private boolean updateTAZ(String region, int bbrCathegory) {
-        boolean success = true;
-        String query;
-        try {
-            //update old TAZES
-            query = "SELECT gid, text(st_centroid(the_geom)) FROM core." + region +
-                    "_taz_multiline WHERE gid IN (SELECT taz_id from core." + region + "_taz) ORDER BY gid";
-            ResultSet rs = this.manager.executeQuery(query, this);
-            while (rs.next()) {
-                query = "UPDATE core." + region + "_taz SET taz_coordinate = st_setsrid(geometry('" + rs.getString(2) +
-                        "'),4326), taz_bbr_type = " + bbrCathegory + " WHERE taz_id = " + rs.getInt("gid");
-                this.manager.execute(query, this);
-            }
-            rs.close();
-
-
-            //insert new TAZES
-            query = "SELECT gid, text(st_centroid(the_geom)) FROM core." + region +
-                    "_taz_multiline WHERE gid NOT IN (SELECT taz_id from core." + region + "_taz) ORDER BY gid";
-            rs = this.manager.executeQuery(query, this);
-            while (rs.next()) {
-                query = "INSERT INTO core." + region + "_taz (taz_id, taz_bbr_type, taz_coordinate) VALUES (" +
-                        rs.getInt("gid") + "," + bbrCathegory + ",st_setsrid(geometry('" + rs.getString(2) +
-                        "'),4326))";
-                this.manager.execute(query, this);
-            }
-            rs.close();
-
-            //delete old TAZES
-            query = "DELETE FROM core." + region + "_taz WHERE taz_id NOT IN (SELECT gid FROM core." + region +
-                    "_taz_multiline)";
-            this.manager.execute(query, this);
-
-        } catch (SQLException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        }
-        return success;
-    }
-
     private boolean updateTAZID(String region, String table, String idColumn, String tazColumn, String sqlCondition, HashMap<Integer, Integer> map) {
         boolean success = true;
 
         int counter;
-        try {
-            PreparedStatement st = this.manager.getConnection(this).prepareStatement(
-                    "UPDATE core." + region + table + " SET " + tazColumn + " = ? WHERE " + idColumn + " = ? and " +
-                            sqlCondition);
+        String query = "UPDATE core." + region + table + " SET " + tazColumn + " = ? WHERE " + idColumn + " = ? and " + sqlCondition;
+        try(Connection connection = connectionSupplier.get();
+            PreparedStatement st = connection.prepareStatement(query)){
+
             counter = 0;
             for (Entry<Integer, Integer> i : map.entrySet()) {
                 st.setInt(1, i.getValue());
@@ -208,7 +185,6 @@ public class TAZCalculator {
             // TODO Auto-generated catch block
             e1.printStackTrace();
         }
-
 
         return success;
     }

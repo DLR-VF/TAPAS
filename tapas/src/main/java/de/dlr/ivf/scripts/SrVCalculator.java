@@ -266,9 +266,9 @@ public class SrVCalculator {
     public void initAreasWithDefaultTimes() {
         int i, j;
         double Dist;
-
-        TPS_Geometrics.calcTop3(this.distTAZ);
-        TPS_Geometrics.calcTop3(this.ttMIV);
+//todo revise this
+//        TPS_Geometrics.calcTop3(this.distTAZ);
+//        TPS_Geometrics.calcTop3(this.ttMIV);
 
         for (i = 0; i < this.odArray[0].length; ++i) { //from
             this.tazWeight[i].weight++;

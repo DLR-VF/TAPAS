@@ -379,27 +379,6 @@ public class TPS_Sumo2MLExporter {
 //        }
     }
 
-    public void readModeCodes(String mode_codes){
-        String query = "";
-        try {
-            String name;
-            int code;
-            //load the mapping
-            query = "SELECT name, code_mct "+
-                    "FROM "+mode_codes;
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                name = rs.getString("name");
-                code = rs.getInt("code_mct");
-                this.modeMap.put(code,name);
-            }
-            rs.close();
-            System.out.println("found " + this.modeMap.size() + " mode entries");
-        } catch (SQLException e) {
-            System.err.println("Error in sqlstatement: " + query);
-            e.printStackTrace();
-        }
-    }
 
 
     public void exportNetAttribute(String net, String output){

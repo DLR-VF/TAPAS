@@ -1,7 +1,6 @@
 package de.dlr.ivf.scripts;
 
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
 
 import java.sql.ResultSet;
@@ -9,25 +8,25 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InterCellTrafficImporter extends TPS_BasicConnectionClass {
+public class InterCellTrafficImporter {
 
     Map<Integer,Double> readIntraCellValues(String table){
         Map<Integer,Double> intraCellValues = new HashMap<>();
         String query = "";
-        try {
-            query = "SELECT median(avg_distance) as dist,taz FROM " + table + " group by taz";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                int taz = rs.getInt("taz");
-                double dist = rs.getDouble("dist");
-                intraCellValues.put(taz,dist);
-            }
-            rs.close();
-
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + " readIntraCellValues: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
+//        try {
+//            query = "SELECT median(avg_distance) as dist,taz FROM " + table + " group by taz";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                int taz = rs.getInt("taz");
+//                double dist = rs.getDouble("dist");
+//                intraCellValues.put(taz,dist);
+//            }
+//            rs.close();
+//
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + " readIntraCellValues: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
 
         System.out.println(intraCellValues.size()+" intra-cell values read.");
 
@@ -37,25 +36,26 @@ public class InterCellTrafficImporter extends TPS_BasicConnectionClass {
     Matrix readMatrix(String name, String table){
         String query = "SELECT matrix_values FROM " + table +
                 " WHERE matrix_name='" + name + "'";
-        ResultSet rs = dbCon.executeQuery(query,this);
-        Matrix m =null;
-        try{
-            if (rs.next()) {
-                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                int len = (int) Math.sqrt(iArray.length);
-                m= new Matrix(len, len, 0);
-                for (int index = 0; index < iArray.length; index++) {
-                    m.setRawValue(index, iArray[index]);
-                }
-            }
-        } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + " readMatrix: SQL-Error during statement: " + query);
-            e.printStackTrace();
-        }
-
-        System.out.println("Matrix "+name+" read. Size: "+m.getNumberOfColums()+" x "+ m.getNumberOfRows());
-
-        return m;
+//        ResultSet rs = dbCon.executeQuery(query,this);
+//        Matrix m =null;
+//        try{
+//            if (rs.next()) {
+//                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+//                int len = (int) Math.sqrt(iArray.length);
+//                m= new Matrix(len, len, 0);
+//                for (int index = 0; index < iArray.length; index++) {
+//                    m.setRawValue(index, iArray[index]);
+//                }
+//            }
+//        } catch (SQLException e) {
+//            System.err.println(this.getClass().getCanonicalName() + " readMatrix: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//        }
+//
+//        System.out.println("Matrix "+name+" read. Size: "+m.getNumberOfColums()+" x "+ m.getNumberOfRows());
+//
+//        return m;
+        return null;
     }
 
     void setInterCellValues(Matrix target, Map<Integer,Double> diagonalValues, double factor){
@@ -80,7 +80,7 @@ public class InterCellTrafficImporter extends TPS_BasicConnectionClass {
     public void saveMatrix(String name, String table, Matrix m){
 
         String query = "INSERT INTO "+table+" VALUES ('" + name + "', "+ TPS_DB_IO.matrixToSQLArray(m, 0) + ")";
-        dbCon.execute(query,this);
+       // dbCon.execute(query,this);
         System.out.println("Matrix "+name+" saved.");
 
     }

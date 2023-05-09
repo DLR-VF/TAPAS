@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.tools.locationallocation;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.*;
@@ -138,8 +137,9 @@ public class LocationProcessor {
                 // init and open files
                 TPS_ParameterClass parameterClass = new TPS_ParameterClass();
                 parameterClass.loadRuntimeParameters(new File(args[2]));
-                locationGenerator = new Locator(new TPS_DB_Connector(parameterClass),
-                        Constants.ENABLE_CHANGES_OF_MARCO);
+                //todo revise this
+//                locationGenerator = new Locator(new TPS_DB_Connector(parameterClass),
+//                        Constants.ENABLE_CHANGES_OF_MARCO);
                 outRelocated = new FileWriter(args[1] + "_relocated.csv");
                 outRelocatedError = new FileWriter(args[1] + "_not_relocated.csv");
                 outNotDistinctDBResultError = new FileWriter(args[1] + "_not_unique_db_result.csv");
@@ -172,19 +172,20 @@ public class LocationProcessor {
                         } else {
                             if (loc.getValue("Straße") != null) loc.updateValue("Straße",
                                     processor.replaceStreetTag(loc.getValue("Straße")));
-                            if (locationGenerator.localizeLocation(loc)) {
-                                outRelocated.write(loc.locationToString());
-                            } else {
-                                if (loc.getStatus() == Location.STATUS_NOT_DISTINCT_IN_DATABASE) {
-                                    outNotDistinctDBResultError.write(loc.locationToString());
-                                    strangeStreets.put(loc.getValue("Straße") + " " + loc.getValue("Hausnummer"),
-                                            loc.getID());
-                                } else if (locationGenerator.isInRegion(loc)) outRelocatedError.write(
-                                        loc.locationToString());
-                                else {
-                                    outNotInRegion.write(loc.locationToString());
-                                }
-                            }
+                            //todo revise this
+//                            if (locationGenerator.localizeLocation(loc)) {
+//                                outRelocated.write(loc.locationToString());
+//                            } else {
+//                                if (loc.getStatus() == Location.STATUS_NOT_DISTINCT_IN_DATABASE) {
+//                                    outNotDistinctDBResultError.write(loc.locationToString());
+//                                    strangeStreets.put(loc.getValue("Straße") + " " + loc.getValue("Hausnummer"),
+//                                            loc.getID());
+//                                } else if (locationGenerator.isInRegion(loc)) outRelocatedError.write(
+//                                        loc.locationToString());
+//                                else {
+//                                    outNotInRegion.write(loc.locationToString());
+//                                }
+//                            }
                         }
                     }
                 }

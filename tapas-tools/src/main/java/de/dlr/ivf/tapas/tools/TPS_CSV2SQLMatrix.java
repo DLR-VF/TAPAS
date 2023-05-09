@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.iteration.TPS_VisumConverter;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -107,7 +105,8 @@ public class TPS_CSV2SQLMatrix {
         try {
             FileWriter writer = new FileWriter(output);
             writer.append("INSERT INTO core.berlin_matrices VALUES ('" + name + "', \n");
-            writer.append(TPS_VisumConverter.matrixToSQLArray(matrix, 0) + ")\n");
+            //todo revise this
+            //writer.append(TPS_VisumConverter.matrixToSQLArray(matrix, 0) + ")\n");
 
             writer.close();
         } catch (IOException e) {

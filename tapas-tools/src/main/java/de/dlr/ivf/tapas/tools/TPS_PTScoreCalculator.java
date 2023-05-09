@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.BufferedReader;
@@ -17,12 +16,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
+import java.util.function.Supplier;
 
 /**
  * Class to calculate the PT score for blocks and TAZs
@@ -36,7 +35,7 @@ public class TPS_PTScoreCalculator {
     /**
      * internal reference to the db-connection-manager
      */
-    TPS_DB_Connector dbConnection;
+    Supplier<Connection> dbConnection;
     /**
      * HashMap for the Stations
      */
@@ -47,7 +46,7 @@ public class TPS_PTScoreCalculator {
      *
      * @param connection reference to the db-connection-manager
      */
-    public TPS_PTScoreCalculator(TPS_DB_Connector connection) {
+    public TPS_PTScoreCalculator(Supplier<Connection> connection) {
         dbConnection = connection;
     }
 
@@ -62,11 +61,8 @@ public class TPS_PTScoreCalculator {
             return;
         }
 
-        File configFile = new File("T:/Simulationen/runtime_perseus.csv");
-
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        parameterClass.loadRuntimeParameters(configFile);
-        TPS_PTScoreCalculator worker = new TPS_PTScoreCalculator(new TPS_DB_Connector(parameterClass));
+        //todo revise this
+        TPS_PTScoreCalculator worker = new TPS_PTScoreCalculator(() -> null);
         worker.readDatabase(args[0]);
         worker.readStationsBVG(args[1]);
         worker.readStationsSBahn(args[2]);
@@ -78,43 +74,46 @@ public class TPS_PTScoreCalculator {
 
     public void calcScoresBlock(String region, String key, double radius) {
         String query = "";
-        ResultSet rs;
+
         ArrayList<Integer> blockIds = new ArrayList<>();
         HashMap<Integer, Double> scores = new HashMap<>();
         int blockId;
         int[][] numLines = new int[2][6]; //bus, night bus, subway, train, tram, ferry for two distance classes class
         double score, minScore = 1e100, maxScore = 0, distance;
 
-        try {
+        query = "SELECT blocknr :: integer FROM core." + region + "_blocks_multiline";
+        try(Connection connection = dbConnection.get();
+            PreparedStatement st = connection.prepareStatement(query);
+            ResultSet rs = st.executeQuery()) {
             //first, read all block ids to loop over
             System.out.println("Reading blocknumbers");
-            query = "SELECT blocknr :: integer FROM core." + region + "_blocks_multiline";
 
-            rs = this.dbConnection.executeQuery(query, this);
             while (rs.next()) {
                 blockIds.add(rs.getInt("blocknr"));
             }
-            rs.close();
-            System.out.println("Calculating scores for " + blockIds.size() + " blocks");
-            for (Integer ids : blockIds) {
-                //get the id
-                blockId = ids;
-                //set counters to zero
-                for (int i = 0; i < numLines.length; ++i) {
-                    for (int j = 0; j < numLines[0].length; ++j) {
-                        numLines[i][j] = 0;
-                    }
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Calculating scores for " + blockIds.size() + " blocks");
+        for (Integer ids : blockIds) {
+            //get the id
+            blockId = ids;
+            //set counters to zero
+            for (int i = 0; i < numLines.length; ++i) {
+                for (int j = 0; j < numLines[0].length; ++j) {
+                    numLines[i][j] = 0;
                 }
-                //get all stations within radius around the block center
-                query = "SELECT " + "distTable.num_bus, " + "distTable.num_nightbus, " + "distTable.num_subway, " +
-                        "distTable.num_localtrain, " + "distTable.num_tramway, " + "distTable.num_ferry, " +
-                        "distTable.distance " +
-                        "FROM (SELECT name, num_bus, num_nightbus, num_subway, num_localtrain, num_tramway, num_ferry, distance_sphere(pt_stop_coordinate, (SELECT st_centroid(the_geom) FROM core." +
-                        region + "_blocks_multiline WHERE blocknr = " + blockId + ")) as distance FROM core." + region +
-                        "_pt_stops) as distTable " + "WHERE distTable.distance<=" + radius;
+            }
+            //get all stations within radius around the block center
+            query = "SELECT " + "distTable.num_bus, " + "distTable.num_nightbus, " + "distTable.num_subway, " +
+                    "distTable.num_localtrain, " + "distTable.num_tramway, " + "distTable.num_ferry, " +
+                    "distTable.distance " +
+                    "FROM (SELECT name, num_bus, num_nightbus, num_subway, num_localtrain, num_tramway, num_ferry, distance_sphere(pt_stop_coordinate, (SELECT st_centroid(the_geom) FROM core." +
+                    region + "_blocks_multiline WHERE blocknr = " + blockId + ")) as distance FROM core." + region +
+                    "_pt_stops) as distTable " + "WHERE distTable.distance<=" + radius;
 
-                rs = this.dbConnection.executeQuery(query, this);
-
+            try(PreparedStatement st = dbConnection.get().prepareStatement(query);
+                ResultSet rs = st.executeQuery()) {
 
                 while (rs.next()) {
                     distance = rs.getDouble("distance");
@@ -156,44 +155,56 @@ public class TPS_PTScoreCalculator {
 //					}
 
                 }
-                rs.close();
-                //calc score for closer distance
-                score = (numLines[0][0] + numLines[0][4]) * 0.5 + (numLines[0][2] + numLines[0][3]) * 1.0 +
-                        (numLines[0][5]) * 0.25;
-                //calc score for farer distance
-                score += (numLines[1][0] + numLines[1][4]) * 0.2 + (numLines[1][2] + numLines[1][3]) * 0.8 +
-                        (numLines[1][5]) * 0.0;
-                score = Math.max(0.1, score);
-                //System.out.println("Block: "+blockId+" score: "+doubleToStringWithDecimalPlaces(score,1));
-                minScore = Math.min(minScore, score);
-                maxScore = Math.max(maxScore, score);
-                scores.put(blockId, score);
-
+            }catch (SQLException e){
+                e.printStackTrace();
             }
-            System.out.println("minScore: " + minScore + " maxScore: " + maxScore);
 
-            //calc 5 cathegories:
-            double intervalStep = (maxScore - minScore) / 5.0;
-            double[] intervalBorders = new double[4];
+            //calc score for closer distance
+            score = (numLines[0][0] + numLines[0][4]) * 0.5 + (numLines[0][2] + numLines[0][3]) * 1.0 +
+                    (numLines[0][5]) * 0.25;
+            //calc score for farer distance
+            score += (numLines[1][0] + numLines[1][4]) * 0.2 + (numLines[1][2] + numLines[1][3]) * 0.8 +
+                    (numLines[1][5]) * 0.0;
+            score = Math.max(0.1, score);
+            //System.out.println("Block: "+blockId+" score: "+doubleToStringWithDecimalPlaces(score,1));
+            minScore = Math.min(minScore, score);
+            maxScore = Math.max(maxScore, score);
+            scores.put(blockId, score);
 
-            for (int i = 0; i < intervalBorders.length; ++i) {
-                intervalBorders[i] = minScore + (i + 1) * intervalStep;
-            }
-            int scoreCathegory;
-            System.out.println("Commiting to db");
+        }
+        System.out.println("minScore: " + minScore + " maxScore: " + maxScore);
+
+        //calc 5 cathegories:
+        double intervalStep = (maxScore - minScore) / 5.0;
+        double[] intervalBorders = new double[4];
+
+        for (int i = 0; i < intervalBorders.length; ++i) {
+            intervalBorders[i] = minScore + (i + 1) * intervalStep;
+        }
+        int scoreCathegory;
+        System.out.println("Commiting to db");
+        try(Connection connection = dbConnection.get()){
+
+
             for (Entry<Integer, Double> entry : scores.entrySet()) {
                 //get ids
                 blockId = entry.getKey();
                 score = entry.getValue();
                 //look if blocknumber exists
                 query = "SELECT blk_id FROM core." + region + "_blocks WHERE blk_id = " + blockId;
-                rs = this.dbConnection.executeQuery(query, this);
-                if (!rs.next()) { //this block does not exist in our list
-                    System.out.println("Block " + blockId + " does not exist in blocks table!");
-                    rs.close();
-                    continue;
+
+                try(PreparedStatement st = connection.prepareStatement(query);
+                    ResultSet rs = st.executeQuery()) {
+
+                    if (!rs.next()) { //this block does not exist in our list
+                        System.out.println("Block " + blockId + " does not exist in blocks table!");
+
+                        continue;
+                    }
+                }catch (SQLException e){
+                    e.printStackTrace();
                 }
-                rs.close();
+
 
                 //get cathegory
                 for (scoreCathegory = 0; scoreCathegory < intervalBorders.length; ++scoreCathegory) {
@@ -203,28 +214,30 @@ public class TPS_PTScoreCalculator {
                 }
                 //we start at one
                 scoreCathegory++;
-                //store value in db
+                    //store value in db
                 //determine update or insert
                 query = "SELECT score_blk_id FROM core." + region + "_block_scores WHERE score_blk_id = " + blockId +
-                        " AND score_name = '" + key + "'";
-                rs = this.dbConnection.executeQuery(query, this);
-                if (rs.next()) {
-                    query = "UPDATE core." + region + "_block_scores SET score = " + new BigDecimal(score).setScale(1,
-                            RoundingMode.HALF_UP) + ", score_cat = " + scoreCathegory + " WHERE score_blk_id = " +
-                            blockId + " AND score_name = '" + key + "'";
-                } else {
-                    query = "INSERT INTO core." + region +
-                            "_block_scores (score_blk_id, score, score_cat, score_name) VALUES (" + blockId + "," +
-                            new BigDecimal(score).setScale(1, RoundingMode.HALF_UP) + "," + scoreCathegory + ",'" +
-                            key + "')";
+                    " AND score_name = '" + key + "'";
+                try(PreparedStatement st = connection.prepareStatement(query);
+                    ResultSet rs = st.executeQuery()) {
+                    if (rs.next()) {
+                        query = "UPDATE core." + region + "_block_scores SET score = " + new BigDecimal(score).setScale(1,
+                                RoundingMode.HALF_UP) + ", score_cat = " + scoreCathegory + " WHERE score_blk_id = " +
+                                blockId + " AND score_name = '" + key + "'";
+                    } else {
+                        query = "INSERT INTO core." + region +
+                                "_block_scores (score_blk_id, score, score_cat, score_name) VALUES (" + blockId + "," +
+                                new BigDecimal(score).setScale(1, RoundingMode.HALF_UP) + "," + scoreCathegory + ",'" +
+                                key + "')";
+                    }
+                    //commit to db
+                    Statement st2 = connection.createStatement();
+                    st2.execute(query);
+                }catch (SQLException e){
+                    e.printStackTrace();
                 }
-
-                rs.close();
-                //commit to db
-                this.dbConnection.execute(query, this);
-
-            }
-            System.out.println("Finished!");
+        }
+        System.out.println("Finished!");
 
         } catch (SQLException e) {
             System.out.println("Error in SQL! Query: " + query);
@@ -234,23 +247,25 @@ public class TPS_PTScoreCalculator {
 
     public void calcScoresTAZ(String multilineTable, String ptStopTable, String tazTable, String tazScoresTable, String key, double radius) {
         String query = "";
-        ResultSet rs;
+
         ArrayList<Integer> tazIds = new ArrayList<>();
         HashMap<Integer, Double> scores = new HashMap<>();
         int tazId;
         int[][] numLines = new int[2][6]; //bus, night bus, subway, train, tram, ferry for two distance classes class
         double score, minScore = 1e100, maxScore = 0, distance;
 
-        try {
+        try(Connection connection = dbConnection.get()) {
             //first, read all block ids to loop over
             System.out.println("Reading TAZ-numbers");
             query = "SELECT gid FROM core." + multilineTable;
-
-            rs = this.dbConnection.executeQuery(query, this);
-            while (rs.next()) {
-                tazIds.add(rs.getInt("gid"));
+            try(PreparedStatement st = connection.prepareStatement(query);
+                ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    tazIds.add(rs.getInt("gid"));
+                }
+            }catch (SQLException e){
+                e.printStackTrace();
             }
-            rs.close();
             System.out.println("Calculating scores for " + tazIds.size() + " TAZs");
             for (Integer ids : tazIds) {
                 //get the id
@@ -269,30 +284,30 @@ public class TPS_PTScoreCalculator {
                         multilineTable + " WHERE gid = " + tazId + ")) as distance FROM core." + ptStopTable +
                         ") as distTable " + "WHERE distTable.distance<=" + radius;
 
-                rs = this.dbConnection.executeQuery(query, this);
+                try(PreparedStatement st = connection.prepareStatement(query);
+                    ResultSet rs = st.executeQuery()) {
 
+                    while (rs.next()) {
+                        distance = rs.getDouble("distance");
 
-                while (rs.next()) {
-                    distance = rs.getDouble("distance");
+                        //new calculation  scheme
+                        if (distance <= radius * 0.5) {
+                            numLines[0][0] += rs.getInt("num_bus");
+                            numLines[0][1] += rs.getInt("num_nightbus");
+                            numLines[0][2] += rs.getInt("num_subway");
+                            numLines[0][3] += rs.getInt("num_localtrain");
+                            numLines[0][4] += rs.getInt("num_tramway");
+                            numLines[0][5] += rs.getInt("num_ferry");
+                        } else {
+                            numLines[1][0] += rs.getInt("num_bus");
+                            numLines[1][1] += rs.getInt("num_nightbus");
+                            numLines[1][2] += rs.getInt("num_subway");
+                            numLines[1][3] += rs.getInt("num_localtrain");
+                            numLines[1][4] += rs.getInt("num_tramway");
+                            numLines[1][5] += rs.getInt("num_ferry");
+                        }
 
-                    //new calculation  scheme
-                    if (distance <= radius * 0.5) {
-                        numLines[0][0] += rs.getInt("num_bus");
-                        numLines[0][1] += rs.getInt("num_nightbus");
-                        numLines[0][2] += rs.getInt("num_subway");
-                        numLines[0][3] += rs.getInt("num_localtrain");
-                        numLines[0][4] += rs.getInt("num_tramway");
-                        numLines[0][5] += rs.getInt("num_ferry");
-                    } else {
-                        numLines[1][0] += rs.getInt("num_bus");
-                        numLines[1][1] += rs.getInt("num_nightbus");
-                        numLines[1][2] += rs.getInt("num_subway");
-                        numLines[1][3] += rs.getInt("num_localtrain");
-                        numLines[1][4] += rs.getInt("num_tramway");
-                        numLines[1][5] += rs.getInt("num_ferry");
-                    }
-
-                    //old calculation  scheme
+                        //old calculation  scheme
 //					if(distance <= radius*0.5){
 //						numLines[0][0]+=rs.getInt("num_bus")>0?1:0;
 //						numLines[0][1]+=rs.getInt("num_nightbus")>0?1:0;
@@ -310,8 +325,11 @@ public class TPS_PTScoreCalculator {
 //						numLines[1][5]+=rs.getInt("num_ferry")>0?1:0;
 //					}
 
+                    }
+                }catch (SQLException e){
+                    e.printStackTrace();
                 }
-                rs.close();
+
                 //calc score for closer distance
                 score = (numLines[0][0] + numLines[0][4]) * 0.5 + (numLines[0][2] + numLines[0][3]) * 1.0 +
                         (numLines[0][5]) * 0.25;
@@ -342,13 +360,18 @@ public class TPS_PTScoreCalculator {
                 score = entry.getValue();
                 //look if blocknumber exists
                 query = "SELECT taz_id FROM core." + tazTable + " WHERE taz_id = " + tazId;
-                rs = this.dbConnection.executeQuery(query, this);
-                if (!rs.next()) { //this block does not exist in our list
-                    //System.out.println("TAZ "+tazId+" does not exist in TAZ table!");
-                    //rs.close();
-                    //continue;
+
+                try(PreparedStatement st = connection.prepareStatement(query);
+                    ResultSet rs = st.executeQuery(query)) {
+
+                    if (!rs.next()) { //this block does not exist in our list
+                        //System.out.println("TAZ "+tazId+" does not exist in TAZ table!");
+                        //rs.close();
+                        //continue;
+                    }
+                }catch (SQLException e){
+                    e.printStackTrace();
                 }
-                rs.close();
 
                 //get cathegory
                 for (scoreCategory = 0; scoreCategory < intervalBorders.length; ++scoreCategory) {
@@ -362,20 +385,26 @@ public class TPS_PTScoreCalculator {
                 //determine update or insert
                 query = "SELECT score_taz_id FROM core." + tazScoresTable + " WHERE score_taz_id = " + tazId +
                         " AND score_name = '" + key + "'";
-                rs = this.dbConnection.executeQuery(query, this);
-                if (rs.next()) {
-                    query = "UPDATE core." + tazScoresTable + " SET score = " + new BigDecimal(score).setScale(1,
-                            RoundingMode.HALF_UP) + ", score_cat = " + scoreCategory + " WHERE score_blk_id = " +
-                            tazId + " AND score_name = '" + key + "'";
-                } else {
-                    query = "INSERT INTO core." + tazScoresTable +
-                            " (score_taz_id, score, score_cat, score_name) VALUES (" + tazId + "," + new BigDecimal(
-                            score).setScale(1, RoundingMode.HALF_UP) + "," + scoreCategory + ",'" + key + "')";
-                }
-                rs.close();
 
-                //commit to db
-                this.dbConnection.execute(query, this);
+                try(PreparedStatement st = connection.prepareStatement(query);
+                    ResultSet rs = st.executeQuery(query)) {
+
+                    if (rs.next()) {
+                        query = "UPDATE core." + tazScoresTable + " SET score = " + new BigDecimal(score).setScale(1,
+                                RoundingMode.HALF_UP) + ", score_cat = " + scoreCategory + " WHERE score_blk_id = " +
+                                tazId + " AND score_name = '" + key + "'";
+                    } else {
+                        query = "INSERT INTO core." + tazScoresTable +
+                                " (score_taz_id, score, score_cat, score_name) VALUES (" + tazId + "," + new BigDecimal(
+                                score).setScale(1, RoundingMode.HALF_UP) + "," + scoreCategory + ",'" + key + "')";
+                    }
+
+                    //commit to db
+                    Statement st2 = connection.createStatement();
+                    st2.execute(query);
+                }catch (SQLException e){
+                    e.printStackTrace();
+                }
                 System.out.println(
                         "TAZ: " + tazId + " score: " + new BigDecimal(score).setScale(1, RoundingMode.HALF_UP) +
                                 " cat: " + scoreCategory);
@@ -390,20 +419,23 @@ public class TPS_PTScoreCalculator {
     }
 
     public void readDatabase(String region) {
-        String query;
+
         int id, num = 0;
         String name;
-        try {
-            query = "SELECT no,name FROM core." + region + "_pt_stops";
+        String query = "SELECT no,name FROM core." + region + "_pt_stops";
+
+        try(Connection connection = dbConnection.get();
+            PreparedStatement st = connection.prepareStatement(query);
+            ResultSet rs = st.executeQuery()) {
+
             System.out.println("Looking for stations: " + query);
-            ResultSet rs = this.dbConnection.executeQuery(query, this);
+
             while (rs.next()) {
                 id = rs.getInt("no");
                 name = rs.getString("name");
                 this.stations.put(id, new PTStation(id, name));
                 num++;
             }
-            rs.close();
             System.out.println("Stations found: " + num);
 
         } catch (SQLException e) {
@@ -537,7 +569,12 @@ public class TPS_PTScoreCalculator {
                     act.getNumNightService() + "," + "num_ferry = " + act.getNumFerry() + "," + "num_tramway = " +
                     act.getNumTram() + " " + "WHERE no = " + act.getId();
 
-            this.dbConnection.execute(query, this);
+            try(Connection connection = dbConnection.get();
+                Statement st = connection.createStatement()){
+                st.execute(query);
+            }catch (SQLException e){
+                e.printStackTrace();
+            }
 
 /*			if( (act.getName().startsWith("S ")||act.getName().startsWith("S+U "))){
 				if(act.getNumLocalTrain()==0&&!act.getName().contains("/")){

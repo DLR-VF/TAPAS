@@ -1,6 +1,5 @@
 package de.dlr.ivf.tapas.mode;
 
-import de.dlr.ivf.tapas.model.mode.SharingDelegator;
 import de.dlr.ivf.tapas.model.mode.SharingMediator;
 import de.dlr.ivf.tapas.model.person.TPS_Car;
 

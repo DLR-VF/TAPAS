@@ -8,8 +8,6 @@
 
 package de.dlr.ivf.tapas.tools.OpportunityDistribution;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.BufferedReader;
@@ -25,35 +23,11 @@ import java.util.List;
 
 public class GroupToTAZ {
 
-    TPS_DB_Connector dbCon = null;
     private final List<Integer> taz = new ArrayList<>();
     private String region;
     private String dbName = "_taz_mapping_values";
     private final HashMap<Integer, int[]> mapping = new HashMap<>();
 
-    /**
-     * Stand alone initializator, assumes that global TPS_Parameters contains the login information for the db
-     */
-    public GroupToTAZ(TPS_ParameterClass parameterClass) {
-        try {
-            //init db connection assuming that param-values are already set
-            dbCon = new TPS_DB_Connector(parameterClass);
-            initDB();
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Constructor with a given db-connector to use
-     *
-     * @param con The Connector to use
-     */
-    public GroupToTAZ(TPS_DB_Connector con) {
-        dbCon = con;
-        initDB();
-    }
 
     private boolean flushTAZImportData(String name, String region, int map_id, List<Integer> tazes) {
         StringBuilder query = new StringBuilder(
@@ -63,8 +37,8 @@ public class GroupToTAZ {
             if (i < tazes.size() - 1) query.append(",");
         }
         query.append("])");
-
-        dbCon.executeUpdate(query.toString(), this);
+//todo revise this
+        //dbCon.executeUpdate(query.toString(), this);
         return true;
     }
 
@@ -207,19 +181,20 @@ public class GroupToTAZ {
     public boolean initRegion(String region) {
         this.region = region;
         String query = "";
-        try {
-            query = "SELECT taz_id FROM core." + this.region + "_taz ORDER BY taz_id";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                this.taz.add(rs.getInt("taz_id"));
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + " initRegion: SQL-Error during statement: " + query);
-            e.printStackTrace();
-            return false;
-        }
+        //todo revise this
+//        try {
+//            query = "SELECT taz_id FROM core." + this.region + "_taz ORDER BY taz_id";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                this.taz.add(rs.getInt("taz_id"));
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + " initRegion: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//            return false;
+//        }
         return taz.size() > 0;
     }
 
@@ -230,40 +205,41 @@ public class GroupToTAZ {
      */
     public boolean loadMapping(String name) {
         String query = "";
-        try {
-            query = "SELECT map_value, taz_values FROM core." + this.region + this.dbName + " WHERE name='" + name +
-                    "'";
-            ResultSet rs = dbCon.executeQuery(query, this);
-            while (rs.next()) {
-                int map_id = rs.getInt("map_value");
-                int[] tazes = TPS_DB_IO.extractIntArray(rs, "taz_values");
-                boolean tazOK = tazes.length > 0;
-                int i;
-                for (i = 0; i < tazes.length && tazOK; ++i) {
-                    tazOK &= this.taz.contains(tazes[i]);
-                }
-                if (tazOK) {
-                    // sort values for later convenience, see getTAZes
-                    Arrays.sort(tazes);
-                    this.mapping.put(map_id, tazes);
-                } else {
-                    if (tazes.length == 0) {
-                        System.err.println(
-                                this.getClass().getCanonicalName() + "loadMapping: Empty map for map_id: " + map_id);
-                    } else {
-                        System.err.println(
-                                this.getClass().getCanonicalName() + "loadMapping: Unknown TAZ: " + tazes[i - 1]);
-                    }
-                    return false;
-                }
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.err.println(
-                    this.getClass().getCanonicalName() + "loadMapping: SQL-Error during statement: " + query);
-            e.printStackTrace();
-            return false;
-        }
+        //todo revise this
+//        try {
+//            query = "SELECT map_value, taz_values FROM core." + this.region + this.dbName + " WHERE name='" + name +
+//                    "'";
+//            ResultSet rs = dbCon.executeQuery(query, this);
+//            while (rs.next()) {
+//                int map_id = rs.getInt("map_value");
+//                int[] tazes = TPS_DB_IO.extractIntArray(rs, "taz_values");
+//                boolean tazOK = tazes.length > 0;
+//                int i;
+//                for (i = 0; i < tazes.length && tazOK; ++i) {
+//                    tazOK &= this.taz.contains(tazes[i]);
+//                }
+//                if (tazOK) {
+//                    // sort values for later convenience, see getTAZes
+//                    Arrays.sort(tazes);
+//                    this.mapping.put(map_id, tazes);
+//                } else {
+//                    if (tazes.length == 0) {
+//                        System.err.println(
+//                                this.getClass().getCanonicalName() + "loadMapping: Empty map for map_id: " + map_id);
+//                    } else {
+//                        System.err.println(
+//                                this.getClass().getCanonicalName() + "loadMapping: Unknown TAZ: " + tazes[i - 1]);
+//                    }
+//                    return false;
+//                }
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.err.println(
+//                    this.getClass().getCanonicalName() + "loadMapping: SQL-Error during statement: " + query);
+//            e.printStackTrace();
+//            return false;
+//        }
         return taz.size() > 0;
     }
 

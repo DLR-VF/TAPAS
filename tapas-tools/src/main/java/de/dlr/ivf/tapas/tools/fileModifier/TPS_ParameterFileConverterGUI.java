@@ -9,9 +9,6 @@
 package de.dlr.ivf.tapas.tools.fileModifier;
 
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
-import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
 import de.dlr.ivf.tapas.tools.fileModifier.filefilter.ExtensionFilter;
 import de.dlr.ivf.tapas.tools.fileModifier.persistence.TPS_ParameterCSVDAO;
 import de.dlr.ivf.tapas.tools.fileModifier.persistence.TPS_ParameterPropertiesDAO;
@@ -49,7 +46,6 @@ public class TPS_ParameterFileConverterGUI {
     private final String[] header = new String[]{"Key", "Default Value", "", "Config Value", ""};
     private final ConfigurationTable table;
     private String mSimKey;
-    private ClientControlProperties mClientControlProperties;
     private final TPS_ParameterClass parameterClass;
     private File tapasNetworkDirectory;
 
@@ -59,8 +55,8 @@ public class TPS_ParameterFileConverterGUI {
         this.frame.setIconImage(
                 new ImageIcon(getClass().getClassLoader().getResource("icons/TAPAS-Logo.gif")).getImage());
         this.table = new ConfigurationTable(new DefaultTableModel(new String[0][header.length], header));
-
-        readClientProperties();
+//todo revise this
+       // readClientProperties();
 
         this.init();
 
@@ -313,14 +309,16 @@ public class TPS_ParameterFileConverterGUI {
         JMenuItem itemConfigFromDatabase = new JMenuItem("Load config file from database...");
         itemConfigFromDatabase.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
-                loadConfigFromDatabase();
+                //todo revise this
+                //loadConfigFromDatabase();
             }
         });
 
         JMenuItem itemSaveInDB = new JMenuItem("Save config file in database...");
         itemSaveInDB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
-                saveConfigInDatabase();
+                //todo revise this
+//                saveConfigInDatabase();
             }
         });
 
@@ -475,8 +473,9 @@ public class TPS_ParameterFileConverterGUI {
         } else if (file.getName().endsWith(".csv")) {
             map.clear();
 //			this.parameterClass.clear();
-            if (loadParents) this.parameterClass.loadRuntimeParameters(file);
-            else this.parameterClass.loadSingleParameterFile(file);
+//todo revise this
+//            if (loadParents) this.parameterClass.loadRuntimeParameters(file);
+//            else this.parameterClass.loadSingleParameterFile(file);
             fill(map);
             updateTable(map, column);
         } else {
@@ -484,126 +483,127 @@ public class TPS_ParameterFileConverterGUI {
         }
     }
 
-    private void loadConfigFromDatabase() {
-
-        Connection con = null;
-        Statement statement = null;
-        try {
-            TPS_DB_Connector db = new TPS_DB_Connector(this.parameterClass);
-            con = db.getConnection(this);
-
-            ResultSet resultSet;
-            String simKey = chooseSimulation(con);
-            if (simKey != null) {
-                mSimKey = simKey;
-
-                // anhand des selektierten sim_keys die Config laden und in TPS_Parameters einlesen
-                statement = con.createStatement();
-                resultSet = statement.executeQuery(
-                        "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATION_PARAMETERS) +
-                                " WHERE sim_key = '" + mSimKey + "' order by param_key");
-                configMap.clear();
-                this.parameterClass.setString(ParamString.RUN_IDENTIFIER, simKey);
-                this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tapasNetworkDirectory.getPath());
-                //TPS_Parameters.readRuntimeParametersFromDB(resultSet);
-                String key, value;
-                while (resultSet.next()) {
-                    key = resultSet.getString(2);
-                    value = resultSet.getString(3);
-                    configMap.put(key, value);
-                }
-                resultSet.close();
-                generateTemporaryParametersInMap(configMap);
-                updateTable(configMap, 3);
-                SortedMap<String, String> defaults = getDefaultParams();
-                updateTable(defaults, 1);
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(frame, e.getMessage(), "Loading config file failed!",
-                    JOptionPane.ERROR_MESSAGE);
-        } finally {
-            if (con != null) try {
-                con.close();
-            } catch (SQLException e) {
-            }
-
-            if (statement != null) try {
-                statement.close();
-            } catch (SQLException e) {
-            }
-        }
-    }
-
-    private void readClientProperties() {
-        mClientControlProperties = new ClientControlProperties(new File("converter.properties"));
-        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
-            tapasNetworkDirectory = new File(mClientControlProperties.get(ClientControlPropKey.TAPAS_DIR_WIN));
-        } else {
-            tapasNetworkDirectory = new File(mClientControlProperties.get(ClientControlPropKey.TAPAS_DIR_LINUX));
-        }
-        this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tapasNetworkDirectory.getPath());
-
-        if (!parameterClass.isDefined(ParamString.DB_USER) || !parameterClass.isDefined(ParamString.DB_PASSWORD)) {
-            String loginFile = "runtime.csv";
-
-            if (!this.mClientControlProperties.get(ClientControlPropKey.LOGIN_CONFIG).isEmpty()) {
-                loginFile = this.mClientControlProperties.get(ClientControlPropKey.LOGIN_CONFIG);
-            } else {
-                this.mClientControlProperties.set(ClientControlPropKey.LOGIN_CONFIG, loginFile);
-            }
-
-            File runtimeFile = new File(new File(tapasNetworkDirectory, this.parameterClass.SIM_DIR), loginFile);
-            try {
-                this.parameterClass.loadRuntimeParameters(runtimeFile);
-
-            } catch (Exception e) {
-                System.err.println("Exception thrown during reading " + loginFile);
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void revertTemporaryParametersInMap(Map<String, String> configMap2) {
-        String tmp, suffix="_trips";
-        configMap2.remove("DB_TABLE_LOCATION_TMP");
-        configMap2.remove("DB_TABLE_HOUSEHOLD_TMP");
-        tmp = configMap2.get("DB_TABLE_TRIPS");
-        tmp = tmp.substring(0, tmp.lastIndexOf(suffix)+suffix.length()); // forget everything after the suffix
-        configMap2.put("DB_TABLE_TRIPS", tmp);
-    }
-
-    private void saveConfigInDatabase() {
-
-        Connection con = null;
-        try {
-            TPS_DB_Connector db = new TPS_DB_Connector(this.parameterClass);
-            con = db.getConnection(this);
-            updateConfigParamsInEnum();
-            //TPS_Parameters.revertTemporaryParameters();
-            //SortedMap<String, String> params = getConfigParams();
-            revertTemporaryParametersInMap(this.configMap);
-            if (isSimulationStartedAlready(con)) {
-                String simKey = getNewSimKey();
-
-                this.parameterClass.writeToDB(con, simKey, this.configMap);
-                mSimKey = simKey;
-            } else {
-                this.parameterClass.updateInDB(con, mSimKey, this.configMap);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(frame, e.getMessage(), "Saving config file failed!",
-                    JOptionPane.ERROR_MESSAGE);
-        } finally {
-            if (con != null) try {
-                con.close();
-            } catch (SQLException e) {
-            }
-
-        }
-    }
+    //todo revise this
+//    private void loadConfigFromDatabase() {
+//
+//        Connection con = null;
+//        Statement statement = null;
+//        try {
+//            TPS_DB_Connector db = new TPS_DB_Connector(this.parameterClass);
+//            con = db.getConnection(this);
+//
+//            ResultSet resultSet;
+//            String simKey = chooseSimulation(con);
+//            if (simKey != null) {
+//                mSimKey = simKey;
+//
+//                // anhand des selektierten sim_keys die Config laden und in TPS_Parameters einlesen
+//                statement = con.createStatement();
+//                resultSet = statement.executeQuery(
+//                        "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATION_PARAMETERS) +
+//                                " WHERE sim_key = '" + mSimKey + "' order by param_key");
+//                configMap.clear();
+//                this.parameterClass.setString(ParamString.RUN_IDENTIFIER, simKey);
+//                this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tapasNetworkDirectory.getPath());
+//                //TPS_Parameters.readRuntimeParametersFromDB(resultSet);
+//                String key, value;
+//                while (resultSet.next()) {
+//                    key = resultSet.getString(2);
+//                    value = resultSet.getString(3);
+//                    configMap.put(key, value);
+//                }
+//                resultSet.close();
+//                generateTemporaryParametersInMap(configMap);
+//                updateTable(configMap, 3);
+//                SortedMap<String, String> defaults = getDefaultParams();
+//                updateTable(defaults, 1);
+//
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(frame, e.getMessage(), "Loading config file failed!",
+//                    JOptionPane.ERROR_MESSAGE);
+//        } finally {
+//            if (con != null) try {
+//                con.close();
+//            } catch (SQLException e) {
+//            }
+//
+//            if (statement != null) try {
+//                statement.close();
+//            } catch (SQLException e) {
+//            }
+//        }
+//    }
+//
+//    private void readClientProperties() {
+//        mClientControlProperties = new ClientControlProperties(new File("converter.properties"));
+//        if (System.getProperty("os.name").toLowerCase().contains("windows")) {
+//            tapasNetworkDirectory = new File(mClientControlProperties.get(ClientControlPropKey.TAPAS_DIR_WIN));
+//        } else {
+//            tapasNetworkDirectory = new File(mClientControlProperties.get(ClientControlPropKey.TAPAS_DIR_LINUX));
+//        }
+//        this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tapasNetworkDirectory.getPath());
+//
+//        if (!parameterClass.isDefined(ParamString.DB_USER) || !parameterClass.isDefined(ParamString.DB_PASSWORD)) {
+//            String loginFile = "runtime.csv";
+//
+//            if (!this.mClientControlProperties.get(ClientControlPropKey.LOGIN_CONFIG).isEmpty()) {
+//                loginFile = this.mClientControlProperties.get(ClientControlPropKey.LOGIN_CONFIG);
+//            } else {
+//                this.mClientControlProperties.set(ClientControlPropKey.LOGIN_CONFIG, loginFile);
+//            }
+//
+//            File runtimeFile = new File(new File(tapasNetworkDirectory, this.parameterClass.SIM_DIR), loginFile);
+//            try {
+//                this.parameterClass.loadRuntimeParameters(runtimeFile);
+//
+//            } catch (Exception e) {
+//                System.err.println("Exception thrown during reading " + loginFile);
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+//
+//    private void revertTemporaryParametersInMap(Map<String, String> configMap2) {
+//        String tmp, suffix="_trips";
+//        configMap2.remove("DB_TABLE_LOCATION_TMP");
+//        configMap2.remove("DB_TABLE_HOUSEHOLD_TMP");
+//        tmp = configMap2.get("DB_TABLE_TRIPS");
+//        tmp = tmp.substring(0, tmp.lastIndexOf(suffix)+suffix.length()); // forget everything after the suffix
+//        configMap2.put("DB_TABLE_TRIPS", tmp);
+//    }
+//
+//    private void saveConfigInDatabase() {
+//
+//        Connection con = null;
+//        try {
+//            TPS_DB_Connector db = new TPS_DB_Connector(this.parameterClass);
+//            con = db.getConnection(this);
+//            updateConfigParamsInEnum();
+//            //TPS_Parameters.revertTemporaryParameters();
+//            //SortedMap<String, String> params = getConfigParams();
+//            revertTemporaryParametersInMap(this.configMap);
+//            if (isSimulationStartedAlready(con)) {
+//                String simKey = getNewSimKey();
+//
+//                this.parameterClass.writeToDB(con, simKey, this.configMap);
+//                mSimKey = simKey;
+//            } else {
+//                this.parameterClass.updateInDB(con, mSimKey, this.configMap);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            JOptionPane.showMessageDialog(frame, e.getMessage(), "Saving config file failed!",
+//                    JOptionPane.ERROR_MESSAGE);
+//        } finally {
+//            if (con != null) try {
+//                con.close();
+//            } catch (SQLException e) {
+//            }
+//
+//        }
+//    }
 
     private void setFilename(File file, JTextField field, boolean xls) {
         String name = file.getName();
@@ -640,7 +640,8 @@ public class TPS_ParameterFileConverterGUI {
                     }
                 }
             });
-            loadConfigFromDatabase();
+            //todo revise this
+            //loadConfigFromDatabase();
             frame.setVisible(true);
             try {
                 synchronized (parent) {

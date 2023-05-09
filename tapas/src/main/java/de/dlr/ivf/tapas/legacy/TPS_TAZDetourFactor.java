@@ -6,14 +6,13 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.location;
+package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.persistence.TPS_RegionResultSet;
+import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.util.function.Supplier;
 
@@ -29,7 +28,7 @@ public class TPS_TAZDetourFactor extends TPS_LocationChoiceSet {
      * @return
      */
     @Override
-    public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, TPS_ParameterClass parameterClass, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
+    public TPS_RegionResultSet getLocationRepresentatives(TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
 
 
 		/*

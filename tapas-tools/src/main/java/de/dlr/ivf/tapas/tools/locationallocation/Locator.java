@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.tools.locationallocation;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.tools.locationallocation.LocationProcessor.Location;
 
 import java.sql.ResultSet;
@@ -18,15 +17,12 @@ import java.util.HashMap;
 public class Locator {
 
     private static final double searchRadius = 500;
-    TPS_DB_Connector dbCon;
     private final boolean exactOnly;
 
     /**
-     * @param con
      * @param exactOnly
      */
-    public Locator(TPS_DB_Connector con, boolean exactOnly) {
-        dbCon = con;
+    public Locator(boolean exactOnly) {
         this.exactOnly = exactOnly;
     }
 
@@ -505,16 +501,17 @@ public class Locator {
         if (coord_y != null) coord_y = coord_y.replaceAll(",", ".");
         String query = "select Within (st_setsrid(st_makepoint(" + coord_x + "," + coord_y +
                 "),4326),st_buffer((select the_geom from core.berlin_outline where id=1)," + searchRadius + "))";
-        try {
-            ResultSet rs = this.dbCon.executeQuery(query, this);
-            if (rs.next()) {
-                returnValue = rs.getBoolean(1);
-            }
-            rs.close();
-        } catch (SQLException e) {
-            System.out.println("SQL-Error!. Query: " + query);
-            e.printStackTrace();
-        }
+        //todo revise this
+//        try {
+//            ResultSet rs = this.dbCon.executeQuery(query, this);
+//            if (rs.next()) {
+//                returnValue = rs.getBoolean(1);
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            System.out.println("SQL-Error!. Query: " + query);
+//            e.printStackTrace();
+//        }
         return returnValue;
 
     }
@@ -601,203 +598,203 @@ public class Locator {
 
         boolean resultNotFound = true;
         for (int i = 0; i < 1 && resultNotFound; ++i) {
-
-            try {
-                if (coord_x != null && coord_y != null) {
-                    geometricConstruct = "ST_Distance_Sphere(st_setsrid(st_makepoint(" + coord_x + "," + coord_y +
-                            "),4326),the_geom)";
-                    //geometricCheck = "   AND "+geometricConstruct+"<" + (searchRadius*(i+1));
-                    geometricCheck = "";
-                } else {
-                    geometricConstruct = "";
-                    geometricCheck = "";
-                }
-
-
-                // check what to do
-                if (streetValue == null) {
-                    // get an address from the coordinates
-                    if (coord_x != null && coord_y != null) {// LIKE
-                        // ANY(array['12625'])
-                        if (plz != null) {
-                            query = "select * from (" +
-                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                    "	where lower(plz) = '" + plz + "'" + geometricCheck + regionalCheck +
-                                    ") as foo " + "order by distancetopoint";
-                            queries.put(1, query);
-                        }
-                        if (!exactOnly) {
-                            // alternative if plz is wrong
-                            query = "select * from (" +
-                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                    "	where true " + geometricCheck + regionalCheck + ") as foo " +
-                                    "order by distancetopoint";
-                            queries.put(2, query);
-                        }
-                    }
-                } else if (houseNumber == null) {
-                    // get an address from the coordinates
-                    if (coord_x != null && coord_y != null) {
-                        if (plz != null) {
-                            query = "select * from (" +
-                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                    "	where lower(strasse)='" + streetValue + "' " + "   AND lower(plz) = '" + plz +
-                                    "' " + geometricCheck + regionalCheck + ") as foo " + "order by distancetopoint";
-                            queries.put(3, query);
-
-                            // filter spaces in street names
-                            tmp = processor.replaceStreetTag(streetValue.replaceAll(" ", ""));
-                            query = "select * from (" +
-                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                    "	where lower(strasse)='" + tmp + "' " + "   AND lower(plz) = '" + plz + "' " +
-                                    geometricCheck + regionalCheck + ") as foo " + "order by distancetopoint";
-                            queries.put(4, query);
-                            if (!exactOnly) {
-                                // alternative if streetname is wrong
-                                query = "select * from (" +
-                                        "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                        geometricConstruct + " as distancetopoint " +
-                                        "	from core.berlin_buildings " + "	where lower(plz) = '" + plz + "' " +
-                                        geometricCheck + regionalCheck + ") as foo " + "order by distancetopoint";
-                                queries.put(5, query);
-                            }
-                        }
-                        // else{
-                        // no plz
-                        query = "select * from (" +
-                                "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                "	where lower(strasse)='" + streetValue + "' " + geometricCheck + regionalCheck +
-                                ") as foo " + "order by distancetopoint";
-                        queries.put(6, query);
-
-                        // filter spaces in street names
-                        tmp = processor.replaceStreetTag(streetValue.replaceAll(" ", ""));
-                        query = "select * from (" +
-                                "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                "	where lower(strasse)='" + tmp + "' " + geometricCheck + regionalCheck +
-                                ") as foo " + "order by distancetopoint";
-                        queries.put(7, query);
-                        if (!exactOnly) {
-                            // alternative if streetname is wrong
-                            query = "select * from (" +
-                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                    " 	where true" + geometricCheck + regionalCheck + ") as foo " +
-                                    "order by distancetopoint";
-                            queries.put(8, query);
-                        }
-
-                        // }
-                    }
-                    this.generateQueriesForAdressToCoordinate(State.getByName(stateName), streetValue, null,
-                            plz.toString(), null, geometricCheck, ", " + geometricConstruct + " as distancetopoint ",
-                            "order by distancetopoint", queries, 8); // generates 13 more queries
-                    //this.generateQueriesForAdressToCoordinate(State.getByName(stateName), streetValue, null, plz, null, null,", "  + geometricConstruct+ " as distancetopoint ", "order by distancetopoint", queries,21);// generates 13 more queries
-                    // fallback if everything fails: get the closest building to
-                    // the given coordinate
-                    if (coord_x != null && coord_y != null) {
-                        query = "select * from (" +
-                                "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                "	where true " + geometricCheck + regionalCheck + ") as foo " +
-                                "order by distancetopoint";
-                        queries.put(35, query);
-                    }
-                } else {
-                    String tmpHouseNumber = houseNumber;
-                    String houseNumberAddOn = "";
-                    houseNumber = this.extractHouseNumber(tmpHouseNumber);
-                    if (houseNumber.length() != tmpHouseNumber.length()) {
-                        houseNumberAddOn = extractHouseNumberAddOn(tmpHouseNumber);
-                    }
-
-                    // get coordinates from address
-                    this.generateQueriesForAdressToCoordinate(
-                            stateName == null ? null : State.getByName(stateName.toUpperCase()), streetValue,
-                            houseNumber, plz.toString(), houseNumberAddOn, geometricCheck,
-                            ", " + geometricConstruct + " as distancetopoint ", "order by distancetopoint", queries,
-                            35); // generates 13 more queries
-                    //this.generateQueriesForAdressToCoordinate(State.getByName("BERLIN"), streetValue, houseNumber, plz, houseNumberAddOn, geometricCheck,", "  + geometricConstruct+ " as distancetopoint ", "order by distancetopoint", queries,35); // generates 13 more queries
-                    //this.generateQueriesForAdressToCoordinate(State.getByName(stateName), streetValue, houseNumber, plz, houseNumberAddOn, null,", "  + geometricConstruct+ " as distancetopoint ", "order by distancetopoint", queries,48);// generates 13 more queries
-                    if (!exactOnly) {
-                        // fallback if everything fails: get the closest
-                        // building to
-                        // the given coordinate
-                        if (coord_x != null && coord_y != null) {
-                            query = "select * from (" +
-                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
-                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
-                                    "	where true " + geometricCheck + regionalCheck + ") as foo " +
-                                    "order by distancetopoint";
-                            queries.put(62, query);
-                        }
-                    }
-                }
-                // something to do?
-                int numOfResults, minNum = Integer.MAX_VALUE;
-                for (int j = 0; j < 63 && resultNotFound; ++j) {
-                    if (queries.containsKey(j)) {
-                        // get dataset
-                        query = queries.get(j);//+ " LIMIT 1";
-
-
-                        rs = this.dbCon.executeQuery(query, this);
-                        numOfResults = 0;
-                        while (rs.next()) {
-                            numOfResults++;
-                        }
-
-                        rs.close();
-                        if (numOfResults < minNum && numOfResults > 0) {
-                            minNum = numOfResults;
-                            topQuery = query;
-                        }
-
-                        if (numOfResults == 1) {
-                            loc.setStatus(Location.STATUS_DISTINCT_IN_DATABASE);
-                            rs = this.dbCon.executeQuery(query, this);
-                            while (rs.next()) {
-                                queryIndex = "Query " + j;
-
-                                if (loc.getValue("Bemerkungen") != null) queryIndex += " " + loc.getValue(
-                                        "Bemerkungen");
-
-                                loc.updateOrAddValue("Bemerkungen", queryIndex);
-
-                                // update the data
-                                this.updateLocation(rs, loc);
-                                if (Constants.ENABLE_CHANGES_OF_MARCO) {
-                                    if (loc.getStatus() == Location.STATUS_NOT_DISTINCT_IN_DATABASE) {
-                                        returnValue = false;
-                                        break;
-                                    } else {
-                                        returnValue = true;
-                                    }
-                                } else {
-                                    // TODO soll hier nicht die gesamte äußere Schleife
-                                    // abgebrochen werden
-                                    returnValue = true;
-                                    resultNotFound = false;
-                                    break;
-                                }
-                            }
-                            rs.close();
-                            resultNotFound = false;
-                        } else if (numOfResults > 0) {
-                            loc.setStatus(Location.STATUS_NOT_DISTINCT_IN_DATABASE);
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                System.out.println("SQL-Error: " + query);
-                e.printStackTrace();
-            }
+//todo revise this
+//            try {
+//                if (coord_x != null && coord_y != null) {
+//                    geometricConstruct = "ST_Distance_Sphere(st_setsrid(st_makepoint(" + coord_x + "," + coord_y +
+//                            "),4326),the_geom)";
+//                    //geometricCheck = "   AND "+geometricConstruct+"<" + (searchRadius*(i+1));
+//                    geometricCheck = "";
+//                } else {
+//                    geometricConstruct = "";
+//                    geometricCheck = "";
+//                }
+//
+//
+//                // check what to do
+//                if (streetValue == null) {
+//                    // get an address from the coordinates
+//                    if (coord_x != null && coord_y != null) {// LIKE
+//                        // ANY(array['12625'])
+//                        if (plz != null) {
+//                            query = "select * from (" +
+//                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                    "	where lower(plz) = '" + plz + "'" + geometricCheck + regionalCheck +
+//                                    ") as foo " + "order by distancetopoint";
+//                            queries.put(1, query);
+//                        }
+//                        if (!exactOnly) {
+//                            // alternative if plz is wrong
+//                            query = "select * from (" +
+//                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                    "	where true " + geometricCheck + regionalCheck + ") as foo " +
+//                                    "order by distancetopoint";
+//                            queries.put(2, query);
+//                        }
+//                    }
+//                } else if (houseNumber == null) {
+//                    // get an address from the coordinates
+//                    if (coord_x != null && coord_y != null) {
+//                        if (plz != null) {
+//                            query = "select * from (" +
+//                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                    "	where lower(strasse)='" + streetValue + "' " + "   AND lower(plz) = '" + plz +
+//                                    "' " + geometricCheck + regionalCheck + ") as foo " + "order by distancetopoint";
+//                            queries.put(3, query);
+//
+//                            // filter spaces in street names
+//                            tmp = processor.replaceStreetTag(streetValue.replaceAll(" ", ""));
+//                            query = "select * from (" +
+//                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                    "	where lower(strasse)='" + tmp + "' " + "   AND lower(plz) = '" + plz + "' " +
+//                                    geometricCheck + regionalCheck + ") as foo " + "order by distancetopoint";
+//                            queries.put(4, query);
+//                            if (!exactOnly) {
+//                                // alternative if streetname is wrong
+//                                query = "select * from (" +
+//                                        "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                        geometricConstruct + " as distancetopoint " +
+//                                        "	from core.berlin_buildings " + "	where lower(plz) = '" + plz + "' " +
+//                                        geometricCheck + regionalCheck + ") as foo " + "order by distancetopoint";
+//                                queries.put(5, query);
+//                            }
+//                        }
+//                        // else{
+//                        // no plz
+//                        query = "select * from (" +
+//                                "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                "	where lower(strasse)='" + streetValue + "' " + geometricCheck + regionalCheck +
+//                                ") as foo " + "order by distancetopoint";
+//                        queries.put(6, query);
+//
+//                        // filter spaces in street names
+//                        tmp = processor.replaceStreetTag(streetValue.replaceAll(" ", ""));
+//                        query = "select * from (" +
+//                                "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                "	where lower(strasse)='" + tmp + "' " + geometricCheck + regionalCheck +
+//                                ") as foo " + "order by distancetopoint";
+//                        queries.put(7, query);
+//                        if (!exactOnly) {
+//                            // alternative if streetname is wrong
+//                            query = "select * from (" +
+//                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                    " 	where true" + geometricCheck + regionalCheck + ") as foo " +
+//                                    "order by distancetopoint";
+//                            queries.put(8, query);
+//                        }
+//
+//                        // }
+//                    }
+//                    this.generateQueriesForAdressToCoordinate(State.getByName(stateName), streetValue, null,
+//                            plz.toString(), null, geometricCheck, ", " + geometricConstruct + " as distancetopoint ",
+//                            "order by distancetopoint", queries, 8); // generates 13 more queries
+//                    //this.generateQueriesForAdressToCoordinate(State.getByName(stateName), streetValue, null, plz, null, null,", "  + geometricConstruct+ " as distancetopoint ", "order by distancetopoint", queries,21);// generates 13 more queries
+//                    // fallback if everything fails: get the closest building to
+//                    // the given coordinate
+//                    if (coord_x != null && coord_y != null) {
+//                        query = "select * from (" +
+//                                "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                "	where true " + geometricCheck + regionalCheck + ") as foo " +
+//                                "order by distancetopoint";
+//                        queries.put(35, query);
+//                    }
+//                } else {
+//                    String tmpHouseNumber = houseNumber;
+//                    String houseNumberAddOn = "";
+//                    houseNumber = this.extractHouseNumber(tmpHouseNumber);
+//                    if (houseNumber.length() != tmpHouseNumber.length()) {
+//                        houseNumberAddOn = extractHouseNumberAddOn(tmpHouseNumber);
+//                    }
+//
+//                    // get coordinates from address
+//                    this.generateQueriesForAdressToCoordinate(
+//                            stateName == null ? null : State.getByName(stateName.toUpperCase()), streetValue,
+//                            houseNumber, plz.toString(), houseNumberAddOn, geometricCheck,
+//                            ", " + geometricConstruct + " as distancetopoint ", "order by distancetopoint", queries,
+//                            35); // generates 13 more queries
+//                    //this.generateQueriesForAdressToCoordinate(State.getByName("BERLIN"), streetValue, houseNumber, plz, houseNumberAddOn, geometricCheck,", "  + geometricConstruct+ " as distancetopoint ", "order by distancetopoint", queries,35); // generates 13 more queries
+//                    //this.generateQueriesForAdressToCoordinate(State.getByName(stateName), streetValue, houseNumber, plz, houseNumberAddOn, null,", "  + geometricConstruct+ " as distancetopoint ", "order by distancetopoint", queries,48);// generates 13 more queries
+//                    if (!exactOnly) {
+//                        // fallback if everything fails: get the closest
+//                        // building to
+//                        // the given coordinate
+//                        if (coord_x != null && coord_y != null) {
+//                            query = "select * from (" +
+//                                    "	select 	id, strasse, hausnummer,hausnummerzusatz,plz, st_X(the_geom) as x, st_Y(the_geom) as y, " +
+//                                    geometricConstruct + " as distancetopoint " + "	from core.berlin_buildings " +
+//                                    "	where true " + geometricCheck + regionalCheck + ") as foo " +
+//                                    "order by distancetopoint";
+//                            queries.put(62, query);
+//                        }
+//                    }
+//                }
+//                // something to do?
+//                int numOfResults, minNum = Integer.MAX_VALUE;
+//                for (int j = 0; j < 63 && resultNotFound; ++j) {
+//                    if (queries.containsKey(j)) {
+//                        // get dataset
+//                        query = queries.get(j);//+ " LIMIT 1";
+//
+//
+//                        rs = this.dbCon.executeQuery(query, this);
+//                        numOfResults = 0;
+//                        while (rs.next()) {
+//                            numOfResults++;
+//                        }
+//
+//                        rs.close();
+//                        if (numOfResults < minNum && numOfResults > 0) {
+//                            minNum = numOfResults;
+//                            topQuery = query;
+//                        }
+//
+//                        if (numOfResults == 1) {
+//                            loc.setStatus(Location.STATUS_DISTINCT_IN_DATABASE);
+//                            rs = this.dbCon.executeQuery(query, this);
+//                            while (rs.next()) {
+//                                queryIndex = "Query " + j;
+//
+//                                if (loc.getValue("Bemerkungen") != null) queryIndex += " " + loc.getValue(
+//                                        "Bemerkungen");
+//
+//                                loc.updateOrAddValue("Bemerkungen", queryIndex);
+//
+//                                // update the data
+//                                this.updateLocation(rs, loc);
+//                                if (Constants.ENABLE_CHANGES_OF_MARCO) {
+//                                    if (loc.getStatus() == Location.STATUS_NOT_DISTINCT_IN_DATABASE) {
+//                                        returnValue = false;
+//                                        break;
+//                                    } else {
+//                                        returnValue = true;
+//                                    }
+//                                } else {
+//                                    // TODO soll hier nicht die gesamte äußere Schleife
+//                                    // abgebrochen werden
+//                                    returnValue = true;
+//                                    resultNotFound = false;
+//                                    break;
+//                                }
+//                            }
+//                            rs.close();
+//                            resultNotFound = false;
+//                        } else if (numOfResults > 0) {
+//                            loc.setStatus(Location.STATUS_NOT_DISTINCT_IN_DATABASE);
+//                        }
+//                    }
+//                }
+//            } catch (SQLException e) {
+//                System.out.println("SQL-Error: " + query);
+//                e.printStackTrace();
+//            }
         }
 
         if (loc.getValue("Bemerkungen") != null) topQuery += loc.getValue("Bemerkungen") + " " + topQuery;

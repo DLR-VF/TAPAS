@@ -12,10 +12,9 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
 
 public class TPS_ExtMode {
-    final public static TPS_ExtMode simpleWalk = new TPS_ExtMode(TPS_Mode.get(ModeType.WALK), null);
-    final public static TPS_ExtMode simplePT = new TPS_ExtMode(TPS_Mode.get(ModeType.PT), null);
-    final public static TPS_ExtMode simpleMIT = new TPS_ExtMode(TPS_Mode.get(ModeType.MIT), null);
+
     public TPS_Mode primary;
+
     public TPS_Mode secondary;
 
 
@@ -25,9 +24,11 @@ public class TPS_ExtMode {
     }
 
 
+    //todo implement a work around
     public int getMCTCode() {
-        int mid = secondary == null ? 0 : secondary.getCode(TPS_ModeCodeType.MCT);
-        return (mid << 8) | primary.getCode(TPS_ModeCodeType.MCT);
+//        int mid = secondary == null ? 0 : secondary.getCode(TPS_ModeCodeType.MCT);
+//        return (mid << 8) | primary.getCode(TPS_ModeCodeType.MCT);
+        return -1;
     }
 
     public String getName() {
@@ -37,20 +38,23 @@ public class TPS_ExtMode {
         }
         return name;
     }
-
+    //todo implement a work around
     public boolean isBikeUsed() {
-        if (primary.isType(ModeType.BIKE)) {
-            return true;
-        }
-        return secondary != null && secondary.isType(ModeType.BIKE);
+//        if (primary.isType(ModeType.BIKE)) {
+//            return true;
+//        }
+//        secondary != null && secondary.isType(ModeType.BIKE);
+
+        return false;
     }
 
-
+    //todo implement a work around
     public boolean isCarUsed() {
-        if (primary.isType(ModeType.MIT)) {
-            return true;
-        }
-        return secondary != null && secondary.isType(ModeType.MIT);
+//        if (primary.isType(ModeType.MIT)) {
+//            return true;
+//        }
+//        return secondary != null && secondary.isType(ModeType.MIT);
+        return false;
     }
 
     public boolean isFix() {

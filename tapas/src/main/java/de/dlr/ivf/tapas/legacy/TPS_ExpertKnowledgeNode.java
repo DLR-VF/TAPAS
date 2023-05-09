@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.implementation.utilityfunction;
+package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
@@ -45,11 +45,12 @@ public class TPS_ExpertKnowledgeNode extends TPS_Node {
      * @return a new instance of probability distribution according to the factors and summands.
      */
     public TPS_DiscreteDistribution<TPS_Mode> modifyDistribution(TPS_DiscreteDistribution<TPS_Mode> input) {
-        TPS_DiscreteDistribution<TPS_Mode> modification = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-        for (TPS_Mode mode : TPS_Mode.getConstants()) {
-            modification.setValueByKey(mode, input.getValueByKey(mode) * this.modificationFactor.getValueByKey(mode) +
-                    this.distribution.getValueByKey(mode));
-        }
+                                                                //todo revise this
+        TPS_DiscreteDistribution<TPS_Mode> modification = null;//new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
+//        for (TPS_Mode mode : TPS_Mode.getConstants()) {
+//            modification.setValueByKey(mode, input.getValueByKey(mode) * this.modificationFactor.getValueByKey(mode) +
+//                    this.distribution.getValueByKey(mode));
+//        }
 
         return modification;
     }

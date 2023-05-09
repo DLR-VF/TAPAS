@@ -48,10 +48,10 @@ public class OTP2SQLMatrix {
     }
 
     public void calcTop3() {
-        TPS_Geometrics.calcTop3(this.matrixTT);
-        TPS_Geometrics.calcTop3(this.matrixAcc);
-        TPS_Geometrics.calcTop3(this.matrixEgr);
-        TPS_Geometrics.calcTop3(this.matrixDist);
+//        TPS_Geometrics.calcTop3(this.matrixTT);
+//        TPS_Geometrics.calcTop3(this.matrixAcc);
+//        TPS_Geometrics.calcTop3(this.matrixEgr);
+//        TPS_Geometrics.calcTop3(this.matrixDist);
     }
 
     public void checkDBMatrix(String matrixName) {

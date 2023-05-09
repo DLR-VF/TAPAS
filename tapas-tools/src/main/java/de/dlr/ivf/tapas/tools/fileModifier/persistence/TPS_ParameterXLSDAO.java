@@ -9,7 +9,6 @@
 package de.dlr.ivf.tapas.tools.fileModifier.persistence;
 
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -191,7 +190,7 @@ public class TPS_ParameterXLSDAO extends AbstractTPS_ParameterDAO {
         cell.setCellValue(ParamString.CLASS_DATA_SCOURCE_ORIGIN.name());
         cell.setCellStyle(cellStyles[0]);
         cell = row.createCell(1);
-        cell.setCellValue(TPS_DB_IOManager.class.getName());
+        cell.setCellValue("TPS_DB_IOManager.class.getName()");
         cell.setCellStyle(cellStyles[1]);
 
         try {

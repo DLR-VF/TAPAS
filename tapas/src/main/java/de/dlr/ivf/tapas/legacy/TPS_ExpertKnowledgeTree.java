@@ -6,10 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.implementation.utilityfunction;
+package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.model.TPS_UtilityFunction;
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
@@ -17,11 +15,8 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
-import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
 
 /**
  * This tree describes the different specialisations of the mode distributions. At each node there is a different mode
@@ -48,6 +43,8 @@ public class TPS_ExpertKnowledgeTree extends TPS_ModeChoiceTree {
         super(root);
     }
 
+
+    //todo revise this
     /**
      * This method looks for expert knowledge data and applies them for the given distribution set
      *
@@ -64,20 +61,21 @@ public class TPS_ExpertKnowledgeTree extends TPS_ModeChoiceTree {
             boolean changed = false;
             int numEmpty = 0;
             for (TPS_Mode.ModeType m : TPS_Mode.MODE_TYPE_ARRAY) {
-                TPS_Mode mode = TPS_Mode.get(m);
-                double tt = mode.getTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                        SimulationType.SCENARIO, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
-                        plan.getPerson(), mcc.carForThisPlan);
-                if (TPS_Mode.noConnection(tt) || (!mcc.isBikeAvailable && mode.isType(TPS_Mode.ModeType.BIKE)) ||
-                        (mcc.carForThisPlan == null && mode.isType(TPS_Mode.ModeType.MIT)) || (mode.equals(
-                        TPS_Mode.ModeType.TAXI) && mode.getParameters().isFalse(ParamFlag.FLAG_USE_TAXI)) //disable TAXI
-                ) { // FIXME TPS_Mode comparison with ModeType is always false, right?
-                    dist.setValueByKey(mode, TPS_UtilityFunction.minModeProbability);
-                    changed = true;
-                }
-                if (dist.getValueByKey(mode) == 0) {
-                    numEmpty++;
-                }
+                //todo revise this
+//                TPS_Mode mode = TPS_Mode.get(m);
+//                double tt = mode.getTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
+//                        SimulationType.SCENARIO, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
+//                        plan.getPerson(), mcc.carForThisPlan);
+//                if (TPS_Mode.noConnection(tt) || (!mcc.isBikeAvailable && mode.isType(TPS_Mode.ModeType.BIKE)) ||
+//                        (mcc.carForThisPlan == null && mode.isType(TPS_Mode.ModeType.MIT)) || (mode.equals(
+//                        TPS_Mode.ModeType.TAXI) && mode.getParameters().isFalse(ParamFlag.FLAG_USE_TAXI)) //disable TAXI
+//                ) { // FIXME TPS_Mode comparison with ModeType is always false, right?
+//                    dist.setValueByKey(mode, TPS_UtilityFunction.minModeProbability);
+//                    changed = true;
+//                }
+//                if (dist.getValueByKey(mode) == 0) {
+//                    numEmpty++;
+//                }
             }
             if (changed || numEmpty == TPS_Mode.MODE_TYPE_ARRAY.length) {
                 if (numEmpty == TPS_Mode.MODE_TYPE_ARRAY.length || !dist.normalize()) {
@@ -104,7 +102,8 @@ public class TPS_ExpertKnowledgeTree extends TPS_ModeChoiceTree {
         double walkShare;
         if (distanceNet > modeSet.getParameters().getIntValue(ParamValue.MAX_WALK_DIST)) {
             walkShare = 0;
-            dist.setValueByKey(TPS_Mode.get(TPS_Mode.ModeType.WALK), walkShare);
+            //todo revise this
+            //dist.setValueByKey(TPS_Mode.get(TPS_Mode.ModeType.WALK), walkShare);
             return dist.normalize();
         }
         return true;

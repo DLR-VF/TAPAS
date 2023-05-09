@@ -8,7 +8,7 @@ import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.guard.Guard;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
 import de.dlr.ivf.tapas.mode.*;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
+import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;

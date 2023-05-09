@@ -43,7 +43,7 @@ public class TAZSRVAggregator {
 
         //MIV tt
         worker.tt = worker.readMatrices("F:\\Daten\\srv\\ttBerlinMIVFinal.txt");
-        TPS_Geometrics.calcTop3(worker.tt);
+        //TPS_Geometrics.calcTop3(worker.tt);
         worker.ttStatArea = worker.calculateAggegation(worker.tt, true);
         worker.writeMatrix(worker.ttStatArea, "F:\\Daten\\srv\\rita_out_TT_IV_median.csv");
         worker.ttStatArea = worker.calculateAggegation(worker.tt, false);
@@ -54,7 +54,7 @@ public class TAZSRVAggregator {
 
         //MIT dist
         worker.dist = worker.readMatrices("F:\\Daten\\srv\\distBerlin.txt");
-        TPS_Geometrics.calcTop3(worker.dist);
+        //TPS_Geometrics.calcTop3(worker.dist);
         worker.distStatArea = worker.calculateAggegation(worker.dist, true);
         worker.writeMatrix(worker.distStatArea, "F:\\Daten\\srv\\rita_out_dist_IV_median.csv");
         worker.distStatArea = worker.calculateAggegation(worker.dist, false);
@@ -64,7 +64,7 @@ public class TAZSRVAggregator {
 
         //PT tt
         worker.tt = worker.readMatrices("F:\\Daten\\srv\\OEV_TT_B_2005_HDB.txt");
-        TPS_Geometrics.calcTop3(worker.tt);
+        //TPS_Geometrics.calcTop3(worker.tt);
         worker.ttStatArea = worker.calculateAggegation(worker.tt, true);
         worker.writeMatrix(worker.ttStatArea, "F:\\Daten\\srv\\rita_out_TT_PT_median.csv");
         worker.ttStatArea = worker.calculateAggegation(worker.tt, false);
@@ -74,7 +74,7 @@ public class TAZSRVAggregator {
 
         //beeline
         worker.dist = worker.calculateBeeline();
-        TPS_Geometrics.calcTop3(worker.dist);
+        //TPS_Geometrics.calcTop3(worker.dist);
         worker.distStatArea = worker.calculateAggegation(worker.dist, true);
         worker.writeMatrix(worker.distStatArea, "F:\\Daten\\srv\\rita_out_dist_Beeline_median.csv");
         worker.distStatArea = worker.calculateAggegation(worker.dist, false);

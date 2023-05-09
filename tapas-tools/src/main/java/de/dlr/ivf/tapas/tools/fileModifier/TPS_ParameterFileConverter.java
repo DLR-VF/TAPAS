@@ -9,7 +9,6 @@
 package de.dlr.ivf.tapas.tools.fileModifier;
 
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.tools.fileModifier.filefilter.ExtensionFilter;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
@@ -209,13 +208,13 @@ public class TPS_ParameterFileConverter {
 
         File def = chooseFile(new File(path, "Simulationen"), "Choose default config file", JFileChooser.FILES_ONLY);
         if (def == null) return;
-
-        try {
-            parameterClass.loadSingleParameterFile(def);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
+//todo revise this
+//        try {
+//            parameterClass.loadSingleParameterFile(def);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            System.exit(-1);
+//        }
 
         File folder = chooseFile(path, "Choose directory for converted files", JFileChooser.DIRECTORIES_ONLY);
         if (folder == null) return;
@@ -291,7 +290,7 @@ public class TPS_ParameterFileConverter {
         cell.setCellValue(ParamString.CLASS_DATA_SCOURCE_ORIGIN.name());
         cell.setCellStyle(cellStyles[0]);
         cell = row.createCell(1);
-        cell.setCellValue(TPS_DB_IOManager.class.getName());
+        cell.setCellValue("TPS_DB_IOManager.class.getName()");
         cell.setCellStyle(cellStyles[1]);
 
         try {

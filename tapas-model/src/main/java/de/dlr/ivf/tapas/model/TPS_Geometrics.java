@@ -41,9 +41,9 @@ public class TPS_Geometrics {
      *
      * @param matrix
      */
-    public static void calcTop3(double[][] matrix) {
-        calcTopX(matrix, 3, 0.8);
-    }
+//    public static void calcTop3(double[][] matrix) {
+//        calcTopX(matrix, 3, 0.8);
+//    }
 
     /**
      * Function to calculate a generic TOPx-Strategy for diagonal elements with a given weight.
@@ -94,46 +94,6 @@ public class TPS_Geometrics {
         //	return TPS_Geometrics.getDistance((TPS_Location) l0, (TPS_Location) l1);
         //}
         return getDistance(l0.getCoordinate(), l1.getCoordinate(), min_dist);
-    }
-
-    /**
-     * @param startLoc Starting location
-     * @param endLoc   Destination location
-     * @return distance in meters
-     */
-    public static double getDistance(Locatable startLoc, Locatable endLoc, TPS_Mode mode, SimulationType simType) {
-        double dist = -1;
-
-        /*
-         * TODO RITA: check if this calculation method is valid and reasonable Determines the distance in meters between two
-         * locations. Uses the intraTVZInfoMatrix if start and end traffic analysis zone are equal. Otherwise the distance is
-         * calculated by the coordinates of the locations. Returns at least the in the configuration specified minimal
-         * distance.
-         */
-        if (startLoc != null && endLoc != null) {
-            int bezAId = startLoc.getTrafficAnalysisZone().getTAZId();
-            int bezBId = endLoc.getTrafficAnalysisZone().getTAZId();
-
-            if (bezAId == bezBId && mode.getParameters().isTrue(ParamFlag.FLAG_INTRA_INFOS_MATRIX) &&
-                    mode.getParameters().isFalse(ParamFlag.FLAG_USE_BLOCK_LEVEL)) {
-
-                // Rückkonvertierung erfolgt durch die Modifizierung der Intrazelleninfo per beelinefaktor:
-                // beelineLoc/beelineTAZ
-
-                double distanceNet = mode.getDistance(startLoc, endLoc, simType, null);
-
-                double beelineTAZ = mode.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_BL, bezAId,
-                        bezBId);
-                double beelineLoc = getDistance(startLoc.getCoordinate(), endLoc.getCoordinate(),
-                        mode.getParameters().getDoubleValue(ParamValue.MIN_DIST));
-                // Hier: Rückkonvertierung zu Luftliniendistanz Multiplizierung mit den "Luftlinienfaktor"
-                dist = distanceNet * beelineLoc / beelineTAZ;
-            } else {
-                dist = getDistance(startLoc.getCoordinate(), endLoc.getCoordinate(),
-                        mode.getParameters().getDoubleValue(ParamValue.MIN_DIST));
-            }
-        }
-        return Math.max(mode.getParameters().getDoubleValue(ParamValue.MIN_DIST), dist);
     }
 
     /**

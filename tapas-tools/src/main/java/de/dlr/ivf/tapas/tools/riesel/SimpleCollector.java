@@ -8,16 +8,24 @@
 
 package de.dlr.ivf.tapas.tools.riesel;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.JdbcConnectionProvider;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.function.Supplier;
 
 /**
  * This class distributes a given number of inhabitants on addresses found within the geometries.<br>
@@ -30,13 +38,13 @@ public class SimpleCollector implements Runnable {
 
     private static final int QUEUE_SIZE = 10000;
 
-    private final TPS_DB_Connector dbCon;
+    private final Supplier<Connection> dbCon;
 
     private final ArrayBlockingQueue<AddressPojo> queue;
 
     private final SimpleCollectorWriter writer;
 
-    public SimpleCollector(TPS_DB_Connector dbCon, String outputFilePath) throws IOException {
+    public SimpleCollector(Supplier<Connection> dbCon, String outputFilePath) throws IOException {
         super();
         this.dbCon = dbCon;
         queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
@@ -50,12 +58,13 @@ public class SimpleCollector implements Runnable {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
 
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        parameterClass.loadRuntimeParameters(new File(loginInfo));
-        parameterClass.setValue("DB_DBNAME", "tapas");
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+        Path configFile = Paths.get(args[0]);
+        if (!Files.isRegularFile(configFile))
+            throw new IllegalArgumentException("The provided argument is not a file.");
 
-        SimpleCollector sc = new SimpleCollector(dbCon, "D:\\tmp\\berlin_blocks.csv");
+        ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
+
+        SimpleCollector sc = new SimpleCollector(() -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector),"D:\\tmp\\berlin_blocks.csv");
 
         sc.run();
     }
@@ -80,14 +89,19 @@ public class SimpleCollector implements Runnable {
                 " JOIN core.berlin_address_bkg AS add " +
                 " ON ST_WITHIN(ST_TRANSFORM(add.the_geom,4326),ewz.the_geom) " + " WHERE ewz.gid = " + ewz.key;
 
-        ResultSet rs = dbCon.executeQuery(query, this);
-
         ArrayList<Integer> buildings = new ArrayList<>();
-        while (rs.next()) {
-            buildings.add(rs.getInt("id"));
-        }
 
-        rs.close();
+        try(Connection connection = dbCon.get();
+            PreparedStatement st = connection.prepareStatement(query);
+            ResultSet rs = st.executeQuery()) {
+
+            while (rs.next()) {
+                buildings.add(rs.getInt("id"));
+            }
+
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
 
         return buildings;
     }
@@ -96,14 +110,18 @@ public class SimpleCollector implements Runnable {
 
         String query = "SELECT gid, insgesamt FROM core.berlin_blocks_multiline " + " WHERE netzf = 'Block'";
 
-        ResultSet rs = dbCon.executeQuery(query, this);
-
         ArrayList<EWZPojo> result = new ArrayList<>();
-        while (rs.next()) {
-            EWZPojo ewz = new EWZPojo(rs.getInt("gid"), rs.getInt("insgesamt"));
-            result.add(ewz);
+        try(Connection connection = dbCon.get();
+            PreparedStatement st = connection.prepareStatement(query);
+            ResultSet rs = st.executeQuery()) {
+
+            while (rs.next()) {
+                EWZPojo ewz = new EWZPojo(rs.getInt("gid"), rs.getInt("insgesamt"));
+                result.add(ewz);
+            }
+        }catch (SQLException e){
+            e.printStackTrace();
         }
-        rs.close();
 
         return result;
     }

@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.model.mode;
+package de.dlr.ivf.tapas.mode;
 
 import java.util.Optional;
 import java.util.function.Predicate;

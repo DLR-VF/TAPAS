@@ -2,8 +2,9 @@ package de.dlr.ivf.tapas.runtime.server;
 
 import de.dlr.ivf.tapas.execution.sequential.TPS_SequentialSimulator;
 import de.dlr.ivf.tapas.execution.sequential.action.ActionProvider;
+import de.dlr.ivf.tapas.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.SharingMediator;
-import de.dlr.ivf.tapas.model.mode.SimpleCarSharingOperator;
+import de.dlr.ivf.tapas.mode.SimpleCarSharingOperator;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_EventType;
 import de.dlr.ivf.tapas.execution.sequential.event.TPS_Event;
 import de.dlr.ivf.tapas.execution.sequential.io.HouseholdBasedPlanGenerator;
@@ -98,7 +99,7 @@ public class SequentialSimulator implements TPS_Simulator {
             TPS_PipedDbWriter writer = new TPS_PipedDbWriter(pm, trip_count, 1 << 19);
 
             //set up handlers for transition actions
-            TPS_ModeValidator mode_validator = new TPS_ModeValidator(car_sharing_delegator);
+            TPS_ModeValidator mode_validator = new TPS_ModeValidator(car_sharing_delegator, this.pm.getModeSet().modes());
 
             BiFunction<TPS_Episode, Supplier<Integer>, Integer> guard_adaption_function = (episode, time_deviation) -> FuncUtils.secondsToRoundedMinutes.apply(episode.getOriginalEnd() + time_deviation.get());
 
