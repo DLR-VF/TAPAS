@@ -8,22 +8,23 @@
 
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
-import de.dlr.ivf.tapas.model.parameter.ParamString;
-
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 
 /**
@@ -31,8 +32,9 @@ import java.util.Map;
  *
  * @author hein_mh
  */
-public class SumoMatrixImporter extends TPS_BasicConnectionClass {
+public class SumoMatrixImporter {
 
+    private final SumoMatrixImporterConfig config;
     /**
      * A reference to the existing converter, which provides several helper functions
      */
@@ -45,28 +47,24 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
     /**
      * Constructor for this class.
      *
-     * @param loginInfo Filename containing the db-login
      */
-    public SumoMatrixImporter(String loginInfo, String configInfo) {
-        super(loginInfo);
-        converter = new TPS_SumoConverter(this.dbCon);
-        try {
-            this.parameterClass.loadSingleParameterFile(new File(configInfo));
-            //reload the config to ensure we have the admin passwords!
-            this.parameterClass.loadSingleParameterFile(new File(loginInfo));
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public SumoMatrixImporter(SumoMatrixImporterConfig config) {
+        this.config = config;
     }
 
     /**
      * @param args
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
+        Path configFile = Paths.get(args[0]);
+        if (!Files.isRegularFile(configFile))
+            throw new IllegalArgumentException("The provided argument is not a file.");
 
-        SumoMatrixImporter worker = new SumoMatrixImporter("T:\\Simulationen\\runtime_athene_admin.csv",
-                "T:\\Simulationen\\DB_Produktiv\\Berlin\\Urmo Digital\\db_Run_full_new.csv");
+        SumoMatrixImporterConfig config = new ObjectMapper().readValue(configFile.toFile(), SumoMatrixImporterConfig.class);
+
+        SumoMatrixImporter worker = new SumoMatrixImporter(config);
+                //new SumoMatrixImporter("T:\\Simulationen\\runtime_athene_admin.csv",
+                //"T:\\Simulationen\\DB_Produktiv\\Berlin\\Urmo Digital\\db_Run_full_new.csv");
 
         worker.readSumoValues("temp", "sumo_od_entry_2021y_06m_04d_11h_04m_34s_855ms_car", "sumo_od_2021y_06m_04d_11h_04m_34s_855ms_car",86400);
         worker.writeMatrix(worker.travelTime, "SUMO_1223_MIV_TT_T0_20211005");
@@ -83,22 +81,29 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
      */
     public void readSumoValues(String schema, String tableODEntries, String relationEntries, double intervalEnd) {
         String query = "";
-        try {
+
             String tableNameODEntries = schema + "." + tableODEntries;
             String tableNameRelations = schema + "." + relationEntries;
             double[] tt, dist;
-            ResultSet rs;
-            //read min and max taz values
 
-            query = "SELECT taz_num_id from " + this.parameterClass.getString(ParamString.DB_SCHEMA_CORE) +
-                    this.parameterClass.getString(ParamString.DB_TABLE_TAZ) + " order by taz_num_id asc";
-            rs = dbCon.executeQuery(query, this);
+        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getTazTable().getConnector());
+
+        try (Connection connection = connectionSupplier.get()){
+
             int id = 0;
-            while (rs.next()) {
-                this.tazMap.put(rs.getInt("taz_num_id"), id);
-                id++;
+
+            //read min and max taz values
+            query = "SELECT taz_num_id from " + config.getTazTable().getUri() + " order by taz_num_id asc";
+
+            try(PreparedStatement st = connection.prepareStatement(query);
+                ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    this.tazMap.put(rs.getInt("taz_num_id"), id);
+                    id++;
+                }
+            }catch (SQLException e){
+                e.printStackTrace();
             }
-            rs.close();
 
 
             int numOfTAZ = id;
@@ -115,23 +120,27 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
                         "WHERE interval_end = " + intervalEnd + " AND od.entry_id%" + chunks + " = " + i;
 
                 int from, to;
-                rs = dbCon.executeQuery(query, this);
-                while (rs.next()) {
-                    from = this.tazMap.get(rs.getInt("taz_id_start"));
-                    to = this.tazMap.get(rs.getInt("taz_id_end"));
-                    tt = TPS_DB_IO.extractDoubleArray(rs, "travel_time_sec");
-                    dist = TPS_DB_IO.extractDoubleArray(rs, "distance_real");
-                    if(tt != null  && tt.length == 3 && dist != null && dist.length == 3) {
-                        travelTime.setValue(from, to, Math.round(tt[2]));
-                        distance.setValue(from, to, Math.round(dist[2]));
+
+                try(PreparedStatement st = connection.prepareStatement(query);
+                    ResultSet rs = st.executeQuery()){
+                    while (rs.next()) {
+                        from = this.tazMap.get(rs.getInt("taz_id_start"));
+                        to = this.tazMap.get(rs.getInt("taz_id_end"));
+                        tt = TPS_DB_IO.extractDoubleArray(rs, "travel_time_sec");
+                        dist = TPS_DB_IO.extractDoubleArray(rs, "distance_real");
+                        if(tt != null  && tt.length == 3 && dist != null && dist.length == 3) {
+                            travelTime.setValue(from, to, Math.round(tt[2]));
+                            distance.setValue(from, to, Math.round(dist[2]));
+                        }
+                        else{
+                            System.err.println(
+                                    this.getClass().getCanonicalName() + " readSumoValues: unexpected db entry: F: "
+                                            + from + " T: "+to +" TT: "+tt+" dist: " + dist);
+                        }
                     }
-                    else{
-                        System.err.println(
-                                this.getClass().getCanonicalName() + " readSumoValues: unexpected db entry: F: "
-                                        + from + " T: "+to +" TT: "+tt+" dist: " + dist);
-                    }
+                }catch (SQLException e){
+                    e.printStackTrace();
                 }
-                rs.close();
             }
 
             double[][] valuesTT = new double[numOfTAZ][numOfTAZ];
@@ -145,9 +154,9 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
                 }
             }
 
-
-            TPS_Geometrics.calcTop3(valuesTT);
-            TPS_Geometrics.calcTop3(valuesDist);
+//todo revise this
+//            TPS_Geometrics.calcTop3(valuesTT);
+//            TPS_Geometrics.calcTop3(valuesDist);
 
             //fill in diagonal
             for (i = 0; i < numOfTAZ; ++i) {
@@ -169,35 +178,39 @@ public class SumoMatrixImporter extends TPS_BasicConnectionClass {
     }
 
     public void writeMatrix(Matrix matrix, String matrixName) {
+
+        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getMatricesTable().getConnector());
         //load the data from the db
-        String query = "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_SCHEMA_CORE) +
-                this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + " WHERE \"matrix_name\" = '" +
+        String query = "SELECT * FROM " + config.getMatricesTable().getUri() + " WHERE \"matrix_name\" = '" +
                 matrixName + "'";
         if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
             TPS_Logger.log(SeverityLogLevel.INFO, "Preparing data for entry: " + matrixName + " in table " +
-                    this.parameterClass.getString(ParamString.DB_TABLE_MATRICES));
+                    config.getMatricesTable().getUri());
         }
         if (converter.checkMatrixName(matrixName)) {
             //update!
-            query = "UPDATE " + this.parameterClass.getString(ParamString.DB_SCHEMA_CORE) +
-                    this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + " SET matrix_values = ";
+            query = "UPDATE " + config.getMatricesTable().getUri() + " SET matrix_values = ";
             query += TPS_DB_IO.matrixToSQLArray(matrix, 0) + " WHERE \"matrix_name\" = '" + matrixName + "'";
             if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
                 TPS_Logger.log(SeverityLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
-                        this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + ".");
+                        config.getMatricesTable().getUri() + ".");
             }
         } else {
-            query = "INSERT INTO " + this.parameterClass.getString(ParamString.DB_SCHEMA_CORE) +
-                    this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) +
+            query = "INSERT INTO " + config.getMatricesTable().getUri() +
                     " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
             query += TPS_DB_IO.matrixToSQLArray(matrix, 0) + ")";
             if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
                 TPS_Logger.log(SeverityLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
-                        this.parameterClass.getString(ParamString.DB_TABLE_MATRICES) + ".");
+                        config.getMatricesTable().getUri() + ".");
             }
         }
         writeStringToFile(query, "C:\\temp\\sumo-" + matrixName + ".sql");
-        dbCon.execute(query, this);
+        try(Connection connection = connectionSupplier.get();
+            Statement st = connection.createStatement()){
+            st.execute(query);
+        }catch (SQLException e){
+            e.printStackTrace();
+        }
         if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
             TPS_Logger.log(SeverityLogLevel.INFO, "Successful!");
         }
