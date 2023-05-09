@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.distance.TravelDistanceFunction;
+import de.dlr.ivf.tapas.choice.distance.MatrixFunction;
 import de.dlr.ivf.tapas.choice.distance.functions.SimpleMatrixDistanceFunction;
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
 import de.dlr.ivf.tapas.choice.traveltime.functions.*;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
@@ -27,19 +27,19 @@ import static de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType.PT;
  */
 public class TravelTimeCalculator {
 
-    private final Map<TPS_Mode, TravelTimeFunction> modeTravelTimeFunctions;
-    private final EnumMap<ModeType, TravelTimeFunction> altModeTravelTimeFunctions;
-    private final EnumMap<ModeType, TravelTimeFunction> intraTazTravelTimeFunctions;
+    private final Map<TPS_Mode, MatrixMapFunction> modeTravelTimeFunctions;
+    private final EnumMap<ModeType, MatrixMapFunction> altModeTravelTimeFunctions;
+    private final EnumMap<ModeType, MatrixMapFunction> intraTazTravelTimeFunctions;
 
     private final double minDist;
 
     private final boolean useSchoolBus;
     private final EnumMap<ModeType, TPS_Mode> modeMap;
-    private final TravelTimeFunction schoolBusTravelTimeFunction;
+    private final MatrixMapFunction schoolBusTravelTimeFunction;
     private final int automaticVehicleLevel;
     private final double automaticVehicleRampUp;
     private final SimulationType simulationType;
-    private final TravelDistanceFunction beelineDistanceFunction;
+    private final MatrixFunction beelineDistanceFunction;
     private final int vehicleTimeModThreshhold;
     private final double vehicleTimeModFar;
     private final double vehicleTimeModNear;
@@ -78,14 +78,14 @@ public class TravelTimeCalculator {
         //pt
         TPS_Mode modeWalk = modeMap.get(ModeType.WALK);
         TPS_Mode modePt = modeMap.get(PT);
-        TravelTimeFunction ptTtFunction = new PtTravelTimeFunction(parameterClass,modePt, modeWalk);
+        MatrixMapFunction ptTtFunction = new PtTravelTimeFunction(parameterClass,modePt, modeWalk);
         modeTravelTimeFunctions.put(modePt, ptTtFunction);
 
         //walk
         MatrixMap walkTtMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.TRAVEL_TIME_WALK, parameterClass.getSimulationType());
         MatrixMap walkAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_WALK, parameterClass.getSimulationType());
         MatrixMap walkEgressMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.EGRESS_WALK, parameterClass.getSimulationType());
-        TravelTimeFunction walkTtFunction = new WalkBikeTravelTimeFunction(walkTtMatrixMap,walkAccessMatrixMap,walkEgressMatrixMap,parameterClass,modeWalk);
+        MatrixMapFunction walkTtFunction = new WalkBikeTravelTimeFunction(walkTtMatrixMap,walkAccessMatrixMap,walkEgressMatrixMap,parameterClass,modeWalk);
         modeTravelTimeFunctions.put(modeWalk, walkTtFunction);
 
         //bike
@@ -93,11 +93,11 @@ public class TravelTimeCalculator {
         MatrixMap bikeTtMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.TRAVEL_TIME_BIKE, parameterClass.getSimulationType());
         MatrixMap bikeAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_BIKE, parameterClass.getSimulationType());
         MatrixMap bikeEgressMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.EGRESS_BIKE, parameterClass.getSimulationType());
-        TravelTimeFunction bikeTtFunction = new WalkBikeTravelTimeFunction(bikeTtMatrixMap,bikeAccessMatrixMap,bikeEgressMatrixMap,parameterClass, modeBike);
+        MatrixMapFunction bikeTtFunction = new WalkBikeTravelTimeFunction(bikeTtMatrixMap,bikeAccessMatrixMap,bikeEgressMatrixMap,parameterClass, modeBike);
         modeTravelTimeFunctions.put(modeBike, bikeTtFunction);
 
         //MIT - MIT_PASS - CAR_SHARING - TAXI
-        TravelTimeFunction mitTravelTimeFunction = new MitTravelTimeFunction(parameterClass, modeWalk.getVelocity());
+        MatrixMapFunction mitTravelTimeFunction = new MitTravelTimeFunction(parameterClass, modeWalk.getVelocity());
         modeTravelTimeFunctions.put(modeMap.get(ModeType.MIT), mitTravelTimeFunction);
         modeTravelTimeFunctions.put(modeMap.get(ModeType.MIT_PASS),mitTravelTimeFunction);
         modeTravelTimeFunctions.put(modeMap.get(ModeType.TAXI), mitTravelTimeFunction);

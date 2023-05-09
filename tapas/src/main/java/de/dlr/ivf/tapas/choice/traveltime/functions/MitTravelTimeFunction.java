@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -10,7 +10,7 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.parameter.*;
 
-public class MitTravelTimeFunction implements TravelTimeFunction {
+public class MitTravelTimeFunction implements MatrixMapFunction {
 
     private final SimulationType simType;
     private final int minDist;

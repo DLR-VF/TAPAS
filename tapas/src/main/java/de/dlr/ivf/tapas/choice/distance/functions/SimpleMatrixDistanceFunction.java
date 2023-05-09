@@ -1,10 +1,10 @@
 package de.dlr.ivf.tapas.choice.distance.functions;
 
-import de.dlr.ivf.tapas.choice.distance.TravelDistanceFunction;
+import de.dlr.ivf.tapas.choice.distance.MatrixFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.location.Locatable;
 
-public class SimpleMatrixDistanceFunction implements TravelDistanceFunction {
+public class SimpleMatrixDistanceFunction implements MatrixFunction {
 
     private final Matrix distanceMatrix;
 

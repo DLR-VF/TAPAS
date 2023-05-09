@@ -74,7 +74,7 @@ public class HouseholdBasedPlanGenerator {
                 }
             }
 
-            TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person);
+            TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, pm.getParameters());
             TPS_Scheme scheme = pm.getSchemesSet().findScheme(person);
             TPS_Plan the_plan = new TPS_Plan(person,pe,scheme,pm);
 

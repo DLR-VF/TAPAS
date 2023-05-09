@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -11,7 +11,7 @@ import de.dlr.ivf.tapas.model.parameter.ParamMatrixMap;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
-public class SchoolBusTravelTimeFunction implements TravelTimeFunction {
+public class SchoolBusTravelTimeFunction implements MatrixMapFunction {
 
     private final MatrixMap avgSpeedSchoolBusMatrixMap;
     private final double defaultSchoolBusAccess;

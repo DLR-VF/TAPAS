@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.distance.TravelDistanceFunction;
+import de.dlr.ivf.tapas.choice.distance.MatrixFunction;
 import de.dlr.ivf.tapas.choice.distance.functions.IndividualTransportDistanceFunction;
 import de.dlr.ivf.tapas.choice.distance.functions.SimpleMatrixDistanceFunction;
 import de.dlr.ivf.tapas.model.Matrix;
@@ -18,7 +18,7 @@ import java.util.EnumMap;
  */
 public class TravelDistanceCalculator {
 
-    private final EnumMap<ModeType, TravelDistanceFunction> modeDistanceFunctions;
+    private final EnumMap<ModeType, MatrixFunction> modeDistanceFunctions;
 
     public TravelDistanceCalculator(TPS_ParameterClass parameterClass){
         this.modeDistanceFunctions = new EnumMap<>(ModeType.class);
@@ -33,18 +33,18 @@ public class TravelDistanceCalculator {
 
         //walk
         Matrix walkDistanceMatrix = paramMatrixClass.getMatrix(ParamMatrix.DISTANCES_WALK);
-        TravelDistanceFunction walkDistanceFunction = new SimpleMatrixDistanceFunction(walkDistanceMatrix);
+        MatrixFunction walkDistanceFunction = new SimpleMatrixDistanceFunction(walkDistanceMatrix);
         this.modeDistanceFunctions.put(ModeType.WALK, walkDistanceFunction);
 
         //bike
         Matrix bikeDistanceMatrix = paramMatrixClass.getMatrix(ParamMatrix.DISTANCES_BIKE);
-        TravelDistanceFunction bikeDistanceFunction = new SimpleMatrixDistanceFunction(bikeDistanceMatrix);
+        MatrixFunction bikeDistanceFunction = new SimpleMatrixDistanceFunction(bikeDistanceMatrix);
         this.modeDistanceFunctions.put(ModeType.BIKE, bikeDistanceFunction);
 
         //mit - mit_pass - taxi - car_sharing
         Matrix streetDistanceMatrix = paramMatrixClass.getMatrix(ParamMatrix.DISTANCES_STREET);
         Matrix beelineDistaanceMatrix = paramMatrixClass.getMatrix(ParamMatrix.DISTANCES_BL);
-        TravelDistanceFunction mitDistanceFunction = new IndividualTransportDistanceFunction(minDist,intraTazInfo,streetDistanceMatrix, beelineDistaanceMatrix, simulationType);
+        MatrixFunction mitDistanceFunction = new IndividualTransportDistanceFunction(minDist,intraTazInfo,streetDistanceMatrix, beelineDistaanceMatrix, simulationType);
 
         this.modeDistanceFunctions.put(ModeType.MIT, mitDistanceFunction);
         this.modeDistanceFunctions.put(ModeType.MIT_PASS, mitDistanceFunction);
@@ -53,7 +53,7 @@ public class TravelDistanceCalculator {
 
         //pt
         Matrix ptDistanceMatrix = paramMatrixClass.getMatrix(ParamMatrix.DISTANCES_PT);
-        TravelDistanceFunction ptDistanceFunction = new SimpleMatrixDistanceFunction(ptDistanceMatrix);
+        MatrixFunction ptDistanceFunction = new SimpleMatrixDistanceFunction(ptDistanceMatrix);
         this.modeDistanceFunctions.put(ModeType.PT, ptDistanceFunction);
     }
 

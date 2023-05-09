@@ -1,12 +1,12 @@
 package de.dlr.ivf.tapas.choice.distance.functions;
 
-import de.dlr.ivf.tapas.choice.distance.TravelDistanceFunction;
+import de.dlr.ivf.tapas.choice.distance.MatrixFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
 
-public class IndividualTransportDistanceFunction implements TravelDistanceFunction {
+public class IndividualTransportDistanceFunction implements MatrixFunction {
 
     private final double minDist;
     private final boolean intraTazInfo;

@@ -1,5 +1,8 @@
 package de.dlr.ivf.tapas.runtime.server;
 
+import de.dlr.ivf.tapas.choice.FeasibilityCalculator;
+import de.dlr.ivf.tapas.choice.LocationAndModeChooser;
+import de.dlr.ivf.tapas.choice.ModeSelector;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
@@ -15,11 +18,15 @@ import java.util.concurrent.Future;
 public class HierarchicalSimulator implements TPS_Simulator {
 
     private final TPS_PersistenceManager pm;
+    private final LocationAndModeChooser locationAndModeChooser;
+    private final FeasibilityCalculator feasibilityCalculator;
     private List<TPS_Worker> workers;
     private ExecutorService es;
 
-    public HierarchicalSimulator(TPS_PersistenceManager pm){
+    public HierarchicalSimulator(TPS_PersistenceManager pm, LocationAndModeChooser locationAndModeChooser, FeasibilityCalculator feasibilityCalculator){
         this.pm = pm;
+        this.locationAndModeChooser = locationAndModeChooser;
+        this.feasibilityCalculator = feasibilityCalculator;
     }
 
     @Override
@@ -37,9 +44,10 @@ public class HierarchicalSimulator implements TPS_Simulator {
 
             this.es = Executors.newFixedThreadPool(num_threads);
             List<Future<Exception>> col = new LinkedList<>();
+
             for (int activeThreads = 0; activeThreads < num_threads; activeThreads++) {
 
-                TPS_Worker worker = new TPS_Worker(this.pm,"TPS_Worker #"+activeThreads);
+                TPS_Worker worker = new TPS_Worker(this.pm,"TPS_Worker #"+activeThreads, this.locationAndModeChooser,this.feasibilityCalculator);
 
                 this.workers.add(worker);
                 col.add(es.submit(worker));
