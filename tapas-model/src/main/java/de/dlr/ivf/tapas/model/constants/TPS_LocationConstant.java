@@ -8,12 +8,17 @@
 
 package de.dlr.ivf.tapas.model.constants;
 
-import java.util.EnumMap;
-import java.util.HashMap;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+
+import java.util.*;
 
 /**
  * This class represents the constants for the location codes.
  */
+@Builder
+@Getter
 public class TPS_LocationConstant {
 
     /**
@@ -24,12 +29,15 @@ public class TPS_LocationConstant {
     /**
      * maps ids from the db to TPS_LocationConstant objects constructed from corresponding db data
      */
-    private static final HashMap<Integer, TPS_LocationConstant> LOCATION_CONSTANT_MAP = new HashMap<>();
+    private static final HashMap<Integer, TPS_LocationConstant> locationConstantMappings = new HashMap<>();
     /**
      * maps a location code type (like TAPAS o GENERAL) to an internal constant and its fields (name, code and
      * the same location code)
      */
-    private final EnumMap<TPS_LocationCodeType, TPS_InternalConstant<TPS_LocationCodeType>> map;
+    private final Map<TPS_LocationCodeType, TPS_InternalConstant<TPS_LocationCodeType>> internalConstantMappings;
+
+    @Singular
+    private final Collection<TPS_InternalConstant> internalConstants;
 
     /**
      * id from the db
@@ -48,18 +56,20 @@ public class TPS_LocationConstant {
             throw new RuntimeException(
                     "TPS_LocationConstant need n*3 attributes n*(name, code, type): " + attributes.length);
         }
-        this.map = new EnumMap<>(TPS_LocationCodeType.class);
+        this.internalConstantMappings = new EnumMap<>(TPS_LocationCodeType.class);
         this.id = id;
+        this.internalConstants = new ArrayList<>();
         TPS_InternalConstant<TPS_LocationCodeType> tic;
         for (int i = 0; i < attributes.length; i += 3) {
             tic = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
                     TPS_LocationCodeType.valueOf(attributes[i + 2]));
-            this.map.put(tic.getType(), tic);
+            this.internalConstantMappings.put(tic.getType(), tic);
+            this.internalConstants.add(tic);
         }
 
         // check if all location code types are defined in the map
         for (TPS_LocationCodeType type : TPS_LocationCodeType.values()) {
-            if (!this.map.containsKey(type)) {
+            if (!this.internalConstantMappings.containsKey(type)) {
                 throw new RuntimeException(
                         "Location constant for " + this.getId() + " for type " + type.name() + " not defined");
             }
@@ -70,7 +80,7 @@ public class TPS_LocationConstant {
      * Empties the location constant map
      */
     public static void clearLocationConstantMap() {
-        LOCATION_CONSTANT_MAP.clear();
+        locationConstantMappings.clear();
     }
 
     /**
@@ -79,7 +89,7 @@ public class TPS_LocationConstant {
      * @return location constant object for a given TPS_LocationCodeType and code (int)
      */
     public static TPS_LocationConstant getLocationCodeByTypeAndCode(TPS_LocationCodeType type, int code) {
-        for (TPS_LocationConstant tac : LOCATION_CONSTANT_MAP.values()) {
+        for (TPS_LocationConstant tac : locationConstantMappings.values()) {
             if (tac.getCode(type) == code) {
                 return tac;
             }
@@ -92,7 +102,7 @@ public class TPS_LocationConstant {
      * The objects are accessed by their ids from the db.
      */
     public void addLocationCodeToMap() {
-        LOCATION_CONSTANT_MAP.put(id, this);
+        locationConstantMappings.put(id, this);
     }
 
     /**
@@ -100,7 +110,7 @@ public class TPS_LocationConstant {
      * @return code corresponding to the location code enum type
      */
     public int getCode(TPS_LocationCodeType type) {
-        return map.get(type).getCode();
+        return internalConstantMappings.get(type).getCode();
     }
 
     /**

@@ -788,7 +788,7 @@ public class TPS_DB_IO {
         this.readDistanceCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), null));
         this.readDrivingLicenseCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION), null));
         this.readIncomeCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_INCOME), null));
-        this.readLocationConstantCodes();
+        this.readLocationConstantCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_LOCATION), null));
         this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
         this.readPersonGroupCodes();
         this.readSettlementSystemCodes("");
@@ -972,26 +972,28 @@ public class TPS_DB_IO {
      * A LocationConstant has the form (id, 3-tuples of (name, code, type))
      * Example: (5, (club, 7, GENERAL), (club, 7, TAPAS))
      */
-    private void readLocationConstantCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_LOCATION);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            TPS_LocationConstant tlc;
-            while (rs.next()) {
-                String[] attributes = new String[rs.getMetaData().getColumnCount() - 3];
-                for (int i = 0; i < attributes.length; i++) {
-                    attributes[i] = rs.getString(i + 4);
-                }
-                tlc = new TPS_LocationConstant(rs.getInt("id"), attributes);
-                //add this location code object to a static map which is a global collection of all location constants
-                tlc.addLocationCodeToMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR,
-                    "SQL error in readLocationConstantCodes! Query: " + query + " constant:" +
-                            this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_LOCATION), e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_LOCATION));
+    private Collection<TPS_LocationConstant> readLocationConstantCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<LocationCodeDto> locationCodeDtos = reader.read(new ResultSetConverter<>(LocationCodeDto.class,LocationCodeDto::new), dataSource);
+
+        Collection<TPS_LocationConstant> locationConstants = new ArrayList<>();
+
+        for(LocationCodeDto locationCodeDto : locationCodeDtos) {
+
+            TPS_LocationConstant locationConstant = TPS_LocationConstant.builder()
+                    .id(locationCodeDto.getId())
+                    .internalConstant(new TPS_InternalConstant<>(locationCodeDto.getNameGeneral(),
+                            locationCodeDto.getCodeGeneral(), TPS_LocationCodeType.valueOf(locationCodeDto.getTypeGeneral())))
+                    .internalConstant(new TPS_InternalConstant<>(locationCodeDto.getNameTapas(),
+                            locationCodeDto.getCodeTapas(), TPS_LocationCodeType.valueOf(locationCodeDto.getTypeTapas())))
+                    .build();
+
+            locationConstants.add(locationConstant);
         }
+
+        return locationConstants;
     }
 
     /**

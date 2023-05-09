@@ -8,6 +8,8 @@
 
 package de.dlr.ivf.tapas.model.constants;
 
+import lombok.Builder;
+
 import java.util.HashMap;
 import java.util.TreeMap;
 
@@ -15,6 +17,7 @@ import java.util.TreeMap;
  * This class represents the income codes. There is also an ascending distribution of the values stored, to find the fitting
  * code for any income value.
  */
+@Builder
 public class TPS_Income {
 
     /**
@@ -28,7 +31,7 @@ public class TPS_Income {
     /**
      * name/description of the income category
      */
-    public String name;
+    private final String name;
     /**
      * maximum value of a distance category
      */
