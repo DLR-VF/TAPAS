@@ -42,6 +42,7 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
 import de.dlr.ivf.tapas.model.person.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
+import de.dlr.ivf.tapas.model.Incomes.IncomesBuilder;
 
 import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.util.Randomizer;
@@ -786,7 +787,7 @@ public class TPS_DB_IO {
         this.readCarCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_CARS), null));
         this.readDistanceCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), null));
         this.readDrivingLicenseCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION), null));
-        this.readIncomeCodes();
+        this.readIncomeCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_INCOME), null));
         this.readLocationConstantCodes();
         this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
         this.readPersonGroupCodes();
@@ -942,20 +943,28 @@ public class TPS_DB_IO {
      * An Income has the form (id, name, code, max)
      * Example: (5, under 2600, 4, 2600)
      */
-    private void readIncomeCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_INCOME);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            while (rs.next()) {
-                TPS_Income ti = new TPS_Income(rs.getInt("id"), rs.getString("name_income"), rs.getInt("code_income"),
-                        rs.getInt("max"));
-                ti.addToIncomeMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readIncomeCodes! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_INCOME), e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_INCOME));
+    public Incomes readIncomeCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<IncomeDto> incomeDtos = reader.read(new ResultSetConverter<>(IncomeDto.class,IncomeDto::new), dataSource);
+
+        IncomesBuilder incomeMappings = Incomes.builder();
+
+        for(IncomeDto incomeDto : incomeDtos){
+
+            TPS_Income income = TPS_Income.builder()
+                    .id(incomeDto.getId())
+                    .name(incomeDto.getNameIncome())
+                    .code(incomeDto.getCodeIncome())
+                    .max(incomeDto.getMax())
+                    .build();
+
+            incomeMappings.incomeMapping(incomeDto.getId(), income);
+            incomeMappings.maxValuesMapping(incomeDto.getMax(), incomeDto.getId());
         }
+
+        return incomeMappings.build();
     }
 
     /**
