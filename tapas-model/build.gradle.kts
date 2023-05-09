@@ -18,6 +18,12 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.9")
     implementation("org.apache.commons:commons-collections4:4.4")
     implementation("net.sourceforge.javacsv:javacsv:2.0")
+    //lombok
+    implementation("org.projectlombok:lombok:1.18.24")
+    annotationProcessor ("org.projectlombok:lombok:1.18.24")
+    testCompileOnly ("org.projectlombok:lombok:1.18.24")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.24")
+
 
     implementation(project(":tapas-logger"))
     implementation(project(":tapas-parameter"))

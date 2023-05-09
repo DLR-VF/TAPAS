@@ -54,6 +54,7 @@ dependencies {
     implementation("commons-cli:commons-cli:1.5.0")
     implementation("org.apache.poi:poi:4.1.1")
     implementation("org.jfree:jfreechart:1.5.0")
+    implementation("net.sourceforge.javacsv:javacsv:2.0")
 
     implementation("com.miglayout:miglayout-swing:5.2")
     implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
