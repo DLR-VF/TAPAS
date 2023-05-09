@@ -791,7 +791,7 @@ public class TPS_DB_IO {
         this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
         this.readPersonGroupCodes();
         this.readSettlementSystemCodes("");
-        this.readSexCodes();
+        this.readSexCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SEX), null));
 
         //must be after reading of activities and locations because they are used in it
         this.readActivity2LocationCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION),
@@ -1796,24 +1796,21 @@ public class TPS_DB_IO {
      * A SexCodes has the form (name_sex, code_sex)
      * Example: (FEMALE, 2)
      */
-    private void readSexCodes() {
-        String query = "SELECT name_sex, code_sex FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CONSTANT_SEX);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            while (rs.next()) {
-                try {
-                    TPS_Sex s = TPS_Sex.valueOf(rs.getString("name_sex"));
-                    s.code = rs.getInt("code_sex");
-                } catch (IllegalArgumentException e) {
-                    TPS_Logger.log(SeverityLogLevel.WARN,
-                            "Read invalid sex type name from DB:" + rs.getString("name_sex"));
-                }
+    private void readSexCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<SexDto> sexDtos = reader.read(new ResultSetConverter<>(SexDto.class, SexDto::new), dataSource);
+
+        for(SexDto sexDto : sexDtos){
+            try{
+                TPS_Sex s = TPS_Sex.valueOf(sexDto.getNameSex());
+                s.code = sexDto.getCodeSex();
+            } catch (IllegalArgumentException e) {
+                TPS_Logger.log(SeverityLogLevel.WARN,
+                        "Read invalid sex type name from DB:" + sexDto.getNameSex();
             }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readSexCodes! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SEX), e);
-            throw new RuntimeException(
-                    "Error loading constant " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SEX));
+
         }
     }
 
