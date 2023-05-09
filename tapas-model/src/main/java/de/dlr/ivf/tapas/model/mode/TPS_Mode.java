@@ -8,8 +8,16 @@
 
 package de.dlr.ivf.tapas.model.mode;
 
+import de.dlr.ivf.tapas.model.constants.TPS_InternalConstant;
+import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * This class represents the basic features of a mode. It is characterized by a type and a name.
@@ -21,24 +29,24 @@ import de.dlr.ivf.tapas.model.parameter.SimulationType;
  * Furthermore there are two abstract methods to calculate the distance and the travel time between two locations.
  */
 
-
+@Builder
+@Getter
 public class TPS_Mode {
 
-    public static ModeType[] MODE_TYPE_ARRAY = new ModeType[]{ModeType.WALK, ModeType.BIKE, ModeType.MIT, ModeType.MIT_PASS, ModeType.TAXI, ModeType.PT, ModeType.CAR_SHARING};
-    public static double NO_CONNECTION = -1;
-    public static double VISUM_NO_CONNECTION = 99999.0;
+    public static final ModeType[] MODE_TYPE_ARRAY = new ModeType[]{ModeType.WALK, ModeType.BIKE, ModeType.MIT, ModeType.MIT_PASS, ModeType.TAXI, ModeType.PT, ModeType.CAR_SHARING};
+    public static final double NO_CONNECTION = -1;
+    public static final double VISUM_NO_CONNECTION = 99999.0;
 
-    private double velocity = 0.;
-    private double costPerKm = 0;
-    private double costPerKmBase = 0;
-    private double variableCostPerKm = 0;
-    private double variableCostPerKmBase = 0;
-    private boolean useBase = false;
-    private double beelineFactor;
-
-    private int codeVot;
-
-    private String name;
+    private final double velocity;
+    private final double costPerKm = 0;
+    private final double costPerKmBase = 0;
+    private final double variableCostPerKm = 0;
+    private final double variableCostPerKmBase = 0;
+    private final boolean useBase = false;
+    private final double beelineFactor;
+    @Singular
+    private final Collection<TPS_InternalConstant<TPS_ModeCodeType>> internalConstants;
+    private final String name;
 
 
     /**
@@ -46,15 +54,11 @@ public class TPS_Mode {
      * then I have to take it back home too (fix = true). If I go to work by taxi then I can take the bus to go home (fix =
      * false).
      */
-    private boolean isFix;
+    private final boolean isFix;
     /**
      * type (Name) of the mode
      */
-    private ModeType modeType;
-
-    public TPS_Mode() {
-
-    }
+    private final ModeType modeType;
 
     public boolean isUseBase(){
         return this.useBase;
@@ -178,17 +182,8 @@ public class TPS_Mode {
         return isFix;
     }
 
-    /**
-     * Sets whether the mode is fix or can be changed.
-     *
-     * @param isFix boolean value for isFix
-     */
-    private void setFix(boolean isFix) {
-        this.isFix = isFix;
-    }
-
     public int getCodeVot() {
-        return codeVot;
+        return internalConstants.stream().filter(ic -> ic.getType() == TPS_ModeCodeType.VOT).findFirst().map(TPS_InternalConstant::getCode).get();
     }
 
 

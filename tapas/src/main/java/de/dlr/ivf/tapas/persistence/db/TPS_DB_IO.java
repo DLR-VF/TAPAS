@@ -16,6 +16,9 @@ import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.api.io.implementation.ResultSetConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
+import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeBuilder;
 import de.dlr.ivf.tapas.model.*;
 import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
@@ -56,6 +59,7 @@ import java.net.InetAddress;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
@@ -860,7 +864,43 @@ public class TPS_DB_IO {
      * @return The tree read from the db.
      * @throws SQLException
      */
-    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree() throws SQLException {
+    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource) throws SQLException {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<ExpertKnowledgeTreeDto> expertKnowledgeTreeDtos = reader.read(new ResultSetConverter<>(ExpertKnowledgeTreeDto.class,
+                ExpertKnowledgeTreeDto::new), dataSource);
+
+
+        Collection<ExpertKnowledgeTreeDto> sortedNodes = expertKnowledgeTreeDtos.stream()
+                .sorted(Comparator.comparingInt(ExpertKnowledgeTreeDto::getNodeId))
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        TPS_ExpertKnowledgeNode root = null;
+
+        for(ExpertKnowledgeTreeDto ekNode : sortedNodes) {
+
+            List<Integer> c = Arrays.stream(ekNode.getAttributeValues()).boxed().collect(Collectors.toCollection(LinkedList::new));
+
+            String splitVar = ekNode.getSplitVariable();
+            TPS_Attribute sv = (splitVar != null && splitVar.length() > 1) ? TPS_Attribute.valueOf(splitVar) : null;
+
+            double[] values = ekNode.getSummand();
+            TPS_DiscreteDistribution<TPS_Mode> summand = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
+            for (int i = 0; i < values.length; i++) {
+                summand.setValueByPosition(i, values[i]);
+            }
+
+            values = extractDoubleArray(rs, "factor");
+            TPS_DiscreteDistribution<TPS_Mode> factor = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
+            for (int i = 0; i < values.length; i++) {
+                factor.setValueByPosition(i, values[i]);
+            }
+
+
+        }
+
+
         TPS_ExpertKnowledgeNode root = null;
         if (this.PM.getParameters().isDefined(ParamString.DB_TABLE_EKT) && this.PM.getParameters().getString(
                 ParamString.DB_TABLE_EKT) != null && !this.PM.getParameters().getString(ParamString.DB_TABLE_EKT)
@@ -1328,55 +1368,25 @@ public class TPS_DB_IO {
      * A Mode has the form (id, 3-tuples of (name, code, type), isfix)
      * Example: (3, (MIT, 2, MCT), (MIT, 1, VOT), true)
      */
-    private void readModes(DataSource modesTable) {
+    private Collection<TPS_ModeBuilder> readModes(DataSource modesTable, TPS_ParameterClass parameterClass) {
 
-        DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader();
-
-        Collection<ModeDto> modes = dr.read(new ResultSetConverter<>(ModeDto.class, ModeDto::new),modesTable);
+        DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader(connectionSupplier);
 
 
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_MODE);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            while (rs.next()) {
-                String name = rs.getString("name");
-                String clasz = rs.getString("class");
+        Collection<ModeDto> modeDtos = dr.read(new ResultSetConverter<>(ModeDto.class, ModeDto::new),modesTable);
 
-                String[] attributes = new String[rs.getMetaData().getColumnCount() - 4];
-                //read to second to last column
-                for (int i = 0; i < attributes.length; i++) {
-                    attributes[i] = rs.getString(i + 4);
-                }
-                //read last column (which is a bool)
-                boolean isFix = rs.getBoolean("isfix");
-                TPS_Mode tm;
-                //todo fix reading modes
-//                switch (clasz) {
-//                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_NonMotorisedMode": {
-//                        tm = new TPS_NonMotorisedMode(name, attributes, isFix, this.PM.getParameters());
-//                        break;
-//                    }
-//                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_IndividualTransportMode": {
-//                        tm = new TPS_IndividualTransportMode(name, attributes, isFix, this.PM.getParameters());
-//                        break;
-//                    }
-//                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_MassTransportMode": {
-//                        tm = new TPS_MassTransportMode(name, attributes, isFix, this.PM.getParameters());
-//                        break;
-//                    }
-//                    default:
-//                        throw new RuntimeException("Could not read proper TPS_Mode class");
-//                }
-//                tm.addModeToMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readModes! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_MODE), e);
-            throw new RuntimeException("Error loading modes " + ParamString.DB_TABLE_CONSTANT_MODE.toString());
-        } catch (IllegalArgumentException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "Class-related error in readModes! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_MODE), e);
-            throw new RuntimeException("Error loading constant " + ParamString.DB_TABLE_CONSTANT_MODE.toString());
+        Collection<TPS_ModeBuilder> modeBuilders = new ArrayList<>();
+
+        for(ModeDto modeDto : modeDtos){
+            TPS_ModeBuilder modeBuilder = TPS_Mode.builder()
+                    .name(modeDto.getName())
+                    .isFix(modeDto.isFix())
+                    .internalConstant(new TPS_InternalConstant<>(modeDto.getNameMct(), modeDto.getCodeMct(), TPS_ModeCodeType.valueOf(modeDto.getTypeMct())))
+                    .internalConstant(new TPS_InternalConstant<>(modeDto.getNameVot(), modeDto.getCodeVot(), TPS_ModeCodeType.valueOf(modeDto.getTypeVot())));
+            modeBuilders.add(modeBuilder);
         }
+
+        return modeBuilders;
     }
 
     /**
