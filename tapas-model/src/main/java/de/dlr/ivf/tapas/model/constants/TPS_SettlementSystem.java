@@ -9,12 +9,20 @@
 package de.dlr.ivf.tapas.model.constants;
 
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
 
 /**
  * Settlement system constants.
  */
+@Builder
+@Getter
 public class TPS_SettlementSystem {
 
     /**
@@ -27,6 +35,8 @@ public class TPS_SettlementSystem {
      */
     private final EnumMap<TPS_SettlementSystemType, TPS_InternalConstant<TPS_SettlementSystemType>> map;
 
+    @Singular
+    private final Collection<TPS_InternalConstant<TPS_SettlementSystemType>> internalConstants;
     /**
      * settlement system id obtained from the db
      */
@@ -44,6 +54,8 @@ public class TPS_SettlementSystem {
         map = new EnumMap<>(TPS_SettlementSystemType.class);
         TPS_InternalConstant<TPS_SettlementSystemType> iss;
 
+        this.internalConstants = new ArrayList<>();
+
         if (attributes.length % 3 != 0) {
             throw new RuntimeException(
                     "TPS_SettlementSystem need n*3 attributes n*(name, code, type): " + attributes.length);
@@ -53,6 +65,7 @@ public class TPS_SettlementSystem {
             iss = new TPS_InternalConstant<>(attributes[index], Integer.parseInt(attributes[index + 1]),
                     TPS_SettlementSystemType.valueOf(attributes[index + 2]));
             this.map.put(iss.getType(), iss);
+            this.internalConstants.add(iss);
         }
 
         for (TPS_SettlementSystemType type : TPS_SettlementSystemType.values()) {

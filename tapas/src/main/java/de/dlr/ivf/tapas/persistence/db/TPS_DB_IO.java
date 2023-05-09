@@ -792,7 +792,7 @@ public class TPS_DB_IO {
         this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
         this.readPersonGroupCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_PERSON),
                 new Filter("key", parameterClass.getString(ParamString.DB_PERSON_GROUP_KEY))));
-        this.readSettlementSystemCodes("");
+        this.readSettlementSystemCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), null));
         this.readSexCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SEX), null));
 
         //must be after reading of activities and locations because they are used in it
@@ -1773,37 +1773,27 @@ public class TPS_DB_IO {
      * A SettlementSystem has the form (id, 3-tuples of (name, code, type))
      * Example: (7, ("R1, K1, Kernstadt > 500000", "1", "FORDCP"))
      */
-    public void readSettlementSystemCodes(String simulation) {
+    public Collection<TPS_SettlementSystem> readSettlementSystemCodes(DataSource dataSource) {
 
-        String settlement_systems_table = "";
 
-        if (simulation.equals("")) settlement_systems_table = this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CONSTANT_SETTLEMENT);
-        else settlement_systems_table = this.PM.getDbConnector().readSingleParameter(simulation,
-                ParamString.DB_TABLE_CONSTANT_SETTLEMENT.toString());
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        if (!settlement_systems_table.startsWith("core."))
-            settlement_systems_table = "core." + settlement_systems_table;
+        Collection<SettlementSystemDto> settlementSystemDtos = reader.read(new ResultSetConverter<>(SettlementSystemDto.class,SettlementSystemDto::new), dataSource);
 
-        String query = "SELECT * FROM " + settlement_systems_table;
-        try (ResultSet rs = PM.executeQuery(query)) {
-            TPS_SettlementSystem tss;
-            while (rs.next()) {
-                String[] attributes = new String[rs.getMetaData().getColumnCount() - 3];
-                for (int i = 0; i < attributes.length; i++) {
-                    attributes[i] = rs.getString(i + 4);
-                }
-                tss = new TPS_SettlementSystem(rs.getInt("id"), attributes);
-                // add settlement system object to a global static map which is a collection of all settlement systems
-                tss.addSettlementSystemToMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR,
-                    "SQL error in readSettlementSystemCodes! Query: " + query + " constant:" +
-                            this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT));
+        Collection<TPS_SettlementSystem> settlementSystems = new ArrayList<>();
+
+        for(SettlementSystemDto settlementSystemDto : settlementSystemDtos){
+            TPS_SettlementSystem settlementSystem = TPS_SettlementSystem.builder()
+                    .id(settlementSystemDto.getId())
+                    .internalConstant(new TPS_InternalConstant<>(settlementSystemDto.getNameFordcp(), settlementSystemDto.getCodeFordcp(),
+                            TPS_SettlementSystemType.valueOf(settlementSystemDto.getTypeFordcp())))
+                    .internalConstant(new TPS_InternalConstant<>(settlementSystemDto.getNameTapas(), settlementSystemDto.getCodeTapas(),
+                            TPS_SettlementSystemType.valueOf(settlementSystemDto.getTypeTapas())))
+                    .build();
+
+            settlementSystems.add(settlementSystem);
         }
+        return settlementSystems;
     }
 
     /**
