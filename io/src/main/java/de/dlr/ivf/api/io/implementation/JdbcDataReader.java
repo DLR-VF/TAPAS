@@ -3,6 +3,7 @@ package de.dlr.ivf.api.io.implementation;
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.DataReader;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.api.io.configuration.model.RemoteDataSource;
 
 import java.sql.Connection;
@@ -11,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class JdbcDataReader implements DataReader<ResultSet> {
@@ -30,8 +32,12 @@ public class JdbcDataReader implements DataReader<ResultSet> {
 
         Collection<T> readObjects = new ArrayList<>();
 
+        Optional<Filter> dataFilter = dataSource.getFilter();
+        String whereClause = dataFilter.isPresent() ? " WHERE "+dataFilter.map(filter -> filter.getColumn()+ " = '"+filter.getValue()) +"'" : "";
+        String query = "SELECT * FROM "+ dataSource.getUri() + whereClause;
+
         try(Connection connection = connectionProvider.get();
-            PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+ dataSource.getUri());
+            PreparedStatement statement = connection.prepareStatement(query);
             ResultSet resultSet  = statement.executeQuery()){
 
             while(resultSet.next()){
