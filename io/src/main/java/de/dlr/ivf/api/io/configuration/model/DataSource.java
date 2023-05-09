@@ -7,6 +7,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @JsonTypeInfo(
@@ -26,14 +27,14 @@ public class DataSource {
     private final String uri;
 
     @JsonProperty
-    private final Filter filter;
+    private final Collection<Filter> filter;
 
 
     public String getUri() {
         return uri;
     }
 
-    public Optional<Filter> getFilter() {
+    public Optional<Collection<Filter>> getFilter() {
         return Optional.ofNullable(filter);
     }
 }

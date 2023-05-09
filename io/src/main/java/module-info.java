@@ -8,6 +8,7 @@ module de.dlr.ivf.api.io {
     requires de.dlr.ivf.api.converter;
 
     requires java.desktop;
+    requires org.apache.commons.lang3;
 
 
     exports de.dlr.ivf.api.io.configuration.model;
