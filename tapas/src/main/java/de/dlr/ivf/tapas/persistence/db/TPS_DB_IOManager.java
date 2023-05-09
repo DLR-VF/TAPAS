@@ -11,12 +11,12 @@ package de.dlr.ivf.tapas.persistence.db;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
-import de.dlr.ivf.tapas.model.location.TPS_Region;
+import de.dlr.ivf.tapas.legacy.TPS_Region;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.mode.TPS_ModeSet;
+import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
@@ -25,7 +25,6 @@ import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.util.IPInfo;
-import de.dlr.ivf.tapas.scheme.*;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
@@ -35,6 +34,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.sql.*;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Class for IO management regarding Database IO like connection check, statement execution, temporary table creation, higher-level functions
@@ -60,10 +60,10 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    public TPS_DB_IOManager(TPS_ParameterClass parameterClass) throws IOException, ClassNotFoundException {
+    public TPS_DB_IOManager(TPS_ParameterClass parameterClass, Supplier<Connection> connectionSupplier) throws IOException, ClassNotFoundException {
         this.dbConnector = new TPS_DB_Connector(parameterClass.getString(ParamString.DB_USER),
                 parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
-        this.dbIO = new TPS_DB_IO(this);
+        this.dbIO = new TPS_DB_IO(this,connectionSupplier);
     }
 
     /**

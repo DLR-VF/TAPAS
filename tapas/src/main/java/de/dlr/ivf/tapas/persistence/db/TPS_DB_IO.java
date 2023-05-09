@@ -9,23 +9,25 @@
 package de.dlr.ivf.tapas.persistence.db;
 
 
-import de.dlr.ivf.api.io.ConnectionProvider;
 import de.dlr.ivf.api.io.DataReader;
 import de.dlr.ivf.api.io.DataReaderFactory;
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.api.io.implementation.ResultSetConverter;
-import de.dlr.ivf.tapas.dto.ModeDto;
+import de.dlr.ivf.tapas.dto.*;
+import de.dlr.ivf.tapas.legacy.TPS_Region;
+import de.dlr.ivf.tapas.model.*;
 import de.dlr.ivf.tapas.model.constants.*;
+import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
+import de.dlr.ivf.tapas.model.constants.TPS_AgeClass.TPS_AgeCodeType;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ExpertKnowledgeNode;
-import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ExpertKnowledgeTree;
-import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_ModeChoiceTree;
-import de.dlr.ivf.tapas.model.implementation.utilityfunction.TPS_Node;
+import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeNode;
+import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeTree;
+import de.dlr.ivf.tapas.legacy.TPS_ModeChoiceTree;
+import de.dlr.ivf.tapas.legacy.TPS_Node;
 import de.dlr.ivf.tapas.model.location.*;
 import de.dlr.ivf.tapas.model.mode.*;
-
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
@@ -34,33 +36,25 @@ import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.scheme.*;
-import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
 import de.dlr.ivf.tapas.model.person.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 
-import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.util.IPInfo;
-import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.model.TPS_VariableMap;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.InetAddress;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
+import java.util.function.Supplier;
 
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
@@ -71,8 +65,7 @@ public class TPS_DB_IO {
     private static final int fetchSizePerProcessorPrefetchHouseholds = 256;
     /// The ip address of this machine
     private static InetAddress ADDRESS = null;
-    private final ConnectionDetails connectionDetails;
-    private final ConnectionProvider<Connection> connectionProvider;
+    private final Supplier<Connection> connectionSupplier;
     /// The number of households to fetch per cpu
     private int numberToFetch;
     Map<Integer, TPS_Household> houseHoldMap = new TreeMap<>();
@@ -92,14 +85,13 @@ public class TPS_DB_IO {
      * @param pm the managing class for sql-commands
      * @throws IOException if the machine has no IP address, an exception is thrown.
      */
-    public TPS_DB_IO(TPS_DB_IOManager pm, ConnectionDetails connectionDetails) throws IOException {
+    public TPS_DB_IO(TPS_DB_IOManager pm, Supplier<Connection> connectionSupplier) throws IOException {
         if (ADDRESS == null) {
             ADDRESS = IPInfo.getEthernetInetAddress();
         }
 
-        this.connectionDetails = connectionDetails;
+        this.connectionSupplier = connectionSupplier;
 
-        this.connectionProvider = JdbcConnectionProvider.newJdbcConnectionProvider();
         this.PM = pm;
         // TODO: use the defined number of threads
         if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
@@ -235,7 +227,7 @@ public class TPS_DB_IO {
         if (this.PM.getParameters().isFalse(ParamFlag.FLAG_USE_ROBOTAXI)) {
             // no robotaxis: must be able to drive a car and be older than MIN_AGE_CARSHARING
             isCarPooler &= person.getAge() >= this.PM.getParameters().getIntValue(ParamValue.MIN_AGE_CARSHARING) &&
-                    person.mayDriveACar(null,null);
+                    person.mayDriveACar(null,this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE),this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL));
         }
         person.setCarPooler(isCarPooler);
         //
@@ -249,16 +241,12 @@ public class TPS_DB_IO {
      */
     public void clearConstants() {
 
-        TPS_TrafficAnalysisZone.LOCATION2ACTIVITIES_MAP.clear();
-        TPS_TrafficAnalysisZone.ACTIVITY2LOCATIONS_MAP.clear();
-
-
         TPS_ActivityConstant.clearActivityConstantMap();
         TPS_AgeClass.clearAgeClassMap();
         TPS_Distance.clearDistanceMap();
         TPS_Income.clearIncomeMap();
         TPS_LocationConstant.clearLocationConstantMap();
-        TPS_Mode.clearModeMap();
+
         TPS_PersonGroup.clearPersonGroupMap();
         TPS_SettlementSystem.clearSettlementSystemMap();
     }
@@ -416,136 +404,6 @@ public class TPS_DB_IO {
         return numberOfFetchedHouseholds;
     }
 
-    /**
-     * Method to return the locations, which are possible to use for the given activity.
-     *
-     * @param region            The region to look in
-     * @param comingFrom        The location where the person is currently present
-     * @param arrivalDuration   the duration of getting to comingFrom
-     * @param goingTo           the location the person wants to visit afterwards
-     * @param departureDuration the time he has to reach goingTo
-     * @param activityCode      The activity code for this query
-     * @return A TPS_RegionResultSet of appropriate locations
-     * @throws SQLException Exceptions during sql-queries
-     */
-    public TPS_RegionResultSet getTrafficAnalysisZonesAround(TPS_Region region, Locatable comingFrom, double arrivalDuration, Locatable goingTo, double departureDuration, TPS_ActivityConstant activityCode) throws SQLException {
-
-        TPS_RegionResultSet regionRS = new TPS_RegionResultSet();
-
-        int i;
-        // normal case
-        double incFactor = this.PM.getParameters().getDoubleValue(ParamValue.MAX_SYSTEM_SPEED) /
-                this.PM.getParameters().getIntValue(
-                        ParamValue.MAX_TRIES_LOCATION_SELECTION); // speed slices from MAX_SYSTEM_SPEED/
-        // MAX_TRIES_LOCATION_SELECTION to MAX_SYSTEM_SPEED
-        double arrivalDistance, departureDistance;
-        String tableLocTemp = this.PM.getParameters().getString(ParamString.DB_TABLE_LOCATION_TMP);
-        String tableTAZ = this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ);
-        String query = null;
-
-        //TODO: make this better!
-        //some trips start per default at different i and not at i=1!
-        switch (activityCode.getCode(TPS_ActivityCodeType.ZBE)) {
-            case 720:
-            case 721:
-            case 722:
-            case 723:
-            case 724:
-            case 640:
-            case 300: //free time
-                i = this.PM.getParameters().getIntValue(ParamValue.MAX_TRIES_LOCATION_SELECTION) / 2 +
-                        1; //in case of MAX_TRIES_LOCATION_SELECTION=1 this is still 1
-                break;
-            case 211: //work
-                i = this.PM.getParameters().getIntValue(
-                        ParamValue.MAX_TRIES_LOCATION_SELECTION); //allways look at the maximum range!
-                break;
-            default: //others
-                i = 1;
-                break;
-        }
-        for (; i <= this.PM.getParameters().getIntValue(ParamValue.MAX_TRIES_LOCATION_SELECTION) + 1 &&
-                regionRS.size() < 2; i++) {
-            regionRS.clear();
-            // long time = System.currentTimeMillis();
-
-            if (i <= this.PM.getParameters().getIntValue(ParamValue.MAX_TRIES_LOCATION_SELECTION)) {
-                arrivalDistance = arrivalDuration * incFactor * (double) i;
-                departureDistance = departureDuration * incFactor * (double) i;
-            } else {
-                //desperate last try: drop distance constraint!
-                arrivalDistance = Double.MAX_VALUE;
-                departureDistance = Double.MAX_VALUE;
-            }
-
-            switch (TPS_DB_IOManager.BEHAVIOUR) {
-                case MEDIUM:
-                    StringBuilder sb = new StringBuilder("ARRAY[");
-                    for (TPS_TrafficAnalysisZone taz : region) {
-                        if (TPS_Geometrics.isWithin(taz.getCoordinate(), comingFrom.getCoordinate(),
-                                this.PM.getParameters().getDoubleValue(ParamValue.MIN_DIST), arrivalDistance) &&
-                                TPS_Geometrics.isWithin(taz.getCoordinate(), goingTo.getCoordinate(),
-                                        this.PM.getParameters().getDoubleValue(ParamValue.MIN_DIST),
-                                        departureDistance)) {
-                            sb.append(taz.getTAZId() + ",");
-                        }
-                    }
-                    sb.setCharAt(sb.length() - 1, ']');
-                    query = "SELECT * FROM core.select_taz_and_loc_rep('" + tableLocTemp + "',  '" + sb.toString() +
-                            "', " + activityCode.getCode(TPS_ActivityCodeType.ZBE) + ", " + Randomizer.random() + ")";
-                    break;
-                case THIN:
-                    query = "SELECT * FROM core.select_taz_and_loc_rep('" + tableTAZ + "', '" + tableLocTemp + "', " +
-                            comingFrom.getTAZId() + ", " + goingTo.getTAZId() + ", " + arrivalDistance + ", " +
-                            departureDistance + ", " + activityCode.getCode(TPS_ActivityCodeType.ZBE) + ", " +
-                            Randomizer.random() + ")";
-                    break;
-                default:
-                    //nothing
-            }
-
-            if (query != null) {
-                ResultSet rs = PM.executeQuery(query);
-                while (rs.next()) {
-                    TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(rs.getInt(1));
-                    TPS_Location location = region.getLocation(rs.getInt(2));
-                    regionRS.add(taz, location, rs.getDouble(3));
-                }
-                rs.close();
-            } else if (TPS_DB_IOManager.BEHAVIOUR.equals(Behaviour.FAT)) {
-                for (TPS_TrafficAnalysisZone taz : region) {
-                    //					if (TPS_Geometrics.isWithin(taz.getCoordinate(), comingFrom.getCoordinate(),
-                    //					arrivalDistance)
-                    //							&& TPS_Geometrics.isWithin(taz.getCoordinate(), goingTo.getCoordinate
-                    //							(), departureDistance)) {
-                    //						TPS_Location loc = taz.getData().generateLocationRepr(activityCode);
-                    //						if (loc != null) {
-                    //							regionRS.add(taz, loc, taz.getData().getWeight(
-                    //									TPS_AbstractConstant.getConnectedConstants(activityCode,
-                    //									TPS_LocationCode.class)));
-                    //						}
-                    //					}
-                    if (taz.getData() != null) { // empty taz data
-                        //buffer around coming from and going to
-                        if (TPS_Geometrics.isBetweenLine(goingTo.getCoordinate(), departureDistance,
-                                comingFrom.getCoordinate(), arrivalDistance, taz.getCoordinate(),
-                                this.PM.getParameters().getDoubleValue(ParamValue.MIN_DIST))) {
-                            double weight = taz.getActivityWeightSum(activityCode);
-                            if (weight > 0) { // do not process "zero weight"-locations
-                                TPS_Location loc = taz.getData().generateLocationRepr(activityCode);
-                                if (loc != null) { //is there a requested location in this taz
-                                    regionRS.add(taz, loc, weight);
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                throw new RuntimeException("Unknown case");
-            }
-        }
-        return regionRS;
-    }
 
     /**
      * Method to initializes some variables for starting the new simulation
@@ -800,33 +658,25 @@ public class TPS_DB_IO {
      * Note: First the activity and locations must be read,
      * i.e. readActivityConstantCodes and readLocationConstantCodes must be called beforehand
      */
-    private void readActivity2LocationCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " where key='" + this.PM.getParameters().getString(
-                ParamString.DB_ACTIVITY_2_LOCATION_KEY) + "'";
-        TPS_ActivityConstant actCode;
-        int ac;
-        TPS_LocationConstant locCode;
-        int loc;
-        try (ResultSet rs = PM.executeQuery(query)) {
-            while (rs.next()) {
-                ac = rs.getInt("act_code");
-                loc = rs.getInt("loc_code");
-                actCode = TPS_ActivityConstant.getActivityCodeByTypeAndCode(TPS_ActivityCodeType.ZBE, ac);
-                locCode = TPS_LocationConstant.getLocationCodeByTypeAndCode(TPS_LocationCodeType.TAPAS, loc);
-                //double percentage = rs.getDouble("loc_capa_percentage");
-                TPS_TrafficAnalysisZone.ACTIVITY2LOCATIONS_MAP.put(actCode, locCode);
-                TPS_TrafficAnalysisZone.LOCATION2ACTIVITIES_MAP.put(locCode, actCode);
-                // replaced by the two lines above:           TPS_AbstractConstant.connectConstants(actCode, locCode);
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readConstant! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " or " +
-                    this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY), e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION) + " or " +
-                    this.PM.getParameters().getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY));
+    private ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<ActivityToLocationDto> activityToLocationDtos = reader.read(new ResultSetConverter<>(ActivityToLocationDto.class,ActivityToLocationDto::new), dataSource);
+
+        ActivityAndLocationCodeMapping mapping = new ActivityAndLocationCodeMapping();
+
+        for(ActivityToLocationDto activityToLocationDto : activityToLocationDtos){
+
+            TPS_ActivityConstant actCode = TPS_ActivityConstant.getActivityCodeByTypeAndCode(TPS_ActivityCodeType.ZBE, activityToLocationDto.getActCode());
+            TPS_LocationConstant locCode = TPS_LocationConstant.getLocationCodeByTypeAndCode(TPS_LocationCodeType.TAPAS, activityToLocationDto.getLocCode());
+
+            mapping.addActivityToLocationMapping(actCode, locCode);
+            mapping.addLocationToActivityMapping(locCode, actCode);
+
         }
+
+        return mapping;
     }
 
     /**
@@ -834,32 +684,40 @@ public class TPS_DB_IO {
      * An ActivityConstant has the form (id, 3-tuples of (name, code, type), istrip, isfix, attr)
      * Example: (5, ("school", "2", "TAPAS"), ("SCHOOL", "410", "MCT"), True, False, "SCHOOL")
      */
-    private void readActivityConstantCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            TPS_ActivityConstant tac;
-            boolean istrip;
-            boolean isfix;
-            String attr;
-            while (rs.next()) {
-                String[] attributes = new String[rs.getMetaData().getColumnCount() - 6];
-                for (int i = 0; i < attributes.length; i++) {
-                    attributes[i] = rs.getString(i + 4);
-                }
-                istrip = rs.getBoolean("istrip");
-                isfix = rs.getBoolean("isfix");
-                attr = rs.getString("attribute");
-                tac = new TPS_ActivityConstant(rs.getInt("id"), attributes, istrip, isfix, attr);
-                // add activity code object to a global static map which is a collection of all activity constants
-                tac.addActivityConstantToMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR,
-                    "SQL error in readActivityConstantCodes! Query: " + query + " constant:" +
-                            this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY), e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY));
+    public Collection<TPS_ActivityConstant> readActivityConstantCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<ActivityDto> activityDtos = reader.read(new ResultSetConverter<>(ActivityDto.class,ActivityDto::new), dataSource);
+
+        Collection<TPS_ActivityConstant> activityConstants = new ArrayList<>();
+
+        for(ActivityDto activityDto : activityDtos){
+
+            String attribute = activityDto.getAttribute();
+
+            TPS_ActivityConstant act = TPS_ActivityConstant.builder()
+                    .id(activityDto.getId())
+                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameMct(), activityDto.getCodeMct(),
+                            TPS_ActivityCodeType.valueOf(activityDto.getTypeMct())))
+                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameTapas(), activityDto.getCodeTapas(),
+                            TPS_ActivityCodeType.valueOf(activityDto.getTypeTapas())))
+                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNamePriority(), activityDto.getCodePriority(),
+                            TPS_ActivityCodeType.valueOf(activityDto.getTypePriority())))
+                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameZbe(), activityDto.getCodeZbe(),
+                            TPS_ActivityCodeType.valueOf(activityDto.getTypeZbe())))
+                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameVot(), activityDto.getCodeVot(),
+                            TPS_ActivityCodeType.valueOf(activityDto.getTypeVot())))
+                    .attribute(!(attribute == null || attribute.equals("null"))
+                            ? TPS_ActivityConstantAttribute.valueOf(activityDto.getAttribute()) : TPS_ActivityConstantAttribute.DEFAULT)
+                    .isFix(activityDto.isFix())
+                    .isTrip(activityDto.isTrip())
+                    .build();
+
+            activityConstants.add(act);
         }
+
+        return activityConstants;
     }
 
 
@@ -868,29 +726,28 @@ public class TPS_DB_IO {
      * An AgeClass has the form (id, 3-tuples of (name, code, type), min, max)
      * Example: (5, (under 35, 7, STBA), (under 45, 4, PersGroup), 30, 34)
      */
-    private void readAgeClassCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_AGE);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            TPS_AgeClass tac;
-            int min;
-            int max;
-            while (rs.next()) {
-                min = rs.getInt("min");
-                max = rs.getInt("max");
-                String[] attributes = new String[rs.getMetaData().getColumnCount() - 5];
-                for (int i = 0; i < attributes.length; i++) {
-                    attributes[i] = rs.getString(i + 4);
-                }
-                tac = new TPS_AgeClass(rs.getInt("id"), attributes, min, max);
-                // add age class object to a global static map which is a collection of all
-                tac.addAgeClassToMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readAgeClassCodes! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_AGE), e);
-            throw new RuntimeException(
-                    "Error loading constant " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_AGE));
+    public Collection<TPS_AgeClass> readAgeClassCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<AgeClassDto> ageClassDtos = reader.read(new ResultSetConverter<>(AgeClassDto.class,AgeClassDto::new), dataSource);
+
+        Collection<TPS_AgeClass> ageClasses = new ArrayList<>();
+
+        for(AgeClassDto ageClassDto : ageClassDtos){
+            TPS_AgeClass ageClass = TPS_AgeClass.builder()
+                    .id(ageClassDto.getId())
+                    .max(ageClassDto.getMax())
+                    .min(ageClassDto.getMin())
+                    .attribute(new TPS_InternalConstant<>(ageClassDto.getNameStba(),ageClassDto.getCodeStba(),
+                            TPS_AgeCodeType.valueOf(ageClassDto.getTypeStba())))
+                    .attribute(new TPS_InternalConstant<>(ageClassDto.getNamePersgroup(), ageClassDto.getCodePersgroup(),
+                            TPS_AgeCodeType.valueOf(ageClassDto.getTypePersGroup())))
+                    .build();
+            ageClasses.add(ageClass);
         }
+
+        return ageClasses;
     }
 
 
@@ -899,23 +756,21 @@ public class TPS_DB_IO {
      * A CarCode has the form (name_cars, code_cars)
      * Example: (YES, 1)
      */
-    private void readCarCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_CARS);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            while (rs.next()) {
-                try {
-                    TPS_CarCode s = TPS_CarCode.valueOf(rs.getString("name_cars"));
-                    s.code = rs.getInt("code_cars");
-                } catch (IllegalArgumentException e) {
-                    TPS_Logger.log(SeverityLogLevel.WARN,
-                            "Read invalid car information from DB:" + rs.getString("name_cars"));
-                }
+    private void readCarCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<CarCodeDto> carCodeDtos = reader.read(new ResultSetConverter<>(CarCodeDto.class, CarCodeDto::new), dataSource);
+
+        for(CarCodeDto carCodeDto : carCodeDtos){
+            try {
+                TPS_CarCode s = TPS_CarCode.valueOf(carCodeDto.getNameCars());
+                s.code = carCodeDto.getCodeCars();
+            } catch (IllegalArgumentException e) {
+                TPS_Logger.log(SeverityLogLevel.WARN,
+                        "Read invalid car information from DB:" + carCodeDto.getNameCars());
             }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readCarCodes! Query: " + query + " constant" + ":" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_CARS), e);
-            throw new RuntimeException(
-                    "Error loading constant " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_CARS));
+
         }
     }
 
@@ -923,24 +778,24 @@ public class TPS_DB_IO {
      * Method to read the constant values from the database. It provides the mapping of the enums to a value, which
      * is used in the survey or similar.
      */
-    void readConstants() {
-        TPS_ModeDistribution.clearDistributions(); //TODO necessary?
+    void readConstants(TPS_ParameterClass parameterClass) {
 
         //read all constants
-        this.readActivityConstantCodes();
-        this.readAgeClassCodes();
-        this.readCarCodes();
-        this.readDistanceCodes();
-        this.readDrivingLicenseCodes();
+        this.readActivityConstantCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY),null));
+        this.readAgeClassCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_AGE), null));
+        this.readCarCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_CARS), null));
+        this.readDistanceCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), null));
+        this.readDrivingLicenseCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION), null));
         this.readIncomeCodes();
         this.readLocationConstantCodes();
-        this.readModes();
+        this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
         this.readPersonGroupCodes();
         this.readSettlementSystemCodes("");
         this.readSexCodes();
 
         //must be after reading of activities and locations because they are used in it
-        this.readActivity2LocationCodes();
+        this.readActivity2LocationCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION),
+                new Filter("key",parameterClass.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY))));
     }
 
     /**
@@ -948,24 +803,29 @@ public class TPS_DB_IO {
      * A Distance has the form (id, 3-tuples of (name, code, type), max)
      * Example: (5, (under 5k, 1, VOT),	(under 2k, 2000, MCT), 2000)
      */
-    private void readDistanceCodes() {
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_DISTANCE);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            while (rs.next()) {
-                String[] attributes = new String[rs.getMetaData().getColumnCount() - 4];
-                for (int i = 0; i < attributes.length; i++) {
-                    attributes[i] = rs.getString(i + 4);
-                }
-                TPS_Distance td = new TPS_Distance(rs.getInt("id"), attributes, rs.getInt("max"));
-                // add settlement system object to a global static map which is a collection of all settlement systems
-                td.addDistanceToMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readDistanceCodes! Query: " + query + " constant:" +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_DISTANCE));
+    private Collection<TPS_Distance> readDistanceCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<DistanceCodeDto> distanceCodeDtos = reader.read(new ResultSetConverter<>(DistanceCodeDto.class,DistanceCodeDto::new), dataSource);
+
+        Collection<TPS_Distance> distanceCodes = new ArrayList<>();
+
+        for(DistanceCodeDto distanceCodeDto : distanceCodeDtos){
+
+            TPS_Distance distanceCode = TPS_Distance.builder()
+                    .id(distanceCodeDto.getId())
+                    .max(distanceCodeDto.getMax())
+                    .internalDistanceCode(new TPS_InternalConstant<>(distanceCodeDto.getNameVot(), distanceCodeDto.getCodeVot(),
+                            TPS_DistanceCodeType.valueOf(distanceCodeDto.getTypeVot())))
+                    .internalDistanceCode(new TPS_InternalConstant<>(distanceCodeDto.getNameMct(), distanceCodeDto.getCodeMct(),
+                            TPS_DistanceCodeType.valueOf(distanceCodeDto.getTypeMct())))
+                    .build();
+
+            distanceCodes.add(distanceCode);
         }
+
+        return distanceCodes;
     }
 
     /**
@@ -973,26 +833,22 @@ public class TPS_DB_IO {
      * A DrivingLicenseCodes has the form (name_dli, code_dli)
      * Example: (no, 2)
      */
-    private void readDrivingLicenseCodes() {
-        String query = "SELECT name, code_dli FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION);
-        try (ResultSet rs = PM.executeQuery(query)) {
-            while (rs.next()) {
-                try {
-                    TPS_DrivingLicenseInformation s = TPS_DrivingLicenseInformation.valueOf(rs.getString("name"));
-                    s.setCode(rs.getInt("code_dli"));
-                } catch (IllegalArgumentException e) {
-                    TPS_Logger.log(SeverityLogLevel.WARN, "Invalid driving license code: " + rs.getString("name"));
-                }
+    private void readDrivingLicenseCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<DrivingLicenseInformationDto> drivingLicenseInformationDtos = reader.read(new ResultSetConverter<>(DrivingLicenseInformationDto.class,
+                DrivingLicenseInformationDto::new), dataSource);
+
+        for(DrivingLicenseInformationDto drivingLicenseInformationDto : drivingLicenseInformationDtos) {
+
+            try {
+                TPS_DrivingLicenseInformation s = TPS_DrivingLicenseInformation.valueOf(drivingLicenseInformationDto.getName());
+                s.setCode(drivingLicenseInformationDto.getDrivingLicenseInfoCode());
+            } catch (IllegalArgumentException e) {
+                TPS_Logger.log(SeverityLogLevel.WARN, "Invalid driving license code: " + drivingLicenseInformationDto.getDrivingLicenseInfoName());
             }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR,
-                    "SQL error in readDrivingLicenseCodes! Query: " + query + " constant:" + this.PM.getParameters()
-                                                                                                    .getString(
-                                                                                                            ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION),
-                    e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION));
+
         }
     }
 
@@ -1462,7 +1318,7 @@ public class TPS_DB_IO {
      */
     private void readModes(DataSource modesTable) {
 
-        DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader(() -> connectionProvider.get(connectionDetails));
+        DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader();
 
         Collection<ModeDto> modes = dr.read(new ResultSetConverter<>(ModeDto.class, ModeDto::new),modesTable);
 
@@ -1481,23 +1337,24 @@ public class TPS_DB_IO {
                 //read last column (which is a bool)
                 boolean isFix = rs.getBoolean("isfix");
                 TPS_Mode tm;
-                switch (clasz) {
-                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_NonMotorisedMode": {
-                        tm = new TPS_NonMotorisedMode(name, attributes, isFix, this.PM.getParameters());
-                        break;
-                    }
-                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_IndividualTransportMode": {
-                        tm = new TPS_IndividualTransportMode(name, attributes, isFix, this.PM.getParameters());
-                        break;
-                    }
-                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_MassTransportMode": {
-                        tm = new TPS_MassTransportMode(name, attributes, isFix, this.PM.getParameters());
-                        break;
-                    }
-                    default:
-                        throw new RuntimeException("Could not read proper TPS_Mode class");
-                }
-                tm.addModeToMap();
+                //todo fix reading modes
+//                switch (clasz) {
+//                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_NonMotorisedMode": {
+//                        tm = new TPS_NonMotorisedMode(name, attributes, isFix, this.PM.getParameters());
+//                        break;
+//                    }
+//                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_IndividualTransportMode": {
+//                        tm = new TPS_IndividualTransportMode(name, attributes, isFix, this.PM.getParameters());
+//                        break;
+//                    }
+//                    case "de.dlr.de.dlr.ivf.mode.tapas.ivf.TPS_MassTransportMode": {
+//                        tm = new TPS_MassTransportMode(name, attributes, isFix, this.PM.getParameters());
+//                        break;
+//                    }
+//                    default:
+//                        throw new RuntimeException("Could not read proper TPS_Mode class");
+//                }
+//                tm.addModeToMap();
             }
         } catch (SQLException e) {
             TPS_Logger.log(SeverityLogLevel.ERROR, "SQL error in readModes! Query: " + query + " constant:" +
@@ -1546,8 +1403,9 @@ public class TPS_DB_IO {
      * @return The region, specified in the Parameter set
      * @throws SQLException Error during SQL-processing
      */
+    //todo fix reaading region
     public TPS_Region readRegion() throws SQLException {
-        TPS_Region region = new TPS_Region();
+        TPS_Region region = new TPS_Region(null, null);
         TPS_Block blk;
         String query;
         // read values of time
@@ -1834,7 +1692,7 @@ public class TPS_DB_IO {
             TPS_Episode episode = null;
             if (actCode.isTrip()) {
                 episode = new TPS_Trip(counter++, actCode, rs.getInt("start") * timeSlotLength,
-                        rs.getInt("duration") * timeSlotLength, this.PM.getParameters());
+                        rs.getInt("duration") * timeSlotLength);
             } else {
                 if (lastEpisode != null && lastEpisode.isStay()) {
                     // two subsequent stays: add their duration and adjust the activity code and the priority
@@ -1987,23 +1845,25 @@ public class TPS_DB_IO {
      *
      * @throws SQLException
      */
+
+    //todo fix reading utility functions
     public void readUtilityFunction(String utilityFunctionName, String key, DataSource utilityFunctionTable) throws SQLException {
         ResultSet rs;
-        String utilityFunctionName = this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME);
+        utilityFunctionName = this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME);
         utilityFunctionName = utilityFunctionName.substring(utilityFunctionName.lastIndexOf('.') + 1);
         // read the parameters for the utility function of the modes
-        rs = PM.executeQuery(
-                "SELECT mode_class, parameters FROM " + utilityFunctionTable. +
-                        " WHERE utility_function_class='" + utilityFunctionName + "' and key='" +
-                        key + "'");
-        //now init the utility function
-        TPS_Mode.initUtilityFunction(this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME));
-        while (rs.next()) {
-            String mode = rs.getString("mode_class");
-            double[] parameters = extractDoubleArray(rs, "parameters");
-            TPS_Mode.getUtilityFunction().setParameterSet(TPS_Mode.get(ModeType.valueOf(mode)), parameters);
-        }
-        rs.close();
+//        rs = PM.executeQuery(
+//                "SELECT mode_class, parameters FROM " + utilityFunctionTable. +
+//                        " WHERE utility_function_class='" + utilityFunctionName + "' and key='" +
+//                        key + "'");
+//        //now init the utility function
+//        TPS_Mode.initUtilityFunction(this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME));
+//        while (rs.next()) {
+//            String mode = rs.getString("mode_class");
+//            double[] parameters = extractDoubleArray(rs, "parameters");
+//            TPS_Mode.getUtilityFunction().setParameterSet(TPS_Mode.get(ModeType.valueOf(mode)), parameters);
+//        }
+//        rs.close();
 
     }
 
