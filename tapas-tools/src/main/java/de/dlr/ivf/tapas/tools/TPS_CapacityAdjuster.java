@@ -514,7 +514,7 @@ public class TPS_CapacityAdjuster{
             this.fillOverloadFactors();
 
         } catch (SQLException e) {
-            System.err.println(this.getClass().getCanonicalName() + " loadDB: SQL-Error during statement: " + query);
+            System.err.println(this.getClass().getCanonicalName() + " loadDB: SQL-Error during statement: ");
             e.printStackTrace();
         }
     }
