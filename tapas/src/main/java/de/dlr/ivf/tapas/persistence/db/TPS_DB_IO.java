@@ -790,7 +790,8 @@ public class TPS_DB_IO {
         this.readIncomeCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_INCOME), null));
         this.readLocationConstantCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_LOCATION), null));
         this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
-        this.readPersonGroupCodes();
+        this.readPersonGroupCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_PERSON),
+                new Filter("key", parameterClass.getString(ParamString.DB_PERSON_GROUP_KEY))));
         this.readSettlementSystemCodes("");
         this.readSexCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SEX), null));
 
@@ -1383,29 +1384,32 @@ public class TPS_DB_IO {
      * A PersGroup has the form (id, 3-tuples of (name, code, type), code_ageclass, code_sex, code_cars, persType)
      * Example: (3, (RoP65-74, 12, VISEVA_R), 6, ,1, 2, RETIREE)
      */
-    private void readPersonGroupCodes() {
-        // set the flag in the TPS_PERSON_GROUP class to decide if the (person) group column is used or the attributes
-        // like sex, age, cars, children and status are used to determine the person group of a person
-        TPS_PersonGroup.USE_GROUP_COLUMN_FOR_PERSON_GROUPS = this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS);
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_PERSON) +
-                " where key='" + this.PM.getParameters().getString(ParamString.DB_PERSON_GROUP_KEY)+"'";
-        try (ResultSet rs = PM.executeQuery(query)) {
-            TPS_PersonGroup tpg;
-            while (rs.next()) {
-                tpg = new TPS_PersonGroup(rs.getInt("code"), rs.getString("description"), rs.getString("work_status"),
-                        rs.getInt("min_age"), rs.getInt("max_age"),
-                        rs.getInt("code_cars"), rs.getInt("code_sex"), rs.getString("person_type"),
-                        rs.getString("has_child"));
-                // add person group object to a global static map which is a collection of all person groups
-                tpg.addPersonGroupToMap();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR,
-                    "SQL error in readPersonGroupCodes! Query: " + query + " constant:" +
-                            this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_PERSON), e);
-            throw new RuntimeException("Error loading constant " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_CONSTANT_PERSON));
+    private Collection<TPS_PersonGroup> readPersonGroupCodes(DataSource dataSource) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<PersonCodeDto> personCodeDtos = reader.read(new ResultSetConverter<>(PersonCodeDto.class,PersonCodeDto::new), dataSource);
+
+        Collection<TPS_PersonGroup> personGroups = new ArrayList<>();
+
+        for(PersonCodeDto personCodeDto : personCodeDtos) {
+            TPS_PersonGroup personGroup = TPS_PersonGroup.builder()
+                    .description(personCodeDto.getDescription())
+                    .code(personCodeDto.getCode())
+                    .personType(TPS_PersonType.valueOf(personCodeDto.getPersonType()))
+                    .carCode(TPS_CarCode.getEnum(personCodeDto.getCodeCars()))
+                    .hasChildCode(TPS_HasChildCode.valueOf(personCodeDto.getHasChild()))
+                    .minAge(personCodeDto.getMinAge())
+                    .maxAge(personCodeDto.getMaxAge())
+                    .workStatus(TPS_WorkStatus.valueOf(personCodeDto.getWorkStatus()))
+                    .sex(TPS_Sex.getEnum(personCodeDto.getCodeSex()))
+                    .build();
+
+            personGroups.add(personGroup);
+
         }
+
+        return personGroups;
     }
 
     /**

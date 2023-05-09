@@ -12,6 +12,8 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
+import lombok.Builder;
+import lombok.Getter;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,6 +23,8 @@ import java.util.HashMap;
  * classes. The age classes have a finer granularity than the person groups, so a person group have to store more than one
  * age class. There also exist a fits*( method to check whether a person fits to the person group constant.
  */
+@Builder
+@Getter
 public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
 
     private static final HashMap<Integer, TPS_PersonGroup> PERSON_GROUP_MAP = new HashMap<>();
@@ -29,21 +33,21 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      */
     public static boolean USE_GROUP_COLUMN_FOR_PERSON_GROUPS;
 
-    private int minAge;
-    private int maxAge;
+    private final int minAge;
+    private final int maxAge;
     /**
      * number of cars in the household
      */
-    private TPS_CarCode carCode;
+    private final TPS_CarCode carCode;
     /**
      * states if there are children in the household
      */
-    private TPS_HasChildCode hasChildCode;
-    private TPS_PersonType personType;
+    private final TPS_HasChildCode hasChildCode;
+    private final TPS_PersonType personType;
     /**
      * Sex constant; 1= male, 2 = female, 0 = not relevant
      */
-    private TPS_Sex sex;
+    private final TPS_Sex sex;
 
     /**
      *
@@ -59,12 +63,12 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
         this.code = code;
         this.description = description;
         this.setWorkStatus(TPS_WorkStatus.valueOf(workStatus));
-        this.setMinAge(minAge);
-        this.setMaxAge(maxAge);
-        this.setSex(TPS_Sex.getEnum(sex));
-        this.setCarCode(TPS_CarCode.getEnum(cars));
-        this.setPersonType(TPS_PersonType.valueOf(personType));
-        this.setHasChildCode(TPS_HasChildCode.valueOf(hasChild));
+        this.minAge = minAge;
+        this.maxAge = maxAge;
+        this.sex = TPS_Sex.getEnum(sex);
+        this.carCode = TPS_CarCode.getEnum(cars);
+        this.personType = TPS_PersonType.valueOf(personType);
+        this.hasChildCode = TPS_HasChildCode.valueOf(hasChild);
     }
 
     public TPS_WorkStatus getWorkStatus() {
@@ -79,16 +83,8 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
         return minAge;
     }
 
-    public void setMinAge(int minAge) {
-        this.minAge = minAge;
-    }
-
     public int getMaxAge() {
         return maxAge;
-    }
-
-    public void setMaxAge(int maxAge) {
-        this.maxAge = maxAge;
     }
 
     /**
@@ -190,15 +186,6 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
         return carCode;
     }
 
-    /**
-     * Sets CarCode.
-     *
-     * @param carCode set carCode
-     */
-    private void setCarCode(TPS_CarCode carCode) {
-        this.carCode = carCode;
-    }
-
 
     public int getCode() {
         return code;
@@ -217,19 +204,6 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
         this.description = description;
     }
 
-    /**
-     * Sets person type.
-     *
-     * @param persType new person type for the person type field
-     */
-    private void setPersonType(TPS_PersonType persType) {
-        this.personType = persType;
-    }
-
-
-    private void setHasChildCode(TPS_HasChildCode hasChildCode) {
-        this.hasChildCode = hasChildCode;
-    }
 
     private TPS_HasChildCode getHasChildCode() {
         return this.hasChildCode;
@@ -242,15 +216,6 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
      */
     public TPS_Sex getSex() {
         return sex;
-    }
-
-    /**
-     * Sets sex.
-     *
-     * @param sex new sex code
-     */
-    private void setSex(TPS_Sex sex) {
-        this.sex = sex;
     }
 
     /**
