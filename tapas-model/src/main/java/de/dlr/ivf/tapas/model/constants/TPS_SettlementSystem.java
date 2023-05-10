@@ -43,39 +43,6 @@ public class TPS_SettlementSystem {
     private final int id;
 
     /**
-     * Basic constructor for a TPS_SettlementSystem
-     *
-     * @param id         corresponding id from the db
-     * @param attributes attributes have to have a length of 3*n where each 3-segment is of the form (name, code,
-     *                   type) like ("R1, K1, Kernstadt > 500000", "1", "FORDCP")
-     */
-    public TPS_SettlementSystem(int id, String[] attributes) {
-        this.id = id;
-        map = new EnumMap<>(TPS_SettlementSystemType.class);
-        TPS_InternalConstant<TPS_SettlementSystemType> iss;
-
-        this.internalConstants = new ArrayList<>();
-
-        if (attributes.length % 3 != 0) {
-            throw new RuntimeException(
-                    "TPS_SettlementSystem need n*3 attributes n*(name, code, type): " + attributes.length);
-        }
-
-        for (int index = 0; index < attributes.length; index += 3) {
-            iss = new TPS_InternalConstant<>(attributes[index], Integer.parseInt(attributes[index + 1]),
-                    TPS_SettlementSystemType.valueOf(attributes[index + 2]));
-            this.map.put(iss.getType(), iss);
-            this.internalConstants.add(iss);
-        }
-
-        for (TPS_SettlementSystemType type : TPS_SettlementSystemType.values()) {
-            if (!this.map.containsKey(type)) {
-                throw new RuntimeException("SettlementSystem code for type " + type.name() + " not defined");
-            }
-        }
-    }
-
-    /**
      * Empties settlement system map
      */
     public static void clearSettlementSystemMap() {

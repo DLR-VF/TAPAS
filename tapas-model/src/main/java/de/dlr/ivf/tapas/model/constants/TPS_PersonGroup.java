@@ -59,18 +59,6 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
     private int code;
     private String description;
 
-    public TPS_PersonGroup(int code, String description, String workStatus, int minAge, int maxAge, int cars, int sex, String personType, String hasChild) {
-        this.code = code;
-        this.description = description;
-        this.setWorkStatus(TPS_WorkStatus.valueOf(workStatus));
-        this.minAge = minAge;
-        this.maxAge = maxAge;
-        this.sex = TPS_Sex.getEnum(sex);
-        this.carCode = TPS_CarCode.getEnum(cars);
-        this.personType = TPS_PersonType.valueOf(personType);
-        this.hasChildCode = TPS_HasChildCode.valueOf(hasChild);
-    }
-
     public TPS_WorkStatus getWorkStatus() {
         return workStatus;
     }

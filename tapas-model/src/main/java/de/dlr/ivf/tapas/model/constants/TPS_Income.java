@@ -45,22 +45,6 @@ public class TPS_Income {
      */
     private final int code;
 
-
-    /**
-     * Basic constructor of the income constant object
-     *
-     * @param id   corresponding to the db entry
-     * @param name description of the income category
-     * @param code of the income category
-     * @param max  maximum value of a distance category
-     */
-    public TPS_Income(int id, String name, int code, int max) {
-        this.id = id;
-        this.code = code;
-        this.name = name;
-        this.max = max;
-    }
-
     /**
      * Empties the global static income map and the max values map
      */

@@ -15,16 +15,14 @@ package de.dlr.ivf.tapas.model.constants;
  *
  * @author hein_mh
  */
-public class TPS_LocationConstantWeighted extends TPS_LocationConstant {
+public class TPS_LocationConstantWeighted {
     private final double weight;
 
     protected TPS_LocationConstantWeighted(int id, String[] attributes) {
-        super(id, attributes);
         weight = 1.0;
     }
 
     protected TPS_LocationConstantWeighted(int id, String[] attributes, double weight) {
-        super(id, attributes);
         this.weight = weight;
     }
 

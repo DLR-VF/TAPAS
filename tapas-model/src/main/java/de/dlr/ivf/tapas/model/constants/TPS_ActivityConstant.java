@@ -11,7 +11,6 @@ package de.dlr.ivf.tapas.model.constants;
 import lombok.Builder;
 import lombok.Singular;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -31,8 +30,18 @@ public class TPS_ActivityConstant {
      * dummy activity constant
      * This constant is used for calculating the travel times to the representatives of the traffic analysis zones
      */
-    public static TPS_ActivityConstant DUMMY = new TPS_ActivityConstant(-1,new String[]{"null", "-999", "ZBE", "null", "-999", "VOT", "null", "-999", "TAPAS", "null", "-999", "MCT", "null", "-999", "PRIORITY"},
-            false, false, null);
+    public static TPS_ActivityConstant DUMMY = TPS_ActivityConstant.builder()
+            .id(-1)
+            .internalConstant(new TPS_InternalConstant<>("null",-999, TPS_ActivityCodeType.ZBE))
+            .internalConstant(new TPS_InternalConstant<>("null", -999,TPS_ActivityCodeType.VOT))
+            .internalConstant(new TPS_InternalConstant<>("null", -999, TPS_ActivityCodeType.TAPAS))
+            .internalConstant(new TPS_InternalConstant<>("null", -999, TPS_ActivityCodeType.MCT))
+            .internalConstant(new TPS_InternalConstant<>("null", -999, TPS_ActivityCodeType.PRIORITY))
+            .isFix(false)
+            .isTrip(false)
+            .attribute(null)
+            .build();
+
     /**
      * maps ids from the db to {@link TPS_ActivityConstant} objects constructed from corresponding db data
      */
@@ -63,56 +72,6 @@ public class TPS_ActivityConstant {
     @Singular
     private final Collection<TPS_InternalConstant<TPS_ActivityCodeType>> internalConstants;
 
-    /**
-     * Basic constructor for a TPS_ActivityConstant
-     *
-     * @param id         corresponding id from the db
-     * @param attributes attributes have to have a length of 3*n where each 3-segment is of the form (name, code,
-     *                   type) like ("SCHOOL", "410", "MCT")
-     * @param isTrip     True if the activity constant is a trip or a stay
-     * @param isFix      True if the location to this activity is fixed, i.e. is set once, e.g. SCHOOL, WORK etc.
-     * @param attr       special attribute, see{@link TPS_ActivityConstantAttribute}
-     */
-    public TPS_ActivityConstant(int id, String[] attributes, boolean isTrip, boolean isFix, String attr) {
-        if ((attributes.length) % 3 != 0) {
-            throw new RuntimeException(
-                    "ActivityConstant need n*3 attributes n*(name, code, type): " + attributes.length);
-        }
-        internalConstants = new ArrayList<>();
-        this.id = id;
-        this.internalAttributes = new EnumMap<>(TPS_ActivityCodeType.class);
-        TPS_InternalConstant<TPS_ActivityCodeType> iac;
-        for (int i = 0; i < attributes.length; i += 3) {
-            iac = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
-                    TPS_ActivityCodeType.valueOf(attributes[i + 2]));
-            this.internalAttributes.put(iac.getType(), iac);
-            internalConstants.add(iac);
-        }
-
-        for (TPS_ActivityCodeType type : TPS_ActivityCodeType.values()) {
-            if (!this.internalAttributes.containsKey(type)) {
-                throw new RuntimeException(
-                        "Activity code for " + this.getId() + " for type " + type.name() + " not " + "defined");
-            }
-        }
-        //set isTrip(bool), isFix(bool) and attribute(TPS_ActivityCodeAttribute)
-        this.isTrip = isTrip;
-        this.isFix = isFix;
-        if (!(attr == null || attr.equals("null"))) {
-            this.attribute = TPS_ActivityConstantAttribute.valueOf(attr);
-            if (this.hasAttribute(TPS_ActivityConstantAttribute.DEFAULT)) {
-                DEFAULT_ACTIVITY = this;
-            }
-        }
-
-    }
-
-    /**
-     * Empties the global static activity constant map
-     */
-    public static void clearActivityConstantMap() {
-        ACTIVITY_CONSTANTS_MAP.clear();
-    }
 
     /**
      * @param type like MCT or TAPAS, see {@link TPS_ActivityCodeType}
@@ -126,14 +85,6 @@ public class TPS_ActivityConstant {
             }
         }
         return null;
-    }
-
-    /**
-     * Add to static collection of all activity code constants.
-     * The objects are accessed by their ids from the db.
-     */
-    public void addActivityConstantToMap() {
-        ACTIVITY_CONSTANTS_MAP.put(id, this);
     }
 
     /**

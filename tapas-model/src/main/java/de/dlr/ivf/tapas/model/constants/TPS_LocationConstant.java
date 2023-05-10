@@ -24,8 +24,11 @@ public class TPS_LocationConstant {
     /**
      * This constant represents the location code for the home of a person/household
      */
-    public static TPS_LocationConstant HOME = new TPS_LocationConstant(-1,
-            new String[]{"null", "-1", TPS_LocationCodeType.GENERAL.name(), "null", "-1", TPS_LocationCodeType.TAPAS.name()});
+    public static TPS_LocationConstant HOME = TPS_LocationConstant.builder()
+            .id(-1)
+            .internalConstant(new TPS_InternalConstant<>("null", -1, TPS_LocationCodeType.GENERAL))
+            .internalConstant(new TPS_InternalConstant<>("null", -1, TPS_LocationCodeType.TAPAS))
+            .build();
     /**
      * maps ids from the db to TPS_LocationConstant objects constructed from corresponding db data
      */
@@ -37,44 +40,13 @@ public class TPS_LocationConstant {
     private final Map<TPS_LocationCodeType, TPS_InternalConstant<TPS_LocationCodeType>> internalConstantMappings;
 
     @Singular
-    private final Collection<TPS_InternalConstant> internalConstants;
+    private final Collection<TPS_InternalConstant<TPS_LocationCodeType>> internalConstants;
 
     /**
      * id from the db
      */
     private final int id;
 
-    /**
-     * Basic constructor for a TPS_LocationConstant
-     *
-     * @param id         corresponding id from the db
-     * @param attributes attributes have to have a length of 3*n where each 3-segment is of the form (name, code,
-     *                   type) like ("Einkauf-Lebensmittel-SB", "1003003003", "TAPAS") and
-     */
-    public TPS_LocationConstant(int id, String[] attributes) {
-        if (attributes.length % 3 != 0) {
-            throw new RuntimeException(
-                    "TPS_LocationConstant need n*3 attributes n*(name, code, type): " + attributes.length);
-        }
-        this.internalConstantMappings = new EnumMap<>(TPS_LocationCodeType.class);
-        this.id = id;
-        this.internalConstants = new ArrayList<>();
-        TPS_InternalConstant<TPS_LocationCodeType> tic;
-        for (int i = 0; i < attributes.length; i += 3) {
-            tic = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
-                    TPS_LocationCodeType.valueOf(attributes[i + 2]));
-            this.internalConstantMappings.put(tic.getType(), tic);
-            this.internalConstants.add(tic);
-        }
-
-        // check if all location code types are defined in the map
-        for (TPS_LocationCodeType type : TPS_LocationCodeType.values()) {
-            if (!this.internalConstantMappings.containsKey(type)) {
-                throw new RuntimeException(
-                        "Location constant for " + this.getId() + " for type " + type.name() + " not defined");
-            }
-        }
-    }
 
     /**
      * Empties the location constant map

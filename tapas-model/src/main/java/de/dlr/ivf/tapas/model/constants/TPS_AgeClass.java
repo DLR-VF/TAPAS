@@ -55,41 +55,6 @@ public class TPS_AgeClass {
     private final Collection<TPS_InternalConstant<TPS_AgeCodeType>> attributes;
 
     /**
-     * Basic constructor for a TPS_AgeClass
-     *
-     * @param id         corresponding id from the db
-     * @param attributes attributes have to have a length of 3*n where each 3-segment is of the form (name, code,
-     *                   type) like ("under 40", "8", "STBA")
-     */
-    public TPS_AgeClass(int id, String[] attributes, int min, int max) {
-        this.min = min;
-        this.max = max;
-        this.id = id;
-        this.attributes = new ArrayList<>();
-        this.internalAgeConstants = new EnumMap<>(TPS_AgeCodeType.class);
-        if (attributes.length % 3 != 0) {
-            throw new RuntimeException("TPS_AgeClass need n*3 attributes n*(name, code, type): " + attributes.length);
-        }
-        TPS_InternalConstant<TPS_AgeCodeType> tic;
-
-        for (int i = 0; i < attributes.length; i += 3) {
-            tic = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
-                    TPS_AgeCodeType.valueOf(attributes[i + 2]));
-            this.internalAgeConstants.put(tic.getType(), tic);
-        }
-
-        for (TPS_AgeCodeType type : TPS_AgeCodeType.values()) {
-            if (!this.internalAgeConstants.containsKey(type)) {
-                throw new RuntimeException("Age code for " + type.name() + " for type " + type.name() + " not defined");
-            }
-        }
-
-        if (this.max == Integer.MAX_VALUE && this.min == 0) {
-            NON_RELEVANT = this;
-        }
-    }
-
-    /**
      * Empties the global static age class map
      */
     public static void clearAgeClassMap() {
