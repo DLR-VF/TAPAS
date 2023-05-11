@@ -111,10 +111,7 @@ public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
     private double calculateVOTadds(double costs, TPS_Plan plan) {
         // getting vots as a function of the activity type, mode, distance and income
         double vot = this.getValuesOfTime().getValue(plan.getAttributes());
-        if (TPS_Logger.isLogging(this.getClass(), SeverityLogLevel.FINE)) {
-            TPS_Logger.log(this.getClass(), SeverityLogLevel.FINE,
-                    "Calculated vot: " + vot + " with request:" + this.getValuesOfTime().getLastRequest());
-        }
+
         return 3600.0 * costs / vot;// travel time plus in seconds
     }
 

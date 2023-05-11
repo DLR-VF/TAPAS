@@ -16,16 +16,11 @@ import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
  * there has to be a double value. The values for the branches have to be readable by the {@link TPS_AttributeReader}.
  */
 public class TPS_VariableMap {
-
-    private final Map<Thread, Map<TPS_Attribute, Integer>> attributeMap;
-    /**
+        /**
      * List of attributes which describe each layer of the tree
      */
     private final List<TPS_Attribute> attributes;
-    /**
-     * Debug string which stores the last request
-     */
-    private final Map<Thread, String> lastRequest;
+
     /**
      * This value is returned when no appropriate leaf is found
      */
@@ -37,8 +32,6 @@ public class TPS_VariableMap {
 
     public TPS_VariableMap() {
         this.attributes = new LinkedList<>();
-        this.attributeMap = new HashMap<>();
-        this.lastRequest = new HashMap<>();
     }
 
     /**
@@ -56,7 +49,7 @@ public class TPS_VariableMap {
      * @param attributeList
      * @param defaultValue
      */
-    public TPS_VariableMap(Collection<TPS_AttributeReader.TPS_Attribute> attributeList, double defaultValue) {
+    public TPS_VariableMap(Collection<TPS_Attribute> attributeList, double defaultValue) {
         this();
         this.init(attributeList, defaultValue);
     }
@@ -101,25 +94,6 @@ public class TPS_VariableMap {
         }
     }
 
-    public Map<TPS_Attribute, Integer> getAttributeMap() {
-        Map<TPS_Attribute, Integer> map = this.attributeMap.get(Thread.currentThread());
-        if (map == null) {
-            map = new HashMap<>();
-            this.attributeMap.put(Thread.currentThread(), map);
-        } else {
-            map.clear();
-        }
-        return map;
-    }
-
-    /**
-     * This method returns the last request which was consumed by the variable map
-     *
-     * @return last request
-     */
-    public String getLastRequest() {
-        return lastRequest.get(Thread.currentThread());
-    }
 
 //	/**
 //	 * This method walks through the tree by reading the attributes out of the plan down to a leaf and return the value. If
@@ -218,7 +192,6 @@ public class TPS_VariableMap {
                 }
             }
         }
-        this.lastRequest.put(Thread.currentThread(), sb.toString());
         return value;
     }
 
