@@ -12,7 +12,7 @@ public class ReferencedDataSource extends DataSource {
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public ReferencedDataSource(@JsonProperty("reference") ConnectionReference reference, @JsonProperty("uri") String uri){
-        super(uri);
+        super(uri, null);
         this.reference = reference;
     }
 }

@@ -10,11 +10,6 @@ package de.dlr.ivf.tapas.model;
 
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.location.TPS_Coordinate;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.parameter.ParamFlag;
-import de.dlr.ivf.tapas.model.parameter.ParamMatrix;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
 
 import java.io.FileOutputStream;
@@ -111,7 +106,7 @@ public class TPS_Geometrics {
         // @see http://de.wikipedia.org/wiki/Entfernungsberechnung
 
         //return Math.max(min_dist, getDistance(c0.getValue(0), c0.getValue(1),c1.getValue(0),c1.getValue(1)));
-        return Math.max(min_dist, c0.getEuclidianDistance(c1));
+        return Math.max(min_dist, c0.getEuclideanDistance(c1));
 
     }
 

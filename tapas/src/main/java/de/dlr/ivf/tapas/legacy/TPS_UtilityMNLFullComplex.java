@@ -6,24 +6,75 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.implementation.utilityfunction;
+package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleMatrixMapFunction;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
+import de.dlr.ivf.tapas.mode.Modes;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
+import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.person.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
 
 
 public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
+
+    private final int automaticVehicleLevel;
+    private final SimulationType simType;
+    private final double rampUp;
+    private final int avTimeModThreshhold;
+    private final double avTimeModFar;
+    private final double avTimeModNear;
+    private final double passProbHouseHoldCar;
+    private final double passProbRestricted;
+    private final double pnrCostPerTrip;
+    private final double pnrCostPerHour;
+    private final boolean useExitMaut;
+    private final TravelDistanceCalculator distanceCalculator;
+    private final boolean chargePassWithEverything;
+
+    private final boolean useFixPtCost;
+    private final double interchangeFactor;
+    private final SimpleMatrixMapFunction interchangeMatrixMap;
+    private final boolean useRoboTaxi;
+    private final boolean useCarSharing;
+    private final double carSharingAccessAddon;
+    private final int avMinDriverAge;
+
+    public TPS_UtilityMNLFullComplex(TravelDistanceCalculator travelDistanceCalculator,TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes){
+        super(travelTimeCalculator,distributionCalculator,parameterClass, modes);
+        this.automaticVehicleLevel = parameterClass.getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL);
+        this.simType = parameterClass.getSimulationType();
+        this.rampUp = parameterClass.getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_RAMP_UP_TIME);
+        this.avTimeModThreshhold = parameterClass.getIntValue(ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_THRESHOLD);
+        this.avTimeModFar = parameterClass.getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_FAR);
+        this.avTimeModNear = parameterClass.getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_FAR);
+        this.passProbHouseHoldCar = parameterClass.getDoubleValue(ParamValue.PASS_PROBABILITY_HOUSEHOLD_CAR);
+        this.passProbRestricted = parameterClass.getDoubleValue(ParamValue.PASS_PROBABILITY_RESTRICTED);
+        this.pnrCostPerTrip = parameterClass.getDoubleValue(ParamValue.PNR_COST_PER_TRIP);
+        this.pnrCostPerHour = parameterClass.getDoubleValue(ParamValue.PNR_COST_PER_HOUR);
+        this.useExitMaut = parameterClass.isTrue(ParamFlag.FLAG_USE_EXIT_MAUT);
+        this.distanceCalculator = travelDistanceCalculator;
+
+        this.chargePassWithEverything = parameterClass.isTrue(ParamFlag.FLAG_CHARGE_PASSENGERS_WITH_EVERYTHING);
+        this.useFixPtCost = parameterClass.isFalse(ParamFlag.FLAG_FIX_PT_COSTS);
+        this.interchangeFactor = 0.01;
+        this.interchangeMatrixMap = new SimpleMatrixMapFunction(parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.INTERCHANGES_PT, simType));
+        this.useRoboTaxi = parameterClass.isDefined(ParamFlag.FLAG_USE_ROBOTAXI) && parameterClass.isTrue(ParamFlag.FLAG_USE_ROBOTAXI);
+        this.useCarSharing = parameterClass.isDefined(ParamFlag.FLAG_USE_CARSHARING) && parameterClass.isTrue(ParamFlag.FLAG_USE_CARSHARING);
+        this.carSharingAccessAddon = parameterClass.getDoubleValue(ParamValue.CARSHARING_ACCESS_ADDON);
+        this.avMinDriverAge = parameterClass.getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE);
+    }
 
     double costsForMIV(TPS_Mode mode, TPS_Plan plan, double distanceNet, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
         double cost;
@@ -41,40 +92,35 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             tmpFactor = (mcc.carForThisPlan.getCostPerKilometer(simType) +
                     mcc.carForThisPlan.getVariableCostPerKilometer(simType));
             //TODO: Bad hack to modify the costs according to the av-reduction!
-            if (mcc.carForThisPlan.getAutomationLevel() >= mode.getParameters().getIntValue(
-                    ParamValue.AUTOMATIC_VEHICLE_LEVEL) && SimulationType.SCENARIO.equals(simType)) {
+
+            if (mcc.carForThisPlan.getAutomationLevel() >= automaticVehicleLevel && SimulationType.SCENARIO == simType) {
                 //calculate time perception modification
-                double rampUp = mode.getParameters().getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_RAMP_UP_TIME);
                 if (travelTime > rampUp) {
-                    double timeMod = distanceNet > mode.getParameters().getIntValue(
-                            ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_THRESHOLD) ? mode.getParameters().getDoubleValue(
-                            ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_FAR) : mode.getParameters().getDoubleValue(
-                            ParamValue.AUTOMATIC_VEHICLE_TIME_MOD_NEAR);
+                    double timeMod = distanceNet > avTimeModThreshhold ? avTimeModFar : avTimeModNear;
                     tmpFactor *= timeMod; // modify the costs according to the av-reduction from the first meter!
                 }
             }
 
         } else { //calc cost for a generic car
             boolean carIsRestricted = true;
-            if (Randomizer.random() < mode.getParameters().getDoubleValue(ParamValue.PASS_PROBABILITY_HOUSEHOLD_CAR)) {
+
+            if (Randomizer.random() < passProbHouseHoldCar) {
                 TPS_Car coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
                 if (coDriver != null) { //does the household have a car???
                     carIsRestricted = plan.getPerson().getHousehold().getLeastRestrictedCar().isRestricted();
                 } else {
-                    carIsRestricted = Randomizer.random() < mode.getParameters().getDoubleValue(
-                            ParamValue.PASS_PROBABILITY_RESTRICTED);
+                    carIsRestricted = Randomizer.random() < passProbRestricted;
                     //return Double.NaN; // Don't ride with strangers, 'Cause they're only there to do you harm
                 }
             } else {
-                carIsRestricted = Randomizer.random() < mode.getParameters().getDoubleValue(
-                        ParamValue.PASS_PROBABILITY_RESTRICTED);
+                carIsRestricted = Randomizer.random() < passProbRestricted;
             }
 
             if (goingToTVZ.isRestricted() && carIsRestricted) {
                 return Double.NaN;
             }
 
-            tmpFactor = (mode.getCost_per_km(simType) + mode.getVariableCost_per_km(simType));
+            tmpFactor = (mode.getCostPerKm() + mode.getVariableCostPerKm());
         }
         tmpFactor *= 0.001; //km to m
 
@@ -83,9 +129,8 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
 
         //should I add costs for a PT-ticket for this ride?
         if ((goingToTVZ.isPNR() || comingFromTVZ.isPNR()) && !plan.getPerson().hasAbo()) {
-            cost += mode.getParameters().getDoubleValue(ParamValue.PNR_COST_PER_TRIP);
-            cost += mode.getParameters().getDoubleValue(ParamValue.PNR_COST_PER_HOUR) * mcc.duration *
-                    2.7777777777e-4;// stay time
+            cost += pnrCostPerTrip;
+            cost += pnrCostPerHour * mcc.duration * 2.7777777777e-4;// stay time
         }
 
         // location based cost differences
@@ -98,8 +143,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             // toll is relevant as entering a cordon toll zone
             cost += goingToTVZ.getTollFee(simType);
         }
-
-        if (mode.getParameters().isTrue(ParamFlag.FLAG_USE_EXIT_MAUT) && !goingToTVZ.hasToll(simType) &&
+        if (useExitMaut && !goingToTVZ.hasToll(simType) &&
                 comingFromTVZ.hasToll(simType) && carMustPayToll) {// scenario:
             //FIXME necessary?
         }
@@ -117,29 +161,29 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
     /**
      * Utility function, which implements the mnl-model according to the complex  model developed by Alexander Kihm. See https://wiki.dlr.de/confluence/display/MUM/Modalwahl+in+TAPAS
      *
-     */ public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
+     */
+    public double getCostOfMode(TPS_Mode mode, TPS_Plan plan, double travelTime, TPS_ModeChoiceContext mcc, SimulationType simType) {
         double cost = 0;
         double[] parameters = this.parameterMap.get(mode);
 
         double expInterChanges = 0;
-        double distanceNet = mode.getDistance(mcc.fromStayLocation, mcc.toStayLocation, simType,
-                mcc.carForThisPlan); //correct the distance to the actual value!
+        double distanceNet = distanceCalculator.getDistance(mcc.fromStayLocation, mcc.toStayLocation, ModeType.MIT); //correct the distance to the actual value!
 
-        switch (mode.getAttribute()) {
+        switch (mode.getModeType()) {
             case WALK:
-                cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
+                cost = mode.getCostPerKm() * distanceNet * 0.001;
                 break;
             case BIKE:
-                cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
+                cost = mode.getCostPerKm() * distanceNet * 0.001;
                 break;
             case MIT:
                 cost = costsForMIV(mode, plan, distanceNet, travelTime, mcc, simType);
                 break;
             case MIT_PASS:
-                if (mode.getParameters().isTrue(ParamFlag.FLAG_CHARGE_PASSENGERS_WITH_EVERYTHING)) {
+                if (chargePassWithEverything) {
                     cost = costsForMIV(mode, plan, distanceNet, travelTime, mcc, simType);
                 } else {
-                    cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
+                    cost = mode.getCostPerKm() * distanceNet * 0.001;
                 }
 
                 break;
@@ -163,26 +207,22 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
 
                 if (!plan.getPerson().hasAbo()) {
                     if (simType == SimulationType.BASE) {
-                        cost = mode.getParameters().getDoubleValue(ParamValue.PT_COST_PER_KM_BASE);
+                        cost = mode.getCostPerKmBase();
                     } else {
-                        cost = mode.getParameters().getDoubleValue(ParamValue.PT_COST_PER_KM);
+                        cost = mode.getCostPerKm();
                     }
-                    if (mode.getParameters().isFalse(ParamFlag.FLAG_FIX_PT_COSTS)) {//cost per kilometer!
+                    if (!useFixPtCost) {//cost per kilometer!
                         cost *= distanceNet * 0.001;
                     }
                 }
 
                 expInterChanges = TPS_FastMath.exp(
-                        mode.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.INTERCHANGES_PT,
-                                mcc.fromStayLocation.getTAZId(), mcc.toStayLocation.getTAZId(), mcc.startTime) *
-                                TPS_DB_IO.INTERCHANGE_FACTOR);
+                        interchangeMatrixMap.apply(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime)) * interchangeFactor;
 
                 break;
             case CAR_SHARING: //car sharing-faker
-                if ((mode.getParameters().isDefined(ParamFlag.FLAG_USE_CARSHARING) && mode.getParameters().isTrue(
-                        ParamFlag.FLAG_USE_CARSHARING) && plan.getPerson().isCarPooler()) //cs user?
-                        || (mode.getParameters().isDefined(ParamFlag.FLAG_USE_ROBOTAXI) && mode.getParameters().isTrue(
-                        ParamFlag.FLAG_USE_ROBOTAXI)) // is robotaxi
+                if ((useCarSharing && plan.getPerson().isCarPooler()) //cs user?
+                        || useRoboTaxi // is robotaxi
                 ) { //no cs user!
                     //service area in scenario?
                     if (!mcc.toStayLocation.getTrafficAnalysisZone().isCarSharingService(SimulationType.SCENARIO) ||
@@ -191,12 +231,11 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                         return Double.NaN;
                     }
                     // time equals MIT + 3 min more access
-                    travelTime = TPS_Mode.get(ModeType.MIT).getTravelTime(mcc.fromStayLocation, mcc.toStayLocation,
-                            mcc.startTime, simType, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
+                    travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation,
+                            mcc.startTime, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
                             plan.getPerson(), mcc.carForThisPlan);
-                    travelTime += mode.getParameters().getDoubleValue(
-                            ParamValue.CARSHARING_ACCESS_ADDON); //Longer Access for Carsharing
-                    cost = mode.getCost_per_km(simType) * distanceNet * 0.001;
+                    travelTime += carSharingAccessAddon; //Longer Access for Carsharing
+                    cost = mode.getCostPerKm() * distanceNet * 0.001;
                 } else {
                     cost = Double.NaN;
                 }
@@ -226,7 +265,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                 parameters[5] * plan.getPerson().getHousehold().getNumberOfCars() + // anzahl autos
                 parameters[6] * expInterChanges + //umstiege (nur ÖV)
                 //ab jetzt binär-Betas, also Ja/nein
-                (plan.getPerson().mayDriveACar(plan.getPM(),mcc.carForThisPlan) ? parameters[7] : 0) + //führerschein
+                (plan.getPerson().mayDriveACar(mcc.carForThisPlan,avMinDriverAge, automaticVehicleLevel) ? parameters[7] : 0) + //führerschein
                 (plan.getPerson().hasAbo() ? parameters[8] : 0) + //Öffi -abo
                 (work ? parameters[9] : 0) + //tourpart mit Arbeit
                 (education ? parameters[10] : 0) + //tourpart mit Bildung
@@ -234,6 +273,4 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                 (errant ? parameters[12] : 0) + //tourpart mit Erledigung
                 (leisure ? parameters[13] : 0);
     }
-
-
 }

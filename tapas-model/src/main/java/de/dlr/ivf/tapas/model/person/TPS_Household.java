@@ -16,6 +16,8 @@ import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
+import lombok.Builder;
+import lombok.Singular;
 
 import java.util.*;
 
@@ -24,6 +26,7 @@ import java.util.*;
  *
  * @author mark_ma
  */
+@Builder
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.THREAD)
 public class TPS_Household implements ExtendedWritable {
     /// household id
@@ -39,6 +42,7 @@ public class TPS_Household implements ExtendedWritable {
     private final TPS_Location location;
 
     /// household member list
+    @Singular
     private final SortedMap<Integer, TPS_Person> members;
 
     /// number of cars in household
@@ -49,28 +53,14 @@ public class TPS_Household implements ExtendedWritable {
     private TPS_Car leastRestrictedCar = null;
 
     public TPS_HouseholdCarMediator getCarMediator() {
-        return car_mediator;
+        return carMediator;
     }
 
     public void setCarMediator(TPS_HouseholdCarMediator car_mediator) {
-        this.car_mediator = car_mediator;
+        this.carMediator = car_mediator;
     }
 
-    private TPS_HouseholdCarMediator car_mediator = null;
-
-
-    /**
-     * Constructor
-     * TODO: remove, this won't work - it is used by HouseholdSet only, which is not used
-     *
-     * @param id The id of the household
-     */
-    public TPS_Household(int id) {
-        this.id = id;
-        this.location = null;
-        this.members = new TreeMap<>();
-    }
-
+    private TPS_HouseholdCarMediator carMediator = null;
 
     /**
      * Constructor
@@ -124,8 +114,8 @@ public class TPS_Household implements ExtendedWritable {
 
 
     public void initializeCarMediator(TPS_Household household, List<TPS_Plan> household_plans){
-        if(this.car_mediator == null)
-            this.car_mediator = new TPS_HouseholdCarMediator(household);
+        if(this.carMediator == null)
+            this.carMediator = new TPS_HouseholdCarMediator(household);
     }
 
     /**

@@ -8,6 +8,8 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
+import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
@@ -440,13 +442,15 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                 TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading constants (all codes: age," + " distance, person, activity, location, ...)");
             }
-            this.dbIO.readConstants();
+            this.dbIO.readConstants(getParameters());
 
             if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
                 TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading parameters for the utility function");
             }
-            this.dbIO.readUtilityFunction(getParameters().getString(ParamString.UTILITY_FUNCTION_NAME));
+            this.dbIO.readUtilityFunction(new DataSource(getParameters().getString(ParamString.DB_NAME_MODEL_PARAMETERS),
+                    List.of(new Filter("key", getParameters().getString(ParamString.UTILITY_FUNCTION_KEY)),
+                            new Filter("utility_function_class", getParameters().getString(ParamString.UTILITY_FUNCTION_NAME)))));
 
             // read scheme set
             if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
@@ -465,7 +469,11 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                 TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Reading mode set with mode choice tree");
             }
-            this.modeSet = new TPS_ModeSet(this.dbIO.readModeChoiceTree(), this.dbIO.readExpertKnowledgeTree(),
+            this.modeSet = new TPS_ModeSet(
+                    this.dbIO.readModeChoiceTree(new DataSource(getParameters().getString(ParamString.DB_TABLE_MCT),
+                                    List.of(new Filter("key",getParameters().getString(ParamString.DB_NAME_MCT))))),
+                    this.dbIO.readExpertKnowledgeTree(new DataSource(getParameters().getString(ParamString.DB_TABLE_EKT),
+                            List.of(new Filter("key",getParameters().getString(ParamString.DB_NAME_EKT))))),
                     this.getParameters());
 
             if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {

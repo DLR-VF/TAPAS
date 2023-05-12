@@ -44,7 +44,7 @@ public class TPS_Coordinate {
         return new TPS_Coordinate(this.getValue(0), this.getValue(1));
     }
 
-    public double getEuclidianDistance(TPS_Coordinate b) {
+    public double getEuclideanDistance(TPS_Coordinate b) {
         double dX = this.euclidianCoord[0] - b.euclidianCoord[0];
         double dY = this.euclidianCoord[1] - b.euclidianCoord[1];
 

@@ -33,7 +33,6 @@ import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstan
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.ScenarioTypeValues;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
@@ -42,6 +41,7 @@ import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
 import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.Incomes.IncomesBuilder;
@@ -245,7 +245,6 @@ public class TPS_DB_IO {
      */
     public void clearConstants() {
 
-        TPS_ActivityConstant.clearActivityConstantMap();
         TPS_AgeClass.clearAgeClassMap();
         TPS_Distance.clearDistanceMap();
         TPS_Income.clearIncomeMap();
@@ -417,11 +416,29 @@ public class TPS_DB_IO {
         this.houseHoldMap.clear(); //just in case...
     }
 
+    public Collection<TPS_HouseholdBuilder> readHouseholds(DataSource dataSource){
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<HouseholdDto> householdDtos = reader.read(new ResultSetConverter<>(HouseholdDto.class,HouseholdDto::new), dataSource);
+
+        Collection<TPS_HouseholdBuilder> householdBuilders = new ArrayList<>(householdDtos.size());
+
+        for(HouseholdDto householdDto : householdDtos) {
+            TPS_HouseholdBuilder householdBuilder = TPS_Household.builder()
+                    .id(householdDto.getHhId())
+                    .type(householdDto.getHhType())
+                    .income(householdDto.getHhIncome());
+            householdBuilders.add(householdBuilder);
+        }
+        return householdBuilders;
+    }
+
     /**
      * Here we load the households, persons and car data from the DB for a given list of household ids!
      * First we look at our household-map if the house hold is already loaded (prefetched).
      * If we do not find it, we load it with all attributes, cars and persons.
-     * Finally we store the households in a list and return this list.
+     * Finally, we store the households in a list and return this list.
      *
      * @param region in which the households are
      * @param hIDs   list of household ids
@@ -1376,6 +1393,23 @@ public class TPS_DB_IO {
         return personGroups;
     }
 
+    public TPS_VariableMap readValuesOfTimes(DataSource dataSource){
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<ValueOfTimeDto> votDtos = reader.read(new ResultSetConverter<>(ValueOfTimeDto.class,ValueOfTimeDto::new), dataSource);
+
+        TPS_VariableMap votTree = new TPS_VariableMap(List.of(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE, TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_VOT,
+                TPS_Attribute.CURRENT_MODE_CODE_VOT, TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_VOT));
+
+        for(ValueOfTimeDto votDto : votDtos) {
+            votTree.addValue(List.of(votDto.getHhIncomeClassCode(), votDto.getCurrentEpisodeActivityCodeVot(),
+                    votDto.getCurrentModeCodeVot(), votDto.getCurrentDistanceClassCodeVot()), votDto.getValue());
+        }
+
+        return votTree;
+    }
+
     /**
      * Reads all region specific parameters from the DB
      *
@@ -1387,67 +1421,47 @@ public class TPS_DB_IO {
         TPS_Region region = new TPS_Region(null, null);
         TPS_Block blk;
         String query;
+
         // read values of time
-        query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_VOT) + " WHERE name='" +
-                this.PM.getParameters().getString(ParamString.DB_NAME_VOT) + "'";
-        ResultSet rsVOT = PM.executeQuery(query);
+        DataSource votDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_VOT),
+                List.of(new Filter("name", PM.getParameters().getString(ParamString.DB_NAME_VOT))));
+        region.setValuesOfTime(this.readValuesOfTimes(votDs));
 
-        region.setValuesOfTime(
-                this.readVariableMap(rsVOT, 2, 0, this.PM.getParameters().getDoubleValue(ParamValue.DEFAULT_VOT)));
-        rsVOT.close();
+
         // read cfn values
-        TPS_CFN cfn = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
-        query = "SELECT \"CURRENT_TAZ_SETTLEMENT_CODE_TAPAS\",value FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_CFNX) + " WHERE key = '" + this.PM.getParameters().getString(
-                ParamString.DB_REGION_CNF_KEY) + "'";
-        ResultSet rsCFNX = PM.executeQuery(query);
-        int key, reg;
-        double val;
-        while (rsCFNX.next()) {
-            key = rsCFNX.getInt("CURRENT_TAZ_SETTLEMENT_CODE_TAPAS");
-            val = rsCFNX.getDouble("value");
-            cfn.addToCFNXMap(key, val);
-        }
-        rsCFNX.close();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        query = "SELECT \"CURRENT_EPISODE_ACTIVITY_CODE_TAPAS\",\"CURRENT_TAZ_SETTLEMENT_CODE_TAPAS\",value FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_CFN4) + " WHERE key = '" +
-                this.PM.getParameters().getString(ParamString.DB_ACTIVITY_CNF_KEY) + "'";
-        ResultSet rsCFN4 = PM.executeQuery(query);
-        while (rsCFN4.next()) {
-            reg = rsCFN4.getInt("CURRENT_TAZ_SETTLEMENT_CODE_TAPAS");
-            key = rsCFN4.getInt("CURRENT_EPISODE_ACTIVITY_CODE_TAPAS");
-            val = rsCFN4.getDouble("value");
-            cfn.addToCFN4Map(reg, key, val);
-        }
-        rsCFN4.close();
+        //read cfnx
+        DataSource cfnxDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_CFNX),
+                List.of(new Filter("key", PM.getParameters().getString(ParamString.DB_REGION_CNF_KEY))));
+
+        Collection<CfnxDto> cfnxDtos = reader.read(new ResultSetConverter<>(CfnxDto.class, CfnxDto::new),cfnxDs);
+
+        TPS_CFN cfn = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
+
+        cfnxDtos.forEach(cfnx -> cfn.addToCFNXMap(cfnx.getCurrentTazSettlementCodeTapas(),cfnx.getValue()));
+
+        //read cfn4
+        DataSource cfn4Ds = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_CFN4),
+                List.of(new Filter("key", PM.getParameters().getString(ParamString.DB_ACTIVITY_CNF_KEY))));
+        Collection<CfnFourDto> cfn4Dtos = reader.read(new ResultSetConverter<>(CfnFourDto.class, CfnFourDto::new), cfn4Ds);
+        cfn4Dtos.forEach(cfn4 -> cfn.addToCFN4Map(cfn4.getCurrentTazSettlementCodeTapas(),cfn4.getCurrentEpisodeActivityCodeTapas(),cfn4.getValue()));
 
         region.setCfn(cfn);
 
         //optional potential parameter, might return no result!
         TPS_CFN potential = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
-        query = "SELECT \"CURRENT_EPISODE_ACTIVITY_CODE_TAPAS\",\"CURRENT_TAZ_SETTLEMENT_CODE_TAPAS\",value FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_CFN4) + " WHERE key = '" +
-                this.PM.getParameters().getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY) + "'";
-        rsCFN4 = PM.executeQuery(query);
-        while (rsCFN4.next()) {
-            reg = rsCFN4.getInt("CURRENT_TAZ_SETTLEMENT_CODE_TAPAS");
-            key = rsCFN4.getInt("CURRENT_EPISODE_ACTIVITY_CODE_TAPAS");
-            val = rsCFN4.getDouble("value");
-            potential.addToCFN4Map(reg, key, val);
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Found a location choice parameter (region, key, value): " + reg + " " + key + " " + val);
-            }
-        }
-        rsCFN4.close();
+        DataSource cfnPotentialDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_CFN4),
+                List.of(new Filter("key", PM.getParameters().getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY))));
+        Collection<CfnFourDto> cfn4PotentialDtos = reader.read(new ResultSetConverter<>(CfnFourDto.class, CfnFourDto::new), cfnPotentialDs);
+        cfn4PotentialDtos.forEach(cfn4 -> potential.addToCFN4Map(cfn4.getCurrentTazSettlementCodeTapas(),cfn4.getCurrentEpisodeActivityCodeTapas(),cfn4.getValue()));
 
         region.setPotential(potential);
 
-        String tazTable = this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ);
-        if (tazTable.indexOf(".") > 0) {
-            tazTable = tazTable.substring(tazTable.indexOf(".") + 1);
-        }
+        //read traffic analysis zone
+        DataSource tazDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_TAZ),null);
+        Collection<TrafficAnalysisZoneDto> tazDtos = reader.read(new ResultSetConverter<>(TrafficAnalysisZoneDto.class, TrafficAnalysisZoneDto::new), null);
+
 
 
         // read traffic analysis zones
@@ -1813,24 +1827,13 @@ public class TPS_DB_IO {
      */
 
     //todo fix reading utility functions
-    public void readUtilityFunction(String utilityFunctionName, String key, DataSource utilityFunctionTable) throws SQLException {
-        ResultSet rs;
-        utilityFunctionName = this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME);
-        utilityFunctionName = utilityFunctionName.substring(utilityFunctionName.lastIndexOf('.') + 1);
-        // read the parameters for the utility function of the modes
-//        rs = PM.executeQuery(
-//                "SELECT mode_class, parameters FROM " + utilityFunctionTable. +
-//                        " WHERE utility_function_class='" + utilityFunctionName + "' and key='" +
-//                        key + "'");
-//        //now init the utility function
-//        TPS_Mode.initUtilityFunction(this.PM.getParameters().getString(ParamString.UTILITY_FUNCTION_NAME));
-//        while (rs.next()) {
-//            String mode = rs.getString("mode_class");
-//            double[] parameters = extractDoubleArray(rs, "parameters");
-//            TPS_Mode.getUtilityFunction().setParameterSet(TPS_Mode.get(ModeType.valueOf(mode)), parameters);
-//        }
-//        rs.close();
+    public Collection<UtilityFunctionDto> readUtilityFunction(DataSource dataSource){
 
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<UtilityFunctionDto> utilityFunctionDtos = reader.read(new ResultSetConverter<>(UtilityFunctionDto.class, UtilityFunctionDto::new), dataSource);
+
+        return utilityFunctionDtos;
     }
 
     /**

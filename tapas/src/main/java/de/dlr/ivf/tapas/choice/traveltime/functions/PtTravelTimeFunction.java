@@ -5,9 +5,9 @@ import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.location.Locatable;
+import de.dlr.ivf.tapas.model.location.ScenarioTypeValues;
 import de.dlr.ivf.tapas.model.location.TPS_Block;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
-import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.ScenarioTypeValues;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.parameter.*;
 

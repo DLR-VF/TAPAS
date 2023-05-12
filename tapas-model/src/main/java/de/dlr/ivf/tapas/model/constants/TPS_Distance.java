@@ -49,40 +49,6 @@ public class TPS_Distance {
     private final EnumMap<TPS_DistanceCodeType, TPS_InternalConstant<TPS_DistanceCodeType>> map;
 
     /**
-     * Basic constructor for a TPS_Distance object
-     *
-     * @param id         corresponding to the db entry
-     * @param attributes list of triples like (name, code, type)
-     * @param max        maximum value of the distance constant category
-     */
-    public TPS_Distance(int id, String[] attributes, int max) {
-
-        internalDistanceCodes = new ArrayList<>();
-        if (attributes.length % 3 != 0) {
-            throw new RuntimeException("TPS_Distance need n*3 attributes n*(name, code, type): " + attributes.length);
-        }
-        TPS_InternalConstant<TPS_DistanceCodeType> tic;
-
-        this.id = id;
-        this.map = new EnumMap<>(TPS_DistanceCodeType.class);
-        this.max = max;
-
-        for (int i = 0; i < attributes.length; i += 3) {
-            tic = new TPS_InternalConstant<>(attributes[i], Integer.parseInt(attributes[i + 1]),
-                    TPS_DistanceCodeType.valueOf(attributes[i + 2]));
-            internalDistanceCodes.add(tic);
-            this.map.put(tic.getType(), tic);
-        }
-
-        for (TPS_DistanceCodeType type : TPS_DistanceCodeType.values()) {
-            if (!this.map.containsKey(type)) {
-                throw new RuntimeException(
-                        "Distance code for " + type.name() + " for type " + type.name() + " not defined");
-            }
-        }
-    }
-
-    /**
      * Empties the global static distance map and the max values map
      */
     public static void clearDistanceMap() {

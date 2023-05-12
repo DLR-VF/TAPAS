@@ -10,11 +10,7 @@ package de.dlr.ivf.tapas.tools;
 
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.location.TPS_Coordinate;
-import de.dlr.ivf.tapas.model.parameter.ParamString;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +134,7 @@ public class TPS_MainDiagonalLengthEstimator{
 				for(stop= start+1; stop <locs.size(); stop++) {
 					l2= locs.get(stop);
 					weight = Math.min(l1.cappa, l2.cappa);
-					beeline = l1.point.getEuclidianDistance(l2.point);
+					beeline = l1.point.getEuclideanDistance(l2.point);
 					sumWeight+= weight;
 					beelineAccumulated += beeline*weight;
 				}
@@ -212,7 +208,7 @@ public class TPS_MainDiagonalLengthEstimator{
 				}
 			}
 			if(target!=null) {
-				double bl = ref.point.getEuclidianDistance(target.point);
+				double bl = ref.point.getEuclideanDistance(target.point);
 				this.tazBeeLineFactor.put(ref.taz, dist/bl);
 			}
 			else {
