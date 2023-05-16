@@ -9,6 +9,7 @@
 package de.dlr.ivf.tapas.persistence.db;
 
 
+import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.DataReader;
 import de.dlr.ivf.api.io.DataReaderFactory;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
@@ -16,19 +17,26 @@ import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.api.io.implementation.ResultSetConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
+import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.ModeParameters;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeBuilder;
 import de.dlr.ivf.tapas.model.*;
 import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_AgeClass.TPS_AgeCodeType;
+import de.dlr.ivf.tapas.model.constants.AgeClasses.AgeClassesBuilder;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeNode;
 import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeTree;
 import de.dlr.ivf.tapas.legacy.TPS_ModeChoiceTree;
 import de.dlr.ivf.tapas.legacy.TPS_Node;
 import de.dlr.ivf.tapas.model.location.*;
-import de.dlr.ivf.tapas.model.mode.*;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
+import de.dlr.ivf.tapas.mode.Modes.ModesBuilder;
+import de.dlr.ivf.tapas.model.vehicle.CarFleetManager.CarFleetManagerBuilder;
+
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
@@ -39,15 +47,16 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.scheme.*;
+import de.dlr.ivf.tapas.model.vehicle.*;
+import de.dlr.ivf.tapas.model.vehicle.Cars.CarsBuilder;
+import de.dlr.ivf.tapas.model.vehicle.FuelTypes.FuelTypesBuilder;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.Incomes.IncomesBuilder;
 
 import de.dlr.ivf.tapas.util.IPInfo;
-import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -59,6 +68,7 @@ import java.sql.*;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
@@ -70,12 +80,13 @@ public class TPS_DB_IO {
     /// The ip address of this machine
     private static InetAddress ADDRESS = null;
     private final Supplier<Connection> connectionSupplier;
+    private final TPS_ParameterClass parameters;
     /// The number of households to fetch per cpu
     private int numberToFetch;
     Map<Integer, TPS_Household> houseHoldMap = new TreeMap<>();
     Map<Integer, TPS_Car> carMap = new HashMap<>();
     /// The reference to the persistence manager
-    private final TPS_DB_IOManager PM;
+    private TPS_DB_IOManager PM;
     /// A queue for prefetched households. Filled by getNextHouseholds .
     private final Queue<TPS_Household> prefetchedHouseholds = new LinkedList<>();
     /// The number of households fetched for this chunk. should be cpu*numberToFetch or the remainders in db for the
@@ -97,13 +108,20 @@ public class TPS_DB_IO {
         this.connectionSupplier = connectionSupplier;
 
         this.PM = pm;
+        this.parameters = pm.getParameters();
         // TODO: use the defined number of threads
-        if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
+        if (this.parameters.isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
             numberToFetch = fetchSizePerProcessorPrefetchHouseholds * Runtime.getRuntime().availableProcessors();
         } else {
             numberToFetch = fetchSizePerProcessor * Runtime.getRuntime().availableProcessors();
         }
         numberOfFetchedHouseholds = -1;
+    }
+    
+    public TPS_DB_IO(Supplier<Connection> connectionSupplier, TPS_ParameterClass parameterClass){
+        
+        this.connectionSupplier = connectionSupplier;
+        this.parameters = parameterClass;
     }
 
     /**
@@ -196,48 +214,42 @@ public class TPS_DB_IO {
         return totalBuffer.toString();
     }
 
-    /**
-     * Here we create a person for a given SQL-ResultSet to add it to a household.
-     *
-     * @param pRs
-     * @return
-     * @throws SQLException
-     */
-    private TPS_Person addPersonToHousehold(ResultSet pRs) throws SQLException {
-        boolean hasBike = pRs.getBoolean("has_bike") && Randomizer.random() < this.PM.getParameters().getDoubleValue(
-                ParamValue.AVAILABILITY_FACTOR_BIKE);// TODO: make
-        // a better model
-        double working = pRs.getDouble("working");
-        double budget = (pRs.getDouble("budget_it") + pRs.getDouble("budget_pt")) / 100.0;
+    public Map<Integer, Collection<TPS_Person>> loadPersons(DataSource dataSource, Converter<PersonDto, TPS_Person> converter){
 
-        TPS_Person person = new TPS_Person(pRs.getInt("p_id"), pRs.getInt("group"), pRs.getInt("status"), TPS_Sex.getEnum(pRs.getInt("sex")), pRs.getInt("age"),
-                pRs.getBoolean("pt_abo"), hasBike, budget, working, false,
-                pRs.getInt("education"), this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES));
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcLargeTableReader(connectionSupplier);
 
-        if (this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_DRIVING_LICENCE)) {
-            int licCode = pRs.getInt("driver_license");
-            if (licCode == 1) {
-                person.setDrivingLicenseInformation(TPS_DrivingLicenseInformation.CAR);
-            } else {
-                person.setDrivingLicenseInformation(TPS_DrivingLicenseInformation.NO_DRIVING_LICENSE);
-            }
-        } else {
-            person.setDrivingLicenseInformation(TPS_DrivingLicenseInformation.UNKNOWN);
+        Collection<PersonDto> personDtos = reader.read(new ResultSetConverter<>(PersonDto.class, PersonDto::new), dataSource);
+
+        return converter.convertCollectionToMapWithSourceKey(personDtos, PersonDto::getHhId);
+    }
+
+    public Cars loadCars(DataSource dataSource, FuelTypes fuelTypes){
+
+        CarsBuilder cars = Cars.builder();
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Collection<CarDto> carDtos = reader.read(new ResultSetConverter<>(CarDto.class, CarDto::new),dataSource);
+
+        for(CarDto carDto :carDtos){
+
+            //build the car first
+            TPS_Car car = TPS_Car.builder()
+                    .id(carDto.getId())
+                    .kbaNo(carDto.getKbaNo())
+                    .fuelType(fuelTypes.getFuelType(FuelTypeName.getById(carDto.getEngineType())))
+                    .emissionClass(EmissionClass.getById(carDto.getEmissionType()))
+                    .restricted(carDto.isRestriction())
+                    .fixCosts(carDto.getFixCosts())
+                    .automationLevel(carDto.getAutomationLevel())
+                    .build();
+
+            //decorate car
+            Vehicle decoratedCar = carDto.isCompanyCar() ? new CompanyCar(car) : new HouseholdCar(car);
+
+            cars.car(decoratedCar.id(), decoratedCar);
         }
 
-        // case for robotaxis: all if wanted
-        boolean isCarPooler = Randomizer.random() < this.PM.getParameters().getDoubleValue(
-                ParamValue.AVAILABILITY_FACTOR_CARSHARING);
-        if (this.PM.getParameters().isFalse(ParamFlag.FLAG_USE_ROBOTAXI)) {
-            // no robotaxis: must be able to drive a car and be older than MIN_AGE_CARSHARING
-            isCarPooler &= person.getAge() >= this.PM.getParameters().getIntValue(ParamValue.MIN_AGE_CARSHARING) &&
-                    person.mayDriveACar(null,this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE),this.PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL));
-        }
-        person.setCarPooler(isCarPooler);
-        //
-        TPS_Household hh = houseHoldMap.get(pRs.getInt("hh_id"));
-        hh.addMember(person);
-        return person;
+        return cars.build();
     }
 
     /**
@@ -245,159 +257,12 @@ public class TPS_DB_IO {
      */
     public void clearConstants() {
 
-        TPS_AgeClass.clearAgeClassMap();
         TPS_Distance.clearDistanceMap();
         TPS_Income.clearIncomeMap();
         TPS_LocationConstant.clearLocationConstantMap();
 
         TPS_PersonGroup.clearPersonGroupMap();
         TPS_SettlementSystem.clearSettlementSystemMap();
-    }
-
-    /**
-     * Method to drop all temporary tables in the db
-     */
-    void dropTemporaryTables() {
-        this.PM.functionExecute("drop_temp_tables",
-                this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP),
-                this.PM.getParameters().getString(ParamString.DB_TABLE_LOCATION_TMP),
-                !Behaviour.FAT.equals(TPS_DB_IOManager.BEHAVIOUR));
-    }
-
-    /**
-     * Here we load a new set of households and return the number of fetched ones.
-     * We have to check if the simulation is running and still existent. Someone might have deleted it!
-     * Then we fetch the unfinished households from any previous simulation (crashed sim pick up).
-     * Then we mark new households in the temporary household table (job table), that we will pick them.
-     * Here we have to check for race conditions with other computers!
-     * Next we load the household IDs
-     * Then we load the persons and finally we store them in the household-pool and return.
-     *
-     * @param region with households to fetch
-     * @return the number of fetched households
-     */
-
-    private int fetchNextSetOfHouseholds(TPS_Region region) {
-        String query = "";
-        try {        //check if simulation is running
-            query = "SELECT sim_started FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
-                    " WHERE sim_key = '" + this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'";
-            ResultSet sRs = PM.executeQuery(query);
-            if (!sRs.next()) {
-                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "simulation key removed from db!");
-                return 0;
-            }
-            if (sRs.getBoolean("sim_started")) {
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Fetching new set of households");
-                }
-                String hhtemptable = this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP);
-
-
-                int actualCount = numberToFetch;
-                List<Integer> hIDs = new ArrayList<>();
-                // first fetch number unfinished hh for this server
-                query = "SELECT count(*) as unfinished FROM " + hhtemptable +
-                        " WHERE hh_started = true AND hh_finished = false AND server_ip = inet '" +
-                        ADDRESS.getHostAddress() + "'";
-                ResultSet hRs = PM.executeQuery(query);
-                if (hRs.next()) {
-                    actualCount -= hRs.getInt("unfinished");
-                }
-                hRs.close();
-
-                //mark new set of households: This is done in a single statement.
-                //Deadlocks are avoided by sorting by prio, which is a random number initialized during
-                // simulation-setup. So its fix for the whole sim and guarantees, that no "ring lock" will happen!
-                if (actualCount > 0) {
-                    Connection con = this.PM.getDbConnector().getConnection(this);
-
-                    //time critical lock
-                    con.setAutoCommit(false);
-                    Statement st = con.createStatement();
-                    query = "LOCK TABLE " + hhtemptable + " IN EXCLUSIVE MODE";
-                    st.execute(query);
-                    query = "UPDATE " + hhtemptable + " SET hh_started = true, server_ip = inet '" +
-                            ADDRESS.getHostAddress() + "' WHERE hh_started = false AND hh_id = ANY(SELECT hh_id FROM " +
-                            hhtemptable + " WHERE hh_started = false ORDER BY prio, hh_id LIMIT " + actualCount + ")";
-                    st.execute(query);
-                    con.commit();
-                    con.setAutoCommit(true);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                                "Assigned " + actualCount + " new households this instance.");
-                    }
-                }
-
-                //get all hhId which should be processed in the next round
-                query = "SELECT hh_id FROM " + hhtemptable +
-                        " WHERE hh_started = true AND hh_finished = false AND server_ip = inet '" +
-                        ADDRESS.getHostAddress() + "' ORDER BY prio, hh_id";
-                hRs = PM.executeQuery(query);
-                int id;
-                while (hRs.next()) {
-                    id = hRs.getInt("hh_id");
-                    hIDs.add(id);
-                }
-                hRs.close();
-
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                            "Fetching data for " + hIDs.size() + " households.");
-                }
-
-                List<TPS_Household> hhs;
-                if (hIDs.size() == 0) {
-                    this.houseHoldMap.clear();
-                } else {
-                    hhs = this.loadHouseholds(region, hIDs);
-                    for (TPS_Household hh : hhs) {
-                        this.prefetchedHouseholds.offer(hh);
-                    }
-                }
-            }
-            this.numberOfFetchedHouseholds = this.prefetchedHouseholds.size();
-            if (numberOfFetchedHouseholds > 0) {
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                            "Fetched " + numberOfFetchedHouseholds + " households");
-                }
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "error during one of th sqls: " + query,
-                    e);
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "next exception:", e.getNextException());
-        }
-        return this.prefetchedHouseholds.size();
-    }
-
-    /**
-     * Household prefetching from database:
-     * ATTENTION: THIS MUST BE DONE SYNCHRONIZED! ONLY ONE FUNCTION CALL ALLOWED PER COMPUTER!
-     * If the pool of prefetched households is not empty, the top of the pool is returned.
-     * If the pool is empty a new pool is fetched from the db.
-     * If there is no further household to process, null is returned
-     *
-     * @param region The region to fetch
-     * @return top of the household pool
-     */
-    TPS_Household getNextHousehold(TPS_Region region) {
-        synchronized (prefetchedHouseholds) {
-            if (prefetchedHouseholds.isEmpty()) { //household pool is empty
-                if (this.numberOfFetchedHouseholds != 0) {//last fetch returned something
-                    this.PM.insertTrips();
-                    this.updateOccupancyTable(region);
-                    this.vacuumTempTables();
-                    if (this.fetchNextSetOfHouseholds(region) == 0) {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Finished all households");
-                        }
-                        return null;
-                    }
-                }
-            }
-            return this.prefetchedHouseholds.poll();
-        }
     }
 
     /**
@@ -416,261 +281,33 @@ public class TPS_DB_IO {
         this.houseHoldMap.clear(); //just in case...
     }
 
-    public Collection<TPS_HouseholdBuilder> readHouseholds(DataSource dataSource){
+    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Cars cars){
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
         Collection<HouseholdDto> householdDtos = reader.read(new ResultSetConverter<>(HouseholdDto.class,HouseholdDto::new), dataSource);
 
-        Collection<TPS_HouseholdBuilder> householdBuilders = new ArrayList<>(householdDtos.size());
+        Map<Integer, TPS_HouseholdBuilder> householdBuilders = new HashMap<>(householdDtos.size());
 
         for(HouseholdDto householdDto : householdDtos) {
             TPS_HouseholdBuilder householdBuilder = TPS_Household.builder()
                     .id(householdDto.getHhId())
                     .type(householdDto.getHhType())
                     .income(householdDto.getHhIncome());
-            householdBuilders.add(householdBuilder);
+
+            //init the fleet manager
+            CarFleetManagerBuilder fleetManager = CarFleetManager.builder();
+            Arrays.stream(householdDto.getCarIds())
+                    .boxed()
+                    .map(cars::getCar)
+                    .map(CarController::new)
+                    .forEach(fleetManager::addCarController);
+
+            householdBuilder.carFleetManager(fleetManager.build());
+
+            householdBuilders.put(householdDto.getHhId(), householdBuilder);
         }
         return householdBuilders;
-    }
-
-    /**
-     * Here we load the households, persons and car data from the DB for a given list of household ids!
-     * First we look at our household-map if the house hold is already loaded (prefetched).
-     * If we do not find it, we load it with all attributes, cars and persons.
-     * Finally, we store the households in a list and return this list.
-     *
-     * @param region in which the households are
-     * @param hIDs   list of household ids
-     * @return list of loaded households
-     */
-    private List<TPS_Household> loadHouseholds(TPS_Region region, List<Integer> hIDs) {
-        String hhtable = this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD);
-        String persTable = this.PM.getParameters().getString(ParamString.DB_TABLE_PERSON);
-        String carsTable = this.PM.getParameters().getString(ParamString.DB_TABLE_CARS);
-        String query = "";
-        int id, sumPersons = 0;
-        List<TPS_Household> fetchedHouseholds = new ArrayList<>();
-
-        ResultSet hRs;
-        ResultSet pRs;
-        ResultSet cRs;
-        StringBuffer sb;
-
-        //clear household map if necessary
-        if (this.PM.getParameters().isFalse(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-            this.houseHoldMap.clear();
-        }
-        try {
-            if (houseHoldMap.isEmpty()) {
-                if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
-                            hhtable + " WHERE hh_key='" + this.PM.getParameters().getString(
-                            ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
-                } else {
-                    Collections.sort(hIDs); //VERY IMPORTANT! Otherwise the person fetch will be HUGE!
-                    sb = new StringBuffer("ARRAY[");
-                    for (Integer hID : hIDs) {
-                        sb.append(hID + ",");
-                    }
-                    sb.setCharAt(sb.length() - 1, ']');
-                    query = "SELECT hh_id, hh_cars, hh_car_ids, hh_income, hh_taz_id, hh_type, ST_X(hh_coordinate) as x, ST_Y(hh_coordinate) as y FROM " +
-                            hhtable + " WHERE hh_id = ANY(" + sb.toString() + ") AND hh_key='" +
-                            this.PM.getParameters().getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
-                }
-                hRs = PM.executeQuery(query);
-                while (hRs.next()) {
-                    // read cars
-                    id = hRs.getInt("hh_id");
-                    int carNum = hRs.getInt("hh_cars");
-                    TPS_Car[] cars = null;
-                    if (carNum > 0) {
-                        int[] carId = extractIntArray(hRs, "hh_car_ids");
-                        if (carNum != carId.length) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
-                                    "HH_id: " + id + " expected cars: " + carNum + " found cars: " + carId.length);
-                        }
-                        // init the cars
-                        cars = new TPS_Car[carId.length];
-                        for (int i = 0; i < cars.length; ++i) {
-                            cars[i] = new TPS_Car(carId[i]);
-                            //store default values
-                            cars[i].init(TPS_Car.FUEL_TYPE_ARRAY[1], 1, TPS_Car.EMISSION_TYPE_ARRAY[1], 0.0, false,
-                                    false, this.PM.getParameters(), i);
-
-                        }
-                    }
-                    // read other attributes
-                    int tazID = hRs.getInt("hh_taz_id");
-                    TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(tazID);
-                    if (taz == null) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
-                                "No taz found for household " + id + " hh_taz_id " + tazID);
-                        throw new RuntimeException(); //we cannot proceed with such faulty data!
-                    }
-
-                    int income = hRs.getInt("hh_income"); // TODO: why int?
-                    int type = hRs.getInt("hh_type");
-                    TPS_Location loc = new TPS_Location(-1 * id, -1, TPS_LocationConstant.HOME, hRs.getDouble("x"),
-                            hRs.getDouble("y"), taz, null, this.PM.getParameters());
-                    loc.initCapacity(0, false);
-                    TPS_Household hh = new TPS_Household(id, income, type, loc, cars);
-                    houseHoldMap.put(id, hh);
-                }
-                hRs.close();
-                if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                                "Prefetching persons for all " + houseHoldMap.size() + " households");
-                    }
-                    int chunks = 10; //avoid big fetches! the modulo operation is quite fast and scales very well
-                    for (int i = 0; i < chunks; ++i) {
-                        query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
-                                "working, driver_license, hh_id, education FROM " + persTable +
-                                " WHERE key='" + this.PM.getParameters().getString(
-                                ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'and hh_id%" + chunks + "=" + i;
-                        pRs = PM.executeQuery(query);
-                        while (pRs.next()) {
-                            this.addPersonToHousehold(pRs);
-                            sumPersons++;
-                        }
-                        pRs.close();
-                    }
-                } else { //chunky way
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                                "Fetching persons for " + houseHoldMap.size() + " households");
-                    }
-
-                    List<Integer> copyOfhIDs = new ArrayList<>(hIDs);
-
-                    final int chunkSize = 1000;
-                    while (!copyOfhIDs.isEmpty()) {
-                        sb = new StringBuffer("ARRAY[");
-                        int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-                        for (int i = 0; i < chunkSize && !copyOfhIDs.isEmpty(); i++) {
-                            id = copyOfhIDs.remove(0); //handy: remove returns the removed element
-                            min = Math.min(id, min);
-                            max = Math.max(max, id);
-                            sb.append(id + ",");
-
-                        }
-                        sb.setCharAt(sb.length() - 1, ']');
-                        query = "SELECT p_id, \"group\", status, has_bike, sex, age, pt_abo, budget_pt, budget_it, " +
-                                "working, driver_license, hh_id, education FROM " + persTable +
-                                " WHERE hh_id = ANY(" + sb.toString() + ") " + " AND hh_id>=" + min +
-                                " AND hh_id <= " + max + " AND key='" + this.PM.getParameters().getString(
-                                ParamString.DB_HOUSEHOLD_AND_PERSON_KEY) + "'";
-                        pRs = PM.executeQuery(query);
-                        while (pRs.next()) {
-                            this.addPersonToHousehold(pRs);
-                            sumPersons++;
-                        }
-                        pRs.close();
-                    }
-                }
-
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                            "Fetched " + sumPersons + " persons");
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Fetching car types");
-                }
-
-                if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-                    if (this.carMap.isEmpty()) {
-                        //load all cars
-                        query = "SELECT car_id,kba_no, fix_costs, engine_type, is_company_car, emission_type, " +
-                                "restriction,automation_level FROM " + carsTable + " WHERE car_key='" +
-                                this.PM.getParameters().getString(ParamString.DB_CAR_FLEET_KEY) + "'";
-                    } else { //nothing to do!
-                        query = "";
-                    }
-
-                } else {
-                    this.carMap.clear();
-                    //scrap needed car ids
-                    sb = new StringBuffer("ARRAY[");
-                    List<Integer> carIDs = new ArrayList<>();
-                    for (TPS_Household ihh : this.houseHoldMap.values()) {
-                        if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
-                            //get the cars
-                            for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
-                                if (!carIDs.contains(ihh.getCar(i).getId())) {
-                                    sb.append(ihh.getCar(i).getId() + ",");
-                                    carIDs.add(ihh.getCar(i).getId());
-                                }
-                            }
-                        }
-                    }
-                    sb.setCharAt(sb.length() - 1, ']');
-                    query = "SELECT car_id,kba_no, fix_costs, engine_type, is_company_car, emission_type, " +
-                            "restriction,automation_level FROM " + carsTable + " WHERE car_id = ANY(" + sb.toString() +
-                            ") AND car_key='" + this.PM.getParameters().getString(ParamString.DB_CAR_FLEET_KEY) + "'";
-                }
-
-                if (query.length() > 0) {// we have to fill the car-map
-                    cRs = PM.executeQuery(query);
-                    while (cRs.next()) {
-                        TPS_Car tmp = new TPS_Car(cRs.getInt("car_id"));
-                        int engineType = cRs.getInt("engine_type");
-                        int emissionType = cRs.getInt("emission_type");
-                        if (engineType >= 0 && engineType < TPS_Car.FUEL_TYPE_ARRAY.length && emissionType >= 0 &&
-                                emissionType < TPS_Car.EMISSION_TYPE_ARRAY.length) {
-                            tmp.init(TPS_Car.FUEL_TYPE_ARRAY[engineType], cRs.getInt("kba_no"),
-                                    TPS_Car.EMISSION_TYPE_ARRAY[emissionType], cRs.getDouble("fix_costs"),
-                                    cRs.getBoolean("is_company_car"), cRs.getBoolean("restriction"),
-                                    this.PM.getParameters(), -1);
-                        }
-                        int automationLevel = cRs.getInt("automation_level");
-                        if (this.PM.getParameters().getDoubleValue(ParamValue.GLOBAL_AUTOMATION_PROBABILITY) >
-                                Math.random()) {
-                            automationLevel = this.PM.getParameters().getIntValue(ParamValue.GLOBAL_AUTOMATION_LEVEL);
-                        }
-                        tmp.setAutomation(automationLevel);
-                        carMap.put(tmp.getId(), tmp);
-                    }
-                    cRs.close();
-                }
-
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Assigning cars to households");
-                }
-
-                for (TPS_Household ihh : houseHoldMap.values()) {
-                    if (ihh.getMembers(TPS_Household.Sorting.NONE).size() > 0) {
-                        //get the car values
-                        for (int i = 0; i < ihh.getNumberOfCars(); ++i) {
-                            TPS_Car car = ihh.getCar(i);
-                            if (carMap.containsKey(car.getId())) {
-                                car.cloneCar(carMap.get(car.getId()));
-                            } else {
-                                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.WARN)) {
-                                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.WARN,
-                                            "Unknown car id " + car.getId() + " in household " + ihh.getId());
-                                }
-                            }
-                        }
-                    } else {
-                        this.returnHousehold(ihh);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "Error in sqlStatement " + query, e);
-            TPS_Logger.log(SeverityLogLevel.ERROR, "Next exception: ", e.getNextException());
-        } catch (Exception e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "Unknown Error in loadHouseholds!", e);
-
-        }
-        for (Integer hid : hIDs) {
-            TPS_Household ihh = this.houseHoldMap.get(hid);
-            if (ihh != null) {
-                fetchedHouseholds.add(ihh);
-            } else {
-                TPS_Logger.log(SeverityLogLevel.ERROR, "Household not loaded: " + hid);
-            }
-        }
-        return fetchedHouseholds;
     }
 
     /**
@@ -679,7 +316,7 @@ public class TPS_DB_IO {
      * Note: First the activity and locations must be read,
      * i.e. readActivityConstantCodes and readLocationConstantCodes must be called beforehand
      */
-    private ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource) {
+    public ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -747,13 +384,13 @@ public class TPS_DB_IO {
      * An AgeClass has the form (id, 3-tuples of (name, code, type), min, max)
      * Example: (5, (under 35, 7, STBA), (under 45, 4, PersGroup), 30, 34)
      */
-    public Collection<TPS_AgeClass> readAgeClassCodes(DataSource dataSource) {
+    public AgeClasses readAgeClasses(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
         Collection<AgeClassDto> ageClassDtos = reader.read(new ResultSetConverter<>(AgeClassDto.class,AgeClassDto::new), dataSource);
 
-        Collection<TPS_AgeClass> ageClasses = new ArrayList<>();
+        AgeClassesBuilder ageClasses = AgeClasses.builder();
 
         for(AgeClassDto ageClassDto : ageClassDtos){
             TPS_AgeClass ageClass = TPS_AgeClass.builder()
@@ -765,10 +402,10 @@ public class TPS_DB_IO {
                     .attribute(new TPS_InternalConstant<>(ageClassDto.getNamePersgroup(), ageClassDto.getCodePersgroup(),
                             TPS_AgeCodeType.valueOf(ageClassDto.getTypePersGroup())))
                     .build();
-            ageClasses.add(ageClass);
+            ageClasses.ageClass(ageClassDto.getId(), ageClass);
         }
 
-        return ageClasses;
+        return ageClasses.build();
     }
 
 
@@ -777,7 +414,7 @@ public class TPS_DB_IO {
      * A CarCode has the form (name_cars, code_cars)
      * Example: (YES, 1)
      */
-    private void readCarCodes(DataSource dataSource) {
+    public void readCarCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -803,7 +440,7 @@ public class TPS_DB_IO {
 
         //read all constants
         this.readActivityConstantCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY),null));
-        this.readAgeClassCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_AGE), null));
+        this.readAgeClasses(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_AGE), null));
         this.readCarCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_CARS), null));
         this.readDistanceCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), null));
         this.readDrivingLicenseCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION), null));
@@ -811,13 +448,13 @@ public class TPS_DB_IO {
         this.readLocationConstantCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_LOCATION), null));
         this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
         this.readPersonGroupCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_PERSON),
-                new Filter("key", parameterClass.getString(ParamString.DB_PERSON_GROUP_KEY))));
+                List.of(new Filter("key", parameterClass.getString(ParamString.DB_PERSON_GROUP_KEY)))));
         this.readSettlementSystemCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), null));
         this.readSexCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SEX), null));
 
         //must be after reading of activities and locations because they are used in it
         this.readActivity2LocationCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION),
-                new Filter("key",parameterClass.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY))));
+                List.of(new Filter("key",parameterClass.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY)))));
     }
 
     /**
@@ -825,7 +462,7 @@ public class TPS_DB_IO {
      * A Distance has the form (id, 3-tuples of (name, code, type), max)
      * Example: (5, (under 5k, 1, VOT),	(under 2k, 2000, MCT), 2000)
      */
-    private Collection<TPS_Distance> readDistanceCodes(DataSource dataSource) {
+    public Collection<TPS_Distance> readDistanceCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -855,7 +492,7 @@ public class TPS_DB_IO {
      * A DrivingLicenseCodes has the form (name_dli, code_dli)
      * Example: (no, 2)
      */
-    private void readDrivingLicenseCodes(DataSource dataSource) {
+    public void readDrivingLicenseCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -880,7 +517,7 @@ public class TPS_DB_IO {
      * @return The tree read from the db.
      * @throws SQLException
      */
-    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource, Collection<TPS_Mode> modes) throws SQLException {
+    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource, Collection<TPS_Mode> modes) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -984,7 +621,7 @@ public class TPS_DB_IO {
      * A LocationConstant has the form (id, 3-tuples of (name, code, type))
      * Example: (5, (club, 7, GENERAL), (club, 7, TAPAS))
      */
-    private Collection<TPS_LocationConstant> readLocationConstantCodes(DataSource dataSource) {
+    public Collection<TPS_LocationConstant> readLocationConstantCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -1017,33 +654,41 @@ public class TPS_DB_IO {
     public void readMatrices(TPS_Region region) throws SQLException {
         final int sIndex = region.getSmallestId(); // this is the offset between the TAZ_ids and the matrix index
 
-        this.readMatrix(ParamString.DB_NAME_MATRIX_DISTANCES_STREET, ParamMatrix.DISTANCES_STREET, null, sIndex);
+        String matrixUri = parameters.getString(ParamString.DB_TABLE_MATRICES);
+        String matrixMapUri = parameters.getString(ParamString.DB_TABLE_MATRIXMAPS);
+
+        DataSource streetDist = new DataSource(matrixUri,
+                List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_STREET))));
+        this.readMatrix(streetDist, ParamMatrix.DISTANCES_STREET, null, sIndex);
 
         //walk net distances
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_WALK)) {
-            this.readMatrix(ParamString.DB_NAME_MATRIX_DISTANCES_WALK, ParamMatrix.DISTANCES_WALK, null, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_WALK)) {
+            DataSource walkDistances = new DataSource(matrixUri, List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_WALK))));
+            this.readMatrix(walkDistances, ParamMatrix.DISTANCES_WALK, null, sIndex);
         } else {
             TPS_Logger.log(SeverityLogLevel.INFO, "Setting walk distances equal to street distances.");
-            this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_WALK,
-                    this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
+            this.parameters.setMatrix(ParamMatrix.DISTANCES_WALK,
+                    this.parameters.getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
 
         //bike net distances
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE)) {
-            this.readMatrix(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE, ParamMatrix.DISTANCES_BIKE, null, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE)) {
+            DataSource bikeDistances = new DataSource(matrixUri,List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE))));
+            this.readMatrix(bikeDistances, ParamMatrix.DISTANCES_BIKE, null, sIndex);
         } else {
             TPS_Logger.log(SeverityLogLevel.INFO, "Setting bike distances equal to street distances.");
-            this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_BIKE,
-                    this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
+            this.parameters.setMatrix(ParamMatrix.DISTANCES_BIKE,
+                    this.parameters.getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
 
         //pt net distances
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_PT)) {
-            this.readMatrix(ParamString.DB_NAME_MATRIX_DISTANCES_PT, ParamMatrix.DISTANCES_PT, null, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_PT)) {
+            DataSource ptDistances = new DataSource(matrixUri,List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_PT))));
+            this.readMatrix(ptDistances, ParamMatrix.DISTANCES_PT, null, sIndex);
         } else {
             TPS_Logger.log(SeverityLogLevel.INFO, "Setting public transport distances equal to street distances.");
-            this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_PT,
-                    this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
+            this.parameters.setMatrix(ParamMatrix.DISTANCES_PT,
+                    this.parameters.getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
 
         //beeline dist
@@ -1054,283 +699,338 @@ public class TPS_DB_IO {
             for (TPS_TrafficAnalysisZone tazto : region.getTrafficAnalysisZones()) {
                 double dist = TPS_Geometrics.getDistance(tazfrom.getTrafficAnalysisZone().getCenter(),
                         tazto.getTrafficAnalysisZone().getCenter(),
-                        this.PM.getParameters().getDoubleValue(ParamValue.MIN_DIST));
+                        this.parameters.getDoubleValue(ParamValue.MIN_DIST));
                 bl.setValue(tazfrom.getTAZId(), tazto.getTAZId(), dist);
             }
         }
-        this.PM.getParameters().setMatrix(ParamMatrix.DISTANCES_BL, bl);
+        this.parameters.setMatrix(ParamMatrix.DISTANCES_BL, bl);
         TPS_Logger.log(SeverityLogLevel.INFO, "Beeline average value: " +
-                this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getAverageValue(false, true) +
-                " Size (Elements, Rows, Columns): " + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfElements() + ", "
-                + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfRows() + ", "
-                + this.PM.getParameters().getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfColums());
+                this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getAverageValue(false, true) +
+                " Size (Elements, Rows, Columns): " + this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfElements() + ", "
+                + this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfRows() + ", "
+                + this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfColums());
 
         //walk
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_WALK)) {
-            this.readMatrix(ParamString.DB_NAME_MATRIX_TT_WALK, ParamMatrixMap.TRAVEL_TIME_WALK,
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK)) {
+            DataSource walkTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK))));
+            this.readMatrixMap(walkTt, ParamMatrixMap.TRAVEL_TIME_WALK,
                     SimulationType.SCENARIO, sIndex);
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_WALK, ParamMatrixMap.ARRIVAL_WALK,
-                        SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK)) {
+                DataSource walkAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK))));
+                this.readMatrixMap(walkAccess, ParamMatrixMap.ARRIVAL_WALK, SimulationType.SCENARIO, sIndex);
             }
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_WALK, ParamMatrixMap.EGRESS_WALK,
-                        SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK)) {
+                DataSource walkEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK))));
+                this.readMatrixMap(walkEgress, ParamMatrixMap.EGRESS_WALK, SimulationType.SCENARIO, sIndex);
             }
         }
 
         //bike
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE)) {
-            this.readMatrix(ParamString.DB_NAME_MATRIX_TT_BIKE, ParamMatrixMap.TRAVEL_TIME_BIKE,
-                    SimulationType.SCENARIO, sIndex);
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_BIKE, ParamMatrixMap.ARRIVAL_BIKE,
-                        SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE)) {
+            DataSource bikeTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE))));
+            this.readMatrixMap(bikeTt, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE)) {
+                DataSource bikeAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE))));
+                this.readMatrixMap(bikeAccess, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.SCENARIO, sIndex);
             }
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_BIKE, ParamMatrixMap.EGRESS_BIKE,
-                        SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE)) {
+                DataSource bikeEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE))));
+                this.readMatrixMap(bikeEgress, ParamMatrixMap.EGRESS_BIKE, SimulationType.SCENARIO, sIndex);
             }
         }
 
         //MIT, MIT passenger, Taxi
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_MIT)) {
-            this.readMatrix(ParamString.DB_NAME_MATRIX_TT_MIT, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.SCENARIO,
-                    sIndex);
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_MIT, ParamMatrixMap.ARRIVAL_MIT,
-                        SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT)) {
+            DataSource mitTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT))));
+            this.readMatrixMap(mitTt, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT)) {
+                DataSource mitAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT))));
+                this.readMatrixMap(mitAccess, ParamMatrixMap.ARRIVAL_MIT, SimulationType.SCENARIO, sIndex);
             }
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_MIT, ParamMatrixMap.EGRESS_MIT,
-                        SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT)) {
+                DataSource mitEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT))));
+                this.readMatrixMap(mitEgress, ParamMatrixMap.EGRESS_MIT, SimulationType.SCENARIO, sIndex);
             }
         }
 
         //pt, train
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_PT)) {
-            this.readMatrix(ParamString.DB_NAME_MATRIX_TT_PT, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.SCENARIO,
-                    sIndex);
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_PT, ParamMatrixMap.ARRIVAL_PT,
-                        SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT)) {
+            DataSource ptTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT))));
+            this.readMatrixMap(ptTt, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT)) {
+                DataSource ptAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT))));
+                this.readMatrixMap(ptAccess, ParamMatrixMap.ARRIVAL_PT, SimulationType.SCENARIO, sIndex);
             }
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_PT, ParamMatrixMap.EGRESS_PT, SimulationType.SCENARIO,
-                        sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT)) {
+                DataSource ptEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT))));
+                this.readMatrixMap(ptEgress, ParamMatrixMap.EGRESS_PT, SimulationType.SCENARIO, sIndex);
             }
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT, ParamMatrixMap.INTERCHANGES_PT,
-                        SimulationType.SCENARIO, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT)) {
+                DataSource ptInterchange = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT))));
+                this.readMatrixMap(ptInterchange, ParamMatrixMap.INTERCHANGES_PT, SimulationType.SCENARIO, sIndex);
             }
         }
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ)) {
-            this.readMatrix(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ, ParamMatrixMap.PTBIKE_ACCESS_TAZ,
-                    SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ)) {
+            DataSource ptBikeAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ))));
+            this.readMatrixMap(ptBikeAccess, ParamMatrixMap.PTBIKE_ACCESS_TAZ, SimulationType.SCENARIO, sIndex);
         }
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_PTBIKE_EGRESS_TAZ)) {
-            this.readMatrix(ParamString.DB_NAME_PTBIKE_EGRESS_TAZ, ParamMatrixMap.PTBIKE_EGRESS_TAZ,
-                    SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_PTBIKE_EGRESS_TAZ)) {
+            DataSource ptBikeEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_EGRESS_TAZ))));
+            this.readMatrixMap(ptBikeEgress, ParamMatrixMap.PTBIKE_EGRESS_TAZ, SimulationType.SCENARIO, sIndex);
         }
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_PTCAR_ACCESS_TAZ)) {
-            this.readMatrix(ParamString.DB_NAME_PTCAR_ACCESS_TAZ, ParamMatrixMap.PTCAR_ACCESS_TAZ,
-                    SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_PTCAR_ACCESS_TAZ)) {
+            DataSource ptCarAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTCAR_ACCESS_TAZ))));
+            this.readMatrixMap(ptCarAccess, ParamMatrixMap.PTCAR_ACCESS_TAZ, SimulationType.SCENARIO, sIndex);
         }
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_PTBIKE_INTERCHANGES)) {
-            this.readMatrix(ParamString.DB_NAME_PTBIKE_INTERCHANGES, ParamMatrixMap.PTBIKE_INTERCHANGES,
-                    SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_PTBIKE_INTERCHANGES)) {
+            DataSource ptBikeInterchange = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_INTERCHANGES))));
+            this.readMatrixMap(ptBikeInterchange, ParamMatrixMap.PTBIKE_INTERCHANGES, SimulationType.SCENARIO, sIndex);
         }
-        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_PTCAR_INTERCHANGES)) {
-            this.readMatrix(ParamString.DB_NAME_PTCAR_INTERCHANGES, ParamMatrixMap.PTCAR_INTERCHANGES,
-                    SimulationType.SCENARIO, sIndex);
+        if (this.parameters.isDefined(ParamString.DB_NAME_PTCAR_INTERCHANGES)) {
+            DataSource ptCarInterchange = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTCAR_INTERCHANGES))));
+            this.readMatrixMap(ptCarInterchange, ParamMatrixMap.PTCAR_INTERCHANGES, SimulationType.SCENARIO, sIndex);
         }
 
         // providing base case travel times in case they are needed
-        if (this.PM.getParameters().isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
+        if (this.parameters.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
             // travel times for the base case
             //walk
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_TT_WALK_BASE, ParamMatrixMap.TRAVEL_TIME_WALK,
-                        SimulationType.BASE, sIndex);
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE, ParamMatrixMap.ARRIVAL_WALK,
-                            SimulationType.BASE, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE)) {
+                DataSource walkTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK_BASE))));
+                this.readMatrixMap(walkTtBase, ParamMatrixMap.TRAVEL_TIME_WALK, SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE)) {
+                    DataSource walkAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE))));
+                    this.readMatrixMap(walkAccessBase, ParamMatrixMap.ARRIVAL_WALK, SimulationType.BASE, sIndex);
                 }
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE, ParamMatrixMap.EGRESS_WALK,
-                            SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE)) {
+                    DataSource walkEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE))));
+                    this.readMatrixMap(walkEgressBase, ParamMatrixMap.EGRESS_WALK, SimulationType.BASE, sIndex);
                 }
             }
 
             //bike
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE)) {
-                this.readMatrix(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE, ParamMatrixMap.TRAVEL_TIME_BIKE,
-                        SimulationType.BASE, sIndex);
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE, ParamMatrixMap.ARRIVAL_BIKE,
-                            SimulationType.BASE, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE)) {
+                DataSource bikeTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE))));
+                this.readMatrixMap(bikeTtBase, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE)) {
+                    DataSource bikeAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE))));
+                    this.readMatrixMap(bikeAccessBase, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.BASE, sIndex);
                 }
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE)) {
-
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE, ParamMatrixMap.EGRESS_BIKE,
-                            SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE)) {
+                    DataSource bikeEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE))));
+                    this.readMatrixMap(bikeEgressBase, ParamMatrixMap.EGRESS_BIKE, SimulationType.BASE, sIndex);
                 }
             }
 
             //MIT, MIT passenger, Taxi,
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE)) {
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE)) {
                 // car
-                this.readMatrix(ParamString.DB_NAME_MATRIX_TT_MIT_BASE, ParamMatrixMap.TRAVEL_TIME_MIT,
-                        SimulationType.BASE, sIndex);
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE, ParamMatrixMap.ARRIVAL_MIT,
-                            SimulationType.BASE, sIndex);
+                DataSource carTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT_BASE))));
+                this.readMatrixMap(carTtBase, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE)) {
+                    DataSource carAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE))));
+                    this.readMatrixMap(carAccessBase, ParamMatrixMap.ARRIVAL_MIT, SimulationType.BASE, sIndex);
                 }
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE, ParamMatrixMap.EGRESS_MIT,
-                            SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE)) {
+                    DataSource carEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE))));
+                    this.readMatrixMap(carEgressBase, ParamMatrixMap.EGRESS_MIT, SimulationType.BASE, sIndex);
                 }
             }
 
-            if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE)) {
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE)) {
                 // public transport
-                this.readMatrix(ParamString.DB_NAME_MATRIX_TT_PT_BASE, ParamMatrixMap.TRAVEL_TIME_PT,
-                        SimulationType.BASE, sIndex);
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE, ParamMatrixMap.ARRIVAL_PT,
-                            SimulationType.BASE, sIndex);
+                DataSource ptTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT_BASE))));
+                this.readMatrixMap(ptTtBase, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE)) {
+                    DataSource ptAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE))));
+                    this.readMatrixMap(ptAccessBase, ParamMatrixMap.ARRIVAL_PT, SimulationType.BASE, sIndex);
                 }
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE, ParamMatrixMap.EGRESS_PT,
-                            SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE)) {
+                    DataSource ptEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE))));
+                    this.readMatrixMap(ptEgressBase, ParamMatrixMap.EGRESS_PT, SimulationType.BASE, sIndex);
                 }
-                if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE)) {
-                    this.readMatrix(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE, ParamMatrixMap.INTERCHANGES_PT,
-                            SimulationType.BASE, sIndex);
+                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE)) {
+                    DataSource ptInterchangeBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE))));
+                    this.readMatrixMap(ptInterchangeBase, ParamMatrixMap.INTERCHANGES_PT, SimulationType.BASE, sIndex);
                 }
             }
         }
 
-        if (this.PM.getParameters().isDefined(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP)) {
-            ResultSet rs = PM.functionExecuteQuery("get_avg_dist_next_stop",
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP),
-                    this.PM.getParameters().getString(ParamString.DB_NAME_BLOCK_NEXT_PT_STOP));
-            if (rs.next()) {
-                this.PM.getParameters().setValue(ParamValue.AVERAGE_DISTANCE_PT_STOP, rs.getDouble(1));
-            } else {
-                throw new SQLException("Couldn't select average distance pt stop from database");
-            }
-            rs.close();
+        if (this.parameters.isDefined(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP)) {
+
+            DataSource nextPtStopBlock = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP),
+                    List.of(new Filter("next_pt_stop_name", parameters.getString(ParamString.DB_NAME_BLOCK_NEXT_PT_STOP))));
+
+            DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+            Collection<BlockNextPtStopDto> nextPtStopDtos = reader.read(new ResultSetConverter<>(BlockNextPtStopDto.class, BlockNextPtStopDto::new), nextPtStopBlock);
+
+            double avgNextPtStop = nextPtStopDtos.stream()
+                    .mapToDouble(BlockNextPtStopDto::getNextPtStopDistance)
+                    .average()
+                    .orElseThrow(() -> new IllegalArgumentException("Couldn't select average distance pt stop from database"));
+
+            this.parameters.setValue(ParamValue.AVERAGE_DISTANCE_PT_STOP, avgNextPtStop);
         }
     }
 
     /**
      * Method to read a single specified matrix
      *
-     * @param matrixName The name for this matrix as a String
+     * @param matrixDs   datasource where the matrix is located
      * @param matrix     the matrix to store in
      * @param simType    the simulation type
      * @param sIndex     the index for reading in the db. Should be zero.
      * @throws SQLException
      */
-    private void readMatrix(ParamString matrixName, ParamMatrix matrix, SimulationType simType, int sIndex) throws SQLException {
-        this.readMatrix(this.PM.getParameters().getString(matrixName), matrix, simType, sIndex);
-    }
+    private void readMatrix(DataSource matrixDs, ParamMatrix matrix, SimulationType simType, int sIndex){
 
-    /**
-     * Method to read a single specified matrix
-     *
-     * @param matrixName The name for this matrix
-     * @param matrix     the matrix to store in
-     * @param simType    the simulation type
-     * @param sIndex     the index for reading in the db. Should be zero.
-     * @throws SQLException
-     */
-    private void readMatrix(String matrixName, ParamMatrix matrix, SimulationType simType, int sIndex) throws SQLException {
-        String query = "SELECT matrix_values FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
-                " WHERE matrix_name='" + matrixName + "'";
-        ResultSet rs = PM.executeQuery(query);
         TPS_Logger.log(SeverityLogLevel.INFO, "Loading " + matrix);
-        if (rs.next()) {
-            int[] iArray = extractIntArray(rs, "matrix_values");
-            int len = (int) Math.sqrt(iArray.length);
-            Matrix m = new Matrix(len, len, sIndex);
-            for (int index = 0; index < iArray.length; index++) {
-                m.setRawValue(index, iArray[index]);
-            }
-            if (simType != null) this.PM.getParameters().setMatrix(matrix, m, simType);
-            else this.PM.getParameters().setMatrix(matrix, m);
-        } else {
-            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.WARN, "No matrix found for query: " + query);
-        }
-        TPS_Logger.log(SeverityLogLevel.INFO, "Loaded matrix from DB: " + matrixName + " Average value: " +
-                this.PM.getParameters().getMatrix(matrix).getAverageValue(false, true) +
-                " Size (Elements, Rows, Columns): " + this.PM.getParameters().getMatrix(matrix).getNumberOfElements() + ", "
-                + this.PM.getParameters().getMatrix(matrix).getNumberOfRows() + ", "
-                + this.PM.getParameters().getMatrix(matrix).getNumberOfColums());
-        rs.close();
+        Matrix m = readMatrix(matrixDs, sIndex);
+
+        if (simType != null)
+            this.parameters.setMatrix(matrix, m, simType);
+        else
+            this.parameters.setMatrix(matrix, m);
+
+        TPS_Logger.log(SeverityLogLevel.INFO, "Loaded matrix from DB: " +matrix.name() + " Average value: " +
+                this.parameters.getMatrix(matrix).getAverageValue(false, true) +
+                " Size (Elements, Rows, Columns): " + this.parameters.getMatrix(matrix).getNumberOfElements() + ", "
+                + this.parameters.getMatrix(matrix).getNumberOfRows() + ", "
+                + this.parameters.getMatrix(matrix).getNumberOfColums());
     }
+
+    public void readMatrixMap(DataSource matrixMapDs, ParamMatrixMap matrixMap, SimulationType simType, int sIndex){
+
+        MatrixMap m = readMatrixMap(matrixMapDs, sIndex);
+
+        if (simType != null) this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrixMap, m, simType);
+        else this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrixMap, m);
+    }
+
 
     /**
      * Method to read a single specified matrix map
      *
-     * @param matrixName The name for this matrix map
-     * @param matrix     the matrixmap  to store in
-     * @param type       The Simulation type to store to
-     * @param sIndex     the index for reading in the db. Should be zero.
+     * @param matrixMapDs the name in the db
+     * @param sIndex     the matrixmap  to store in
+     * @return the loaded MatrixMap
      */
-    private void readMatrix(ParamString matrixName, ParamMatrixMap matrix, SimulationType type, int sIndex) {
-        TPS_Logger.log(SeverityLogLevel.INFO, "Loading matrix map " + matrix + " from DB.");
-        MatrixMap m = PM.getDbConnector().readMatrixMap(this.PM.getParameters().getString(matrixName), sIndex, this);
+    public MatrixMap readMatrixMap(DataSource matrixMapDs,  int sIndex) {
 
-        if (type != null) this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrix, m, type);
-        else this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrix, m);
+        //read the matrix map from db
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Collection<MatrixMapDto> matrixMapDtos = reader.read(new ResultSetConverter<>(MatrixMapDto.class,MatrixMapDto::new),matrixMapDs);
+
+        //some plausibility checks
+        if(matrixMapDtos.size() > 1)
+            throw new IllegalArgumentException("the provided matrix datasource: '"+matrixMapDs.getUri()+"' does not return a single matrix result.");
+
+        MatrixMapDto matrixMap = matrixMapDtos.stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("the provided matrix datasource: '"+matrixMapDs.getUri()+"' did not yield a result."));
+
+        //check sizes
+        int numOfMatrices = matrixMap.getMatrixMapNum();
+        String[] matrixNames = matrixMap.getMatrixNames();
+        double[] matrixDistributions = matrixMap.getMatrixMapDistribution();
+        if (numOfMatrices != matrixNames.length || numOfMatrices != matrixDistributions.length) {
+            throw new IllegalArgumentException("Couldn't load matrixmap " + matrixMap.getMatrixMapName() +
+                    " from database. Different array sizes (num, matrices, distribution): " + numOfMatrices +
+                    " " + matrixNames.length + " " + matrixDistributions.length);
+        }
+
+        //init matrix map
+        Matrix[] matrices = new Matrix[numOfMatrices];
+        //load matrix map
+        for (int i = 0; i < numOfMatrices; ++i) {
+
+            matrices[i] = this.readMatrix(
+                    new DataSource(parameters.getString(ParamString.DB_TABLE_MATRICES), List.of(new Filter("matrix_name",matrixNames[i]))),  sIndex);
+            if(matrices[i] != null){
+                TPS_Logger.log(SeverityLogLevel.INFO,
+                        "Loaded matrix from DB: " + matrixNames[i] + " End time: " + matrixDistributions[i] +
+                                " Average value: " + matrices[i].getAverageValue(false, true)+
+                                " Size (Elements, Rows, Columns): " + matrices[i].getNumberOfElements() + ", "
+                                + matrices[i].getNumberOfRows() + ", "
+                                + matrices[i].getNumberOfColums());
+            } else {
+                throw new IllegalArgumentException(
+                        "Couldn't load matrix " + matrixNames[i] + " form matrix map" + matrixMap.getMatrixMapName() +
+                                ": No such matrix.");
+            }
+        }
+        return new MatrixMap(matrixDistributions, matrices);
     }
 
+    /**
+     * Method to load a single matrix from the DB. The parameter ParamString.DB_TABLE_MATRICES must be defined.
+     * @param sIndex the indexoffset of the matrix
+     * @return the matrix or null, if nothing is found in the DB
+     */
+    public Matrix readMatrix(DataSource matrixDs, int sIndex) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Collection<IntMatrixDto> matrixDtos = reader.read(new ResultSetConverter<>(IntMatrixDto.class,IntMatrixDto::new),matrixDs);
+
+        if(matrixDtos.size() > 1)
+            throw new IllegalArgumentException("the provided matrix datasource: '"+matrixDs.getUri()+"' does not return a single matrix result.");
+
+        IntMatrixDto matrix = matrixDtos.stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("the provided matrix datasource: '"+matrixDs.getUri()+"' did not yield a result."));
+
+        int[] matrixValues = matrix.getMatrix();
+        int len = (int) Math.sqrt(matrixValues.length);
+
+        Matrix returnVal = new Matrix(len, len, sIndex);
+
+        for (int index = 0; index < matrixValues.length; index++) {
+            returnVal.setRawValue(index, matrixValues[index]);
+        }
+
+        return  returnVal;
+    }
     /**
      * This method reads the mode choice tree used for the pivot-point model.
      *
      * @return The tree read from the db.
      * @throws SQLException
      */
-    public TPS_ModeChoiceTree readModeChoiceTree(DataSource dataSource) throws SQLException {
-        String query = "SELECT node_id, parent_node_id, attribute_values, split_variable, distribution FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_MCT) + " WHERE name='" +
-                this.PM.getParameters().getString(ParamString.DB_NAME_MCT) + "' ORDER BY node_id";
-        ResultSet rs = PM.executeQuery(query);
+    public TPS_ModeChoiceTree readModeChoiceTree(DataSource dataSource, Collection<TPS_Mode> modes) {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        Collection<ModeChoiceTreeNodeDto> mctDtos = reader.read(new ResultSetConverter<>(ModeChoiceTreeNodeDto.class, ModeChoiceTreeNodeDto::new), dataSource);
+
+        Collection<ModeChoiceTreeNodeDto> sortedNodes = mctDtos.stream()
+                .sorted(Comparator.comparingInt(ModeChoiceTreeNodeDto::getNodeId))
+                .collect(Collectors.toCollection(ArrayList::new));
 
         TPS_Node root = null;
-        while (rs.next()) {
-            int id = rs.getInt("node_id");
-            // skip level
-            // skip size
-            int idParent = rs.getInt("parent_node_id");
+        for(ModeChoiceTreeNodeDto mctDto : sortedNodes) {
+            String splitVariable = mctDto.getSplitVariable();
+            TPS_Attribute sv = splitVariable != null && splitVariable.length() > 1 ? TPS_Attribute.valueOf(splitVariable) : null;
 
-            List<Integer> c = new LinkedList<>();
-            for (Integer i : extractIntArray(rs, "attribute_values")) {
-                c.add(i);
+            double[] distribution = mctDto.getDistribution();
+            TPS_DiscreteDistribution<TPS_Mode> ipd = new TPS_DiscreteDistribution<>(modes);
+            for (int i = 0; i < distribution.length; i++) {
+                ipd.setValueByPosition(i, distribution[i]);
             }
-            String splitVar = rs.getString("split_variable");
-            TPS_Attribute sv = null;
-            if (splitVar != null && splitVar.length() > 1) {
-                sv = TPS_Attribute.valueOf(splitVar);
-            }
-            double[] values = extractDoubleArray(rs, "distribution");
-            TPS_DiscreteDistribution<TPS_Mode> ipd = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
-            for (int i = 0; i < values.length; i++) {
-                ipd.setValueByPosition(i, values[i]);
-            }
+
+            Collection<Integer> c = Arrays.stream(mctDto.getAttributeValues())
+                    .boxed()
+                    .collect(Collectors.toCollection(LinkedList::new));
 
             // We assume that the first row contains the root node data.
             if (root == null) {
-                root = new TPS_Node(id, sv, c, ipd, null);
+                root = new TPS_Node(mctDto.getNodeId(), sv, c, ipd, null);
             } else {
-                TPS_Node parent = root.getChild(idParent);
-                TPS_Node child = new TPS_Node(id, sv, c, ipd, parent);
+                TPS_Node parent = root.getChild(mctDto.getParentNodeId());
+                TPS_Node child = new TPS_Node(mctDto.getNodeId(), sv, c, ipd, parent);
                 parent.addChild(child);
             }
         }
-        rs.close();
+
         return new TPS_ModeChoiceTree(root);
     }
 
@@ -1339,25 +1039,132 @@ public class TPS_DB_IO {
      * A Mode has the form (id, 3-tuples of (name, code, type), isfix)
      * Example: (3, (MIT, 2, MCT), (MIT, 1, VOT), true)
      */
-    private Collection<TPS_ModeBuilder> readModes(DataSource modesTable, TPS_ParameterClass parameterClass) {
+    public Modes readModes(DataSource modesTable) {
 
         DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        EnumMap<ModeType, ModeParameters> modeParams = getModeParameters();
 
 
         Collection<ModeDto> modeDtos = dr.read(new ResultSetConverter<>(ModeDto.class, ModeDto::new),modesTable);
 
-        Collection<TPS_ModeBuilder> modeBuilders = new ArrayList<>();
 
+        ModesBuilder modesBuilder = Modes.builder();
         for(ModeDto modeDto : modeDtos){
+
+            ModeType modeType = ModeType.valueOf(modeDto.getName());
+
+            //initialize with data from database
             TPS_ModeBuilder modeBuilder = TPS_Mode.builder()
                     .name(modeDto.getName())
                     .isFix(modeDto.isFix())
-                    .internalConstant(new TPS_InternalConstant<>(modeDto.getNameMct(), modeDto.getCodeMct(), TPS_ModeCodeType.valueOf(modeDto.getTypeMct())))
-                    .internalConstant(new TPS_InternalConstant<>(modeDto.getNameVot(), modeDto.getCodeVot(), TPS_ModeCodeType.valueOf(modeDto.getTypeVot())));
-            modeBuilders.add(modeBuilder);
-        }
+                    .modeType(modeType)
+                    .internalConstant(new TPS_InternalConstant<>(modeDto.getNameMct(), modeDto.getCodeMct(),
+                            TPS_ModeCodeType.valueOf(modeDto.getTypeMct())))
+                    .internalConstant(new TPS_InternalConstant<>(modeDto.getNameVot(), modeDto.getCodeVot(),
+                            TPS_ModeCodeType.valueOf(modeDto.getTypeVot())));
 
-        return modeBuilders;
+            //initialize with data from parameterClass
+            ModeParameters modeParameters = modeParams.get(modeType);
+
+            TPS_Mode mode = modeBuilder.beelineFactor(modeParameters.getBeelineFactor())
+                    .velocity(modeParameters.getVelocity())
+                    .variableCostPerKm(modeParameters.getVariableCostPerKm())
+                    .variableCostPerKmBase(modeParameters.getVariableCostPerKmBase())
+                    .costPerKm(modeParameters.getCostPerKm())
+                    .costPerKmBase(modeParameters.getCostPerKmBase())
+                    .useBase(modeParameters.isUseBase())
+                    .build();
+            modesBuilder.addMode(modeType, mode);
+        }
+        return modesBuilder.build();
+    }
+
+    private EnumMap<ModeType, ModeParameters> getModeParameters(){
+        EnumMap<ModeType, ModeParameters> modeParams = new EnumMap<>(ModeType.class);
+        //pt params from config
+        ModeParameters ptModeParameters =  ModeParameters.builder()
+                .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_PT))
+                .costPerKm(parameters.getDoubleValue(ParamValue.PT_COST_PER_KM))
+                .costPerKmBase(parameters.getDoubleValue(ParamValue.PT_COST_PER_KM_BASE))
+                .velocity(parameters.getDoubleValue(ParamValue.VELOCITY_TRAIN))
+                .useBase(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE))
+                .variableCostPerKm(0)
+                .variableCostPerKmBase(0)
+                .build();
+        modeParams.put(ModeType.PT, ptModeParameters);
+
+        //mit params from config
+        ModeParameters mitModeParameters =  ModeParameters.builder()
+                .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_MIT))
+                .costPerKm(parameters.getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM))
+                .costPerKmBase(parameters.getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM_BASE))
+                .velocity(parameters.getDoubleValue(ParamValue.VELOCITY_CAR))
+                .useBase(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE))
+                .variableCostPerKm(parameters.getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM))
+                .variableCostPerKmBase(parameters.getDoubleValue(ParamValue.MIT_VARIABLE_COST_PER_KM_BASE))
+                .build();
+        modeParams.put(ModeType.MIT,mitModeParameters);
+
+        //walk params from config
+        ModeParameters walkModeParameters =  ModeParameters.builder()
+                .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_FOOT))
+                .costPerKm(parameters.getDoubleValue(ParamValue.WALK_COST_PER_KM))
+                .costPerKmBase(parameters.getDoubleValue(ParamValue.WALK_COST_PER_KM_BASE))
+                .velocity(parameters.getDoubleValue(ParamValue.VELOCITY_FOOT))
+                .useBase(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE))
+                .variableCostPerKm(0)
+                .variableCostPerKmBase(0)
+                .build();
+        modeParams.put(ModeType.WALK, walkModeParameters);
+
+        //taxi params from config
+        ModeParameters taxiModeParameters =  ModeParameters.builder()
+                .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_MIT))
+                .costPerKm(parameters.getDoubleValue(ParamValue.TAXI_COST_PER_KM))
+                .costPerKmBase(parameters.getDoubleValue(ParamValue.TAXI_COST_PER_KM_BASE))
+                .velocity(parameters.getDoubleValue(ParamValue.VELOCITY_CAR))
+                .useBase(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE))
+                .variableCostPerKm(0)
+                .variableCostPerKmBase(0)
+                .build();
+        modeParams.put(ModeType.TAXI, taxiModeParameters);
+
+        //car sharing params from config
+        ModeParameters csModeParameters =  ModeParameters.builder()
+                .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_MIT))
+                .costPerKm(parameters.getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM))
+                .costPerKmBase(parameters.getDoubleValue(ParamValue.MIT_GASOLINE_COST_PER_KM_BASE))
+                .velocity(parameters.getDoubleValue(ParamValue.VELOCITY_CAR))
+                .useBase(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE))
+                .variableCostPerKm(0)
+                .variableCostPerKmBase(0)
+                .build();
+        modeParams.put(ModeType.CAR_SHARING, csModeParameters);
+
+        //mit passenger params from config
+        ModeParameters passModeParameters =  ModeParameters.builder()
+                .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_MIT))
+                .costPerKm(parameters.getDoubleValue(ParamValue.PASS_COST_PER_KM))
+                .costPerKmBase(parameters.getDoubleValue(ParamValue.PASS_COST_PER_KM_BASE))
+                .velocity(parameters.getDoubleValue(ParamValue.VELOCITY_CAR))
+                .useBase(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE))
+                .variableCostPerKm(0)
+                .variableCostPerKmBase(0)
+                .build();
+        modeParams.put(ModeType.MIT_PASS, passModeParameters);
+
+        return modeParams;
+    }
+
+    private void setParameterizableModeData(TPS_ModeBuilder builder, ModeParameters modeParameters){
+        builder.beelineFactor(modeParameters.getBeelineFactor())
+                .velocity(modeParameters.getVelocity())
+                .variableCostPerKm(modeParameters.getVariableCostPerKm())
+                .variableCostPerKmBase(modeParameters.getVariableCostPerKmBase())
+                .costPerKm(modeParameters.getCostPerKm())
+                .costPerKmBase(modeParameters.getCostPerKmBase())
+                .useBase(modeParameters.isUseBase());
     }
 
     /**
@@ -1365,7 +1172,7 @@ public class TPS_DB_IO {
      * A PersGroup has the form (id, 3-tuples of (name, code, type), code_ageclass, code_sex, code_cars, persType)
      * Example: (3, (RoP65-74, 12, VISEVA_R), 6, ,1, 2, RETIREE)
      */
-    private Collection<TPS_PersonGroup> readPersonGroupCodes(DataSource dataSource) {
+    public Collection<TPS_PersonGroup> readPersonGroupCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -1423,8 +1230,8 @@ public class TPS_DB_IO {
         String query;
 
         // read values of time
-        DataSource votDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_VOT),
-                List.of(new Filter("name", PM.getParameters().getString(ParamString.DB_NAME_VOT))));
+        DataSource votDs = new DataSource(parameters.getString(ParamString.DB_TABLE_VOT),
+                List.of(new Filter("name", parameters.getString(ParamString.DB_NAME_VOT))));
         region.setValuesOfTime(this.readValuesOfTimes(votDs));
 
 
@@ -1432,8 +1239,8 @@ public class TPS_DB_IO {
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
         //read cfnx
-        DataSource cfnxDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_CFNX),
-                List.of(new Filter("key", PM.getParameters().getString(ParamString.DB_REGION_CNF_KEY))));
+        DataSource cfnxDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFNX),
+                List.of(new Filter("key", parameters.getString(ParamString.DB_REGION_CNF_KEY))));
 
         Collection<CfnxDto> cfnxDtos = reader.read(new ResultSetConverter<>(CfnxDto.class, CfnxDto::new),cfnxDs);
 
@@ -1442,8 +1249,8 @@ public class TPS_DB_IO {
         cfnxDtos.forEach(cfnx -> cfn.addToCFNXMap(cfnx.getCurrentTazSettlementCodeTapas(),cfnx.getValue()));
 
         //read cfn4
-        DataSource cfn4Ds = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_CFN4),
-                List.of(new Filter("key", PM.getParameters().getString(ParamString.DB_ACTIVITY_CNF_KEY))));
+        DataSource cfn4Ds = new DataSource(parameters.getString(ParamString.DB_TABLE_CFN4),
+                List.of(new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_CNF_KEY))));
         Collection<CfnFourDto> cfn4Dtos = reader.read(new ResultSetConverter<>(CfnFourDto.class, CfnFourDto::new), cfn4Ds);
         cfn4Dtos.forEach(cfn4 -> cfn.addToCFN4Map(cfn4.getCurrentTazSettlementCodeTapas(),cfn4.getCurrentEpisodeActivityCodeTapas(),cfn4.getValue()));
 
@@ -1451,22 +1258,22 @@ public class TPS_DB_IO {
 
         //optional potential parameter, might return no result!
         TPS_CFN potential = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
-        DataSource cfnPotentialDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_CFN4),
-                List.of(new Filter("key", PM.getParameters().getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY))));
+        DataSource cfnPotentialDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFN4),
+                List.of(new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY))));
         Collection<CfnFourDto> cfn4PotentialDtos = reader.read(new ResultSetConverter<>(CfnFourDto.class, CfnFourDto::new), cfnPotentialDs);
         cfn4PotentialDtos.forEach(cfn4 -> potential.addToCFN4Map(cfn4.getCurrentTazSettlementCodeTapas(),cfn4.getCurrentEpisodeActivityCodeTapas(),cfn4.getValue()));
 
         region.setPotential(potential);
 
         //read traffic analysis zone
-        DataSource tazDs = new DataSource(PM.getParameters().getString(ParamString.DB_TABLE_TAZ),null);
+        DataSource tazDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ),null);
         Collection<TrafficAnalysisZoneDto> tazDtos = reader.read(new ResultSetConverter<>(TrafficAnalysisZoneDto.class, TrafficAnalysisZoneDto::new), null);
 
 
 
         // read traffic analysis zones
         query = "SELECT taz_id, taz_bbr_type, taz_num_id, ST_X(taz_coordinate) as x, ST_Y(taz_coordinate) as y FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ);
+                this.parameters.getString(ParamString.DB_TABLE_TAZ);
         ResultSet rsTAZ = PM.executeQuery(query);
         while (rsTAZ.next()) {
             TPS_TrafficAnalysisZone taz = region.createTrafficAnalysisZone(rsTAZ.getInt("taz_id"));
@@ -1482,9 +1289,9 @@ public class TPS_DB_IO {
         }
 
         rsTAZ.close();
-        if (this.PM.getParameters().isDefined(ParamString.DB_TABLE_TAZ_SCORES)) {
-            query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ_SCORES) +
-                    " WHERE score_name='" + this.PM.getParameters().getString(ParamString.DB_NAME_TAZ_SCORES) + "'";
+        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_SCORES)) {
+            query = "SELECT * FROM " + this.parameters.getString(ParamString.DB_TABLE_TAZ_SCORES) +
+                    " WHERE score_name='" + this.parameters.getString(ParamString.DB_NAME_TAZ_SCORES) + "'";
             rsTAZ = PM.executeQuery(query);
 
             while (rsTAZ.next()) {
@@ -1499,17 +1306,17 @@ public class TPS_DB_IO {
         // Check if the travel time matrices have values on the diagonal positions (intra zone times);
         // else read specific intra information files if necessary and provided
         ResultSet rsTAZInfo;
-        if (this.PM.getParameters().isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
-                this.PM.getParameters().isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
-                this.PM.getParameters().isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) &&
-                this.PM.getParameters().isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS)) {
+        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
+                this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
+                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) &&
+                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS)) {
             query = "SELECT mi.info_taz_id, mi.beeline_factor_mit, " + "mi.average_speed_mit, pi.average_speed_pt, " +
                     "mi.has_intra_traffic_mit, pi.has_intra_traffic_pt, pi.pt_zone FROM " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) + " mi, " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) + " pi " +
+                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) + " mi, " +
+                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) + " pi " +
                     "WHERE mi.info_taz_id = pi.info_taz_id " + "AND mi.info_name = '" +
-                    this.PM.getParameters().getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) +
-                    "' AND pi.info_name = '" + this.PM.getParameters().getString(
+                    this.parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) +
+                    "' AND pi.info_name = '" + this.parameters.getString(
                     ParamString.DB_NAME_TAZ_INTRA_PT_INFOS) + "'";
             rsTAZInfo = PM.executeQuery(query);
             this.readTAZInfos(rsTAZInfo, region, SimulationType.SCENARIO);
@@ -1517,18 +1324,18 @@ public class TPS_DB_IO {
         }
 
         // travel times for the base case
-        if (this.PM.getParameters().isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
-                this.PM.getParameters().isDefined(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) &&
-                this.PM.getParameters().isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) &&
-                this.PM.getParameters().isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) &&
-                this.PM.getParameters().isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
+        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
+                this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) &&
+                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) &&
+                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) &&
+                this.parameters.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
             query = "SELECT mi.info_taz_id, mi.beeline_factor_mit, " + "mi.average_speed_mit, pi.average_speed_pt, " +
                     "mi.has_intra_traffic_mit, pi.has_intra_traffic_pt, pi.pt_zone FROM " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) + " mi, " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) + " pi " +
+                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) + " mi, " +
+                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) + " pi " +
                     "WHERE mi.info_taz_id = pi.info_taz_id " + "AND mi.info_name = '" +
-                    this.PM.getParameters().getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) +
-                    "' AND pi.info_name = '" + this.PM.getParameters().getString(
+                    this.parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) +
+                    "' AND pi.info_name = '" + this.parameters.getString(
                     ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) + "'";
             rsTAZInfo = PM.executeQuery(query);
             this.readTAZInfos(rsTAZInfo, region, SimulationType.BASE);
@@ -1536,8 +1343,8 @@ public class TPS_DB_IO {
         }
 
         // read fees and tolls
-        query = "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS) +
-                " WHERE ft_name='" + this.PM.getParameters().getString(ParamString.DB_NAME_FEES_TOLLS) + "'";
+        query = "SELECT * FROM " + this.parameters.getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS) +
+                " WHERE ft_name='" + this.parameters.getString(ParamString.DB_NAME_FEES_TOLLS) + "'";
         ResultSet rsFeesTolls = PM.executeQuery(query);
         while (rsFeesTolls.next()) {
             TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(rsFeesTolls.getInt("ft_taz_id"));
@@ -1546,20 +1353,20 @@ public class TPS_DB_IO {
                     rsFeesTolls.getBoolean("has_toll_scen"), rsFeesTolls.getInt("toll_type_scen"),
                     rsFeesTolls.getBoolean("has_fee_scen"), rsFeesTolls.getInt("fee_type_scen"),
                     rsFeesTolls.getBoolean("has_car_sharing_base"), rsFeesTolls.getBoolean("has_car_sharing"),
-                    this.PM.getParameters());
+                    this.parameters);
             taz.setRestricted(rsFeesTolls.getBoolean("is_restricted"));
             taz.setPNR(rsFeesTolls.getBoolean("is_park_and_ride"));
         }
         rsFeesTolls.close();
 
         // read blocks
-        if (this.PM.getParameters().isDefined(ParamString.DB_TABLE_BLOCK)) {
+        if (this.parameters.isDefined(ParamString.DB_TABLE_BLOCK)) {
             query = "SELECT b.blk_id, b.blk_taz_id, ST_X(b.blk_coordinate) as x, ST_Y(b.blk_coordinate) as y, bs.score, bs.score_cat, bn.next_pt_stop FROM " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_BLOCK) + " b, " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_BLOCK_SCORES) + " bs, " +
-                    this.PM.getParameters().getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP) +
-                    " bn WHERE bs.score_name='" + this.PM.getParameters().getString(ParamString.DB_NAME_BLOCK_SCORES) +
-                    "' AND bn.next_pt_stop_name='" + this.PM.getParameters().getString(
+                    this.parameters.getString(ParamString.DB_TABLE_BLOCK) + " b, " +
+                    this.parameters.getString(ParamString.DB_TABLE_BLOCK_SCORES) + " bs, " +
+                    this.parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP) +
+                    " bn WHERE bs.score_name='" + this.parameters.getString(ParamString.DB_NAME_BLOCK_SCORES) +
+                    "' AND bn.next_pt_stop_name='" + this.parameters.getString(
                     ParamString.DB_NAME_BLOCK_NEXT_PT_STOP) +
                     "' AND b.blk_id = bs.score_blk_id AND b.blk_id = bn.next_pt_stop_blk_id";
             ResultSet rsBLK = PM.executeQuery(query);
@@ -1576,8 +1383,8 @@ public class TPS_DB_IO {
 
         // read locations
         query = "SELECT loc_id, loc_group_id, loc_code, loc_taz_id, loc_blk_id, loc_has_fix_capacity, loc_capacity, ST_X(loc_coordinate) as x,ST_Y(loc_coordinate) as y FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_LOCATION) +
-                " WHERE loc_capacity >0 and key = '" + this.PM.getParameters().getString(ParamString.DB_LOCATION_KEY) +
+                this.parameters.getString(ParamString.DB_TABLE_LOCATION) +
+                " WHERE loc_capacity >0 and key = '" + this.parameters.getString(ParamString.DB_LOCATION_KEY) +
                 "'";  // do not add zero capacity locations
         ResultSet rsLoc = PM.executeQuery(query);
 
@@ -1586,7 +1393,7 @@ public class TPS_DB_IO {
         while (rsLoc.next()) {
             int locId = rsLoc.getInt("loc_id");
             int groupId = -1;
-            if (this.PM.getParameters().isTrue(ParamFlag.FLAG_USE_LOCATION_GROUPS)) groupId = rsLoc.getInt(
+            if (this.parameters.isTrue(ParamFlag.FLAG_USE_LOCATION_GROUPS)) groupId = rsLoc.getInt(
                     "loc_group_id");
             TPS_LocationConstant locCode = TPS_LocationConstant.getLocationCodeByTypeAndCode(TPS_LocationCodeType.TAPAS,
                     rsLoc.getInt("loc_code"));
@@ -1606,9 +1413,9 @@ public class TPS_DB_IO {
 
                 // build location
                 TPS_Location location = new TPS_Location(locId, groupId, locCode, x, y, taz, block,
-                        this.PM.getParameters());
+                        this.parameters);
                 // now adapt the capacity to the sample size
-                cap = (int) ((cap * this.PM.getParameters().getDoubleValue(ParamValue.DB_HH_SAMPLE_SIZE)) +
+                cap = (int) ((cap * this.parameters.getDoubleValue(ParamValue.DB_HH_SAMPLE_SIZE)) +
                         0.5); // including round
                 if (cap == 0) cap = 1;// every non-zero capacity has at least one place to go!
                 location.initCapacity(cap, fixedCap);
@@ -1639,53 +1446,56 @@ public class TPS_DB_IO {
      * @return The TPS_SchemeSet containing all episodes.
      * @throws SQLException
      */
-    public TPS_SchemeSet readSchemeSet() throws SQLException {
-        ResultSet rs;
-        int timeSlotLength = this.PM.getParameters().getIntValue(ParamValue.SEC_TIME_SLOT);
+    public TPS_SchemeSet readSchemeSet(DataSource schemeClasses, DataSource schemes, DataSource episodes, DataSource schemeClassDistributions) {
+
+        int timeSlotLength = this.parameters.getIntValue(ParamValue.SEC_TIME_SLOT);
+
+        TPS_SchemeSet schemeSet = new TPS_SchemeSet();
 
         // build scheme classes (with time distributions)
-        TPS_SchemeSet schemeSet = new TPS_SchemeSet();
-        rs = PM.executeQuery("SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME_CLASS) +
-                " where key = '" + this.PM.getParameters().getString(ParamString.DB_SCHEME_CLASS_KEY) + "'");
-        while (rs.next()) {
-            TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(rs.getInt("scheme_class_id"));
-            double mean = rs.getDouble("avg_travel_time") * 60;
-            schemeClass.setTimeDistribution(mean, mean * rs.getDouble("proz_std_dev"));
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Collection<SchemeClassDto> schemeClassDtos = dataReader.read(new ResultSetConverter<>(SchemeClassDto.class, SchemeClassDto::new),schemeClasses);
+        for(SchemeClassDto schemeClassDto : schemeClassDtos){
+            TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(schemeClassDto.getId());
+            double mean = schemeClassDto.getAvgTravelTime() * 60;
+            schemeClass.setTimeDistribution(mean, mean * schemeClassDto.getProcStdDev());
         }
 
         // build the schemes, assigning them to the right scheme classes
         Map<Integer, TPS_Scheme> schemeMap = new HashMap<>();
-        rs = PM.executeQuery(
-                "SELECT * FROM " + this.PM.getParameters().getString(ParamString.DB_TABLE_SCHEME) + " where key = '" +
-                        this.PM.getParameters().getString(ParamString.DB_SCHEME_KEY) + "'");
-        while (rs.next()) {
-            TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(rs.getInt("scheme_class_id"));
-            TPS_Scheme scheme = schemeClass.getScheme(rs.getInt("scheme_id"), this.PM.getParameters());
+        Collection<SchemeDto> schemeDtos = dataReader.read(new ResultSetConverter<>(SchemeDto.class, SchemeDto::new), schemes);
+        for(SchemeDto schemeDto : schemeDtos){
+            TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(schemeDto.getSchemeClassId());
+            TPS_Scheme scheme = schemeClass.getScheme(schemeDto.getId(), this.parameters);
             schemeMap.put(scheme.getId(), scheme);
         }
 
         // read the episodes the schemes are made of and add them to the respective schemes
         // we read them into a temporary storage first
-        rs = PM.executeQuery("SELECT scheme_id, act_code_zbe, home, start, duration, tournumber FROM " +
-                this.PM.getParameters().getString(ParamString.DB_TABLE_EPISODE) + " where key = '" +
-                this.PM.getParameters().getString(ParamString.DB_EPISODE_KEY) + "' ORDER BY scheme_id, start");
         int counter = 1;
-        HashMap<Integer, Vector<TPS_Episode>> episodesMap = new HashMap<>();
+        HashMap<Integer, List<TPS_Episode>> episodesMap = new HashMap<>();
         TPS_Episode lastEpisode = null;
         int lastScheme = -1;
-        while (rs.next()) {
+
+        Collection<EpisodeDto> episodeDtos = dataReader.read(new ResultSetConverter<>(EpisodeDto.class, EpisodeDto::new), episodes);
+
+        double scaleShift = this.parameters.getDoubleValue(ParamValue.SCALE_SHIFT);
+        double scaleStretch = this.parameters.getDoubleValue(ParamValue.SCALE_STRETCH);
+
+        for (EpisodeDto episodeDto : episodeDtos){
+
             TPS_ActivityConstant actCode = TPS_ActivityConstant.getActivityCodeByTypeAndCode(TPS_ActivityCodeType.ZBE,
-                    rs.getInt("act_code_zbe"));
-            int actScheme = rs.getInt("scheme_id");
+                    episodeDto.getActCodeZbe());
+            int actScheme = episodeDto.getSchemeId();
             if (lastScheme != actScheme) {
                 lastScheme = actScheme;
                 lastEpisode = null;
-                episodesMap.put(actScheme, new Vector<>());
+                episodesMap.put(actScheme, new ArrayList<>());
             }
             TPS_Episode episode = null;
             if (actCode.isTrip()) {
-                episode = new TPS_Trip(counter++, actCode, rs.getInt("start") * timeSlotLength,
-                        rs.getInt("duration") * timeSlotLength);
+                episode = new TPS_Trip(counter++, actCode, episodeDto.getStart() * timeSlotLength,
+                        episodeDto.getDuration() * timeSlotLength);
             } else {
                 if (lastEpisode != null && lastEpisode.isStay()) {
                     // two subsequent stays: add their duration and adjust the activity code and the priority
@@ -1695,20 +1505,21 @@ public class TPS_DB_IO {
                         previousStay.setActCode(actCode); // adjust the activity code!
                     }
                     previousStay.setOriginalDuration(
-                            previousStay.getOriginalDuration() + rs.getInt("duration") * timeSlotLength);
+                            previousStay.getOriginalDuration() + episodeDto.getDuration() * timeSlotLength);
                     previousStay.setOriginalStart(
-                            Math.min(previousStay.getOriginalStart(), rs.getInt("start") * timeSlotLength));
+                            Math.min(previousStay.getOriginalStart(), episodeDto.getStart() * timeSlotLength));
                 } else {
-                    episode = new TPS_Stay(counter++, actCode, rs.getInt("start") * timeSlotLength,
-                            rs.getInt("duration") * timeSlotLength, 0, 0, 0, 0, this.PM.getParameters());
+                    episode = new TPS_Stay(counter++, actCode, episodeDto.getStart() * timeSlotLength,
+                            episodeDto.getDuration() * timeSlotLength, 0, 0, 0, 0, scaleShift,scaleStretch);
                 }
             }
             if (episode != null) {
-                episode.isHomePart = rs.getBoolean("home");
-                episode.tourNumber = rs.getInt("tournumber");
+                episode.isHomePart = episodeDto.isHome();
+                episode.tourNumber = episodeDto.getTourNumber();
                 episodesMap.get(actScheme).add(episode);
                 lastEpisode = episode;
             }
+
         }
         // now we store them into the schemes
         for (Integer schemeID : episodesMap.keySet()) {
@@ -1720,27 +1531,23 @@ public class TPS_DB_IO {
 
 
         // read the mapping from person group to scheme classes
-        String query = "SELECT * FROM " + this.PM.getParameters().getString(
-                ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION) + " WHERE name='" + this.PM.getParameters().getString(
-                ParamString.DB_NAME_SCHEME_CLASS_DISTRIBUTION) + "' and key = '" + this.PM.getParameters().getString(
-                ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY) + "' ORDER BY person_group, scheme_class_id";
-        rs = PM.executeQuery(query);
-
-
         HashMap<Integer, HashMap<Integer, Double>> personGroupSchemeProbabilityMap = new HashMap<>();
-        while (rs.next()) {//read all persons group <-> (schemeClassId, probability) correspondences and store them
-            int pers_group_id = rs.getInt("person_group");
-            if (!personGroupSchemeProbabilityMap.containsKey(pers_group_id)) {
-                personGroupSchemeProbabilityMap.put(pers_group_id, new HashMap<>());
+
+        Collection<SchemeClassDistributionDto> schemeClassDistributionDtos =
+                dataReader.read(new ResultSetConverter<>(SchemeClassDistributionDto.class, SchemeClassDistributionDto::new), schemeClassDistributions);
+
+        for(SchemeClassDistributionDto dto : schemeClassDistributionDtos){
+            int personGroupId = dto.getPersonGroup();
+            if (!personGroupSchemeProbabilityMap.containsKey(personGroupId)) {
+                personGroupSchemeProbabilityMap.put(personGroupId, new HashMap<>());
             }
-            personGroupSchemeProbabilityMap.get(pers_group_id).put(rs.getInt("scheme_class_id"),
-                    rs.getDouble("probability"));
+            personGroupSchemeProbabilityMap.get(personGroupId).put(dto.getSchemeClassId(), dto.getProbability());
         }
+
         for (Integer key : personGroupSchemeProbabilityMap.keySet()) { //add distributions to the schemeSet
             schemeSet.addDistribution(TPS_PersonGroup.getPersonGroupByCode(key),
                     new TPS_DiscreteDistribution<>(personGroupSchemeProbabilityMap.get(key)));
         }
-
         schemeSet.init();
 
         return schemeSet;
@@ -1779,7 +1586,7 @@ public class TPS_DB_IO {
      * A SexCodes has the form (name_sex, code_sex)
      * Example: (FEMALE, 2)
      */
-    private void readSexCodes(DataSource dataSource) {
+    public void readSexCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
@@ -1791,7 +1598,7 @@ public class TPS_DB_IO {
                 s.code = sexDto.getCodeSex();
             } catch (IllegalArgumentException e) {
                 TPS_Logger.log(SeverityLogLevel.WARN,
-                        "Read invalid sex type name from DB:" + sexDto.getNameSex();
+                        "Read invalid sex type name from DB:" + sexDto.getNameSex());
             }
 
         }
@@ -1882,275 +1689,8 @@ public class TPS_DB_IO {
         //hh.getLocation().getLocSet().removeLocation(hh.getLocation());
 
         if (!TPS_DB_IOManager.BEHAVIOUR.equals(Behaviour.FAT)) {
-            PM.functionExecute("finish_hh", this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP),
+            PM.functionExecute("finish_hh", this.parameters.getString(ParamString.DB_TABLE_HOUSEHOLD_TMP),
                     hh.getId());
         }
     }
-
-    /**
-     * In this method we update the occupancies of the locations.
-     * We have to work with increments, because other threads might have updated the occupancies in between.
-     * I call this "sloppy synchronization", because this is a classical shared resource for a multi-machine setup.
-     * However, a little overbooking is not so bad!
-     * After that we update our occupancies with the values stored in db.
-     *
-     * @param region with locations where the occupancy gets updated
-     */
-    private void updateOccupancyTable(TPS_Region region) {
-        String query = "";
-        try {
-            if (this.PM.getParameters().isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS)) {
-                // update the local occupancies/weights
-                if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                    TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Updating locations");
-                }
-                query = "SELECT loc_id, loc_occupancy FROM " + this.PM.getParameters().getString(
-                        ParamString.DB_TABLE_LOCATION_TMP) + " WHERE loc_id >= 0";
-
-                ResultSet rsOcc = PM.executeQuery(query);
-                while (rsOcc.next()) {
-                    TPS_Location loc = region.getLocation(rsOcc.getInt("loc_id"));
-                    if (loc != null) {
-                        loc.setOccupancy(rsOcc.getInt("loc_occupancy"));
-                    } else if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
-                                "Location " + rsOcc.getInt("loc_id") + " not found!");
-                    }
-                }
-                rsOcc.close();
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
-                    "error during one of the sql queries: " + query, e);
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "next exception:", e.getNextException());
-        }
-
-    }
-
-    /**
-     * Method to vacuum the heavily used temp tables. It determines the type of clean up needed,
-     * looks if someone else is cleaning up and starts cleaning if no other tread is busy doing this job.
-     * This is a classic task for a job-scheduling manager and not for the worker threads :(
-     */
-    private void vacuumTempTables() {
-        String query = "", query2 = "", query3, query4;
-        try {
-            query = "SELECT sim_progress, sim_total FROM " + this.PM.getParameters().getString(
-                    ParamString.DB_TABLE_SIMULATIONS) + " WHERE sim_key = '" + this.PM.getParameters().getString(
-                    ParamString.RUN_IDENTIFIER) + "'";
-
-
-            ResultSet mRs = PM.executeQuery(query);
-
-            int before = 0;
-            int total = 1;
-            if (mRs.next()) {
-                before = mRs.getInt("sim_progress");
-                total = mRs.getInt("sim_total");
-            }
-            mRs.close();
-
-            PM.functionExecute("finish_hh", this.PM.getParameters().getString(ParamString.DB_TABLE_HOUSEHOLD_TMP),
-                    this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER), ADDRESS);
-
-
-            //haha! since postgre 9.2 the column is named "query" not "current_query"  anymore!
-            query = "SELECT version()";
-            String columnName = "current_query";
-
-            mRs = PM.executeQuery(query);
-
-            if (mRs.next()) {
-                String version = mRs.getString("version");
-                String mayorVersion;
-                String minorVersion;
-                //extract version number
-                String startString = "PostgreSQL ";
-                String stopString = "."; // just interpret the mayor version
-                mayorVersion = version.substring(version.indexOf(startString) + startString.length(),
-                        version.indexOf(stopString));
-                minorVersion = version.substring(version.indexOf(stopString) + stopString.length(),
-                        version.indexOf(stopString) + 2);
-                if (Integer.parseInt(mayorVersion) >= 10 || (Integer.parseInt(mayorVersion) == 9 && Integer.parseInt(
-                        minorVersion) >= 2)) columnName = "query";
-            }
-
-            mRs.close();
-
-
-            int after = before;
-
-            query = "SELECT sim_progress, sim_total FROM " + this.PM.getParameters().getString(
-                    ParamString.DB_TABLE_SIMULATIONS) + " WHERE sim_key = '" + this.PM.getParameters().getString(
-                    ParamString.RUN_IDENTIFIER) + "'";
-            mRs = PM.executeQuery(query);
-
-
-            if (mRs.next()) {
-                after = mRs.getInt("sim_progress");
-            }
-            mRs.close();
-
-
-            if (after < total) {
-
-                //see if someone else is doing our job:
-
-                query = "SELECT " + columnName + " FROM pg_stat_activity";
-                mRs = PM.executeQuery(query);
-                query = "VACUUM temp.locations_" + this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER);
-                query2 = "VACUUM temp.households_" + this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER);
-                boolean doCleanup = true;
-                while (mRs.next() && doCleanup) {
-                    if (query.compareToIgnoreCase(mRs.getString(columnName)) == 0) // is someone else doing this job?
-                        doCleanup = false;
-                    if (query2.compareToIgnoreCase(mRs.getString(columnName)) == 0) // is someone else doing this job?
-                        doCleanup = false;
-                }
-                mRs.close();
-                if (doCleanup) {
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
-                                "Vacuuming temporary tables for locations in simulation " +
-                                        this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
-                    }
-                    PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
-                                "Vacuuming temporary tables for households in simulation " +
-                                        this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
-                    }
-                    PM.execute(query2);
-                }
-
-                //every 61*fetchSizePerProcessor households do a reindex of the temp tables
-                if (lastCleanUp < 0) { //init
-                    lastCleanUp = after;
-                }
-                if (Math.random() <
-                        0.1) { //random is better than planed, because servers are lining up to clean the db multiple
-                    // times
-                    lastCleanUp = after;
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                                "Time to reindex and clean the simulation " +
-                                        this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
-                    }
-                    //see if someone else is doing our job:
-                    query = "SELECT " + columnName + " FROM pg_stat_activity";
-
-
-                    mRs = PM.executeQuery(query);
-                    query = "VACUUM FULL temp.locations_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-                    query2 = "VACUUM FULL temp.households_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-                    //reindexing is faster than analyzing
-                    query3 = "REINDEX TABLE temp.locations_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-                    query4 = "REINDEX TABLE temp.households_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-
-                    doCleanup = true;
-                    while (mRs.next() && doCleanup) {
-                        if (query.compareToIgnoreCase(mRs.getString(columnName)) ==
-                                0) // is someone else doing this job?
-                            doCleanup = false;
-                        if (query2.compareToIgnoreCase(mRs.getString(columnName)) ==
-                                0) // is someone else doing this job?
-                            doCleanup = false;
-                        if (query3.compareToIgnoreCase(mRs.getString(columnName)) ==
-                                0) // is someone else doing this job?
-                            doCleanup = false;
-                        if (query4.compareToIgnoreCase(mRs.getString(columnName)) ==
-                                0) // is someone else doing this job?
-                            doCleanup = false;
-                    }
-                    mRs.close();
-                    if (doCleanup) {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                                    "Reindexing temporary tables");
-                        }
-                        PM.execute(query);
-                        PM.execute(query2);
-                        PM.execute(query3);
-                        PM.execute(query4);
-                    } else {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO,
-                                    "Someone else is reindexing!");
-                        }
-                    }
-                }
-            } else {
-                lastCleanUp = -1; //for new sim!
-                if (after > before) { // avoid that every thread reindexes. just the last who commited changes!
-                    //finally: shrink the temp tables to the minimum and reindex
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
-                                "Vacuuming temporary tables for locations in simulation " +
-                                        this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
-                    }
-                    query = "VACUUM FULL temp.locations_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-                    PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
-                                "Vacuuming temporary tables for households in simulation " +
-                                        this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
-                    }
-                    query = "VACUUM FULL temp.households_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-                    PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
-                                "Reindexing temporary tables for locations in simulation " +
-                                        this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
-                    }
-                    query = "REINDEX TABLE temp.locations_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-                    PM.execute(query);
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.DEBUG,
-                                "Reindexing temporary tables for households in simulation " +
-                                        this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER));
-                    }
-                    query = "REINDEX TABLE temp.households_" + this.PM.getParameters().getString(
-                            ParamString.RUN_IDENTIFIER);
-                    PM.execute(query);
-
-
-                    //check if sumo has to be started and tell it the status table
-                    if (this.PM.getParameters().getIntValue(ParamValue.ITERATION) < this.PM.getParameters().getIntValue(
-                            ParamValue.MAX_SUMO_ITERATION)) {
-
-                        //TODO: hack to make sumo iterations shorter!
-                        PM.getDbConnector().updateSingleParameter(
-                                this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER),
-                                ParamValue.DB_HH_SAMPLE_SIZE.name(), "1.0");
-
-                        //somehow the Interation becomes 0 everytime
-                        //I suspect "Generate default values" to set it to 0
-                        // so read the "real value" back from the DB
-                        String iterS = PM.getDbConnector().readSingleParameter(
-                                this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER),
-                                ParamValue.ITERATION.name());
-
-                        query = "INSERT INTO " + this.PM.getParameters().getString(ParamString.DB_TABLE_SUMO_STATUS) +
-                                " VALUES ('" + this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER) + "'," +
-                                iterS + ",now(),'> TAPAS finished, triggering SUMO for simulation " +
-                                this.PM.getParameters().getString(ParamString.RUN_IDENTIFIER) + "','pending')";
-                        PM.execute(query);
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR,
-                    "error during one of th sqls: " + query + "\n or: " + query2, e);
-            TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.ERROR, "next exception:", e.getNextException());
-        }
-    }
-
-
 }

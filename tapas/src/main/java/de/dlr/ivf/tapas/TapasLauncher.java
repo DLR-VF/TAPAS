@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.IOException;
@@ -35,7 +36,10 @@ public class TapasLauncher{
             TPS_ParameterClass parameterClass = new TPS_ParameterClass();
             parameterClass.loadRuntimeParameters(Paths.get(configDto.getRunTimeFile()).toFile());
 
+            TapasInitializer initializer = new TapasInitializer(parameterClass,
+                    () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(configDto.getConnectionDetails()));
 
+            Tapas tapas = initializer.init();
 
         } catch (DatabindException e) {
             throw new IllegalArgumentException("The supplied file does not map to TapasConfig.", e);
