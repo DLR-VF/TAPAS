@@ -1,6 +1,7 @@
 package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import lombok.Getter;
 
 /**
@@ -12,6 +13,8 @@ import lombok.Getter;
 @Getter
 public class TapasConfig {
 
+    @JsonProperty
+    ConnectionDetails connectionDetails;
 
     @JsonProperty
     String runTimeFile;

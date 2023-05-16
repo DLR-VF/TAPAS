@@ -54,7 +54,7 @@ public class JdbcDataReader implements DataReader<ResultSet> {
         return readObjects;
     }
 
-    private String dataFilterAsSqlString(Collection<Filter> dataFilters) {
+    String dataFilterAsSqlString(Collection<Filter> dataFilters) {
         return dataFilters.stream()
                 .map(filter -> filter.getColumn()+" = "+filterValueAsSqlString(filter.getValue()))
                 .collect(Collectors.joining(" AND ", "WHERE ", ""));

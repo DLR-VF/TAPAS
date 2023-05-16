@@ -156,8 +156,4 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
         return dist;
     }
 
-    public void setParameterSet(TPS_Mode mode, double[] parameters) {
-        this.parameterMap.put(mode, parameters);
-    }
-
 }

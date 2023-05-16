@@ -18,7 +18,7 @@ public class RemoteDataSource extends DataSource {
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public RemoteDataSource(ConnectionDetails connector, String uri){
-        super(uri);
+        super(uri, null);
         this.connector = connector;
     }
 }

@@ -16,18 +16,21 @@ import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.person.TPS_PreferenceParameters.*;
 import de.dlr.ivf.tapas.model.person.TPS_Preference.PreferenceSet;
+import lombok.Builder;
+import lombok.Setter;
 
 import java.util.Map;
 
 /**
  * This class represents a person.
  */
+@Builder
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.THREAD)
 public class TPS_Person implements ExtendedWritable {
     private final int status;
@@ -43,7 +46,7 @@ public class TPS_Person implements ExtendedWritable {
      * I decided for one instance per thread. Thus the reference must be set in the TPS_Worker-thread.
      */
     public TPS_Preference preferenceValues;
-    double errorTerm = 0;
+    private final double errorTerm;
     /// id of the person
     private final int id;
     /// sex of the person
@@ -51,74 +54,31 @@ public class TPS_Person implements ExtendedWritable {
     /// Flag if person holds a long term ticket (season / month...)for the public transport
     private final boolean abo;
     /// age of the person
-    private int age;
-    /// flag if the age has been adapted (artificial rejuvenation of retirees)
-    private boolean ageAdaption;
+    private final int age;
     /// class of the age of the person
-    private TPS_AgeClass ageClass;
+    private final TPS_AgeClass ageClass;
     /// monthly financial budget for travel expenditures in Euro, includes car usage and pt usage but no fix budget
     private final double budget;
     /// flag if the person is prone to be a car pooler
-    private boolean carPooler;
+    private final boolean carPooler;
     /// information if person holds a driving license and when applicable the type of licence
-    private TPS_DrivingLicenseInformation drivingLicenseInformation;
+    private final TPS_DrivingLicenseInformation drivingLicenseInformation;
     /// the household the person belongs to
     private TPS_Household household;
     /// flag if the person is prone to be a teleworker
-    private boolean teleworker;
+    //private boolean teleworker;
     /// flag if the person is working
     private final double working;
     /// flag if this person has a bike
     private final boolean hasBike;
     /// Id to the fixed work location
-    private int workLocationID = -1;
-    private double driverScore = -1;
-    private int educationLevel = 0;
+    private final int workLocationID;
+    private final int educationLevel;
 
-
-    /**
-     * This constructor just calls the init() method.
-     *
-     * @param id                   The id of this person
-     * @param group                person group code is used if {@linkParamFlag.FLAG_USE_GROUP_COLUMN_FOR_PERSON_GROUPS}
-     *                             is true (default false), if false: the attributes status, sex, age, cars and children
-     *                             (from the household) are used to determine the person group
-     * @param status               status value of the person (1=child under 6, 2=pupil, 3=student, 4=retiree,
-     *                             5=other non working person, 6=working full-time, 7=working part-time, 8= trainee,
-     *                             9=non working
-     * @param sex                  The sex of this person
-     * @param age                  The age of this person
-     * @param abo                  Whether this person has a public transport abo
-     * @param hasBike              Whether this person has a bike
-     * @param budget               This person's budget
-     * @param isWorking            Whether this person is working
-     * @param isTeleworker         Whether this person is a teleworker
-     * @param eduactionLevel
-     * @param use_shopping_motives
-     */
-    public TPS_Person(int id, int group, int status, TPS_Sex sex, int age, boolean abo, boolean hasBike, double budget, double isWorking, boolean isTeleworker, int eduactionLevel, boolean use_shopping_motives) {
-        this.id = id;
-        this.group = group;
-        this.status = status;
-        this.sex = sex;
-        this.age = age;
-        this.ageClass = TPS_AgeClass.getAgeClass(this.getAge());
-        this.abo = abo;
-        this.hasBike = hasBike;
-        this.budget = budget;
-        this.carPooler = false;
-        this.teleworker = false;
-        this.setHousehold(null);
-        this.setDrivingLicenseInformation(TPS_DrivingLicenseInformation.UNKNOWN);
-        this.working = isWorking;
-        this.teleworker = isTeleworker;
-        this.workLocationID = workLocationID;
-        this.educationLevel = eduactionLevel;
-        if (use_shopping_motives) {
-            this.errorTerm = Randomizer.randomGumbelDistribution(() -> Randomizer.random(), 0,
-                    1); // constant for one person
-        }
-    }
+    //todo this does not belong here since this depends on the household context and should be handled outside
+    //todo remove in the future
+    @Setter
+    private double driverScore;
 
     /**
      * returns the status field of the person like (1=child under 6, 2=pupil, 3=student, 4=retiree,
@@ -190,14 +150,6 @@ public class TPS_Person implements ExtendedWritable {
         return drivingLicenseInformation;
     }
 
-    /**
-     * Sets the driving license information of the person
-     *
-     * @param drivingLicenseInformation
-     */
-    public void setDrivingLicenseInformation(TPS_DrivingLicenseInformation drivingLicenseInformation) {
-        this.drivingLicenseInformation = drivingLicenseInformation;
-    }
 
     /**
      * Coding:
@@ -322,31 +274,12 @@ public class TPS_Person implements ExtendedWritable {
     }
 
     /**
-     * Returns whether the age of the person was adapted to account for younger behavior of the elderly
-     *
-     * @return true if the age was adapted; false else
-     */
-    public boolean isAgeAdapted() {
-        return ageAdaption;
-    }
-
-
-    /**
      * Returns whether the person is prone to car pooling
      *
      * @return true if applicable; false else
      */
     public boolean isCarPooler() {
         return carPooler;
-    }
-
-    /**
-     * Sets whether the person is prone to car pooling
-     *
-     * @param carPooler
-     */
-    public void setCarPooler(boolean carPooler) {
-        this.carPooler = carPooler;
     }
 
     /**
@@ -374,15 +307,6 @@ public class TPS_Person implements ExtendedWritable {
      */
     public boolean isStudent() {
         return this.getPersonGroup().isStudent();
-    }
-
-    /**
-     * Returns whether the person is prone to teleworking
-     *
-     * @return true if teleworking; false else
-     */
-    public boolean isTeleworker() {
-        return teleworker;
     }
 
     /**
@@ -616,25 +540,6 @@ public class TPS_Person implements ExtendedWritable {
             }
         }
         return supplyPreference;
-    }
-
-    /**
-     * This method sets the person's age to a new value. this is used in scenario versions. The prediction is that people are
-     * more mobile in higher ages in future. So in these scenarios they get younger. This leads to a new selection of the
-     * person group that these values are consistent
-     *
-     * @param ageAdaption            flag if an age adaption should be performed
-     * @param rejuvenate_by_nb_years
-     */
-    public void setAgeAdaption(boolean ageAdaption, int rejuvenate_by_nb_years) {
-        if (this.ageAdaption != ageAdaption) {
-            if (this.ageAdaption && !ageAdaption) {
-                this.age = this.age + rejuvenate_by_nb_years;
-            } else if (!this.ageAdaption && ageAdaption) {
-                this.age = this.age - rejuvenate_by_nb_years;
-            }
-            this.ageClass = TPS_AgeClass.getAgeClass(this.age);
-        }
     }
 
 

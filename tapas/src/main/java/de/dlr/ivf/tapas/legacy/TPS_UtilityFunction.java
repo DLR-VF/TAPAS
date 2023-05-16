@@ -53,11 +53,4 @@ public interface TPS_UtilityFunction {
      */
     TPS_DiscreteDistribution<TPS_Mode> getDistributionSet(TPS_ModeSet modeSet, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc);//TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike, TPS_Stay stay);
 
-    /**
-     * Function to set the parameters for the utility function
-     *
-     * @param mode       the mode we are parametrizing
-     * @param parameters the parameters for the mode
-     */
-    void setParameterSet(TPS_Mode mode, double[] parameters);
 }

@@ -16,10 +16,12 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import lombok.Getter;
 
 import java.util.*;
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
+@Getter
 public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZone>, Locatable {
 
     /// Mapping between corresponding codes
@@ -31,7 +33,7 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     /// community type, used during choice of locations
     private TPS_SettlementSystem bbrType;
 
-    private Map<TPS_LocationConstant, Collection<TPS_ActivityConstant>> locationToActivityMap = new HashMap<>();
+    private final Map<TPS_LocationConstant, Collection<TPS_ActivityConstant>> locationToActivityMap = new HashMap<>();
     /// Collection with all blocks of this traffic analysis zone
     private final SortedMap<Integer, TPS_Block> blocks;
     /// Coordinate of the center point of this traffic analysis zone

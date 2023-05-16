@@ -9,16 +9,12 @@
 package de.dlr.ivf.tapas.model.mode;
 
 import de.dlr.ivf.tapas.model.constants.TPS_InternalConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 
 import java.util.Collection;
-import java.util.EnumMap;
-import java.util.Map;
-
 /**
  * This class represents the basic features of a mode. It is characterized by a type and a name.
  * <p>
@@ -38,11 +34,11 @@ public class TPS_Mode {
     public static final double VISUM_NO_CONNECTION = 99999.0;
 
     private final double velocity;
-    private final double costPerKm = 0;
-    private final double costPerKmBase = 0;
-    private final double variableCostPerKm = 0;
-    private final double variableCostPerKmBase = 0;
-    private final boolean useBase = false;
+    private final double costPerKm;
+    private final double costPerKmBase;
+    private final double variableCostPerKm;
+    private final double variableCostPerKmBase;
+    private final boolean useBase;
     private final double beelineFactor;
     @Singular
     private final Collection<TPS_InternalConstant<TPS_ModeCodeType>> internalConstants;

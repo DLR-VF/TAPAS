@@ -12,14 +12,16 @@ import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
-
-import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
-import de.dlr.ivf.tapas.model.plan.TPS_Plan;
+import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
+import de.dlr.ivf.tapas.model.vehicle.Cars;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import lombok.Builder;
 import lombok.Singular;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class represents a household.
@@ -43,62 +45,25 @@ public class TPS_Household implements ExtendedWritable {
 
     /// household member list
     @Singular
-    private final SortedMap<Integer, TPS_Person> members;
+    private final Collection<TPS_Person> members;
 
     /// number of cars in household
-    private TPS_Car[] cars;
+    private final Cars cars;
 
-    private boolean leastRestrictedCarInitialized = false;
+    private boolean leastRestrictedCarInitialized;
 
-    private TPS_Car leastRestrictedCar = null;
-
-    public TPS_HouseholdCarMediator getCarMediator() {
-        return carMediator;
-    }
-
-    public void setCarMediator(TPS_HouseholdCarMediator car_mediator) {
-        this.carMediator = car_mediator;
-    }
-
-    private TPS_HouseholdCarMediator carMediator = null;
-
-    /**
-     * Constructor
-     *
-     * @param id     The id of the household
-     * @param income The income of the household
-     * @param type   The type of the household
-     * @param loc    The location of the household
-     * @param cars   The cars that this household has
-     */
-    public TPS_Household(int id, int income, int type, TPS_Location loc, TPS_Car[] cars) {
-        this.id = id;
-        this.location = loc;
-        this.income = income;
-        this.type = type;
-        if (cars != null) this.cars = cars;
-        else this.cars = new TPS_Car[0];
-        this.members = new TreeMap<>();
-    }
+    private Vehicle leastRestrictedCar;
 
 
-    /**
-     * Adds this person to the household
-     *
-     * @param p person to be added
-     */
-    public void addMember(TPS_Person p) {
-        p.setHousehold(this);
-        members.put(p.getId(), p);
-    }
+    private final CarFleetManager carFleetManager ;
 
     /**
      * Returns all cars in the household
      *
      * @return an array of cars, null if no cars are present
      */
-    public TPS_Car[] getAllCars() {
-        return this.cars;
+    public Collection<Vehicle> getAllCars() {
+        return this.cars.getCars();
     }
 
     /**
@@ -108,56 +73,10 @@ public class TPS_Household implements ExtendedWritable {
      * @param end   time period end
      * @return an array of available cars, null if no cars are available
      */
-    public TPS_Car[] getAvailableCars(double start, double end) {
+    public List<TPS_Car> getAvailableCars(double start, double end) {
         return this.getAvailableCars((int) (start + 0.5), (int) (end + 0.5)); //incl. rounding
     }
 
-
-    public void initializeCarMediator(TPS_Household household, List<TPS_Plan> household_plans){
-        if(this.carMediator == null)
-            this.carMediator = new TPS_HouseholdCarMediator(household);
-    }
-
-    /**
-     * Returns the number of cars available in the household for the time period specified
-     *
-     * @param start time period start
-     * @param end   time period end
-     * @return an array of available cars, null if no cars are available
-     */
-    public TPS_Car[] getAvailableCars(int start, int end) {
-        int availableCars = 0;
-        if (this.cars == null) return null;
-        for (TPS_Car car : this.cars) {
-            if (car.isAvailable(start, end)) {
-                availableCars++;
-            }
-        }
-        if (availableCars == 0) return null;
-        TPS_Car[] available = new TPS_Car[availableCars];
-        for (int i = 0, j = 0; i < this.cars.length && j < availableCars; ++i) {
-            if (this.cars[i].isAvailable(start, end)) {
-                available[j++] = this.cars[i];
-            }
-        }
-        return available;
-    }
-
-    /**
-     * Retrieves the car on the specified index or null otherwise
-     *
-     * @param index the index of the car
-     * @return the car
-     */
-    public TPS_Car getCar(int index) {
-        if (this.cars == null) return null;
-        if (index <= this.cars.length) {
-            return this.cars[index];
-        } else {
-            return null;
-        }
-
-    }
 
     /**
      * Returns the number of cars in the household
@@ -165,11 +84,7 @@ public class TPS_Household implements ExtendedWritable {
      * @return number of cars
      */
     public int getNumberOfCars() {
-        if (cars != null) {
-            return cars.length;
-        } else {
-            return 0;
-        }
+        return cars.getCars().size();
     }
 
     /**
@@ -195,20 +110,13 @@ public class TPS_Household implements ExtendedWritable {
      *
      * @return the car
      */
-    public TPS_Car getLeastRestrictedCar() {
+    public Vehicle getLeastRestrictedCar() {
         //initialize on the first call
         if (!this.leastRestrictedCarInitialized) {
-            this.leastRestrictedCar = null;
             this.leastRestrictedCarInitialized = true;
-            if (this.cars != null && this.cars.length > 0) {
-                this.leastRestrictedCar = this.cars[0]; //take the first candidate
-                //check for restriction
-                for (TPS_Car car : this.cars) {
-                    if (!car.isRestricted() && this.leastRestrictedCar.isRestricted()) {
-                        this.leastRestrictedCar = car;
-                    }
-                }
-            }
+            this.leastRestrictedCar = this.cars.getCars().stream()
+                    .min(Comparator.comparing(Vehicle::isRestricted))
+                    .orElse(null);
         }
 
 
@@ -230,37 +138,35 @@ public class TPS_Household implements ExtendedWritable {
      * @return all household members
      */
     public Collection<TPS_Person> getMembers(Sorting e) {
-        List<TPS_Person> agesortedPersons = new ArrayList<>(members.values());
-        //TODO why is sorted by age? It isn't, right?
-        switch (e) {
-            case NONE:
-            case COST_OPTIMUM:
-                break;
-            case AGE:
-                //sort that list by age descending!
-                agesortedPersons.sort((arg0, arg1) -> {
-                    return arg1.getAge() - arg0.getAge(); //age
-                });
-                break;
 
-            case RANDOM:
-                //sort that list by random!
-                agesortedPersons.sort((arg0, arg1) -> {
-                    return Math.random() < 0.5 ? -1 : 1; //random
-                });
-                break;
-            case PRIMARY_DRIVER:
-                //sort that list by age descending!
-                agesortedPersons.sort((arg0, arg1) -> arg0.primaryDriver() > arg1.primaryDriver() ? -1 : 1);
-                break;
+        return switch (e) {
+            case AGE -> this.members.stream()
+                    .sorted(Comparator
+                            .comparingInt(TPS_Person::getAge)
+                            .reversed())
+                    .collect(Collectors.toList());
+            case RANDOM -> this.members.stream()
+                    .collect(Collectors.collectingAndThen(
+                            Collectors.toCollection(ArrayList::new),
+                            memberList -> {
+                                Collections.shuffle(memberList);
+                                return memberList;
+                            }));
+            case PRIMARY_DRIVER -> this.members.stream()
+                    .sorted(Comparator.comparingDouble(TPS_Person::primaryDriver).reversed())
+                    .collect(Collectors.toList());
+            default -> this.members;
+        };
+    }
 
-        }
-        return agesortedPersons;
+
+    public CarFleetManager getCarFleetManager(){
+        return this.carFleetManager;
     }
 
     public int getNumCarDrivers() {
         int sum = 0;
-        for (TPS_Person p : members.values()) {
+        for (TPS_Person p : members) {
             if (p.mayDriveACar(null,0,0)) {
                 ++sum;
             }
@@ -270,7 +176,7 @@ public class TPS_Household implements ExtendedWritable {
 
     public int getNumChildren() {
         int sum = 0;
-        for (TPS_Person p : members.values()) {
+        for (TPS_Person p : members) {
             if (p.getAge() < 18) {
                 ++sum;
             }
@@ -280,7 +186,7 @@ public class TPS_Household implements ExtendedWritable {
 
     public int getNumGrownups() {
         int sum = 0;
-        for (TPS_Person p : members.values()) {
+        for (TPS_Person p : members) {
             if (p.getAge() >= 18) {
                 ++sum;
             }
@@ -290,7 +196,7 @@ public class TPS_Household implements ExtendedWritable {
 
     public int getNumHalfEmployed() {
         int sum = 0;
-        for (TPS_Person p : members.values()) {
+        for (TPS_Person p : members) {
             if (p.getWorkingAmount() <= .5) {
                 ++sum;
             }
@@ -300,7 +206,7 @@ public class TPS_Household implements ExtendedWritable {
 
     public int getNumMalePersons() {
         int sum = 0;
-        for (TPS_Person p : members.values()) {
+        for (TPS_Person p : members) {
             if (p.getSex() == TPS_Sex.MALE) {
                 ++sum;
             }
@@ -324,8 +230,8 @@ public class TPS_Household implements ExtendedWritable {
     public double getHouseholdEquivalenceIncome() {
         // first sum all person weights of members with >=14 years of the household
         // remember the first adult has weight 1, each additional adult (>=14) has weight 0.5
-        double personWeightSum = 1 + (this.members.values().stream().filter(p -> p.getAge() >= 14).count() - 1) * 0.5;
-        personWeightSum += 0.3 * this.members.values().stream().filter(p -> p.getAge() < 14).count();
+        double personWeightSum = 1 + (this.members.stream().filter(p -> p.getAge() >= 14).count() - 1) * 0.5;
+        personWeightSum += 0.3 * this.members.stream().filter(p -> p.getAge() < 14).count();
         return this.getIncome() / personWeightSum;
     }
 
