@@ -81,6 +81,7 @@ dependencies {
     implementation(project(":tapas-util"))
     implementation(project(":tapas-model"))
     implementation(project(":tapas-tools"))
+    implementation(project(":converter"))
     implementation(project(":io"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))

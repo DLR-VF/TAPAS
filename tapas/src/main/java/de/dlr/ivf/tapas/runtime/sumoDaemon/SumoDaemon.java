@@ -8,9 +8,14 @@
 
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
+import de.dlr.ivf.api.io.JdbcConnectionProvider;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.model.Login;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
@@ -24,10 +29,12 @@ import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class SumoDaemon extends Thread {
@@ -40,6 +47,7 @@ public class SumoDaemon extends Thread {
      */
     private static final TPS_ArgumentType<?>[] PARAMETERS = {new TPS_ArgumentType<>("tapas network directory path",
             File.class)};
+    private TPS_DB_IO dbIo;
     boolean keepOnRunning = true;
     boolean keepPreviousIteratioData = true;
     private final HashMap<String, Integer> simKeysTriggerIteration = new HashMap<>();
@@ -70,6 +78,15 @@ public class SumoDaemon extends Thread {
         try {
             this.parameterClass.loadRuntimeParameters(runtimeFile);
             this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, this.tapasNetworkDirectory.getPath());
+
+            Login login = new Login(parameterClass.getString(ParamString.DB_USER), parameterClass.getString(ParamString.DB_PASSWORD));
+            String url = "jdbc:" + this.parameterClass.getString(ParamString.DB_TYPE) + "://" +
+                    this.parameterClass.getString(ParamString.DB_HOST) + ":" + this.parameterClass.getIntValue(
+                    ParamValue.DB_PORT) + "/" + this.parameterClass.getString(ParamString.DB_DBNAME);
+
+            ConnectionDetails connectionDetails = new ConnectionDetails(url, login);
+            Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connectionDetails);
+            this.dbIo = new TPS_DB_IO(connectionSupplier, this.parameterClass);
             this.manager = new TPS_DB_Connector(this.parameterClass);
 
         } catch (IOException | ClassNotFoundException e) {
@@ -239,7 +256,7 @@ public class SumoDaemon extends Thread {
     }
 
     private MatrixMap loadSumoValues(String matrixMap, double weight) {
-        MatrixMap oldM = this.manager.readMatrixMap(matrixMap, 0, this);
+        MatrixMap oldM = this.dbIo.readMatrixMap(new DataSource(matrixMap,null), 0);
         MatrixMap newM = oldM.clone();
 
         Map<Integer, Integer> tazMap = new HashMap<>();

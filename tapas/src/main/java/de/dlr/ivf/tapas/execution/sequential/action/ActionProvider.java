@@ -12,7 +12,7 @@ import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_TripWriter;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
@@ -120,7 +120,7 @@ public class ActionProvider {
 
         List<TPS_PlanStateAction> transition_actions = new ArrayList<>();
 
-        transition_actions.add(new SetupAvailableModesAction(tour_context, plan_context.getHouseholdCarProvider(), person, pc,pm));
+        transition_actions.add(new SetupAvailableModesAction(tour_context, plan_context.getCarFleetManager(), person, pc,pm));
         transition_actions.add(new UpdateLocationChoicePlanAttributesAction(plan,person,pc, next_stay));
         transition_actions.add(new SelectLocationAction(tour_context, location_context, plan_context));
         transition_actions.add(new UpdateModeChoicePlanAttributesAction(plan, next_located_stay));
@@ -135,14 +135,15 @@ public class ActionProvider {
         //immediately check out the next location
         transition_actions.add(new UpdateCapacityAction(location_context::getNextLocation, -1));
 
-        //add current stay dependant actions
-        if(!current_stay.isAtHome()) { //we are not at home and leave a location
-            //increment capacity
-            transition_actions.add(new UpdateCapacityAction(location_context::getCurrentLocation, 1));
-        }
+        //todo we are talking about daily capacities right?
+//        //add current stay dependant actions
+//        if(!current_stay.isAtHome()) { //we are not at home and leave a location
+//            //increment capacity
+//            transition_actions.add(new UpdateCapacityAction(location_context::getCurrentLocation, 1));
+//        }
 
         //checkout a potential car sharing car that has been requested
-        transition_actions.add(new CheckOutSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator));
+        transition_actions.add(new CheckOutSharedVehiclesAction(plan_context.getCarFleetManager(), pc, tour_context, car_sharing_delegator));
 
         return transition_actions;
     }
@@ -165,8 +166,8 @@ public class ActionProvider {
         ModeContext mode_context = tour_context.getModeContext();
 
         TPS_PlanningContext pc = plan_context.getPlan().getPlanningContext();
-
-        transition_actions.add(new CheckInSharedVehiclesAction(plan_context.getHouseholdCarProvider(), pc, tour_context, car_sharing_delegator));
+//
+//        transition_actions.add(new CheckInSharedVehiclesAction(plan_context.getCarFleetManager(), pc, tour_context, car_sharing_delegator));
 
         TPS_Stay next_stay = tour_context.getNextStay();
         transition_actions.add(new AdaptGuardAction(activity_to_trip_guard, guard_adaption_function, next_stay, plan_context::getTimeDeviation));

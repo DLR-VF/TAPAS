@@ -19,5 +19,6 @@ module de.dlr.ivf.tapas.model {
     exports de.dlr.ivf.tapas.model.distribution;
     exports de.dlr.ivf.tapas.model.parameter;
     exports de.dlr.ivf.tapas.model.plan;
+    exports de.dlr.ivf.tapas.model.vehicle;
 
 }
