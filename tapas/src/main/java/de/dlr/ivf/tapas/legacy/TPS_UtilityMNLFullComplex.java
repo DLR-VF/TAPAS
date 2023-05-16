@@ -19,10 +19,11 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
 
@@ -89,8 +90,8 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             if (goingToTVZ.isRestricted() && mcc.carForThisPlan.isRestricted()) {
                 return Double.NaN;
             }
-            tmpFactor = (mcc.carForThisPlan.getCostPerKilometer(simType) +
-                    mcc.carForThisPlan.getVariableCostPerKilometer(simType));
+            tmpFactor = (mcc.carForThisPlan.costPerKilometer() +
+                    mcc.carForThisPlan.variableCostPerKilometer());
             //TODO: Bad hack to modify the costs according to the av-reduction!
 
             if (mcc.carForThisPlan.getAutomationLevel() >= automaticVehicleLevel && SimulationType.SCENARIO == simType) {
@@ -105,7 +106,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             boolean carIsRestricted = true;
 
             if (Randomizer.random() < passProbHouseHoldCar) {
-                TPS_Car coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
+                Vehicle coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
                 if (coDriver != null) { //does the household have a car???
                     carIsRestricted = plan.getPerson().getHousehold().getLeastRestrictedCar().isRestricted();
                 } else {
@@ -137,7 +138,9 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
         // determine whether target zone has parking fees or toll (only relevant if entering zone)
         // momentary situation compared to base situation
         boolean carMustPayToll = true;
-        if (mcc.carForThisPlan != null && mcc.carForThisPlan.hasPaidToll || plan.mustPayToll) carMustPayToll = false;
+
+        //todo revise this line
+        //if (mcc.carForThisPlan != null && mcc.carForThisPlan.hasPaidToll || plan.mustPayToll) carMustPayToll = false;
 
         if (goingToTVZ.hasToll(simType) && carMustPayToll) {
             // toll is relevant as entering a cordon toll zone

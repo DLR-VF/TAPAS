@@ -9,7 +9,7 @@ import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;

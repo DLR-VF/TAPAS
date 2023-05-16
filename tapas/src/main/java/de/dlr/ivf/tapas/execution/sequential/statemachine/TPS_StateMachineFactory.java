@@ -42,7 +42,7 @@ public class TPS_StateMachineFactory {
 
         TPS_Household hh = plan.getPerson().getHousehold();
         LocationContext location_context = new LocationContext(hh.getLocation());
-        PlanContext plan_context = new PlanContext(plan, hh.getCarMediator(), location_context);
+        PlanContext plan_context = new PlanContext(plan, hh.getCarFleetManager(), location_context);
 
         TPS_PlanState activity_state = new TPS_SimplePlanState("activity_" + identifier, stateMachine);
         TPS_PlanState trip_state = new TPS_SimplePlanState("trip_" + identifier, stateMachine);

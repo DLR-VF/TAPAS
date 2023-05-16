@@ -12,14 +12,12 @@ import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeTyp
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
-import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 
 import java.util.*;
 
@@ -53,7 +51,7 @@ public class TPS_TourPart extends TPS_SchemePart {
     /**
      * The car used with this plan
      */
-    private TPS_Car car = null;
+    private Vehicle car = null;
     // local variable to store the last used mode
     private TPS_ExtMode lastMode = null;
     /*
@@ -174,7 +172,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      *
      * @return the car
      */
-    public TPS_Car getCar() {
+    public Vehicle getCar() {
         return this.car;
     }
 
@@ -183,7 +181,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      *
      * @param car the reference to an car of this household
      */
-    public void setCar(TPS_Car car) {
+    public void setCar(Vehicle car) {
         this.car = car;
         //todo implement a work around
 //        lastMode = TPS_ExtMode.simpleMIT;

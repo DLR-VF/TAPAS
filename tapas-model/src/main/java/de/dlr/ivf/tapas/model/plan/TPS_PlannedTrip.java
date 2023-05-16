@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.model.plan;
 
-import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
@@ -16,15 +15,14 @@ import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.parameter.*;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
 
 /**
@@ -145,7 +143,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode {
         TPS_TrafficAnalysisZone comingFromTVZ = pLocComingFrom.getTrafficAnalysisZone();
         double tt = -1;
 
-        TPS_Car carForTrip = null;
+        Vehicle carForTrip = null;
         //pick cars used for this plan
         for (TPS_SchemePart schemePart : this.plan.getScheme()) {
             if (!schemePart.isHomePart()) {

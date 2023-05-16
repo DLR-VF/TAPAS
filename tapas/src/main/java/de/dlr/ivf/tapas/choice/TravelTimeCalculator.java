@@ -11,7 +11,7 @@ import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 
 import java.util.EnumMap;

@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.statemachine;
 
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
 import java.util.Optional;
 import java.util.function.BiFunction;

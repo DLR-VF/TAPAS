@@ -23,6 +23,8 @@ import de.dlr.ivf.tapas.model.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanEnvironment;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.model.scheme.TPS_Scheme;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;
@@ -129,8 +131,9 @@ public class TPS_Worker implements Callable<Exception> {
                 if (tourpart.getCar() != null) { // do we use a car?
                     TPS_AdaptedEpisode startEpisode = (plan.getAdaptedEpisode(tourpart.getFirstEpisode()));
                     TPS_AdaptedEpisode endEpisode = (plan.getAdaptedEpisode(tourpart.getLastEpisode()));
-                    tourpart.getCar().pickCar(startEpisode.getStart(), endEpisode.getEnd(),
-                            tourpart.getTourpartDistance(), plan.mustPayToll || tourpart.getCar().hasPaidToll); // pick
+                    //todo revise this
+//                    tourpart.getCar().pickCar(startEpisode.getStart(), endEpisode.getEnd(),
+//                            tourpart.getTourpartDistance(), plan.mustPayToll || tourpart.getCar().hasPaidToll); // pick
                     // car;
                 }
             }
@@ -297,24 +300,11 @@ public class TPS_Worker implements Callable<Exception> {
                     continue;
                 }
 
-                // check if age adaptation should occur
-                if (this.getParameters().isTrue(ParamFlag.FLAG_REJUVENATE_RETIREE)) {
-                    if (person.getAge() >= this.getParameters().getIntValue(ParamValue.REJUVENATE_AGE)) {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
-                            TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG,
-                                    "Person's age gets adapted");
-                        }
-                        person.setAgeAdaption(true,
-                                this.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
-                    }
-                }
-
                 TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, getParameters());
                 createPersonPlans(pe, null);
                 TPS_Plan plan = pe.getBestPlan();
                 PM.writePlan(plan);
-                // reset the age adaption of the retirees
-                person.setAgeAdaption(false, this.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
+
             }
         } else {
             // determine who may drive a car and how many cars exist
@@ -322,8 +312,9 @@ public class TPS_Worker implements Callable<Exception> {
             // check car
             TPS_Car leastLimitedCar = null;
             if (hh.getNumberOfCars() > 0) {
-                leastLimitedCar = hh.getCar(0); // TODO: get the car that poses the least limitations
+                leastLimitedCar = hh.getLeastRestrictedCar() instanceof TPS_Car car ? car : null; // TODO: get the car that poses the least limitations
             }
+
             Vector<TPS_Person> competingCarDrivers = new Vector<>();
             int avLevel = PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL);
             int avMinAge = PM.getParameters().getIntValue(ParamValue.AUTOMATIC_VEHICLE_MIN_DRIVER_AGE);
@@ -360,20 +351,10 @@ public class TPS_Worker implements Callable<Exception> {
                     }
                     continue;
                 }
-                // check if age adaptation should be done
-                if (this.getParameters().isTrue(ParamFlag.FLAG_REJUVENATE_RETIREE)) {
-                    if (person.getAge() >= this.getParameters().getIntValue(ParamValue.REJUVENATE_AGE)) {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
-                            TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG,
-                                    "Person's age gets adapted");
-                        }
-                        person.setAgeAdaption(true,
-                                this.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
-                    }
-                }
+
                 // check car
                 TPS_Car carDummy = null;
-                if (person.mayDriveACar(leastLimitedCar,avMinAge,avLevel)) {
+                if (person.mayDriveACar(carDummy,avMinAge,avLevel)) {
                     carDummy = leastLimitedCar;
                 }
 
@@ -387,8 +368,6 @@ public class TPS_Worker implements Callable<Exception> {
                 } else {
                     driverPlanEnvironments.put(person, pe);
                 }
-                // reset the age adaption of the retirees
-                person.setAgeAdaption(false, this.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
 
             if (driverPlanEnvironments.size() == 1) {
@@ -483,7 +462,7 @@ public class TPS_Worker implements Callable<Exception> {
 
                         //count number of restricted cars
                         int numRestrictedCars = 0;
-                        for (TPS_Car car : hh.getAllCars()) {
+                        for (Vehicle car : hh.getAllCars()) {
                             if (car.isRestricted()) {
                                 numRestrictedCars++;
                             }
@@ -501,7 +480,7 @@ public class TPS_Worker implements Callable<Exception> {
                         }
                         //ok : set the cars
                         //first copy a list of cars so that we can safetly remove them when they are "used up"
-                        List<TPS_Car> localCarList = new ArrayList<>(Arrays.asList(hh.getAllCars()));
+                        List<Vehicle> localCarList = new ArrayList<>(hh.getAllCars());
                         //now put all the plans (with cars) to work on in a 2nd list
                         List<TPS_Plan> localPlanList = new ArrayList<>();
                         for (Entry<Integer, TPS_Person> entry : scoreIndexMap.entrySet()) {
@@ -521,7 +500,7 @@ public class TPS_Worker implements Callable<Exception> {
 
                         //now assign the cars
                         for (TPS_Plan actPlan : localPlanList) {
-                            TPS_Car tmpCar = null;
+                            Vehicle tmpCar = null;
                             int indexOfCar = 0;
                             //find an unrestricted car for a restrited plan. restricted plans come first!
                             if (actPlan.entersRestrictedAreas()) {

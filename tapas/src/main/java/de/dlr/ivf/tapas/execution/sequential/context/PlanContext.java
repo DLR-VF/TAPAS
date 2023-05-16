@@ -2,10 +2,11 @@ package de.dlr.ivf.tapas.execution.sequential.context;
 
 
 import de.dlr.ivf.tapas.execution.sequential.choice.LocationContext;
-import de.dlr.ivf.tapas.model.mode.TPS_HouseholdCarMediator;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.*;
+import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,18 +23,17 @@ public class PlanContext implements ContextUpdateable {
     private TourContext current_tour_context;
 
     private LocationContext location_context;
+    private CarFleetManager carFleetManager;
 
     private final TPS_Plan plan;
 
     private int absolute_time_deviation = 0;
 
-    public TPS_HouseholdCarMediator getHouseholdCarProvider() {
-        return household_car_provider;
+    public CarFleetManager getCarFleetManager() {
+        return carFleetManager;
     }
 
-    private TPS_HouseholdCarMediator household_car_provider;
-
-    public PlanContext(TPS_Plan plan, TPS_HouseholdCarMediator household_car_provider, LocationContext location_context) {
+    public PlanContext(TPS_Plan plan, CarFleetManager carFleetManager, LocationContext location_context) {
 
         this.plan = plan;
 
@@ -41,7 +41,7 @@ public class PlanContext implements ContextUpdateable {
 
         this.home_location = location_context.getHomeLocation();
 
-        this.household_car_provider = household_car_provider;
+        this.carFleetManager = carFleetManager;
 
         List<TPS_SchemePart> scheme_parts = plan.getScheme().getSchemeParts();
 

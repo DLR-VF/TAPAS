@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.model.constants;
+package de.dlr.ivf.tapas.model.vehicle;
 
 /**
  * Constant for the person groups which are subdivided by the ownership of cars.

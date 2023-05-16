@@ -8,12 +8,12 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.tapas.model.person.TPS_Car;
-import de.dlr.ivf.tapas.model.person.TPS_Car.CarSize;
-import de.dlr.ivf.tapas.model.person.TPS_Car.FuelType;
+import de.dlr.ivf.tapas.model.mode.ModeUtils;
+import de.dlr.ivf.tapas.model.vehicle.CarSize;
+import de.dlr.ivf.tapas.model.vehicle.FuelTypeName;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -57,8 +57,8 @@ public class FleetAnalyzer  {
             if (trip.mode != 2) {
                 continue;
             }
-            CarSize size = TPS_Car.getCarSize(trip.car_kba);
-            FuelType fuel = trip.fuelType;
+            CarSize size = ModeUtils.getCarSize(trip.car_kba);
+            FuelTypeName fuel = trip.fuelType;
             EcoMoveCar ref = null;
             boolean ecoCar = trip.car_kba >= 100;
             for (EcoMoveCar car : this.knownCarTypes) {
@@ -199,13 +199,13 @@ public class FleetAnalyzer  {
     public class EcoMoveCar {
         CarSize size;
         boolean ecoCar = false;
-        FuelType fuelType;
+        FuelTypeName fuelType;
     }
 
     public class Trip {
         int pID, hhID, startTime;
         int mode, car_id, car_kba;
-        TPS_Car.FuelType fuelType;
+        FuelTypeName fuelType;
         double dist;
 
         public Trip(int pID, int hhID, int startTime) {

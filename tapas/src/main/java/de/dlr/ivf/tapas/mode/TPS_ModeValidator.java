@@ -4,7 +4,7 @@ import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 

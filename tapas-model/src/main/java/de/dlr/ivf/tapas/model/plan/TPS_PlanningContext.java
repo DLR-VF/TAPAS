@@ -8,7 +8,8 @@
 
 package de.dlr.ivf.tapas.model.plan;
 
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.CarController;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
 
 public class TPS_PlanningContext {
@@ -18,6 +19,8 @@ public class TPS_PlanningContext {
     // plan
     public boolean influenceCarUsageInPlan;
     public TPS_Car carForThisPlan;
+
+    public CarController hhCar;
     public boolean influenceBikeUsageInPlan;
     public boolean isBikeAvailable;
 
@@ -26,6 +29,10 @@ public class TPS_PlanningContext {
 
     public TPS_Trip previousTrip = null;
     public boolean fixLocationAtBase = false;
+
+    public CarController getHhCar(){
+        return this.hhCar;
+    }
 
 
     //
@@ -49,6 +56,10 @@ public class TPS_PlanningContext {
             return false;
         }
         return true;
+    }
+
+    public void setHhCar(CarController car){
+        this.hhCar = car;
     }
 
     public TPS_Car getHouseHoldCar() {

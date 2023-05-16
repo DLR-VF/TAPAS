@@ -10,7 +10,7 @@ package de.dlr.ivf.tapas.model.mode;
 
 
 import de.dlr.ivf.tapas.model.location.TPS_Location;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 
 public class TPS_ModeChoiceContext {

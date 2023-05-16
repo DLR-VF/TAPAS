@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
 import de.dlr.ivf.tapas.model.mode.SharingMediator;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 
 public class ReleaseCarAndResetAction implements TPS_PlanStateAction {

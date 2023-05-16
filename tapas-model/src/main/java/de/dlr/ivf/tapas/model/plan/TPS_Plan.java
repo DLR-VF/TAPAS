@@ -20,22 +20,17 @@ import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
-import de.dlr.ivf.tapas.model.person.TPS_Household;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
-import de.dlr.ivf.tapas.model.Timeline;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.parameter.CURRENCY;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.stream.IntStream;
 
 /**
@@ -163,25 +158,6 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
             TPS_Trip trip = (TPS_Trip) e;
             this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip));
         }
-    }
-
-    /**
-     * Returns whether the given car may be used for this plan
-     *
-     * @param car The car to use
-     * @return Whether the given car may be used
-     */
-    public boolean allowsCar(TPS_Car car) {
-        double dist = 0;
-        for (TPS_SchemePart schemePart : this.scheme) { //collect car specific distances
-            if (schemePart.isTourPart()) {
-                TPS_Car c = ((TPS_TourPart) schemePart).getCar();
-                if (c != null) { //trip with car
-                    dist += ((TPS_TourPart) schemePart).getTourpartDistance();
-                }
-            }
-        }
-        return car.getRangeLeft() > dist;
     }
 
     /**

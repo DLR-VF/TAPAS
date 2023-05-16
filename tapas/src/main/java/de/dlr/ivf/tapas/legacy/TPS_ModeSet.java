@@ -33,6 +33,7 @@ import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -69,7 +70,6 @@ public class TPS_ModeSet {
      * @param parameterClass      parameter class reference
      */
     public TPS_ModeSet(TPS_ModeChoiceTree modeChoiceTree, TPS_ExpertKnowledgeTree expertKnowledgeTree, TPS_ParameterClass parameterClass, Modes modes, ModeDistributionCalculator distributionCalculator) {
-        super();
         this.modeChoiceTree = modeChoiceTree;
         this.expertKnowledgeTree = expertKnowledgeTree;
         this.parameterClass = parameterClass;
@@ -222,7 +222,7 @@ public class TPS_ModeSet {
                         mcc.duration = mcc.toStay.getOriginalDuration();
                         mcc.startTime = mcc.toStay.getOriginalStart();
                         mcc.isBikeAvailable = tourpart.isBikeUsed();
-                        mcc.carForThisPlan = tourpart.getCar();
+                        mcc.carForThisPlan = (TPS_Car)tourpart.getCar();
                         currentDepartureMode = selectMode0(plan, distanceNet, mcc);
                     }
                     locatedStay.setModeDep(currentDepartureMode);
@@ -247,7 +247,7 @@ public class TPS_ModeSet {
                             mcc.startTime = mcc.toStay.getOriginalStart();
                             mcc.isBikeAvailable = tourpart
                                     .isBikeUsed(); // pc.isBikeAvailable; !!! why this - it should be same as before (pc.isBikeAvailable)
-                            mcc.carForThisPlan = tourpart
+                            mcc.carForThisPlan = (TPS_Car)tourpart
                                     .getCar(); // pc.carForThisPlan; !!! why this - it should be same as before (pc.carForThisPlan)
                             currentArrivalMode = selectMode0(plan, distanceNet, mcc);
                         }

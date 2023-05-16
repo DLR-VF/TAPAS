@@ -12,8 +12,6 @@ import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
@@ -443,100 +441,7 @@ public class TPS_DB_Connector {
         return con;
     }
 
-    /**
-     * Method to read a single specified matrix map
-     *
-     * @param matrixName the name in the db
-     * @param sIndex     the matrixmap  to store in
-     * @param caller     the caller for the connection to save connections
-     * @return the loaded MatrixMap
-     */
-    public MatrixMap readMatrixMap(String matrixName, int sIndex, Object caller) {
-        MatrixMap matrix = null;
-        String query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
-                this.parameterClass.getString(ParamString.DB_TABLE_MATRIXMAPS) + " WHERE \"matrixMap_name\"='" +
-                matrixName + "'";
-        TPS_Logger.log(SeverityLogLevel.INFO, "Loading matrix map distribution " + matrixName + " from DB: ");
-        try {
-            ResultSet rs = this.executeQuery(query, caller);
-            if (rs.next()) {
-                //get number of matrices to load
-                int numOfMatrices = rs.getInt("matrixMap_num");
-                // get matrix names
-                String[] matrix_names = TPS_DB_IO.extractStringArray(rs, "matrixMap_matrixNames");
-                // get distribution
-                double[] distribution = TPS_DB_IO.extractDoubleArray(rs, "matrixMap_distribution");
-                rs.close();
-                //check sizes
-                if (numOfMatrices != matrix_names.length || numOfMatrices != distribution.length) {
-                    throw new SQLException("Couldn't load matrixmap " + matrixName +
-                            " from database. Different array sizes (num, matrices, distribution): " + numOfMatrices +
-                            " " + matrix_names.length + " " + distribution.length);
-                }
 
-                //init matrix map
-                Matrix[] matrices = new Matrix[numOfMatrices];
-                //load matrix map
-                for (int i = 0; i < numOfMatrices; ++i) {
-                    matrices[i] = this.readMatrix(matrix_names[i], sIndex, caller);
-                    if(matrices[i] != null){
-                        TPS_Logger.log(SeverityLogLevel.INFO,
-                                "Loaded matrix from DB: " + matrix_names[i] + " End time: " + distribution[i] +
-                                        " Average value: " + matrices[i].getAverageValue(false, true)+
-                                        " Size (Elements, Rows, Columns): " + matrices[i].getNumberOfElements() + ", "
-                                        + matrices[i].getNumberOfRows() + ", "
-                                        + matrices[i].getNumberOfColums());
-                    } else {
-                        throw new SQLException(
-                                "Couldn't load matrix " + matrix_names[i] + " form matrix map" + matrixName +
-                                        ": No such matrix.");
-                    }
-                }
-                matrix = new MatrixMap(distribution, matrices);
-            } else {
-                TPS_Logger.log(SeverityLogLevel.ERROR, "No results from DB!");
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "Error in sql-query: " + query);
-            TPS_Logger.log(SeverityLogLevel.ERROR, e);
-        }
-        return matrix;
-    }
-
-    /**
-     * Method to load a single matrix from the DB. The parameter ParamString.DB_TABLE_MATRICES must be defined.
-     * @param matrixName The name of the matrix
-     * @param sIndex the indexoffset of the matrix
-     * @param caller the calling object to reuse DB-connections
-     * @return the matrix or null, if nothing is found in the DB
-     */
-    public Matrix readMatrix(String matrixName, int sIndex, Object caller) {
-        Matrix returnVal = null;
-        String query ="";
-        try {
-            query = "SELECT matrix_values FROM " + this.parameterClass.getString(
-                    ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrixName + "'";
-            ResultSet rs = this.executeQuery(query, caller);
-            if (rs.next()) {
-                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
-                int len = (int) Math.sqrt(iArray.length);
-                returnVal = new Matrix(len, len, sIndex);
-                for (int index = 0; index < iArray.length; index++) {
-                    returnVal.setRawValue(index, iArray[index]);
-                }
-                rs.close();
-                TPS_Logger.log(SeverityLogLevel.INFO,
-                        "Loaded matrix from DB: " + matrixName);
-            } else {
-                TPS_Logger.log(SeverityLogLevel.ERROR, "No results from DB for"+ matrixName+
-                                ": No such matrix.");
-            }
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, "Error in sql-query: " + query);
-            TPS_Logger.log(SeverityLogLevel.ERROR, e);
-        }
-        return  returnVal;
-    }
 
     /**
      * Method to return a parameter value for a given simulation key and parameter key. Returns null, if simulation or

@@ -12,6 +12,7 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
+import de.dlr.ivf.tapas.model.vehicle.TPS_CarCode;
 import lombok.Builder;
 import lombok.Getter;
 

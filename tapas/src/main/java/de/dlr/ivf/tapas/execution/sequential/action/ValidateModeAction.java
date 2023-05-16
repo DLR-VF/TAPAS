@@ -2,7 +2,7 @@ package de.dlr.ivf.tapas.execution.sequential.action;
 
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.mode.TPS_ModeValidator;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 

@@ -34,7 +34,7 @@ import java.util.*;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class TPS_ParameterClass {
 
-
+    public String SIM_DIR;
     /**
      * Name of the binary folder
      */

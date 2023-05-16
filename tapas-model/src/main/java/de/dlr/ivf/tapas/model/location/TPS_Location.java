@@ -74,7 +74,7 @@ public class TPS_Location implements Locatable {
         this.coordinate = new TPS_Coordinate(0, 0);
         this.coordinate.setValues(x, y);
         if (locType != TPS_LocationConstant.HOME) {
-            this.activities = new HashSet<>(TPS_TrafficAnalysisZone.LOCATION2ACTIVITIES_MAP.get(locType));
+            this.activities = new HashSet<>(taz.getLocationToActivityMap().get(locType));
             //TPS_AbstractConstant.getConnectedConstants(locType, TPS_ActivityCode.class));
         }
         this.taz = taz;
