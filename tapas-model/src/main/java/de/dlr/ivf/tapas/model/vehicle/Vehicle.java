@@ -13,4 +13,6 @@ public interface Vehicle {
     FuelType fuelType();
 
     boolean isRestricted();
+
+    int getAutomationLevel();
 }
