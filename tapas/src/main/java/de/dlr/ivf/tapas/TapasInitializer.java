@@ -6,10 +6,12 @@ import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
 import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeTree;
 import de.dlr.ivf.tapas.legacy.TPS_ModeChoiceTree;
 import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
+import de.dlr.ivf.tapas.legacy.TPS_Region;
 import de.dlr.ivf.tapas.misc.PrimaryDriverScoreFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.Modes;
 import de.dlr.ivf.tapas.model.constants.AgeClasses;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
@@ -28,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class TapasInitializer {
 
@@ -93,8 +96,9 @@ public class TapasInitializer {
         dataStoreBuilder.personGroups(dbIo.readPersonGroupCodes(personGroups));
 
         //settlement systems
-        DataSource settlementSystems = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), null);
-        dataStoreBuilder.settlementSystems(dbIo.readSettlementSystemCodes(settlementSystems));
+        DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), null);
+        Collection<TPS_SettlementSystem> settlementSystems = dbIo.readSettlementSystemCodes(settlementSystemsDs);
+        dataStoreBuilder.settlementSystems(settlementSystems);
 
         //activity to location mappings
         DataSource activityToLocationMappings = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION),
@@ -154,6 +158,14 @@ public class TapasInitializer {
                         )
                 );
 
+        //read region
+        Map<Integer, TPS_SettlementSystem> settlementSystemMap = settlementSystems.stream()
+                .collect(Collectors.toMap(
+                        TPS_SettlementSystem::getId,
+                        system -> system
+                ));
+
+        TPS_Region region = dbIo.readRegion(settlementSystems);
 
 
 

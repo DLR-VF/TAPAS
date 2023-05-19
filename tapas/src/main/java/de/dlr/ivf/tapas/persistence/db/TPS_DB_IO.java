@@ -33,9 +33,12 @@ import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeTree;
 import de.dlr.ivf.tapas.legacy.TPS_ModeChoiceTree;
 import de.dlr.ivf.tapas.legacy.TPS_Node;
 import de.dlr.ivf.tapas.model.location.*;
+import de.dlr.ivf.tapas.model.location.TPS_Block.TPS_BlockBuilder;
+import de.dlr.ivf.tapas.model.location.TPS_Location.TPS_LocationBuilder;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.mode.Modes.ModesBuilder;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager.CarFleetManagerBuilder;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.TPS_TrafficAnalysisZoneBuilder;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
@@ -49,50 +52,35 @@ import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.model.vehicle.*;
 import de.dlr.ivf.tapas.model.vehicle.Cars.CarsBuilder;
-import de.dlr.ivf.tapas.model.vehicle.FuelTypes.FuelTypesBuilder;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager.Behaviour;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.Incomes.IncomesBuilder;
+import de.dlr.ivf.tapas.model.location.ScenarioTypeValues.ScenarioTypeValuesBuilder;
 
 import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.net.InetAddress;
 import java.sql.*;
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.*;
 
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class TPS_DB_IO {
 
-    public static final double INTERCHANGE_FACTOR = 0.01;
-    private static final int fetchSizePerProcessor = 256;
-    private static final int fetchSizePerProcessorPrefetchHouseholds = 256;
     /// The ip address of this machine
-    private static InetAddress ADDRESS = null;
+    private InetAddress ADDRESS = null;
     private final Supplier<Connection> connectionSupplier;
     private final TPS_ParameterClass parameters;
-    /// The number of households to fetch per cpu
-    private int numberToFetch;
-    Map<Integer, TPS_Household> houseHoldMap = new TreeMap<>();
-    Map<Integer, TPS_Car> carMap = new HashMap<>();
     /// The reference to the persistence manager
     private TPS_DB_IOManager PM;
-    /// A queue for prefetched households. Filled by getNextHouseholds .
-    private final Queue<TPS_Household> prefetchedHouseholds = new LinkedList<>();
-    /// The number of households fetched for this chunk. should be cpu*numberToFetch or the remainders in db for the
-    // last fetch
-    private int numberOfFetchedHouseholds;
-    private int lastCleanUp = -1;
+
 
     /**
      * Constructor
@@ -109,109 +97,12 @@ public class TPS_DB_IO {
 
         this.PM = pm;
         this.parameters = pm.getParameters();
-        // TODO: use the defined number of threads
-        if (this.parameters.isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-            numberToFetch = fetchSizePerProcessorPrefetchHouseholds * Runtime.getRuntime().availableProcessors();
-        } else {
-            numberToFetch = fetchSizePerProcessor * Runtime.getRuntime().availableProcessors();
-        }
-        numberOfFetchedHouseholds = -1;
     }
     
     public TPS_DB_IO(Supplier<Connection> connectionSupplier, TPS_ParameterClass parameterClass){
         
         this.connectionSupplier = connectionSupplier;
         this.parameters = parameterClass;
-    }
-
-    /**
-     * Helper function to extract an sql-array to a Java double array
-     *
-     * @param rs    The ResultSet containing a sql-Array
-     * @param index The index position of the SQL-Array
-     * @return A double array
-     * @throws SQLException
-     */
-    public static double[] extractDoubleArray(ResultSet rs, String index) throws SQLException {
-        Object array = rs.getArray(index).getArray();
-        if (array instanceof double[]) {
-            return (double[]) array;
-        } else if (array instanceof Double[]) {
-            return ArrayUtils.toPrimitive((Double[]) array); // like casting Double[] to double[]
-        } else {
-            throw new SQLException("Cannot cast to int array");
-        }
-    }
-
-    /**
-     * Helper function to extract an sql-array to a Java int array
-     *
-     * @param rs    The ResultSet containing a sql-Array
-     * @param index The index position of the SQL-Array
-     * @return A int array
-     * @throws SQLException
-     */
-    public static int[] extractIntArray(ResultSet rs, String index) throws SQLException {
-        Object array = rs.getArray(index).getArray();
-        if (array instanceof int[]) {
-            return (int[]) array;
-        } else if (array instanceof Integer[]) {
-            return ArrayUtils.toPrimitive((Integer[]) array); // like casting Integer[] to int[]
-        } else {
-            throw new SQLException("Cannot cast to int array");
-        }
-    }
-
-    public static int[] extractIntArray(Object array) throws SQLException {
-
-        if (array instanceof int[]) {
-            return (int[]) array;
-        } else if (array instanceof Integer[]) {
-            return ArrayUtils.toPrimitive((Integer[]) array); // like casting Integer[] to int[]
-        } else {
-            throw new SQLException("Cannot cast to int array");
-        }
-    }
-
-    /**
-     * Helper function to extract an sql-array to a Java String array
-     *
-     * @param rs    The ResultSet containing a sql-Array
-     * @param index The index position of the SQL-Array
-     * @return A String array
-     * @throws SQLException
-     */
-    public static String[] extractStringArray(ResultSet rs, String index) throws SQLException {
-        Object array = rs.getArray(index).getArray();
-        if (array instanceof String[]) {
-            return (String[]) array;
-        } else {
-            throw new SQLException("Cannot cast to string array");
-        }
-    }
-
-    /**
-     * Method to convert matrixelements to a sql-parsable array
-     *
-     * @param array         the array
-     * @param decimalPlaces number of decimal places for the string
-     * @return
-     */
-    public static String matrixToSQLArray(Matrix array, int decimalPlaces) {
-        StringBuilder buffer;
-        StringBuilder totalBuffer = new StringBuilder("ARRAY[");
-        int size = array.getNumberOfColums();
-        for (int j = 0; j < size; ++j) {
-            buffer = new StringBuilder();
-            for (int k = 0; k < size; ++k) {
-                buffer.append(new BigDecimal(array.getValue(j + array.sIndex, k + array.sIndex))
-                        .setScale(decimalPlaces, RoundingMode.HALF_UP)).append(",");
-            }
-            if (j < size - 1) totalBuffer.append(buffer);
-            else totalBuffer.append(buffer.substring(0, buffer.length() - 1)).append("]");
-        }
-
-        return totalBuffer.toString();
     }
 
     public Map<Integer, Collection<TPS_Person>> loadPersons(DataSource dataSource, Converter<PersonDto, TPS_Person> converter){
@@ -250,35 +141,6 @@ public class TPS_DB_IO {
         }
 
         return cars.build();
-    }
-
-    /**
-     * Empty all global static constants maps
-     */
-    public void clearConstants() {
-
-        TPS_Distance.clearDistanceMap();
-        TPS_Income.clearIncomeMap();
-        TPS_LocationConstant.clearLocationConstantMap();
-
-        TPS_PersonGroup.clearPersonGroupMap();
-        TPS_SettlementSystem.clearSettlementSystemMap();
-    }
-
-    /**
-     * @return The number of households fetched in this round.
-     */
-    int getNumberOfFetchedHouseholds() {
-        return numberOfFetchedHouseholds;
-    }
-
-
-    /**
-     * Method to initializes some variables for starting the new simulation
-     */
-    public void initStart() {
-        this.numberOfFetchedHouseholds = -1;
-        this.houseHoldMap.clear(); //just in case...
     }
 
     public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Cars cars){
@@ -331,7 +193,6 @@ public class TPS_DB_IO {
 
             mapping.addActivityToLocationMapping(actCode, locCode);
             mapping.addLocationToActivityMapping(locCode, actCode);
-
         }
 
         return mapping;
@@ -492,6 +353,7 @@ public class TPS_DB_IO {
      * A DrivingLicenseCodes has the form (name_dli, code_dli)
      * Example: (no, 2)
      */
+    //todo check if this is still needed since it is a simple enum now
     public void readDrivingLicenseCodes(DataSource dataSource) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
@@ -503,7 +365,7 @@ public class TPS_DB_IO {
 
             try {
                 TPS_DrivingLicenseInformation s = TPS_DrivingLicenseInformation.valueOf(drivingLicenseInformationDto.getName());
-                s.setCode(drivingLicenseInformationDto.getDrivingLicenseInfoCode());
+                //s.setCode(drivingLicenseInformationDto.getDrivingLicenseInfoCode());
             } catch (IllegalArgumentException e) {
                 TPS_Logger.log(SeverityLogLevel.WARN, "Invalid driving license code: " + drivingLicenseInformationDto.getDrivingLicenseInfoName());
             }
@@ -527,13 +389,13 @@ public class TPS_DB_IO {
 
         Collection<ExpertKnowledgeTreeDto> sortedNodes = expertKnowledgeTreeDtos.stream()
                 .sorted(Comparator.comparingInt(ExpertKnowledgeTreeDto::getNodeId))
-                .collect(Collectors.toCollection(ArrayList::new));
+                .collect(toCollection(ArrayList::new));
 
         TPS_ExpertKnowledgeNode root = null;
 
         for(ExpertKnowledgeTreeDto ekNode : sortedNodes) {
 
-            List<Integer> c = Arrays.stream(ekNode.getAttributeValues()).boxed().collect(Collectors.toCollection(LinkedList::new));
+            List<Integer> c = Arrays.stream(ekNode.getAttributeValues()).boxed().collect(toCollection(LinkedList::new));
 
             String splitVar = ekNode.getSplitVariable();
             TPS_Attribute sv = (splitVar != null && splitVar.length() > 1) ? TPS_Attribute.valueOf(splitVar) : null;
@@ -855,22 +717,6 @@ public class TPS_DB_IO {
                 }
             }
         }
-
-        if (this.parameters.isDefined(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP)) {
-
-            DataSource nextPtStopBlock = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP),
-                    List.of(new Filter("next_pt_stop_name", parameters.getString(ParamString.DB_NAME_BLOCK_NEXT_PT_STOP))));
-
-            DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-            Collection<BlockNextPtStopDto> nextPtStopDtos = reader.read(new ResultSetConverter<>(BlockNextPtStopDto.class, BlockNextPtStopDto::new), nextPtStopBlock);
-
-            double avgNextPtStop = nextPtStopDtos.stream()
-                    .mapToDouble(BlockNextPtStopDto::getNextPtStopDistance)
-                    .average()
-                    .orElseThrow(() -> new IllegalArgumentException("Couldn't select average distance pt stop from database"));
-
-            this.parameters.setValue(ParamValue.AVERAGE_DISTANCE_PT_STOP, avgNextPtStop);
-        }
     }
 
     /**
@@ -1004,7 +850,7 @@ public class TPS_DB_IO {
 
         Collection<ModeChoiceTreeNodeDto> sortedNodes = mctDtos.stream()
                 .sorted(Comparator.comparingInt(ModeChoiceTreeNodeDto::getNodeId))
-                .collect(Collectors.toCollection(ArrayList::new));
+                .collect(toCollection(ArrayList::new));
 
         TPS_Node root = null;
         for(ModeChoiceTreeNodeDto mctDto : sortedNodes) {
@@ -1019,7 +865,7 @@ public class TPS_DB_IO {
 
             Collection<Integer> c = Arrays.stream(mctDto.getAttributeValues())
                     .boxed()
-                    .collect(Collectors.toCollection(LinkedList::new));
+                    .collect(toCollection(LinkedList::new));
 
             // We assume that the first row contains the root node data.
             if (root == null) {
@@ -1045,9 +891,7 @@ public class TPS_DB_IO {
 
         EnumMap<ModeType, ModeParameters> modeParams = getModeParameters();
 
-
         Collection<ModeDto> modeDtos = dr.read(new ResultSetConverter<>(ModeDto.class, ModeDto::new),modesTable);
-
 
         ModesBuilder modesBuilder = Modes.builder();
         for(ModeDto modeDto : modeDtos){
@@ -1194,7 +1038,6 @@ public class TPS_DB_IO {
                     .build();
 
             personGroups.add(personGroup);
-
         }
 
         return personGroups;
@@ -1224,7 +1067,7 @@ public class TPS_DB_IO {
      * @throws SQLException Error during SQL-processing
      */
     //todo fix reaading region
-    public TPS_Region readRegion() throws SQLException {
+    public TPS_Region readRegion(Map<Integer, TPS_SettlementSystem> settlementSystemMap) throws SQLException {
         TPS_Region region = new TPS_Region(null, null);
         TPS_Block blk;
         String query;
@@ -1265,179 +1108,330 @@ public class TPS_DB_IO {
 
         region.setPotential(potential);
 
-        //read traffic analysis zone
+
+        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones();
+        region.
+
+
+        return region;
+    }
+
+    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones() {
+
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+
+        //read traffic analysis zones
         DataSource tazDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ),null);
-        Collection<TrafficAnalysisZoneDto> tazDtos = reader.read(new ResultSetConverter<>(TrafficAnalysisZoneDto.class, TrafficAnalysisZoneDto::new), null);
+        Collection<TrafficAnalysisZoneDto> tazDtoCollection = reader.read(new ResultSetConverter<>(TrafficAnalysisZoneDto.class, TrafficAnalysisZoneDto::new), tazDs);
+        Map<Integer, TrafficAnalysisZoneDto> tazDtos = collectionToMap(TrafficAnalysisZoneDto::getTazId, tazDtoCollection);
 
+        //initialize TAZ builders with TAZ data
+        Map<Integer, TPS_TrafficAnalysisZoneBuilder> tazBuilders = new HashMap<>();
 
+        for(Map.Entry<Integer, TrafficAnalysisZoneDto> tazDtoEntry : tazDtos.entrySet()){
 
-        // read traffic analysis zones
-        query = "SELECT taz_id, taz_bbr_type, taz_num_id, ST_X(taz_coordinate) as x, ST_Y(taz_coordinate) as y FROM " +
-                this.parameters.getString(ParamString.DB_TABLE_TAZ);
-        ResultSet rsTAZ = PM.executeQuery(query);
-        while (rsTAZ.next()) {
-            TPS_TrafficAnalysisZone taz = region.createTrafficAnalysisZone(rsTAZ.getInt("taz_id"));
-            taz.setBbrType(TPS_SettlementSystem
-                    .getSettlementSystem(TPS_SettlementSystemType.FORDCP, rsTAZ.getInt("taz_bbr_type")));
-            taz.setCenter(rsTAZ.getDouble("x"), rsTAZ.getDouble("y"));
+            TrafficAnalysisZoneDto dto = tazDtoEntry.getValue();
 
-            if (rsTAZ.getInt("taz_num_id") != 0) {
-                taz.setExternalId(rsTAZ.getInt("taz_num_id"));
-            } else {
-                taz.setExternalId(-1);
-            }
+            TPS_TrafficAnalysisZoneBuilder builder = TPS_TrafficAnalysisZone.builder()
+                    .id(dto.getTazId())
+                    .bbrType(TPS_SettlementSystem.getSettlementSystem(TPS_SettlementSystemType.FORDCP,dto.getBbrType()))
+                    .center(new TPS_Coordinate(dto.getX(), dto.getY()))
+                    .externalId(dto.getNumId() != 0 ? dto.getNumId() : -1);
+
+            tazBuilders.put(dto.getTazId(), builder);
+
         }
 
-        rsTAZ.close();
-        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_SCORES)) {
-            query = "SELECT * FROM " + this.parameters.getString(ParamString.DB_TABLE_TAZ_SCORES) +
-                    " WHERE score_name='" + this.parameters.getString(ParamString.DB_NAME_TAZ_SCORES) + "'";
-            rsTAZ = PM.executeQuery(query);
 
-            while (rsTAZ.next()) {
-                TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(rsTAZ.getInt("score_taz_id"));
-                taz.setScore(rsTAZ.getDouble("score"));
-                taz.setScoreCat(rsTAZ.getInt("score_cat"));
-            }
-            rsTAZ.close();
+        //read taz scores and update taz builders
+        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_SCORES)){
+            DataSource tazScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_SCORES),
+                    List.of(new Filter("score_name", parameters.getString(ParamString.DB_NAME_TAZ_SCORES))));
+            Collection<TrafficAnalysisZoneScoreDto> tazScores = reader.read(new ResultSetConverter<>(TrafficAnalysisZoneScoreDto.class, TrafficAnalysisZoneScoreDto::new), tazScoresDs);
+
+            tazScores.forEach(tazScore -> tazBuilders.get(tazScore.getTazId())
+                    .score(tazScore.getScore())
+                    .scoreCat(tazScore.getScoreCat()));
         }
 
-        // read taz infos
-        // Check if the travel time matrices have values on the diagonal positions (intra zone times);
-        // else read specific intra information files if necessary and provided
-        ResultSet rsTAZInfo;
-        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
-                this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
-                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) &&
-                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS)) {
-            query = "SELECT mi.info_taz_id, mi.beeline_factor_mit, " + "mi.average_speed_mit, pi.average_speed_pt, " +
-                    "mi.has_intra_traffic_mit, pi.has_intra_traffic_pt, pi.pt_zone FROM " +
-                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) + " mi, " +
-                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) + " pi " +
-                    "WHERE mi.info_taz_id = pi.info_taz_id " + "AND mi.info_name = '" +
-                    this.parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) +
-                    "' AND pi.info_name = '" + this.parameters.getString(
-                    ParamString.DB_NAME_TAZ_INTRA_PT_INFOS) + "'";
-            rsTAZInfo = PM.executeQuery(query);
-            this.readTAZInfos(rsTAZInfo, region, SimulationType.SCENARIO);
-            rsTAZInfo.close();
-        }
+        //initialize scenario type values
+        Map<Integer, ScenarioTypeValuesBuilder> stvBaseBuilders = emptyStvBuilders(tazBuilders.keySet());
+        Map<Integer, ScenarioTypeValuesBuilder> stvScenarioBuilders = emptyStvBuilders(tazBuilders.keySet());
 
-        // travel times for the base case
+
+        //read intra-taz data and set scenario type values
         if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
                 this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) &&
-                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) &&
-                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) &&
-                this.parameters.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
-            query = "SELECT mi.info_taz_id, mi.beeline_factor_mit, " + "mi.average_speed_mit, pi.average_speed_pt, " +
-                    "mi.has_intra_traffic_mit, pi.has_intra_traffic_pt, pi.pt_zone FROM " +
-                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) + " mi, " +
-                    this.parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) + " pi " +
-                    "WHERE mi.info_taz_id = pi.info_taz_id " + "AND mi.info_name = '" +
-                    this.parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) +
-                    "' AND pi.info_name = '" + this.parameters.getString(
-                    ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) + "'";
-            rsTAZInfo = PM.executeQuery(query);
-            this.readTAZInfos(rsTAZInfo, region, SimulationType.BASE);
-            rsTAZInfo.close();
-        }
+                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) &&
+                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS)) {
+            DataSource intraTazInfoMitDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS),
+                    List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS))));
+            DataSource intraTazInfoPtDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS),
+                    List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS))));
 
-        // read fees and tolls
-        query = "SELECT * FROM " + this.parameters.getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS) +
-                " WHERE ft_name='" + this.parameters.getString(ParamString.DB_NAME_FEES_TOLLS) + "'";
-        ResultSet rsFeesTolls = PM.executeQuery(query);
-        while (rsFeesTolls.next()) {
-            TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(rsFeesTolls.getInt("ft_taz_id"));
-            taz.initFeesTolls(rsFeesTolls.getBoolean("has_toll_base"), rsFeesTolls.getInt("toll_type_base"),
-                    rsFeesTolls.getBoolean("has_fee_base"), rsFeesTolls.getInt("fee_type_base"),
-                    rsFeesTolls.getBoolean("has_toll_scen"), rsFeesTolls.getInt("toll_type_scen"),
-                    rsFeesTolls.getBoolean("has_fee_scen"), rsFeesTolls.getInt("fee_type_scen"),
-                    rsFeesTolls.getBoolean("has_car_sharing_base"), rsFeesTolls.getBoolean("has_car_sharing"),
-                    this.parameters);
-            taz.setRestricted(rsFeesTolls.getBoolean("is_restricted"));
-            taz.setPNR(rsFeesTolls.getBoolean("is_park_and_ride"));
-        }
-        rsFeesTolls.close();
+            initIntraTazInformation(intraTazInfoMitDs, intraTazInfoPtDs, reader, stvScenarioBuilders);
 
-        // read blocks
-        if (this.parameters.isDefined(ParamString.DB_TABLE_BLOCK)) {
-            query = "SELECT b.blk_id, b.blk_taz_id, ST_X(b.blk_coordinate) as x, ST_Y(b.blk_coordinate) as y, bs.score, bs.score_cat, bn.next_pt_stop FROM " +
-                    this.parameters.getString(ParamString.DB_TABLE_BLOCK) + " b, " +
-                    this.parameters.getString(ParamString.DB_TABLE_BLOCK_SCORES) + " bs, " +
-                    this.parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP) +
-                    " bn WHERE bs.score_name='" + this.parameters.getString(ParamString.DB_NAME_BLOCK_SCORES) +
-                    "' AND bn.next_pt_stop_name='" + this.parameters.getString(
-                    ParamString.DB_NAME_BLOCK_NEXT_PT_STOP) +
-                    "' AND b.blk_id = bs.score_blk_id AND b.blk_id = bn.next_pt_stop_blk_id";
-            ResultSet rsBLK = PM.executeQuery(query);
-            while (rsBLK.next()) {
-                TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(rsBLK.getInt("blk_taz_id"));
-                blk = taz.getBlock(rsBLK.getInt("blk_id"));
-                blk.setScore(rsBLK.getDouble("score"));
-                blk.setScoreCat(rsBLK.getInt("score_cat"));
-                blk.setNearestPubTransStop(rsBLK.getDouble("next_pt_stop"));
-                blk.setCenter(rsBLK.getDouble("x"), rsBLK.getDouble("y"));
-            }
-            rsBLK.close();
-        }
+            if( this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) &&
+                    this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) &&
+                    this.parameters.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
+                //same procedure as above but this time for base scenario values
+                DataSource mitDsBase = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS),
+                        List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE))));
+                DataSource ptDsBase = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS),
+                        List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE))));
 
-        // read locations
-        query = "SELECT loc_id, loc_group_id, loc_code, loc_taz_id, loc_blk_id, loc_has_fix_capacity, loc_capacity, ST_X(loc_coordinate) as x,ST_Y(loc_coordinate) as y FROM " +
-                this.parameters.getString(ParamString.DB_TABLE_LOCATION) +
-                " WHERE loc_capacity >0 and key = '" + this.parameters.getString(ParamString.DB_LOCATION_KEY) +
-                "'";  // do not add zero capacity locations
-        ResultSet rsLoc = PM.executeQuery(query);
-
-        double totalCapacity = 0;
-        int numOfLocations = 0;
-        while (rsLoc.next()) {
-            int locId = rsLoc.getInt("loc_id");
-            int groupId = -1;
-            if (this.parameters.isTrue(ParamFlag.FLAG_USE_LOCATION_GROUPS)) groupId = rsLoc.getInt(
-                    "loc_group_id");
-            TPS_LocationConstant locCode = TPS_LocationConstant.getLocationCodeByTypeAndCode(TPS_LocationCodeType.TAPAS,
-                    rsLoc.getInt("loc_code"));
-            double x = rsLoc.getDouble("x");
-            double y = rsLoc.getDouble("y");
-
-            int taz_id = rsLoc.getInt("loc_taz_id");
-            int block_id = rsLoc.getInt("loc_blk_id");
-            if (rsLoc.wasNull()) {
-                block_id = -1;
-            }
-            boolean fixedCap = rsLoc.getBoolean("loc_has_fix_capacity");
-            int cap = rsLoc.getInt("loc_capacity");
-            TPS_TrafficAnalysisZone taz = region.getTrafficAnalysisZone(taz_id);
-            if (taz != null) { //locations in unknown tazes are discarded!
-                TPS_Block block = block_id < 0 ? null : taz.getBlock(block_id);
-
-                // build location
-                TPS_Location location = new TPS_Location(locId, groupId, locCode, x, y, taz, block,
-                        this.parameters);
-                // now adapt the capacity to the sample size
-                cap = (int) ((cap * this.parameters.getDoubleValue(ParamValue.DB_HH_SAMPLE_SIZE)) +
-                        0.5); // including round
-                if (cap == 0) cap = 1;// every non-zero capacity has at least one place to go!
-                location.initCapacity(cap, fixedCap);
-                totalCapacity += cap;
-                numOfLocations++;
-
-                // add location to the taz and the block
-                taz.addLocation(location);
-                region.addLocation(location);
-                if (block != null) {
-                    block.addLocation(location);
-                }
+                initIntraTazInformation(mitDsBase, ptDsBase, reader, stvBaseBuilders);
             }
         }
-        //now update the occupancy values from the temporary table
-        this.updateOccupancyTable(region);
-        if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-            TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                    "Total number of locations: " + numOfLocations + " capacity sum: " + totalCapacity);
+
+        //read taz fees and tolls and set scenario type values
+        DataSource tazFeesAndTollsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS),
+                List.of(new Filter("ft_name", parameters.getString(ParamString.DB_NAME_FEES_TOLLS))));
+
+        Collection<TazFeesAndTollsDto> tazFeesAndTollsDtos = reader.read(new ResultSetConverter<>(TazFeesAndTollsDto.class, TazFeesAndTollsDto::new), tazFeesAndTollsDs);
+        tazFeesAndTollsDtos.forEach(
+                dto -> tazBuilders.get(dto.getTazId())
+                        .isPNR(dto.isParkAndRide())
+                        .isRestricted(dto.isRestricted())
+        );
+        initScenarioTypeValuesWithFeesAndTolls(tazFeesAndTollsDtos, stvScenarioBuilders, stvBaseBuilders);
+
+        //add scenario type values to traffic analysis zone builders
+        for(Map.Entry<Integer, TPS_TrafficAnalysisZoneBuilder> tazBuilderEntry : tazBuilders.entrySet()){
+
+            int tazId = tazBuilderEntry.getKey();
+            tazBuilderEntry.getValue()
+                    .simulationTypeValue(SimulationType.SCENARIO, stvScenarioBuilders.get(tazId).build())
+                    .simulationTypeValue(SimulationType.BASE, stvBaseBuilders.get(tazId).build());
         }
-        rsLoc.close();
-        return region;
+
+        //read blocks
+        Map<Integer, TPS_Block> blockMap = new HashMap<>();
+
+        if(parameters.isDefined(ParamString.DB_TABLE_BLOCK)){
+            DataSource blocksDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK), null);
+            Collection<BlockDto> blockDtos = reader.read(new ResultSetConverter<>(BlockDto.class, BlockDto::new), blocksDs);
+
+            DataSource blockScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_SCORES),
+                    List.of(new Filter("score_name", parameters.getString(ParamString.DB_NAME_BLOCK_SCORES))));
+            Collection<BlockScoreDto> blockScoreDtos = reader.read(new ResultSetConverter<>(BlockScoreDto.class, BlockScoreDto::new), blockScoresDs);
+            Map<Integer, BlockScoreDto> blockScoreDtoMap = collectionToMap(BlockScoreDto::getBlockId, blockScoreDtos);
+
+            DataSource blockNextPtStopDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP),
+                    List.of(new Filter("next_pt_stop_name", parameters.getString(ParamString.DB_NAME_BLOCK_NEXT_PT_STOP))));
+
+            Collection<BlockNextPtStopDto> nextPtStopDtos = reader.read(new ResultSetConverter<>(BlockNextPtStopDto.class, BlockNextPtStopDto::new), blockNextPtStopDs);
+            Map<Integer, BlockNextPtStopDto> blockNextPtStopDtoMap = collectionToMap(BlockNextPtStopDto::getNextPtStopBlockId, nextPtStopDtos);
+
+            for(BlockDto blockDto : blockDtos){
+
+                int blockId = blockDto.getBlockId();
+                BlockScoreDto scoreDto = blockScoreDtoMap.get(blockId);
+                BlockNextPtStopDto nextPtStopDto = blockNextPtStopDtoMap.get(blockId);
+                TPS_BlockBuilder blockBuilder = TPS_Block.builder()
+                        .id(blockId)
+                        .tazId(blockDto.getTazId())
+                        .score(scoreDto.getScore())
+                        .scoreCat(scoreDto.getScoreCat())
+                        .nearestPubTransStop(nextPtStopDto.getNextPtStopDistance())
+                        .center(new TPS_Coordinate(blockDto.getX(), blockDto.getY()));
+                blockMap.put(blockId,blockBuilder.build());
+            }
+
+            double avgNextPtStop = nextPtStopDtos.stream()
+                    .mapToDouble(BlockNextPtStopDto::getNextPtStopDistance)
+                    .average()
+                    .orElseThrow(() -> new IllegalArgumentException("Couldn't select average distance pt stop from database"));
+
+            this.parameters.setValue(ParamValue.AVERAGE_DISTANCE_PT_STOP, avgNextPtStop);
+        }
+
+        //add blocks to taz and finalize
+        Map<Integer, TPS_TrafficAnalysisZone> tazMap = new HashMap<>();
+        Map<Integer, List<TPS_Block>> blocksByTazId = blockMap.values()
+                .stream()
+                .collect(groupingBy(
+                        TPS_Block::getTazId,
+                        toCollection(ArrayList::new)));
+
+        for(Map.Entry<Integer, TPS_TrafficAnalysisZoneBuilder> builderEntry : tazBuilders.entrySet()){
+            TPS_TrafficAnalysisZoneBuilder builder = builderEntry.getValue();
+            int tazId = builderEntry.getKey();
+
+            blocksByTazId.get(tazId).forEach(block -> builder.block(block.getId(), block));
+
+            tazMap.put(tazId, builder.build());
+        }
+
+        //finally read locations
+        DataSource locationsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_LOCATION),
+                List.of(new Filter("key",parameters.getString(ParamString.DB_LOCATION_KEY))));
+        Collection<LocationDto> locationDtos = reader.read(new ResultSetConverter<>(LocationDto.class, LocationDto::new),locationsDs);
+
+        for(LocationDto dto : locationDtos){
+
+            TPS_LocationBuilder locationBuilder = TPS_Location.builder()
+                    .id(dto.getLocId())
+                    .groupId(parameters.isTrue(ParamFlag.FLAG_USE_LOCATION_GROUPS) ? dto.getLocGroupId() : -1)
+                    .locType(TPS_LocationConstant.getLocationCodeByTypeAndCode(TPS_LocationCodeType.TAPAS,dto.getLocCode()))
+                    .coordinate(new TPS_Coordinate(dto.getX(), dto.getY()))
+                    .tazId(dto.getTazId())
+                    .blockId(dto.getBlockId())
+                    //todo this creates a cyclic dependency between location and taz/block
+                    .block(blockMap.get(dto.getBlockId()))
+                    .taz(tazMap.get(dto.getTazId()));
+
+            //init LocationData
+            LocationData locationData = LocationData.builder()
+                    .updateLocationWeights(parameters.isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS))
+                    .weightOccupancy(parameters.getDoubleValue(ParamValue.WEIGHT_OCCUPANCY))
+                    .fixCapacity(dto.isHasFixCapacity())
+                    .occupancy(0)
+                    .build();
+            locationData.init();
+            locationBuilder.data(locationData);
+            TPS_Location location = locationBuilder.build();
+
+            //now add to TAZ and block
+            tazMap.get(location.getTAZId()).addLocation(location);
+            blockMap.get(location.getBlockId()).addLocation(location);
+        }
+        return tazMap;
+    }
+
+    private Map<Integer, ScenarioTypeValuesBuilder> emptyStvBuilders(Set<Integer> values) {
+        return values.stream().collect(Collectors.toMap(
+                value -> value,
+                value -> ScenarioTypeValues.builder()
+        ));
+    }
+
+
+    /**
+     * Helper method that reads the intra taz information for MIT and PT and adds that to the TAZ builders.
+     *
+     * @param mitInfo datasource to internal TAZ information for motorized individual transport
+     * @param ptInfo datasource to internal TAZ information for public transport
+     * @param reader reference to the reader that is used to read the data
+     */
+    private void initIntraTazInformation(DataSource mitInfo, DataSource ptInfo, DataReader<ResultSet> reader,
+                                                                            Map<Integer, ScenarioTypeValuesBuilder> scenarioTypeValuesBuilders){
+        Collection<IntraTazInfoMit> intraMitDtos = reader.read(new ResultSetConverter<>(IntraTazInfoMit.class, IntraTazInfoMit::new), mitInfo);
+        Map<Integer,IntraTazInfoMit> intraMitMap = collectionToMap(IntraTazInfoMit::getTazId, intraMitDtos);
+        Collection<IntraTazInfoPt> intraPtDtos = reader.read(new ResultSetConverter<>(IntraTazInfoPt.class, IntraTazInfoPt::new), ptInfo);
+        Map<Integer,IntraTazInfoPt> intraPtMap = collectionToMap(IntraTazInfoPt::getTazId, intraPtDtos);
+
+        for(Map.Entry<Integer, ScenarioTypeValuesBuilder> builderEntry : scenarioTypeValuesBuilders.entrySet()){
+
+            int tazId = builderEntry.getKey();
+            ScenarioTypeValuesBuilder builder = builderEntry.getValue();
+            IntraTazInfoPt ptIntraInfo = intraPtMap.get(tazId);
+            IntraTazInfoMit mitIntraInfo = intraMitMap.get(tazId);
+
+            initScenarioTypeValuesIntraTaz(ptIntraInfo, mitIntraInfo, builder);
+        }
+    }
+
+    private void initScenarioTypeValuesWithFeesAndTolls(Collection<TazFeesAndTollsDto> tazFeesAndTollsDtos,
+                                                        Map<Integer, ScenarioTypeValuesBuilder> scenarioTypeValuesBuilders,
+                                                        Map<Integer, ScenarioTypeValuesBuilder> baseScenarioTypeValuesBuilders){
+
+        for(TazFeesAndTollsDto dto : tazFeesAndTollsDtos){
+
+            int tazId = dto.getTazId();
+
+            ScenarioTypeValuesBuilder scenarioTypeValuesBuilder = scenarioTypeValuesBuilders.get(tazId);
+            ScenarioTypeValuesBuilder baseScenarioTypeValuesBuilder = baseScenarioTypeValuesBuilders.get(tazId);
+
+            //toll fee and toll type
+            baseScenarioTypeValuesBuilder.hasToll(dto.isHasTollBase());
+            scenarioTypeValuesBuilder.hasToll(dto.isHasTollScenario());
+
+            if (dto.isHasTollBase()){
+                // make sure that toll category is not null if hasToll is true;
+                // default: 1
+                int tollType = dto.getTollTypeBase() == 0 ? 1 : dto.getTollTypeBase();
+                baseScenarioTypeValuesBuilder.typeToll(tollType);
+
+                double tollFee = switch(tollType){
+                    case 2 -> parameters.getDoubleValue(ParamValue.TOLL_CAT_2_BASE);
+                    case 3 -> parameters.getDoubleValue(ParamValue.TOLL_CAT_3_BASE);
+                    default -> parameters.getDoubleValue(ParamValue.TOLL_CAT_1_BASE);
+                };
+
+                baseScenarioTypeValuesBuilder.feeToll(tollFee);
+            }
+
+            if (dto.isHasTollScenario()){
+                int tollType = dto.getTollTypeScenario() == 0 ? 1 : dto.getTollTypeScenario();
+                scenarioTypeValuesBuilder.typeToll(tollType);
+
+                double tollFee = switch (tollType){
+                    case 2 -> parameters.getDoubleValue(ParamValue.TOLL_CAT_2);
+                    case 3 -> parameters.getDoubleValue(ParamValue.TOLL_CAT_3);
+                    default -> parameters.getDoubleValue(ParamValue.TOLL_CAT_1);
+                };
+
+                scenarioTypeValuesBuilder.feeToll(tollFee);
+            }
+
+            //parking fee and parking type
+            baseScenarioTypeValuesBuilder.hasParkingFee(dto.isHasFeeBase());
+            scenarioTypeValuesBuilder.hasParkingFee(dto.isHasFeeScenario());
+
+            if(dto.isHasFeeBase()){
+
+                // make sure that ParkingType is not null if hasParkingFee is true;
+                // default: 1
+                int parkingFeeType = dto.getFeeTypeBase() == 0 ? 1 : dto.getFeeTypeBase();
+                baseScenarioTypeValuesBuilder.typeParking(parkingFeeType);
+
+                double parkingFee = switch(parkingFeeType){
+                    case 2 -> parameters.getDoubleValue(ParamValue.PARKING_FEE_CAT_2_BASE);
+                    case 3 -> parameters.getDoubleValue(ParamValue.PARKING_FEE_CAT_3_BASE);
+                    default -> parameters.getDoubleValue(ParamValue.PARKING_FEE_CAT_1_BASE);
+                };
+
+                baseScenarioTypeValuesBuilder.feeParking(parkingFee);
+            }
+
+            if(dto.isHasFeeScenario()){
+
+                int parkingFeeType = dto.getFeeTypeScenario() == 0 ? 1 : dto.getFeeTypeScenario();
+                scenarioTypeValuesBuilder.typeParking(parkingFeeType);
+
+                double parkingFee = switch(parkingFeeType){
+                    case 2 -> parameters.getDoubleValue(ParamValue.PARKING_FEE_CAT_2);
+                    case 3 -> parameters.getDoubleValue(ParamValue.PARKING_FEE_CAT_3);
+                    default -> parameters.getDoubleValue(ParamValue.PARKING_FEE_CAT_1);
+                };
+
+                scenarioTypeValuesBuilder.feeParking(parkingFee);
+            }
+
+
+            //car sharing
+            baseScenarioTypeValuesBuilder.isCarsharingServiceArea(dto.isHasCarSharingBase());
+            scenarioTypeValuesBuilder.isCarsharingServiceArea(dto.isHasCarSharingScenario());
+        }
+    }
+
+    private <S, T> Map<S, T> collectionToMap(Function<T, S> keyMapper, Collection<T> objects){
+
+        return objects.stream().collect(Collectors.toMap(
+                keyMapper,
+                dto -> dto
+        ));
+    }
+
+    private void initScenarioTypeValuesIntraTaz(IntraTazInfoPt ptInfo, IntraTazInfoMit mitInfo, ScenarioTypeValuesBuilder builder){
+
+        builder.ptZone(ptInfo.getPtZone())
+                .averageSpeedPT(ptInfo.getAvgSpeedPt())
+                .intraPTTrafficAllowed(ptInfo.isHasIntraTrafficPt())
+                .intraMITTrafficAllowed(mitInfo.isHasIntraTrafficMit())
+                .averageSpeedMIT(mitInfo.getAvgSpeedMit())
+                .beelineFactorMIT(mitInfo.getBeelineFactorMit());
     }
 
     /**
@@ -1674,23 +1668,5 @@ public class TPS_DB_IO {
             varMap.addValue(list, set.getDouble(i));
         }
         return varMap;
-    }
-
-    /**
-     * This method returns one household back to the database, e.g. if there where no members in this household found. Usually this indicates an error in the data set
-     *
-     * @param hh The household to return
-     * @throws SQLException
-     */
-    private void returnHousehold(TPS_Household hh) {
-
-        //removing the location from the location set automatically removes it from the taz, too!
-        // TODO: yes, but why???
-        //hh.getLocation().getLocSet().removeLocation(hh.getLocation());
-
-        if (!TPS_DB_IOManager.BEHAVIOUR.equals(Behaviour.FAT)) {
-            PM.functionExecute("finish_hh", this.parameters.getString(ParamString.DB_TABLE_HOUSEHOLD_TMP),
-                    hh.getId());
-        }
     }
 }

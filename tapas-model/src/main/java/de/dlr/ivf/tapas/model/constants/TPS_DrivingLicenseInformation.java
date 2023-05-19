@@ -18,14 +18,15 @@ package de.dlr.ivf.tapas.model.constants;
  * c) driving license (e.g. motorbike, car, truck) (combinable)
  */
 public enum TPS_DrivingLicenseInformation {
-    UNKNOWN(-1), // ordinal: 0
-    CAR(1), //ordinal: 1
-    NO_DRIVING_LICENSE(2); //ordinal: 2
+    UNKNOWN(-1),
+    NO_DRIVING_LICENSE(0),
+    CAR(1);
+
 
     /**
      * code of the driving license information from the database
      */
-    private int code;
+    private final int code;
 
     /**
      * @param code of the driving license information from the database
@@ -52,12 +53,12 @@ public enum TPS_DrivingLicenseInformation {
         return code;
     }
 
-    /**
-     * @param code code to set
-     */
-    public void setCode(int code) {
-        this.code = code;
-    }
+//    /**
+//     * @param code code to set
+//     */
+//    public void setCode(int code) {
+//        this.code = code;
+//    }
 
     /**
      * @return true if there is information about the driving license, i.e. in either case of CAR or NO_DRIVING_LICENSE

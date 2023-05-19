@@ -10,6 +10,8 @@ package de.dlr.ivf.tapas.model.location;
 
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import lombok.Builder;
+import lombok.Singular;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.List;
  * @author mark_ma
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
+@Builder
 public class TPS_Block implements Comparable<TPS_Block> {
 
     /**
@@ -28,9 +31,12 @@ public class TPS_Block implements Comparable<TPS_Block> {
      */
     private final int id;
 
+    private final int tazId;
+
     /**
      * List of all locations in this block
      */
+    @Singular
     private final List<TPS_Location> locations;
 
     /**
@@ -58,16 +64,6 @@ public class TPS_Block implements Comparable<TPS_Block> {
      */
     private TPS_Coordinate center;
 
-    /**
-     * Constructs a block with the given id and an empty location list.
-     *
-     * @param id id of the block
-     */
-    public TPS_Block(int id) {
-        this.id = id;
-        this.locations = new ArrayList<>();
-        this.nearestPubTransStop = -1;
-    }
 
     /**
      * This method adds the given location to the block's list and sets the reference of the location to this block, i.e. the
@@ -83,6 +79,10 @@ public class TPS_Block implements Comparable<TPS_Block> {
     @Override
     public int compareTo(TPS_Block o) {
         return Integer.compare(this.id, o.id);
+    }
+
+    public int getTazId(){
+        return this.tazId;
     }
 
     /**

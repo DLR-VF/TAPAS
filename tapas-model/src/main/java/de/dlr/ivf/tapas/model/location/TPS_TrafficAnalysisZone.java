@@ -16,11 +16,14 @@ import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.Singular;
 
 import java.util.*;
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
+@Builder
 @Getter
 public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZone>, Locatable {
 
@@ -29,12 +32,14 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
 //    public static MultiMap<TPS_LocationConstant, TPS_ActivityConstant, List<TPS_ActivityConstant>> LOCATION2ACTIVITIES_MAP = new MultiMap<>(new ArrayList<>());
 
     // locations storage
-    public HashMap<TPS_ActivityConstant, TypedWeightedLocationDistribution> locationsByActivity = new HashMap<>();
+    private HashMap<TPS_ActivityConstant, TypedWeightedLocationDistribution> locationsByActivity = new HashMap<>();
     /// community type, used during choice of locations
     private TPS_SettlementSystem bbrType;
 
     private final Map<TPS_LocationConstant, Collection<TPS_ActivityConstant>> locationToActivityMap = new HashMap<>();
     /// Collection with all blocks of this traffic analysis zone
+
+    @Singular
     private final SortedMap<Integer, TPS_Block> blocks;
     /// Coordinate of the center point of this traffic analysis zone
     private TPS_Coordinate center;
@@ -47,6 +52,7 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     /// reference to external id code
     private int externalId = -1;
     /// Map which stores the values for the corresponding SimulationType
+    @Singular
     private final Map<SimulationType, ScenarioTypeValues> simulationTypeValues;
     /// Local variable for the TAZData (locations etc.)
     private TPS_TAZData data;
@@ -153,29 +159,12 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         this.bbrType = bbrType;
     }
 
-    /**
-     * Returns the block corresponding to the given blockId.
-     * If the block doesn't exist it is created.
-     *
-     * @param blockId The id of the block to return
-     * @return block with this blockId
-     */
-    public TPS_Block getBlock(int blockId) {
-        TPS_Block block = this.blocks.get(blockId);
-        if (block == null) {
-            block = new TPS_Block(blockId);
-            block.setTrafficAnalysisZone(this);
-            this.blocks.put(blockId, block);
-        }
-        return block;
-    }
 
     /**
      * TODO check
      *
      * @return <code>null</code>
      */
-    @Override
     public TPS_Block getBlock() {
         return null;
     }

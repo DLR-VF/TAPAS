@@ -13,12 +13,8 @@ import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.util.TPS_FastMath;
-import de.dlr.ivf.tapas.model.parameter.ParamFlag;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-
-import java.util.HashSet;
+import lombok.Builder;
+import lombok.Singular;
 import java.util.Set;
 
 
@@ -32,55 +28,32 @@ import java.util.Set;
  * @author mark_ma
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
+@Builder
 public class TPS_Location implements Locatable {
 
-    /// Reference to the block if this information is available
-    private final TPS_Block block;
     /// Coordinate of the location
     private final TPS_Coordinate coordinate;
     /// The location code of the location
     private final TPS_LocationConstant locType;
     /// The list of possible activities (determined from the location code at initialisation)
-    private Set<TPS_ActivityConstant> activities = null;
+    @Singular
+    private Set<TPS_ActivityConstant> activities ;
     /// This location's data
-    private TPS_LocationData data = null;
+    private final LocationData data;
     /// The id of the location
     private final int id;
-    private final TPS_ParameterClass parameterClass;
+    private final int tazId;
+    private final int blockId;
+    private final TPS_Block block;
+    private final TPS_TrafficAnalysisZone taz;
+
     /**
      * Group Id of the location, which associates this location to a group, e.g.
      * shopping mall, where you can shop, eat and work. Should be set to -1, if
      * no information is available.
      */
     private final int groupId;
-    /// The traffic analysis zone this location is located in
-    private final TPS_TrafficAnalysisZone taz;
 
-    /**
-     * The constructor sets the id of the location. The occupancy is set to 0
-     * and the weight is calculated.
-     *
-     * @param id             The id of the location
-     * @param groupId        The id of the locations group this location belongs to
-     * @param locType        The type of this location
-     * @param x              The x-coordinate of this location
-     * @param y              The y-coordinate of this location
-     * @param parameterClass parameter container reference
-     */
-    public TPS_Location(int id, int groupId, TPS_LocationConstant locType, double x, double y, TPS_TrafficAnalysisZone taz, TPS_Block block, TPS_ParameterClass parameterClass) {
-        this.id = id;
-        this.groupId = groupId;
-        this.locType = locType;
-        this.coordinate = new TPS_Coordinate(0, 0);
-        this.coordinate.setValues(x, y);
-        if (locType != TPS_LocationConstant.HOME) {
-            this.activities = new HashSet<>(taz.getLocationToActivityMap().get(locType));
-            //TPS_AbstractConstant.getConnectedConstants(locType, TPS_ActivityCode.class));
-        }
-        this.taz = taz;
-        this.block = block;
-        this.parameterClass = parameterClass;
-    }
 
     /**
      * Returns the block of the location
@@ -89,6 +62,10 @@ public class TPS_Location implements Locatable {
      */
     public TPS_Block getBlock() {
         return block;
+    }
+
+    public int getBlockId(){
+        return this.blockId;
     }
 
     /**
@@ -105,7 +82,7 @@ public class TPS_Location implements Locatable {
      *
      * @return Data of this location
      */
-    public TPS_LocationData getData() {
+    public LocationData getData() {
         return data;
     }
 
@@ -143,7 +120,7 @@ public class TPS_Location implements Locatable {
      */
     @Override
     public int getTAZId() {
-        return this.getTrafficAnalysisZone().getTAZId();
+        return this.tazId;
     }
 
     /**
@@ -170,19 +147,9 @@ public class TPS_Location implements Locatable {
      * @return true if getData returns not null
      */
     public boolean hasData() {
-        return getData() != null;
+        return this.data != null;
     }
 
-    /**
-     * Inits this location's capacity
-     *
-     * @param capacity    the capacity
-     * @param fixCapacity true if the capacity is fixed
-     */
-    public void initCapacity(int capacity, boolean fixCapacity) {
-        this.data = new TPS_LocationData(this.parameterClass);
-        this.data.init(capacity, fixCapacity);
-    }
 
     /**
      * Method to determine if two locations are within the same group.
@@ -225,177 +192,6 @@ public class TPS_Location implements Locatable {
                 }
                 this.taz.updateActivityOccupancy(actCode, oldWeight, newWeight);
             }
-        }
-    }
-
-    /**
-     * Updates the occupancy of this location
-     * <p>
-     * A location may allow different activities. The location's weight has therefore to be adapted for
-     * all supported activity types.
-     *
-     * @param newOccupancy This location's new occupancy
-     */
-    public void setOccupancy(int newOccupancy) {
-        if (this.data != null && this.activities != null) {
-            double oldWeight = this.data.getWeight();
-            this.data.setOccupancy(newOccupancy);
-            double newWeight = this.data.getWeight();
-            for (TPS_ActivityConstant actCode : this.activities) {
-                if (!this.taz.allowsActivity(actCode)) {
-                    throw new RuntimeException("");
-                }
-                this.taz.updateActivityOccupancy(actCode, oldWeight, newWeight);
-            }
-        }
-    }
-
-    public class TPS_LocationData {
-        /// Capacity of the location
-        private int capacity = 0;
-
-        /**
-         * This flag indicates if the location has a fixed capacity, i.e.
-         * occupancy <= capacity (e.g. theatres, enterprises, etc). If the flag
-         * is false more people can choose this location than its capacity
-         * provides (e.g. parks, museums, shops, etc.).
-         */
-        private boolean fixCapacity = true;
-
-        /// number of persons that chose that location
-        private int occupancy = 0;
-
-        /// Weight represents the amount of free capacities
-        private double weight = 0;
-
-        private final TPS_ParameterClass parameterClass;
-
-        TPS_LocationData(TPS_ParameterClass parameterClass) {
-            this.parameterClass = parameterClass;
-        }
-
-        /**
-         * This method calculates the weight of the location by a decreasing
-         * exponential function, so the weight is always greater than 0.
-         * <p>
-         * Since very small weights produce nasty cast errors in sql an
-         * overloadfactor is introduced: Locations with an overload of 10 get a
-         * weight of 0!
-         */
-        public void calculateWeight() {
-            double val;
-            if (this.capacity == 0) {
-                val = 0;
-            } else if (this.occupancy <= 0) {
-                val = this.capacity;
-                this.occupancy = 0;
-            } else if (fixCapacity) {
-                val = this.capacity - this.occupancy;
-            } else {
-                if (this.occupancy < 10.0 * this.capacity) {
-                    val = this.capacity * TPS_FastMath.exp(
-                            -this.parameterClass.getDoubleValue(ParamValue.WEIGHT_OCCUPANCY) * this.occupancy /
-                                    this.capacity);
-                } else {
-                    val = 0;
-                }
-            }
-            this.weight = val;
-        }
-
-        /**
-         * Returns the capacity of a location
-         *
-         * @return capacity
-         */
-        public int getCapacity() {
-            return capacity;
-        }
-
-        /**
-         * Returns the occupancy of the location
-         *
-         * @return occupancy
-         */
-        public int getOccupancy() {
-            return occupancy;
-        }
-
-        /**
-         * Returns the weight of the location
-         *
-         * @return weight (always greater than 0)
-         */
-        public double getWeight() {
-            return weight;
-        }
-
-        /**
-         * Flag if the capacity of the location is fix
-         *
-         * @return true if fix, false else
-         */
-        public boolean hasFixCapacity() {
-            return fixCapacity;
-        }
-
-        /**
-         * Initialises this location's capacity and occupancy and computes the respective weight
-         *
-         * @param capacity    The capacity of this location
-         * @param fixCapacity Whether the capacity shall be fix
-         */
-        public void init(int capacity, boolean fixCapacity) {
-            this.capacity = capacity;
-            this.occupancy = 0;
-            this.fixCapacity = fixCapacity;
-            this.calculateWeight();
-        }
-
-        /**
-         * Sets a new occupancy
-         *
-         * @param newValue The new occupancy
-         * @return Whether the occupancy has changed
-         */
-        public boolean setOccupancy(int newValue) {
-            synchronized (this) {
-                if (occupancy != newValue) {
-                    this.occupancy = newValue;
-                    if (this.parameterClass.isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS)) {
-                        this.calculateWeight();
-                    }
-                    // this.weight= this.capacity;
-                    return true;
-                }
-                return false;
-            }
-        }
-
-
-        /**
-         * Alters an occupancy
-         *
-         * @param deltaValue The delta to change
-         */
-        public void changeOccupancy(int deltaValue) {
-            synchronized (this) {
-                this.occupancy += deltaValue;
-                if (this.parameterClass.isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS)) {
-                    this.calculateWeight();
-                }
-            }
-        }
-
-        /**
-         * Returns this object's string representation
-         *
-         * @see Object#toString()
-         */
-        @Override
-        public String toString() {
-            return "[" + this.getOccupancy() + "/" + this.getCapacity() + ", fix=" + this.hasFixCapacity() +
-                    ", weight=" + this.getWeight() + "]";
         }
     }
 }
