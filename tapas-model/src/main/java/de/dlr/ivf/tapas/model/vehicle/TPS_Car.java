@@ -107,6 +107,11 @@ public class TPS_Car implements Vehicle {
         return automationLevel;
     }
 
+    @Override
+    public double getRangeLeft() {
+        return this.rangeLeft;
+    }
+
 
     /**
      * This method converts the internal kba number to a size

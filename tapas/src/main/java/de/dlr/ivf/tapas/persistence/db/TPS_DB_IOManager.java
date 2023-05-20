@@ -190,7 +190,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                         }
                         pS.setDouble(index++, pt.getDuration());
                         pS.setInt(index++, pt.getMode().getMCTCode());
-                        pS.setInt(index++, tp.getCar() == null ? -1 : tp.getCar().getId());
+                        pS.setInt(index++, tp.getCar() == null ? -1 : tp.getCar().id());
                         if (Double.isNaN(pt.getDistanceBeeline()) || Double.isInfinite(pt.getDistanceBeeline())) {
                             TPS_Logger.log(SeverityLogLevel.FATAL,
                                     "NaN detected in getDistanceBeeline for person " + p.getId());
@@ -213,7 +213,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                         }
                         pS.setInt(index++, (int) ((duration * 1.66666666e-2) + 0.5)); // secs to min incl round
                         if (tp.getCar() != null) {
-                            pS.setInt(index++, tp.getCar().index);
+                           // pS.setInt(index++, tp.getCar().index);
                             pS.setBoolean(index++, tp.getCar().isRestricted());
                         } else {
                             pS.setInt(index++, -1);
@@ -291,12 +291,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         this.execute(query);
     }
 
-    public void dropTemporaryTables() {
-        if (this.getParameters().isTrue(ParamFlag.FLAG_DELETE_TEMPORARY_TABLES)) {
-            this.dbIO.dropTemporaryTables();
-        }
-    }
-
     /**
      * Method to execute a SQL-Query without any results
      *
@@ -372,7 +366,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
     public TPS_Household getNextHousehold() {
         try {
             long time = System.nanoTime();
-            TPS_Household hh = this.dbIO.getNextHousehold(this.getRegion());
+            TPS_Household hh = null;
 
             time = System.nanoTime() - time;
             if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
@@ -428,14 +422,12 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
     public void init() {
         try {
             this.dbConnector.checkConnectivity();
-            this.dbIO.initStart();
 
             // clearing initial information from database
             if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
                 TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
                         "Clearing constants (all codes: age," + " distance, person, activity, location, ...)");
             }
-            this.dbIO.clearConstants();
 
             // reading initial information from database
             if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
@@ -499,28 +491,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
             this.batchStoreTrips();
         }
         this.storeFinishedHouseholdIDsToDB();
-    }
-
-    /**
-     * Method to insert all pending Trips.
-     */
-    public void insertTrips() {
-        try {
-            while (this.insertedHouseHolds.size() < this.dbIO.getNumberOfFetchedHouseholds()) {
-                Thread.sleep(10);
-            }
-            long time = System.nanoTime();
-            if (TPS_Logger.isLogging(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.THREAD, SeverityLogLevel.INFO, "Inserting trips");
-            }
-            this.insertPlansIntoDB();
-            time = System.nanoTime() - time;
-            if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
-                TPS_Logger.log(SeverityLogLevel.DEBUG, "Wrote trips back into db in " + (time * 0.000001) + "ms");
-            }
-        } catch (InterruptedException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, e.getMessage(), e);
-        }
     }
 
     public void resetUnfinishedHouseholds() {

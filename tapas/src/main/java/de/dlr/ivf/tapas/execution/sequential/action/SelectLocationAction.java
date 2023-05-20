@@ -31,14 +31,16 @@ public class SelectLocationAction implements TPS_PlanStateAction{
         if(next_stay.isAtHome()){
             updateContextAndStayLocation(location_context.getHomeLocation(), next_located_stay);
         }else {
-            location_context.getFromFixLocations(next_stay.getActCode())
-                    .ifPresentOrElse(
-                            location -> updateContextAndStayLocation(location,next_located_stay),
-                            () -> {
-                                next_located_stay.selectLocation(plan, plan.getPlanningContext(), tour_context::getCurrentStay, tour_context.getNextHomeStay());
-                                location_context.setNextLocation(next_located_stay.getLocation());
-                            }
-                    );
+
+            //todo needs a fix
+//            location_context.getFromFixLocations(next_stay.getActCode())
+//                    .ifPresentOrElse(
+//                            location -> updateContextAndStayLocation(location,next_located_stay),
+//                            () -> {
+//                                next_located_stay.selectLocation(plan, plan.getPlanningContext(), tour_context::getCurrentStay, tour_context.getNextHomeStay());
+//                                location_context.setNextLocation(next_located_stay.getLocation());
+//                            }
+//                    );
         }
 
         if(next_stay.getActCode().isFix()){

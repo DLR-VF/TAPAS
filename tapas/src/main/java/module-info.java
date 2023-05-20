@@ -17,7 +17,6 @@ module de.dlr.ivf.tapas {
     requires lombok;
     requires com.fasterxml.jackson.databind;
 
-    requires de.dlr.ivf.tapas.matrixtool;
     requires de.dlr.ivf.tapas.logger;
     requires de.dlr.ivf.tapas.parameter;
     requires de.dlr.ivf.tapas.util;

@@ -15,6 +15,7 @@ import de.dlr.ivf.api.io.configuration.model.Login;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
@@ -454,7 +455,7 @@ public class SumoDaemon extends Thread {
             String name = newNames.get(i);
             query = "INSERT INTO " + table + " (\"matrix_name\",\"matrix_values\")" + " VALUES('" + name + "',";
             // build array of matrix-ints
-            query += TPS_DB_IO.matrixToSQLArray(map.matrices[i].matrix, 0);
+            query += Helpers.matrixToSQLArray(map.matrices[i].matrix, 0);
             query += ")";
             this.manager.execute(query, this);
         }

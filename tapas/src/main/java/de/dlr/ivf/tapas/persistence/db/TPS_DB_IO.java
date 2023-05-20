@@ -1067,7 +1067,7 @@ public class TPS_DB_IO {
      * @throws SQLException Error during SQL-processing
      */
     //todo fix reaading region
-    public TPS_Region readRegion(Map<Integer, TPS_SettlementSystem> settlementSystemMap) throws SQLException {
+    public TPS_Region readRegion() {
         TPS_Region region = new TPS_Region(null, null);
         TPS_Block blk;
         String query;
@@ -1108,9 +1108,10 @@ public class TPS_DB_IO {
 
         region.setPotential(potential);
 
-
+        //read taz and add to region
         Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones();
-        region.
+        trafficAnalysisZones.values().forEach(region::addTrafficAnalysisZone);
+
 
 
         return region;

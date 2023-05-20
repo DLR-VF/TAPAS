@@ -63,25 +63,14 @@ public class HouseholdBasedPlanGenerator {
                 continue;
             }
 
-            // check if age adaptation should occur
-            if (pm.getParameters().isTrue(ParamFlag.FLAG_REJUVENATE_RETIREE)) {
-                if (person.getAge() >= pm.getParameters().getIntValue(ParamValue.REJUVENATE_AGE)) {
-                    if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
-                        TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG,
-                                "Person's age gets adapted");
-                    }
-                    person.setAgeAdaption(true, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
-                }
-            }
 
             TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, pm.getParameters());
             TPS_Scheme scheme = pm.getSchemesSet().findScheme(person);
-            TPS_Plan the_plan = new TPS_Plan(person,pe,scheme,pm);
+            TPS_Plan the_plan = new TPS_Plan(person,pe,scheme);
 
             TPS_PlanningContext pc = new TPS_PlanningContext(pe, null, person.hasBike());
             the_plan.setPlanningContext(pc);
 
-            person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
 
 
             person_plans.add(the_plan);

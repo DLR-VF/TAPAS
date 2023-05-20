@@ -37,15 +37,6 @@ public class HouseholdBasedStateMachineController implements EventDelegator, Err
      */
     private Map<TPS_Person,TPS_StateMachine> state_machines;
 
-    /**
-     * This constructor with only {@link TPS_Person} and {@link TPS_StateMachine} mappings generates a controller
-     * with an empty household.
-     * @param state_machines
-     */
-    public HouseholdBasedStateMachineController(Map<TPS_Person, TPS_StateMachine> state_machines){
-        this(state_machines, StateMachineUtils.EmptyHouseHold());
-    }
-
     public Collection<TPS_StateMachine> getStateMachines(){
         return state_machines.values();
     }

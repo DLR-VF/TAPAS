@@ -19,10 +19,12 @@ public class ModeDistributionCalculator {
 
     private final Modes modes;
     private final Map<Thread, TPS_DiscreteDistribution<TPS_Mode>> threadDiscreteDistributionsMap;
+    private final TPS_UtilityFunction utilityFunction;
 
-    public ModeDistributionCalculator(Modes modes){
+    public ModeDistributionCalculator(Modes modes, TPS_UtilityFunction utilityFunction){
         this.modes = modes;
         this.threadDiscreteDistributionsMap = new HashMap<>();
+        this.utilityFunction = utilityFunction;
     }
 
     public TPS_DiscreteDistribution<TPS_Mode> calculateDistribution(TPS_DiscreteDistribution<TPS_Mode> srcDis, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
@@ -53,11 +55,11 @@ public class ModeDistributionCalculator {
 
             double baseProbability = dstDis.getValueByKey(mode);
             if (baseProbability > 0.0) {
-                double delta = modes.getUtilityFunction(mode.getModeType()).calculateDelta(mode, plan, distanceNet, mcc);
+                double delta = utilityFunction.calculateDelta(mode, plan, distanceNet, mcc);
                 double newProbability = baseProbability * TPS_FastMath.exp(delta);
                 if (Double.isNaN(newProbability) || Double.isInfinite(newProbability)) {
                     newProbability = 0;
-                    delta = modes.getUtilityFunction(mode.getModeType()).calculateDelta(mode, plan, distanceNet, mcc);
+                    delta = utilityFunction.calculateDelta(mode, plan, distanceNet, mcc);
                     TPS_FastMath.exp(delta);
                 }
                 dstDis.setValueByKey(mode, newProbability);
@@ -69,7 +71,7 @@ public class ModeDistributionCalculator {
                 // differences in utility need only be calculated if a mode share exists
                 double baseProbability = dstDis.getValueByKey(mode);
                 if (baseProbability > 0.0) {
-                    double delta = modes.getUtilityFunction(mode.getModeType()).calculateDelta(mode, plan, distanceNet, mcc);
+                    double delta = utilityFunction.calculateDelta(mode, plan, distanceNet, mcc);
                     delta = baseProbability * TPS_FastMath.exp(delta);
                     dstDis.setValueByKey(mode, delta);
                 }

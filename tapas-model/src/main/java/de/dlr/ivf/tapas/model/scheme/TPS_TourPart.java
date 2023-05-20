@@ -435,7 +435,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      * @param car  A car, if available.
      *             If the mode is not, "MIT" this information is discarded and the internal reference is still a null pointer.
      */
-    public void setUsedMode(TPS_ExtMode mode, TPS_Car car) {
+    public void setUsedMode(TPS_ExtMode mode, Vehicle car) {
         if (mode == null) {
             this.lastMode = null;
             this.car = null;

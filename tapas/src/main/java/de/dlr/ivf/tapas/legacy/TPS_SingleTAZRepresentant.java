@@ -8,8 +8,11 @@
 
 package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+
 public class TPS_SingleTAZRepresentant extends TPS_MultipleTAZRepresentant {
-    public TPS_SingleTAZRepresentant() {
+    public TPS_SingleTAZRepresentant(TPS_ParameterClass parameterClass) {
+        super(parameterClass);
         super.numOfTazRepresentants = 1;
     }
 }

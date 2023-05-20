@@ -262,21 +262,21 @@ public class ModeSelector {
         //check if toll must be charged
         //todo get a work around
         //if (primary.isType(ModeType.MIT) && !plan.mustPayToll) {
-        if (!plan.mustPayToll) {
-            boolean carMustPayToll = true;
-            if (mcc.carForThisPlan != null && mcc.carForThisPlan.hasPaidToll) carMustPayToll = false;
-            // set "must pay toll flag"
-            if (goingToTVZ.hasToll(SimulationType.SCENARIO) && carMustPayToll) {
-                // toll is relevant as entering a cordon toll zone
-                plan.mustPayToll = true;
-            }
-
-            if (this.flagUseExitMaut && !goingToTVZ.hasToll(
-                    SimulationType.SCENARIO) && comingFromTVZ.hasToll(SimulationType.SCENARIO) && carMustPayToll) {
-                // scenario: toll is relevant as leaving a cordon toll zone
-                plan.mustPayToll = true;
-            }
-        }
+//        if (!plan.mustPayToll) {
+//            boolean carMustPayToll = true;
+//            if (mcc.carForThisPlan != null && mcc.carForThisPlan.hasPaidToll) carMustPayToll = false;
+//            // set "must pay toll flag"
+//            if (goingToTVZ.hasToll(SimulationType.SCENARIO) && carMustPayToll) {
+//                // toll is relevant as entering a cordon toll zone
+//                plan.mustPayToll = true;
+//            }
+//
+//            if (this.flagUseExitMaut && !goingToTVZ.hasToll(
+//                    SimulationType.SCENARIO) && comingFromTVZ.hasToll(SimulationType.SCENARIO) && carMustPayToll) {
+//                // scenario: toll is relevant as leaving a cordon toll zone
+//                plan.mustPayToll = true;
+//            }
+//        }
 
 
 //		if(mode.equals(TPS_Mode.get(ModeType.MIT_PASS))){

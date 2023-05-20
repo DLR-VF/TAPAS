@@ -34,4 +34,14 @@ public class CompanyCar implements Vehicle {
     public boolean isRestricted() {
         return this.car.isRestricted();
     }
+
+    @Override
+    public int getAutomationLevel() {
+        return car.getAutomationLevel();
+    }
+
+    @Override
+    public double getRangeLeft() {
+        return car.getRangeLeft();
+    }
 }

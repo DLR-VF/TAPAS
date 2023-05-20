@@ -1,10 +1,8 @@
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
+import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.model.Matrix;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,7 +77,7 @@ public class InterCellTrafficImporter {
 
     public void saveMatrix(String name, String table, Matrix m){
 
-        String query = "INSERT INTO "+table+" VALUES ('" + name + "', "+ TPS_DB_IO.matrixToSQLArray(m, 0) + ")";
+        String query = "INSERT INTO "+table+" VALUES ('" + name + "', "+ Helpers.matrixToSQLArray(m, 0) + ")";
        // dbCon.execute(query,this);
         System.out.println("Matrix "+name+" saved.");
 

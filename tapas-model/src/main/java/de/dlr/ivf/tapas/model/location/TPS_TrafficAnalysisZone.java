@@ -59,18 +59,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     private boolean isRestricted = false; // restricted zone, e.g. only for electric vehicles etc.
     private boolean isPNR = false; //is Park and Ride
 
-    /**
-     * Constructor
-     *
-     * @param id The id of this TAZ
-     */
-    public TPS_TrafficAnalysisZone(int id) {
-        this.id = id;
-        this.blocks = new TreeMap<>();
-        this.simulationTypeValues = new HashMap<>();
-        this.simulationTypeValues.put(SimulationType.BASE, new ScenarioTypeValues());
-        this.simulationTypeValues.put(SimulationType.SCENARIO, new ScenarioTypeValues());
-    }
 
     /**
      * This method adds the given location

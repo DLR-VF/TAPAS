@@ -52,4 +52,8 @@ public class CarController {
     public int automationLevel(){
         return car.getAutomationLevel();
     }
+
+    public Vehicle getCar(){
+        return this.car;
+    }
 }

@@ -33,8 +33,8 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 
 public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectModel {
-    private final double gammaLocationWeight;
-    private final boolean gammaLocationWeightDefined;
+    final double gammaLocationWeight;
+    final boolean gammaLocationWeightDefined;
 
 
     public TPS_SelectLocationWeightBased(TPS_ParameterClass parameterClass) {

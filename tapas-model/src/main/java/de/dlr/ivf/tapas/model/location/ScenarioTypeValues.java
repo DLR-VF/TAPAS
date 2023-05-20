@@ -20,10 +20,10 @@ public class ScenarioTypeValues {
     private double beelineFactorMIT;
 
     /// The costs for parking per hour in Euro
-    private double feeParking;
+    private double feeParking = 0;
 
     /// The costs for toll per entrance
-    private double feeToll;
+    private double feeToll = 0;
 
     /// The flag if parking fee is applicable
     private boolean hasParkingFee;
@@ -32,10 +32,10 @@ public class ScenarioTypeValues {
     private boolean hasToll;
 
     /// The type of the parking fee
-    private int typeParking;
+    private int typeParking = 0;
 
     /// The type of the toll
-    private int typeToll;
+    private int typeToll = 0;
 
     /// The zone id for a public transport tariff system
     private int ptZone = 1;
@@ -47,28 +47,6 @@ public class ScenarioTypeValues {
     private boolean intraPTTrafficAllowed = true;
 
     private boolean isCarsharingServiceArea = false;
-
-    /**
-     * BUGFIX: Mantis Entry 4318 Default constructor, which fills the local
-     * variables with reasonable values. If this TAZ is initialized, but not
-     * filled with values, divisions by zero may happen, e.g.
-     * averageTravelingSpeed is used
-     */
-    public ScenarioTypeValues() {
-        // this.setAverageSpeedMIT(ParamValue.VELOCITY_CAR.getDoubleValue());
-        // // minimum speed!
-        // this.setAverageSpeedPT(ParamValue.VELOCITY_TRAIN.getDoubleValue());
-        // // minimum speed!
-        // this.setBeelineFactorMIT(ParamValue.BEELINE_FACTOR_MIT.getDoubleValue());
-        // //default factor
-        this.setFeeParking(0.0); // no parking fee
-        this.setHasParkingFee(false);
-        this.setTypeParking(0);
-        this.setFeeToll(0.0); // no toll
-        this.setHasToll(false);
-        this.setTypeToll(0);
-        this.setCarsharingServiceArea(false);
-    }
 
     /**
      * Returns the average speed within the traffic analysis zone in m/s for

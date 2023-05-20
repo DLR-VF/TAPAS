@@ -26,7 +26,7 @@ import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
 
 public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBased {
 
-    private final double minDist;
+    final double minDist;
     private final int walkMaxDist;
 
     public TPS_SelectWithMultipleAccessMode(TPS_ParameterClass parameterClass) {

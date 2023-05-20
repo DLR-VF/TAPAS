@@ -16,7 +16,7 @@ import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
@@ -325,7 +325,7 @@ public class TPS_Person implements ExtendedWritable {
      *
      * @return true if the person may drive a car; false else
      */
-    public boolean mayDriveACar(TPS_Car car, int automaticVehicleMinDriverAge, int automaticVehicleLevel) {
+    public boolean mayDriveACar(Vehicle car, int automaticVehicleMinDriverAge, int automaticVehicleLevel) {
         boolean mayDriveCar = false;
 
 
@@ -344,87 +344,6 @@ public class TPS_Person implements ExtendedWritable {
      * @return a probability of being the primary driver
      */
     public double primaryDriver() {
-        if (driverScore < -0.1) {
-            int members = 0;
-            //int numberOfAdhults=0;
-            int numberOfChilds = 0;
-            int numberOfWorkingMembers = 0;
-            int numberOfMembersWithDrivingLicense = 0;
-            int ageYoungestAdhult = 1000; //I hope no one becomes older, ever!
-            int ageYoungestChild = 1000;
-            int numberOfCars = this.getHousehold().getNumberOfCars();
-            //shortcut:
-            if (numberOfCars == 0 || !this.hasDrivingLicense()) {
-                driverScore = 0;
-                return 0;
-            }
-
-            driverScore = -25.6959310091439; //constant
-            driverScore += this.age * -0.104309375757471;
-            driverScore += Math.log(this.age) * 3.53025970082386;
-            driverScore += this.sex == TPS_Sex.MALE ? -1.34768311274 : 0;
-            driverScore += this.sex == TPS_Sex.MALE ? this.age * 0.0449898677627131 : 0;
-            driverScore += this.working > 0 ? 1.02298146009324 : 0;
-            driverScore += this.hasDrivingLicense() ? 10.9458075841947 : 0;
-
-            //sum up all statistics above
-            for (TPS_Person p : this.getHousehold().getMembers(TPS_Household.Sorting.NONE)) {
-                members++;
-                if (p.working > 0) numberOfWorkingMembers++;
-                if (p.hasDrivingLicense()) numberOfMembersWithDrivingLicense++;
-                if (p.age >= 18) {
-                    //numberOfAdhults++;
-                    ageYoungestAdhult = Math.min(ageYoungestAdhult, p.age);
-                } else {
-                    numberOfChilds++;
-                    ageYoungestChild = Math.min(ageYoungestChild, p.age);
-                }
-            }
-
-            if (numberOfChilds == 0) { //keine Kinder
-                if (members == 1) { //ein Erwachsener
-                    if (ageYoungestAdhult < 30) {
-                        driverScore += 0.355021416722072;
-                    } else if (ageYoungestAdhult < 60) {
-                        driverScore += 0.171869345495256;
-                    } else {
-                        driverScore += 1.22484387968388;
-                    }
-                } else if (members == 2) { //zwei erwachsene
-                    if (ageYoungestAdhult < 30) {
-                        driverScore += -0.225129329476169;
-                    } else if (ageYoungestAdhult < 60) {
-                        driverScore += -0.526338766819736;
-                    } else {
-                        driverScore += 0.00349663057568653;
-                    }
-                } else { // mehr als 3
-                    driverScore += -0.383355892620622;
-                }
-            } else {                                        //Haushalte mit Kindern
-                if (ageYoungestChild < 6) {
-                    driverScore += -0.422373712001074;
-                } else if (ageYoungestChild < 14) {
-                    driverScore += -0.457447530364251;
-                } else {
-                    driverScore += -0.362948716707795;
-                }
-            }
-
-            driverScore += numberOfWorkingMembers * -0.358492255297056;
-            driverScore += numberOfMembersWithDrivingLicense * 1.20018551149737;
-            driverScore += numberOfCars * -1.69765399821086;
-            if (numberOfMembersWithDrivingLicense > 0) //avoid div by zero! //TODO is this Integer division correct?
-                driverScore += (numberOfCars / numberOfMembersWithDrivingLicense) * 10.6624425307085;
-
-
-            driverScore = 1.0 / (1.0 + Math.exp(-driverScore));
-
-            //finally cap it (for safety)!
-            driverScore = Math.max(0.0, Math.min(1.0, driverScore)); //cap to 0-1
-        }
-
-
         return driverScore;
     }
 

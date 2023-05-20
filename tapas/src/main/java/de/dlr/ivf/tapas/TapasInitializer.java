@@ -3,10 +3,7 @@ package de.dlr.ivf.tapas;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
-import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeTree;
-import de.dlr.ivf.tapas.legacy.TPS_ModeChoiceTree;
-import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
-import de.dlr.ivf.tapas.legacy.TPS_Region;
+import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.misc.PrimaryDriverScoreFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.Modes;
@@ -87,7 +84,9 @@ public class TapasInitializer {
                 List.of(new Filter("key", parameters.getString(ParamString.DB_NAME_EKT))));
         TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,modes.getModes());
 
-        ModeDistributionCalculator modeDistributionCalculator = new ModeDistributionCalculator(modes);
+        //todo init utility function
+        TPS_UtilityFunction utilityFunction = null;
+        ModeDistributionCalculator modeDistributionCalculator = new ModeDistributionCalculator(modes, utilityFunction);
         dataStoreBuilder.modeSet(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator));
 
         //person groups
@@ -165,7 +164,7 @@ public class TapasInitializer {
                         system -> system
                 ));
 
-        TPS_Region region = dbIo.readRegion(settlementSystems);
+        TPS_Region region = dbIo.readRegion();
 
 
 

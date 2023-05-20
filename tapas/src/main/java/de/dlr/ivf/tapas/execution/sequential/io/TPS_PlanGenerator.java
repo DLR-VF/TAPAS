@@ -91,17 +91,6 @@ public class TPS_PlanGenerator{
                     continue;
                 }
 
-                // check if age adaptation should occur
-                if (this.pm.getParameters().isTrue(ParamFlag.FLAG_REJUVENATE_RETIREE)) {
-                    if (person.getAge() >= this.pm.getParameters().getIntValue(ParamValue.REJUVENATE_AGE)) {
-                        if (TPS_Logger.isLogging(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG)) {
-                               TPS_Logger.log(HierarchyLogLevel.PERSON, SeverityLogLevel.DEBUG,
-                                       "Person's age gets adapted");
-                        }
-                         person.setAgeAdaption(true, this.pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
-                    }
-                }
-
                 TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, pm.getParameters());
                 TPS_Scheme scheme = pm.getSchemesSet().findScheme(person);
                 TPS_Plan the_plan = new TPS_Plan(person,pe,scheme);
@@ -110,12 +99,12 @@ public class TPS_PlanGenerator{
                 //we only take plans into account that have at least one trip //todo fixme?
                 if(the_plan.getScheme().getSchemeParts().size() > 1)
                     household_plans.add(the_plan);
-                person.setAgeAdaption(false, pm.getParameters().getIntValue(ParamValue.REJUVENATE_BY_NB_YEARS));
             }
 
             this.plans.addAll(household_plans);
             //now initialize the household car mediator
-            hh.initializeCarMediator(hh, household_plans);
+            //todo might need a fix
+            //hh.initializeCarMediator(hh, household_plans);
         }
         return plans;
     }

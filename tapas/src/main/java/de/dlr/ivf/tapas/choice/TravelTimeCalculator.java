@@ -11,8 +11,8 @@ import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -107,7 +107,7 @@ public class TravelTimeCalculator {
     }
 
     // signature matches getTravelTime from TPS_Mode
-    public double getTravelTime(TPS_Mode mode, Locatable start, Locatable end, int time, TPS_ActivityConstant actCodeFrom, TPS_ActivityConstant actCodeTo, TPS_Person person, TPS_Car car){
+    public double getTravelTime(TPS_Mode mode, Locatable start, Locatable end, int time, TPS_ActivityConstant actCodeFrom, TPS_ActivityConstant actCodeTo, TPS_Person person, Vehicle car){
 
         double travelTime = modeTravelTimeFunctions.get(mode).apply(start, end, time);
 

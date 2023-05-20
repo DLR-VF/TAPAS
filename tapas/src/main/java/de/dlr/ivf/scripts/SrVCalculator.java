@@ -8,6 +8,7 @@
 
 package de.dlr.ivf.scripts;
 
+import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -388,7 +389,7 @@ public class SrVCalculator {
             int area, count, maxTaz = 0;
             ResultSet rs = this.dbConnection.executeQuery(query, this);
             while (rs.next()) {
-                int[] tazes = TPS_DB_IO.extractIntArray(rs, "taz_values");
+                int[] tazes = Helpers.extractIntArray(rs, "taz_values");
                 area = rs.getInt("map_value");
                 for (int taz : tazes) {
                     maxTaz = Math.max(taz, maxTaz);
@@ -474,7 +475,7 @@ public class SrVCalculator {
             ResultSet rs = this.dbConnection.executeQuery(querry, this);
             if (rs.next()) {
                 int[] iArray;
-                iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+                iArray = Helpers.extractIntArray(rs, "matrix_values");
                 int len = (int) Math.sqrt(iArray.length);
                 if (len != matrix.length) {
                     System.err.println("Error length " + len + " is not " + matrix.length);

@@ -12,7 +12,9 @@ import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.model.person.TPS_Car;
+import de.dlr.ivf.tapas.model.vehicle.CarController;
+import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -20,7 +22,10 @@ import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
 
 
@@ -76,11 +81,18 @@ public class LocationAndModeChooser {
                 pc.carForThisPlan = tourpart.getCar();
             } else if (!pc.influenceCarUsageInPlan) {
                 //check if a car could be used
+                //todo law of demeter
+                CarFleetManager hhCarFleetManager = plan.getPerson().getHousehold().getCarFleetManager();
+
                 pc.carForThisPlan = null; // will be overwritten, if a car can be used
-                TPS_Car tmpCar = TPS_Car.selectCar(plan, tourpart);
+                int carUsageDuration = (int)tourpart.getOriginalSchemePartEnd() - (int)tourpart.getOriginalSchemePartStart();
+
+                List<CarController> availableCars = hhCarFleetManager.getAvailableCarsNonRestrictedFirst((int)tourpart.getOriginalSchemePartStart(), carUsageDuration);
+
+                CarController tmpCar = availableCars.size() == 0 ? null : availableCars.get(0);
                 if(tmpCar != null) {
-                    if (plan.getPerson().mayDriveACar(tmpCar,automaticVehicleMinDriverAge,automaticVehicleLevel)){
-                        pc.carForThisPlan = tmpCar; // this person can use this car
+                    if (plan.getPerson().mayDriveACar(tmpCar.getCar(),automaticVehicleMinDriverAge,automaticVehicleLevel)){
+                        pc.carForThisPlan = tmpCar.getCar(); // this person can use this car
                         plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.PERSON_DRIVING_LICENSE_CODE,
                                 TPS_DrivingLicenseInformation.CAR.getCode());   //update this attribute because
                         //an automated car may have changed it
@@ -198,7 +210,7 @@ public class LocationAndModeChooser {
                         currentLocatedStay.setModeDep(tourpart.getUsedMode());
                     } else {
                         TPS_Location pLocGoingTo = plan.getLocatedStay(goingTo).getLocation();
-                        TPS_Car tmpCar = pc.carForThisPlan;
+                        Vehicle tmpCar = pc.carForThisPlan;
                         if (tmpCar != null && tmpCar.isRestricted() &&
                                 (currentLocatedStay.getLocation().getTrafficAnalysisZone().isRestricted() ||
                                         pLocGoingTo.getTrafficAnalysisZone().isRestricted())) {

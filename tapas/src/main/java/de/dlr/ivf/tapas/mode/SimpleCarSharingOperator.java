@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.mode;
 import de.dlr.ivf.tapas.model.mode.SharingMediator;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.runtime.server.SimTimeProvider;
 import de.dlr.ivf.tapas.util.FuncUtils;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
@@ -18,10 +19,10 @@ import java.util.function.Predicate;
 /**
  * This is a basic implementation of a car sharing operator and provides request/checkout/checkin functionality
  */
-public class SimpleCarSharingOperator implements SharingMediator<TPS_Car> {
+public class SimpleCarSharingOperator implements SharingMediator<Vehicle> {
 
     //private final Map<TPS_Car, AtomicBoolean> fleet = new ConcurrentHashMap<>();
-    private final BlockingDeque<TPS_Car> fleet = new LinkedBlockingDeque<>();
+    private final BlockingDeque<Vehicle> fleet = new LinkedBlockingDeque<>();
     private SimTimeProvider sim_time_provider;
 
     /**
@@ -34,10 +35,15 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car> {
     }
 
 
-    private TPS_Car generateSimpleCar(IntSupplier id_provider, double cost_per_km, int entry_time) {
+    private Vehicle generateSimpleCar(IntSupplier id_provider, double cost_per_km, int entry_time) {
 
-        TPS_Car car = new TPS_Car(-id_provider.getAsInt(),0,cost_per_km,false,0);
-        car.setEntryTime(entry_time);
+        Vehicle car = TPS_Car.builder()
+                .id(-id_provider.getAsInt())
+                .fixCosts(0)
+                .cost_per_kilometer(cost_per_km)
+                .restricted(false)
+                .build();
+        //car.setEntryTime(entry_time);
         return car;
     }
 
@@ -60,16 +66,16 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car> {
     }
 
     @Override
-    public Optional<TPS_Car> request(Predicate<TPS_Car> external_filter) {
+    public Optional<Vehicle> request(Predicate<Vehicle> external_filter) {
 
-        TPS_Car available_car = null;
+        Vehicle available_car = null;
 
         synchronized (fleet){
 
-            Iterator<TPS_Car> car_iterator = fleet.descendingIterator();
+            Iterator<Vehicle> car_iterator = fleet.descendingIterator();
 
             while(available_car == null && car_iterator.hasNext()){
-                TPS_Car potential_car = car_iterator.next();
+                Vehicle potential_car = car_iterator.next();
 
                 if(external_filter.test(potential_car)){
                     available_car = potential_car;
@@ -83,21 +89,21 @@ public class SimpleCarSharingOperator implements SharingMediator<TPS_Car> {
     }
 
     @Override
-    public void checkIn(TPS_Car used_vehicle) {
+    public void checkIn(Vehicle used_vehicle) {
 
-        used_vehicle.setEntryTime(sim_time_provider.getSimTime());
+        //used_vehicle.setEntryTime(sim_time_provider.getSimTime());
         synchronized (fleet) {
             this.fleet.add(used_vehicle);
         }
     }
 
     @Override
-    public void checkOut(TPS_Car requested_vehicle) {
+    public void checkOut(Vehicle requested_vehicle) {
         this.fleet.remove(requested_vehicle);
     }
 
     @Override
-    public void release(TPS_Car requested_vehicle) {
+    public void release(Vehicle requested_vehicle) {
 
     }
 

@@ -48,7 +48,7 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBase
      * @param taz
      * @return
      */
-    public double getTravelTime(TPS_Plan plan, TPS_PlanningContext pc, TPS_ModeChoiceContext prevMCC, TPS_ModeChoiceContext nextMCC, TPS_TrafficAnalysisZone taz, TPS_ParameterClass parameterClass) {
+    public double getTravelTime(TPS_Plan plan, TPS_PlanningContext pc, TPS_ModeChoiceContext prevMCC, TPS_ModeChoiceContext nextMCC, TPS_TrafficAnalysisZone taz) {
         double distanceNetFrom = 0, distanceNetTo = 0;
         double weightedTT = -1;
         double ttC0, ttC1, modeProb, arrModeProb, depModeProb;

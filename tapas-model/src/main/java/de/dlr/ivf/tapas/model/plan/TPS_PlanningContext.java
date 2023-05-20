@@ -11,6 +11,7 @@ package de.dlr.ivf.tapas.model.plan;
 import de.dlr.ivf.tapas.model.vehicle.CarController;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 
 public class TPS_PlanningContext {
     // environment
@@ -18,7 +19,7 @@ public class TPS_PlanningContext {
 
     // plan
     public boolean influenceCarUsageInPlan;
-    public TPS_Car carForThisPlan;
+    public Vehicle carForThisPlan;
 
     public CarController hhCar;
     public boolean influenceBikeUsageInPlan;
@@ -62,7 +63,7 @@ public class TPS_PlanningContext {
         this.hhCar = car;
     }
 
-    public TPS_Car getHouseHoldCar() {
+    public Vehicle getHouseHoldCar() {
         return this.carForThisPlan;
     }
 

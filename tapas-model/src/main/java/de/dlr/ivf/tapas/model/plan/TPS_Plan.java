@@ -26,6 +26,7 @@ import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.scheme.*;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.parameter.CURRENCY;
 
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
     private static final boolean DEBUG = false;
     /// The environment for this plan
     public TPS_PlanEnvironment pe;
-    public List<TPS_Car> usedCars = new LinkedList<>();
+    public List<Vehicle> usedCars = new LinkedList<>();
     public boolean usesBike = false;
     public boolean mustPayToll = false;
     HashMap<TPS_Attribute, Integer> myAttributes = new HashMap<>();

@@ -38,4 +38,14 @@ public class HouseholdCar implements Vehicle {
     public boolean isRestricted() {
         return car.isRestricted();
     }
+
+    @Override
+    public int getAutomationLevel() {
+        return car.getAutomationLevel();
+    }
+
+    @Override
+    public double getRangeLeft() {
+        return car.getRangeLeft();
+    }
 }

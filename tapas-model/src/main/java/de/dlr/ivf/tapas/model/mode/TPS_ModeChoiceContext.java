@@ -12,6 +12,7 @@ package de.dlr.ivf.tapas.model.mode;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 
 public class TPS_ModeChoiceContext {
 
@@ -20,10 +21,10 @@ public class TPS_ModeChoiceContext {
     public TPS_Location fromStayLocation, toStayLocation;
     public double duration;
     public boolean isBikeAvailable;
-    public TPS_Car carForThisPlan;
+    public Vehicle carForThisPlan;
     public int startTime;
     public TPS_Mode combinedMode = null;
-    private TPS_Car car_sharing_car;
+    private Vehicle car_sharing_car;
 
     private TPS_Mode current_mode = null;
 
@@ -41,7 +42,7 @@ public class TPS_ModeChoiceContext {
         this.current_mode = mode;
     }
 
-    public TPS_Car getCarSharingCar(){
+    public Vehicle getCarSharingCar(){
         return this.car_sharing_car;
     }
 

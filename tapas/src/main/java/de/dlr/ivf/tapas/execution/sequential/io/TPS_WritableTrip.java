@@ -8,6 +8,7 @@ import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
@@ -28,7 +29,7 @@ public class TPS_WritableTrip {
     private TourContext tour_context;
     private TPS_Plan plan;
     private TPS_Trip trip;
-    private TPS_Car used_car;
+    private Vehicle used_car;
     private TPS_Stay nextStay;
     private TPS_Location prevLoc;
     private TPS_LocatedStay nextStayLocated;
@@ -48,7 +49,7 @@ public class TPS_WritableTrip {
         this.trip = tour_context.getNextTrip();
     }
 
-    private TPS_Car getUsedCar(TPS_Plan plan) {
+    private Vehicle getUsedCar(TPS_Plan plan) {
         TPS_PlanningContext pc = plan.getPlanningContext();
         return pc.getHouseHoldCar() == null ? pc.getCarSharingCar() : pc.getHouseHoldCar();
     }
@@ -160,7 +161,7 @@ public class TPS_WritableTrip {
     public int getCarType(){
         TPS_Mode.ModeType mode = plan.getPlannedTrip(trip).getMode().primary.getModeType();
         if(mode == TPS_Mode.ModeType.MIT || mode == TPS_Mode.ModeType.CAR_SHARING)
-            return this.used_car == null ? -1 : used_car.getId();
+            return this.used_car == null ? -1 : used_car.id();
         else
             return 9999999;
     }
@@ -202,7 +203,7 @@ public class TPS_WritableTrip {
     }
 
     public int getCarIndex(){
-        return used_car != null ? used_car.getId() : 99999;
+        return used_car != null ? used_car.id() : 99999;
     }
 
     public boolean getIsRestrictedCar(){

@@ -34,6 +34,8 @@ import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
+import de.dlr.ivf.tapas.util.Randomizer;
+import de.dlr.ivf.tapas.util.TPS_FastMath;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -44,9 +46,37 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
 
     private final boolean useTaxi;
 
-    public TPS_SelectWithMultipleAccessModeLogSum(TPS_ParameterClass parameterClass) {
+    private final double muScale;
+    private final double muInteract;
+    private final double calibFreeTimeHome;
+    private final double calibWork;
+    private final double calibEducation;
+    private final double calibShop;
+    private final double calibErrant;
+    private final double calibFreeTime;
+    private final double calibMisc;
+    private final double calibUniversity;
+    private final TPS_UtilityFunction utilityFunction;
+
+    public TPS_SelectWithMultipleAccessModeLogSum(TPS_ParameterClass parameterClass, TPS_UtilityFunction utilityFunction) {
         super(parameterClass);
+
+        this.utilityFunction = utilityFunction;
         this.useTaxi = parameterClass.isFalse(ParamFlag.FLAG_USE_TAXI);
+
+        // should be 1 if the logsums are in a normal range and not completely out of range
+        this.muScale = parameterClass.getDoubleValue(ParamValue.LOGSUM_WEIGHT_MU);
+        // this should be estimated in the logit model
+        this.muInteract = parameterClass.getDoubleValue(ParamValue.LOGSUM_INTERACT_MU);
+
+        this.calibFreeTimeHome = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_FREETIME_HOME);
+        this.calibWork = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_WORK);
+        this.calibEducation = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_EDUCATION);
+        this.calibShop = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_SHOP);
+        this.calibErrant = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_ERRANT);
+        this.calibFreeTime = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_FREETIME);
+        this.calibMisc = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_MISC);
+        this.calibUniversity = parameterClass.getDoubleValue(ParamValue.LOGSUM_CALIB_STUDENT);
     }
 
     public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {
@@ -63,16 +93,15 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
      * @param taz
      * @return
      */
-    public Double getLogSum(TPS_Plan plan, TPS_PlanningContext pc, TPS_ModeChoiceContext prevMCC, TPS_ModeChoiceContext nextMCC, TPS_TrafficAnalysisZone taz, TPS_ParameterClass parameterClass, double mu) {
+    public Double getLogSum(TPS_Plan plan, TPS_PlanningContext pc, TPS_ModeChoiceContext prevMCC, TPS_ModeChoiceContext nextMCC, TPS_TrafficAnalysisZone taz, double mu) {
 
         Double logSum = (double) 0;
         double arrModeLogSum, depModeLogSum;
 
 
         // The WALK-mode is used to get distances on the net.
-        double distanceNetTo = Math.max(parameterClass.getDoubleValue(ParamValue.MIN_DIST), distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
-        double distanceNetFrom = Math.max(parameterClass.getDoubleValue(ParamValue.MIN_DIST),
-                distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK));
+        double distanceNetTo = Math.max(this.minDist, distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
+        double distanceNetFrom = Math.max(this.minDist, distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK));
 
         arrModeLogSum = this.getModeLogSum(plan, pc, taz, distanceNetFrom, distanceNetFrom + distanceNetTo, prevMCC,
                 parameterClass, mu);
@@ -127,20 +156,22 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
                 continue;
             }
             //calc the value
-            utilities[i] = ((TPS_UtilityMNL) (TPS_Mode.getUtilityFunction())).getCostOfMode(mode, plan,
-                    travelTime, mcc, SimulationType.SCENARIO);
-            if (Double.isNaN(utilities[i])) {
-                utilities[i] = TPS_UtilityFunction.minModeProbability;
-                continue;
+            utilities[i] = utilityFunction instanceof TPS_UtilityMNL function ? function.getCostOfMode(mode, plan, travelTime, mcc, SimulationType.SCENARIO) : TPS_UtilityFunction.minModeProbability;
+            if (utilityFunction instanceof TPS_UtilityMNL function) {
+
+                utilities[i] = function.getCostOfMode(mode, plan, travelTime, mcc, SimulationType.SCENARIO);
+                if(Double.isNaN(utilities[i])) {
+                    utilities[i] = TPS_UtilityFunction.minModeProbability;
+                    continue;
+                }
             }
             // restricted cars will not enter restricted areas
-            if (pc.carForThisPlan != null && pc.carForThisPlan.isRestricted() && taz.isRestricted() && mode.isType(
-                    ModeType.MIT)) {
+            if (pc.carForThisPlan != null && pc.carForThisPlan.isRestricted() && taz.isRestricted() && mode.getModeType() == ModeType.MIT) {
                 continue;
             }
 
             //too long trips get capped for walk
-            if (mode.isType(ModeType.BIKE) && distanceNetInclReturn > parameterClass.getIntValue(
+            if (mode.getModeType() == ModeType.BIKE && distanceNetInclReturn > parameterClass.getIntValue(
                     ParamValue.MAX_WALK_DIST)) {
                 continue;
             }
@@ -159,18 +190,14 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
 
     @Override
     public TPS_Location selectLocationFromChoiceSet(TPS_RegionResultSet choiceSet, TPS_Plan plan, TPS_PlanningContext pc, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> coming_from, Supplier<TPS_Stay> going_to) {
-        if (this.PM == null) {
-            TPS_Logger.log(SeverityLogLevel.FATAL,
-                    "TPS_LocationSelectModel not properly initialized! Persistance manager is null?!?! Driving home!");
-            return plan.getPerson().getHousehold().getLocation();
-        }
+
         if (this.region == null) {
             TPS_Logger.log(SeverityLogLevel.FATAL,
                     "TPS_LocationSelectModel not properly initialized! Region is null?!?! Driving home!");
             return plan.getPerson().getHousehold().getLocation();
         }
 
-        if (!(TPS_Mode.getUtilityFunction() instanceof TPS_UtilityMNL)) { // no LogSum for non MNL-Models!
+        if (!(utilityFunction instanceof TPS_UtilityMNL)) { // no LogSum for non MNL-Models!
             super.selectLocationFromChoiceSet(choiceSet, plan, pc, locatedStay,coming_from,going_to);
         }
 
@@ -183,42 +210,38 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
         TPS_SettlementSystem regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();
-        double muScale = this.PM.getParameters().getDoubleValue(
-                ParamValue.LOGSUM_WEIGHT_MU); // should be 1 if the logsums are in a normal range and not completely out of range
-        double muInteract = this.PM.getParameters().getDoubleValue(
-                ParamValue.LOGSUM_INTERACT_MU); // this should be estimated in the logit model
 
         double calibFactor = 1;
         switch (actCode.getCode(TPS_ActivityCodeType.TAPAS)) {
             case 0: //free time home
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_FREETIME_HOME);
+                calibFactor = this.calibFreeTimeHome;
                 break;
             case 1: //work
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_WORK);
+                calibFactor = this.calibWork;
                 break;
             case 2: //education
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_EDUCATION);
+                calibFactor = this.calibEducation;
                 break;
             case 3: //shopping
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_SHOP);
+                calibFactor = this.calibShop;
                 break;
             case 4: //private matters
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_ERRANT);
+                calibFactor = this.calibErrant;
                 break;
             case 5: //free time
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_FREETIME);
+                calibFactor = this.calibFreeTime;
                 break;
             case 6: //misc
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_MISC);
+                calibFactor = this.calibMisc;
                 break;
             case 7: //university
-                calibFactor = this.PM.getParameters().getDoubleValue(ParamValue.LOGSUM_CALIB_STUDENT);
+                calibFactor = this.calibUniversity;
                 break;
             default:
                 calibFactor = 1;
                 break;
         }
-        muInteract *= calibFactor;
+        double mu = muInteract * calibFactor;
 
         // different cnf4-params according to the type of trip
         double cfn4 = region.getCfn().getCFN4Value(regionType, actCode);
@@ -263,7 +286,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
 //			Double beeLineDist = this.PM.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_BL, locComingFrom.getTAZId(), taz.getTAZId())+
 //								 this.PM.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_BL, taz.getTAZId(), locGoingTo.getTAZId())	;
 
-            Double weightedTT = this.getLogSum(plan, pc, prevMCC, nextMCC, taz, this.PM.getParameters(), muInteract);
+            Double weightedTT = this.getLogSum(plan, pc, prevMCC, nextMCC, taz, mu);
             if (!weightedTT.isNaN()) {
                 weightedTT = TPS_FastMath.exp(muScale * weightedTT); //use the activity based µ here..
                 //here we can switch between different Opportunity-weighting
@@ -281,8 +304,8 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
             double rand = Randomizer.random(); //uniform distribution from 0 to 1
             double posMicro = rand;
 
-            if (this.PM.getParameters().isDefined(ParamValue.GAMMA_LOCATION_WEIGHT)) {
-                posMicro = Math.pow(posMicro, this.PM.getParameters().getDoubleValue(ParamValue.GAMMA_LOCATION_WEIGHT));
+            if (this.gammaLocationWeightDefined) {
+                posMicro = Math.pow(posMicro, this.gammaLocationWeight);
             }
 
             posMicro *= sumWeight; // norm to max weight

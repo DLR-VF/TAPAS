@@ -7,6 +7,7 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -52,7 +53,7 @@ public class TPS_ModeValidator {
             chosen_mode.primary = modes.getMode(ModeType.PT);
     }
 
-    private void validateHouseHoldCarWithChosenMode(TPS_Car household_car, TPS_ExtMode chosen_mode) {
+    private void validateHouseHoldCarWithChosenMode(Vehicle household_car, TPS_ExtMode chosen_mode) {
 
         if(household_car == null)
             chosen_mode.primary = modes.getMode(ModeType.PT);

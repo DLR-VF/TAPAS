@@ -15,4 +15,6 @@ public interface Vehicle {
     boolean isRestricted();
 
     int getAutomationLevel();
+
+    double getRangeLeft();
 }

@@ -13,6 +13,7 @@ import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.model.Matrix;
@@ -581,9 +582,9 @@ public class TPS_SumoConverter {
                 // get number of matrices to load
                 int numOfMatrices = rs.getInt("matrixMap_num");
                 // get matrix names
-                String[] matrix_names = TPS_DB_IO.extractStringArray(rs, "matrixMap_matrixNames");
+                String[] matrix_names = Helpers.extractStringArray(rs, "matrixMap_matrixNames");
                 // get distribution
-                double[] thisDistribution = TPS_DB_IO.extractDoubleArray(rs, "matrixMap_distribution");
+                double[] thisDistribution = Helpers.extractDoubleArray(rs, "matrixMap_distribution");
                 rs.close();
                 // check sizes
                 if (numOfMatrices != matrix_names.length) {
@@ -604,7 +605,7 @@ public class TPS_SumoConverter {
                             ParamString.DB_TABLE_MATRICES) + " WHERE matrix_name='" + matrix_names[i] + "'";
                     rs = this.dbManager.executeQuery(query, this);
                     if (rs.next()) {
-                        int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
+                        int[] iArray = Helpers.extractIntArray(rs, "matrix_values");
                         int len = (int) Math.sqrt(iArray.length);
                         matrices[i] = new Matrix(len, len);
                         for (int index = 0; index < iArray.length; index++) {
@@ -674,7 +675,7 @@ public class TPS_SumoConverter {
             //update!
             query = "UPDATE " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
                     " SET matrix_values = ";
-            query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + " WHERE \"matrix_name\" = '" + matrixName + "'";
+            query += Helpers.matrixToSQLArray(mat, decimalPlaces) + " WHERE \"matrix_name\" = '" + matrixName + "'";
             if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
                 TPS_Logger.log(SeverityLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
                         this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");
@@ -682,7 +683,7 @@ public class TPS_SumoConverter {
         } else {
             query = "INSERT INTO " + this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) +
                     " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
-            query += TPS_DB_IO.matrixToSQLArray(mat, decimalPlaces) + ")";
+            query += Helpers.matrixToSQLArray(mat, decimalPlaces) + ")";
             if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
                 TPS_Logger.log(SeverityLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
                         this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRICES) + ".");

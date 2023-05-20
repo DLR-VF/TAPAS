@@ -13,9 +13,12 @@ import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
+import lombok.experimental.Helper;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -126,8 +129,8 @@ public class SumoMatrixImporter {
                     while (rs.next()) {
                         from = this.tazMap.get(rs.getInt("taz_id_start"));
                         to = this.tazMap.get(rs.getInt("taz_id_end"));
-                        tt = TPS_DB_IO.extractDoubleArray(rs, "travel_time_sec");
-                        dist = TPS_DB_IO.extractDoubleArray(rs, "distance_real");
+                        tt = Helpers.extractDoubleArray(rs, "travel_time_sec");
+                        dist = Helpers.extractDoubleArray(rs, "distance_real");
                         if(tt != null  && tt.length == 3 && dist != null && dist.length == 3) {
                             travelTime.setValue(from, to, Math.round(tt[2]));
                             distance.setValue(from, to, Math.round(dist[2]));
@@ -190,7 +193,7 @@ public class SumoMatrixImporter {
         if (converter.checkMatrixName(matrixName)) {
             //update!
             query = "UPDATE " + config.getMatricesTable().getUri() + " SET matrix_values = ";
-            query += TPS_DB_IO.matrixToSQLArray(matrix, 0) + " WHERE \"matrix_name\" = '" + matrixName + "'";
+            query += Helpers.matrixToSQLArray(matrix, 0) + " WHERE \"matrix_name\" = '" + matrixName + "'";
             if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
                 TPS_Logger.log(SeverityLogLevel.INFO, "Updating data for entry: " + matrixName + " in table " +
                         config.getMatricesTable().getUri() + ".");
@@ -198,7 +201,7 @@ public class SumoMatrixImporter {
         } else {
             query = "INSERT INTO " + config.getMatricesTable().getUri() +
                     " (matrix_name, matrix_values) VALUES ('" + matrixName + "', ";
-            query += TPS_DB_IO.matrixToSQLArray(matrix, 0) + ")";
+            query += Helpers.matrixToSQLArray(matrix, 0) + ")";
             if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
                 TPS_Logger.log(SeverityLogLevel.INFO, "Inserting data for entry: " + matrixName + " in table " +
                         config.getMatricesTable().getUri() + ".");
