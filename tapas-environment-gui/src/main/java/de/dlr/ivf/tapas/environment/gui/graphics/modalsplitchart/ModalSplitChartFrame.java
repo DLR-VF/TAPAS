@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.environment.gui.graphics.modalsplitchart;
 
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
+import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;

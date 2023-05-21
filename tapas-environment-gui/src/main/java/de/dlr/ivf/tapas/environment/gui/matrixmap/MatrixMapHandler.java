@@ -8,14 +8,9 @@
 
 package de.dlr.ivf.tapas.environment.gui.matrixmap;
 
+import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.model.TAPASMemoryModel;
 import de.dlr.ivf.tapas.matrixtool.matrixTool_v2.view.MatrixManipulatorFrame;
-import de.dlr.ivf.tapas.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.tools.TPS_Geometrics;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.ParamValue;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import java.awt.*;
@@ -632,30 +627,30 @@ public class MatrixMapHandler {
         this.closeConnection();
         this.setConnectionEnabled(false);
 
-        File configFile = TPS_BasicConnectionClass.getRuntimeFile(forceNewFile);
-        if (configFile.exists()) {
-            try {
-                TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-                parameterClass.loadRuntimeParameters(configFile);
-                this.serverText.setText(parameterClass.getString(ParamString.DB_HOST));
-                this.portText.setText(Integer.toString(parameterClass.getIntValue(ParamValue.DB_PORT)));
-                this.dbNameText.setText(parameterClass.getString(ParamString.DB_DBNAME));
-                this.userText.setText(parameterClass.getString(ParamString.DB_USER));
-                this.passwordField.setText(parameterClass.getString(ParamString.DB_PASSWORD));
-            } catch (IOException e) {
-                this.serverText.setText("129.247.221.173");
-                this.portText.setText("5433");
-                this.dbNameText.setText("tapas");
-                this.userText.setText("postgres");
-                this.passwordField.setText("postgres");
-            }
-        } else {
-            this.serverText.setText("129.247.221.173");
-            this.portText.setText("5433");
-            this.dbNameText.setText("tapas");
-            this.userText.setText("postgres");
-            this.passwordField.setText("postgres");
-        }
+//        File configFile = TPS_BasicConnectionClass.getRuntimeFile(forceNewFile);
+//        if (configFile.exists()) {
+//            try {
+//                TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+//                parameterClass.loadRuntimeParameters(configFile);
+//                this.serverText.setText(parameterClass.getString(ParamString.DB_HOST));
+//                this.portText.setText(Integer.toString(parameterClass.getIntValue(ParamValue.DB_PORT)));
+//                this.dbNameText.setText(parameterClass.getString(ParamString.DB_DBNAME));
+//                this.userText.setText(parameterClass.getString(ParamString.DB_USER));
+//                this.passwordField.setText(parameterClass.getString(ParamString.DB_PASSWORD));
+//            } catch (IOException e) {
+//                this.serverText.setText("129.247.221.173");
+//                this.portText.setText("5433");
+//                this.dbNameText.setText("tapas");
+//                this.userText.setText("postgres");
+//                this.passwordField.setText("postgres");
+//            }
+//        } else {
+//            this.serverText.setText("129.247.221.173");
+//            this.portText.setText("5433");
+//            this.dbNameText.setText("tapas");
+//            this.userText.setText("postgres");
+//            this.passwordField.setText("postgres");
+//        }
 
     }
 
@@ -1393,66 +1388,66 @@ public class MatrixMapHandler {
             JOptionPane.showMessageDialog(this.controlInstance, rb.getString("MANIPULATE_MATRIX_SELECT_FIRST_DIALOG"));
             return;
         }
-        try {
-            List<String> selection = this.matrixList.getSelectedValuesList();
-
-            for (String entry : selection) {
-                //load the data from the db
-                String query = "SELECT * FROM core." + this.matrixDBNameComboBox.getSelectedItem().toString() +
-                        " WHERE \"matrix_name\" = '" + entry + "'";
-                ResultSet rs = statement.executeQuery(query);
-                if (rs.next()) {
-                    Object array = rs.getArray(2).getArray();
-                    if (array instanceof Integer[]) {
-                        //parse data to memory model
-                        Integer[] matrixVal = (Integer[]) array;
-                        int size = (int) Math.sqrt(matrixVal.length);
-                        if (size * size != matrixVal.length) {
-                            JOptionPane.showMessageDialog(this.controlInstance, rb.getString("MATRIX_NOT_SQUARE"));
-                        } else {
-                            double[][] values = TPS_BasicConnectionClass.array1Dto2D(matrixVal);
-
-                            TPS_Geometrics.calcTop3(values);
-
-                            String name = entry;
-                            name = JOptionPane.showInputDialog(this.controlInstance,
-                                    rb.getString("ENTER_MATRIX_NAME_DIALOG"), name);
-                            int overWrite = JOptionPane.NO_OPTION;
-                            if (name.equals(entry)) {
-                                overWrite = JOptionPane.showConfirmDialog(this.controlInstance,
-                                        rb.getString("OVERWRITE_MATRIX_DIALOG"), rb.getString("OVERWRITE_MATRIX_TITLE"),
-                                        JOptionPane.YES_NO_OPTION);
-                                if (JOptionPane.NO_OPTION == overWrite) {
-                                    return;
-                                }
-                            }
-
-
-                            int answer = JOptionPane.showConfirmDialog(this.controlInstance,
-                                    rb.getString("SAVE_TO_DATABASE_DIALOG"), rb.getString("SAVE_CHANGES"),
-                                    JOptionPane.YES_NO_OPTION);
-                            if (JOptionPane.YES_OPTION == answer) {
-                                if (overWrite == JOptionPane.YES_OPTION) {
-                                    //save data back
-                                    query = "UPDATE core." + this.matrixDBNameComboBox.getSelectedItem().toString() +
-                                            " SET matrix_values = " + TPS_BasicConnectionClass.matrixToSQLArray(values,
-                                            0) + " WHERE \"matrix_name\" = '" + entry + "'";
-                                } else {
-                                    query = "INSERT INTO core." +
-                                            this.matrixDBNameComboBox.getSelectedItem().toString() + " VALUES ('" +
-                                            name + "'," + TPS_BasicConnectionClass.matrixToSQLArray(values, 0) + ")";
-                                }
-
-                                statement.execute(query);
-                                loadMatrixList();
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            List<String> selection = this.matrixList.getSelectedValuesList();
+//
+//            for (String entry : selection) {
+//                //load the data from the db
+//                String query = "SELECT * FROM core." + this.matrixDBNameComboBox.getSelectedItem().toString() +
+//                        " WHERE \"matrix_name\" = '" + entry + "'";
+//                ResultSet rs = statement.executeQuery(query);
+//                if (rs.next()) {
+//                    Object array = rs.getArray(2).getArray();
+//                    if (array instanceof Integer[]) {
+//                        //parse data to memory model
+//                        Integer[] matrixVal = (Integer[]) array;
+//                        int size = (int) Math.sqrt(matrixVal.length);
+//                        if (size * size != matrixVal.length) {
+//                            JOptionPane.showMessageDialog(this.controlInstance, rb.getString("MATRIX_NOT_SQUARE"));
+//                        } else {
+//                            double[][] values = Helpers.array1Dto2D(matrixVal);
+//
+//                            TPS_Geometrics.calcTop3(values);
+//
+//                            String name = entry;
+//                            name = JOptionPane.showInputDialog(this.controlInstance,
+//                                    rb.getString("ENTER_MATRIX_NAME_DIALOG"), name);
+//                            int overWrite = JOptionPane.NO_OPTION;
+//                            if (name.equals(entry)) {
+//                                overWrite = JOptionPane.showConfirmDialog(this.controlInstance,
+//                                        rb.getString("OVERWRITE_MATRIX_DIALOG"), rb.getString("OVERWRITE_MATRIX_TITLE"),
+//                                        JOptionPane.YES_NO_OPTION);
+//                                if (JOptionPane.NO_OPTION == overWrite) {
+//                                    return;
+//                                }
+//                            }
+//
+//
+//                            int answer = JOptionPane.showConfirmDialog(this.controlInstance,
+//                                    rb.getString("SAVE_TO_DATABASE_DIALOG"), rb.getString("SAVE_CHANGES"),
+//                                    JOptionPane.YES_NO_OPTION);
+//                            if (JOptionPane.YES_OPTION == answer) {
+//                                if (overWrite == JOptionPane.YES_OPTION) {
+//                                    //save data back
+//                                    query = "UPDATE core." + this.matrixDBNameComboBox.getSelectedItem().toString() +
+//                                            " SET matrix_values = " + TPS_BasicConnectionClass.matrixToSQLArray(values,
+//                                            0) + " WHERE \"matrix_name\" = '" + entry + "'";
+//                                } else {
+//                                    query = "INSERT INTO core." +
+//                                            this.matrixDBNameComboBox.getSelectedItem().toString() + " VALUES ('" +
+//                                            name + "'," + TPS_BasicConnectionClass.matrixToSQLArray(values, 0) + ")";
+//                                }
+//
+//                                statement.execute(query);
+//                                loadMatrixList();
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**

@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class LocationCodeDto {
 
-    @Column("int")
+    @Column("id")
     private int id;
 
     @Column("description")

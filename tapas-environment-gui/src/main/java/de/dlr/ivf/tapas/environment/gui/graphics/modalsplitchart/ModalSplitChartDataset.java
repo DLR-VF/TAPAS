@@ -10,7 +10,7 @@ package de.dlr.ivf.tapas.environment.gui.graphics.modalsplitchart;
 
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
-import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.Quality;
+import de.dlr.ivf.tapas.environment.gui.graphics.qualitychart.Quality;
 import org.jfree.data.DomainOrder;
 import org.jfree.data.xy.AbstractXYDataset;
 

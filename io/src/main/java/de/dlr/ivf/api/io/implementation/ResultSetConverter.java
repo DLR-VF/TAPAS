@@ -29,7 +29,7 @@ public class ResultSetConverter<T> extends ColumnMappingConverter<ResultSet, T> 
     }
 
     @Override
-    public T convert(@NonNull ResultSet dto) {
+    public T convert(@NonNull ResultSet objectToConvert) {
 
         T convertedObject = getObjectFactory().get();
 
@@ -37,19 +37,20 @@ public class ResultSetConverter<T> extends ColumnMappingConverter<ResultSet, T> 
 
             String columnName = fieldEntry.getKey();
             Field field = fieldEntry.getValue();
+            field.setAccessible(true);
 
             try {
 
-                Object valueToSet = dto.getObject(columnName);
+                Object valueToSet = objectToConvert.getObject(columnName);
                 if (valueToSet instanceof Array array) {
                     if (array.getArray() == null) {
-                        field.set(dto, new Object[0]);
+                        field.set(convertedObject, new Object[0]);
                     } else {
-                        field.set(dto, array.getArray());
+                        field.set(convertedObject, array.getArray());
                     }
 
                 } else {
-                    field.set(dto, dto.getObject(columnName));
+                    field.set(convertedObject, valueToSet);
                 }
             }catch (SQLException e){
                 e.printStackTrace();

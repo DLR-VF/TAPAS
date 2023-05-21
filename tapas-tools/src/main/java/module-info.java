@@ -1,5 +1,6 @@
 module de.dlr.ivf.tapas.tools {
     exports de.dlr.ivf.tapas.tools;
+    exports de.dlr.ivf.tapas.tools.fileModifier;
     requires java.sql;
     requires java.desktop;
 

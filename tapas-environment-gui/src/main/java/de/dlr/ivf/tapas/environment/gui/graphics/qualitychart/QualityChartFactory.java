@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.environment.gui.graphics.qualitychart;
 
-import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.QualityChartDataset.Key;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartFrame;
 import org.jfree.chart.ChartUtils;
@@ -19,6 +18,8 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
+
+import de.dlr.ivf.tapas.environment.gui.graphics.qualitychart.QualityChartDataset.Key;
 
 import java.awt.*;
 import java.io.File;
@@ -133,7 +134,7 @@ public class QualityChartFactory {
         renderer.setSeriesVisibleInLegend(i, true);
         renderer.setSeriesPaint(i, Color.BLACK);
 
-        i = dataset.indexOf(Key.UPPER_GEH5);
+        i = dataset.indexOf(QualityChartDataset.Key.UPPER_GEH5);
         renderer.setSeriesLinesVisible(i, true);
         renderer.setSeriesShapesVisible(i, false);
         renderer.setSeriesVisibleInLegend(i, false);

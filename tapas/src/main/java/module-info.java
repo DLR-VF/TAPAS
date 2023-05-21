@@ -26,6 +26,8 @@ module de.dlr.ivf.tapas {
     requires de.dlr.ivf.api.converter;
     requires javacsv;
 
+    opens de.dlr.ivf.tapas to com.fasterxml.jackson.databind;
+    opens de.dlr.ivf.tapas.dto to de.dlr.ivf.api.io;
     exports de.dlr.ivf.tapas;
 
 }

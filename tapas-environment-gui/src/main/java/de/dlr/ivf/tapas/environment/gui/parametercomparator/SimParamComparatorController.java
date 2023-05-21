@@ -8,10 +8,6 @@
 
 package de.dlr.ivf.tapas.environment.gui.parametercomparator;
 
-import de.dlr.ivf.tapas.parameter.ParamFlag;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.ParamValue;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -31,6 +27,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
 
 import java.net.URL;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -39,7 +36,7 @@ import java.util.function.Function;
 public class SimParamComparatorController implements Initializable {
 
     private final String simkey1, simkey2;
-    private final TPS_DB_Connector conn;
+    private final Connection conn;
     @FXML
     private TableView<SimParamComparatorObject> tvSimComparator;
     @FXML
@@ -58,7 +55,7 @@ public class SimParamComparatorController implements Initializable {
     private FilteredList<SimParamComparatorObject> lst;
 
 
-    public SimParamComparatorController(String simkey1, String simkey2, TPS_DB_Connector conn) {
+    public SimParamComparatorController(String simkey1, String simkey2, Connection conn) {
         this.simkey1 = simkey1;
         this.simkey2 = simkey2;
         this.para_header = new SimpleStringProperty("Parameters");
@@ -84,17 +81,17 @@ public class SimParamComparatorController implements Initializable {
                             "') AS A " + "ON Z.param_key = A.param_key " +
                             "FULL OUTER JOIN (SELECT * FROM simulation_parameters WHERE sim_key = '" + simkey2 +
                             "') AS B " + "ON Z.param_key = B.param_key " + "ORDER BY Z.param_key";
-                    rs = conn.executeQuery(query, SimParamComparatorController.class);
+                    rs = conn.prepareStatement(query).executeQuery();
 
                     Function<Object, String> handle_nulls = str -> str == null ? "" : str.toString();
                     Map<String, String> tps_parameters = new HashMap<>();
 
-                    Arrays.stream(ParamString.values()).forEach(param -> tps_parameters.put(param.name(),
-                            handle_nulls.apply((new TPS_ParameterClass()).paramStringClass.getPreset(param))));
-                    Arrays.stream(ParamValue.values()).forEach(param -> tps_parameters.put(param.name(),
-                            handle_nulls.apply((new TPS_ParameterClass()).paramValueClass.getPreset(param))));
-                    Arrays.stream(ParamFlag.values()).forEach(param -> tps_parameters.put(param.name(),
-                            handle_nulls.apply((new TPS_ParameterClass()).paramFlagClass.getPreset(param))));
+//                    Arrays.stream(ParamString.values()).forEach(param -> tps_parameters.put(param.name(),
+//                            handle_nulls.apply((new TPS_ParameterClass()).paramStringClass.getPreset(param))));
+//                    Arrays.stream(ParamValue.values()).forEach(param -> tps_parameters.put(param.name(),
+//                            handle_nulls.apply((new TPS_ParameterClass()).paramValueClass.getPreset(param))));
+//                    Arrays.stream(ParamFlag.values()).forEach(param -> tps_parameters.put(param.name(),
+//                            handle_nulls.apply((new TPS_ParameterClass()).paramFlagClass.getPreset(param))));
 
                     while (rs.next()) {
                         lst.add(new SimParamComparatorObject(rs.getString("key"),

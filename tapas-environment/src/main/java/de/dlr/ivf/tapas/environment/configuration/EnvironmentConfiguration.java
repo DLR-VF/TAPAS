@@ -3,8 +3,8 @@ package de.dlr.ivf.tapas.environment.configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.configuration.model.UrlLoginFileReference;
 import lombok.*;
 
 @ToString
@@ -16,11 +16,14 @@ public class EnvironmentConfiguration {
 
     @JsonProperty
     @JsonSetter(nulls = Nulls.SET)
-    private final UrlLoginFileReference references;
+    private final ConnectionDetails connectionDetails;
 
     @JsonProperty
     private final DataSource simulationsTable;
 
     @JsonProperty
     private final DataSource serverTable;
+
+    @JsonProperty
+    private final DataSource parameterTable;
 }

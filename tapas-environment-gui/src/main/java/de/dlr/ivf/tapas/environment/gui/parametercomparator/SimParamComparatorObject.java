@@ -8,9 +8,6 @@
 
 package de.dlr.ivf.tapas.environment.gui.parametercomparator;
 
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.ParamValue;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.util.Arrays;
@@ -48,10 +45,10 @@ public class SimParamComparatorObject {
 
     //testing purposes
     public static void main(String... args) {
-        Arrays.stream(ParamString.values()).forEach(
-                e -> System.out.println(e.name() + " | " + (new TPS_ParameterClass()).paramStringClass.getPreset(e)));
-        Arrays.stream(ParamValue.values()).forEach(
-                e -> System.out.println(e.name() + " | " + (new TPS_ParameterClass()).paramValueClass.getPreset(e)));
+//        Arrays.stream(ParamString.values()).forEach(
+//                e -> System.out.println(e.name() + " | " + (new TPS_ParameterClass()).paramStringClass.getPreset(e)));
+//        Arrays.stream(ParamValue.values()).forEach(
+//                e -> System.out.println(e.name() + " | " + (new TPS_ParameterClass()).paramValueClass.getPreset(e)));
     }
 
     public String getDefaultValue() {

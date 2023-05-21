@@ -11,8 +11,8 @@ package de.dlr.ivf.tapas.environment.gui.graphics.modalsplitchart;
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 import de.dlr.ivf.tapas.analyzer.tum.results.CalibrationResultsReader;
-import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.QualityChartData;
-import de.dlr.ivf.tapas.runtime.client.Graphics.QualityChart.ReferenceDBReader;
+import de.dlr.ivf.tapas.environment.gui.graphics.qualitychart.QualityChartData;
+import de.dlr.ivf.tapas.environment.gui.graphics.qualitychart.ReferenceDBReader;
 
 import java.io.IOException;
 import java.util.ArrayList;

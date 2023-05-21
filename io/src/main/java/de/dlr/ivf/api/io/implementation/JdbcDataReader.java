@@ -29,9 +29,6 @@ public class JdbcDataReader implements DataReader<ResultSet> {
     @Override
     public <T> Collection<T> read(Converter<ResultSet, T> objectFactory, DataSource dataSource) {
 
-        if(!(dataSource instanceof RemoteDataSource remoteDataSource))
-            throw new IllegalArgumentException("The provided datasource: " + dataSource + " is not a RemoteDataSource");
-
         Collection<T> readObjects = new ArrayList<>();
 
         Optional<Collection<Filter>> dataFilter = dataSource.getFilter();

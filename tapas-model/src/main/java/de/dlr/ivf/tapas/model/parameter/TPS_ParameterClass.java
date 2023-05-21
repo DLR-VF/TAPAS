@@ -34,7 +34,7 @@ import java.util.*;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class TPS_ParameterClass {
 
-    public String SIM_DIR;
+    public String SIM_DIR ="./";
     /**
      * Name of the binary folder
      */
@@ -368,7 +368,7 @@ public class TPS_ParameterClass {
      * @throws IOException           This exception is thrown if there occurs
      *                               a read error
      */
-    private boolean consumeParameter(String key, String value, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) {
+    private boolean consumeParameter(File currentPath, String key, String value, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) {
         boolean consumed = false;
         if (!consumed) {
             try {
@@ -414,13 +414,15 @@ public class TPS_ParameterClass {
                         case FILE_LOGGING_PROPERTIES:
                         case FILE_PARAMETER_PROPERTIES:
                         case FILE_PARENT_PROPERTIES:
-                            String propertiesFileName = this.getString(ps);
-                            Path parentFile = Paths.get(propertiesFileName);
-                            if(!Files.isRegularFile(parentFile))
-                                throw new IllegalArgumentException("an invalid file path for: "+propertiesFileName);
-
-                            this.parameterFiles.push(parentFile.toFile());
-
+                            if (currentPath != null) {
+                                String propertiesFileName = this.getString(ps);
+                                File thisPath = new File(currentPath.getAbsolutePath());
+                                while (propertiesFileName.startsWith("./")) {
+                                    thisPath = thisPath.getParentFile();
+                                    propertiesFileName = propertiesFileName.substring(2);
+                                }
+                                this.parameterFiles.push(new File(thisPath, propertiesFileName));
+                            }
                             break;
                         default:
                             // everything ok
@@ -646,16 +648,27 @@ public class TPS_ParameterClass {
         EnumSet<ParamString> stringSet = EnumSet.allOf(ParamString.class);
         EnumSet<ParamValue> valueSet = EnumSet.allOf(ParamValue.class);
 
-//        absPath = absPath.getParentFile();
-//        File absInput = new File(absPath, INPUT_DIR);
-//        this.setString(ParamString.PATH_ABS_INPUT, absInput.getPath());
-//        this.setString(ParamString.PATH_ABS_OUTPUT, this.getString(ParamString.PATH_ABS_PROPERTIES));
-//        stringSet.remove(ParamString.PATH_ABS_INPUT);
-//        stringSet.remove(ParamString.PATH_ABS_OUTPUT);
+        this.setString(ParamString.PATH_ABS_PROPERTIES, runPropertiesFile.getParent());
+        stringSet.remove(ParamString.PATH_ABS_PROPERTIES);
 
-        load(runPropertiesFile, flagSet, stringSet, valueSet);
+        File absPath = runPropertiesFile;
+        while (!SIM_DIR.startsWith(absPath.getName())) {
+            absPath = absPath.getParentFile();
+        }
+        absPath = absPath.getParentFile();
+        File absInput = new File(absPath, INPUT_DIR);
+        this.setString(ParamString.PATH_ABS_INPUT, absInput.getPath());
+        this.setString(ParamString.PATH_ABS_OUTPUT, this.getString(ParamString.PATH_ABS_PROPERTIES));
+        stringSet.remove(ParamString.PATH_ABS_INPUT);
+        stringSet.remove(ParamString.PATH_ABS_OUTPUT);
 
-        generateTemporaryParameters();
+        this.parameterFiles.push(runPropertiesFile);
+
+        File actFile = null;
+        while (!this.parameterFiles.empty()) {
+            actFile = this.parameterFiles.pop();
+            load(actFile.getParentFile(), actFile, flagSet, stringSet, valueSet);
+        }
     }
 
     /**
@@ -677,7 +690,7 @@ public class TPS_ParameterClass {
      * @throws FileNotFoundException if the file is not found
      * @throws IOException           if there occurs a read error
      */
-    private void load(File propertiesFile, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) throws FileNotFoundException, IOException {
+    private void load(File currentPath, File propertiesFile, EnumSet<ParamFlag> flagSet, EnumSet<ParamString> stringSet, EnumSet<ParamValue> valueSet) throws FileNotFoundException, IOException {
         boolean consumed;
         String key;
         String value;
@@ -687,7 +700,7 @@ public class TPS_ParameterClass {
         while (reader.readRecord()) {
             key = reader.get(0);
             value = reader.get(1);
-            consumed = consumeParameter(key, value, flagSet, stringSet, valueSet);
+            consumed = consumeParameter(currentPath, key, value, flagSet, stringSet, valueSet);
             if (consumed) {
                 counter++;
             }

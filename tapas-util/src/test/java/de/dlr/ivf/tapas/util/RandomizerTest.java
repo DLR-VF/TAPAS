@@ -1,4 +1,4 @@
-/*
+package de.dlr.ivf.tapas.util;/*
  * Copyright (c) 2020 DLR Institute of Transport Research
  * All rights reserved.
  *
@@ -6,9 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.util;
-
-import de.dlr.ivf.tapas.util.Randomizer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +19,7 @@ class RandomizerTest {
         double rand = 0.5;
         double std = 1;
         double mean = 2;
-        assertEquals(Randomizer.randomGaussianDistribution(() -> rand, mean, std), rand * std + mean);
+        Assertions.assertEquals(Randomizer.randomGaussianDistribution(() -> rand, mean, std), rand * std + mean);
     }
 
     @Test

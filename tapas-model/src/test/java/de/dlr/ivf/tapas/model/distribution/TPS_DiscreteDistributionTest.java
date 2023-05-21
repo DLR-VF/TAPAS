@@ -1,12 +1,10 @@
-/*
+package de.dlr.ivf.tapas.model.distribution;/*
  * Copyright (c) 2020 DLR Institute of Transport Research
  * All rights reserved.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
-package de.dlr.ivf.tapas.distribution;
 
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import org.junit.jupiter.api.BeforeEach;

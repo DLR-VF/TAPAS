@@ -11,11 +11,10 @@ package de.dlr.ivf.tapas.environment.gui.graphics.qualitychart;
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategoryDefault;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Mode;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ public class ReferenceDBReader {
      */
     private static final double BERLIN_TRIPS = 3416255 * 3.4;
 
-    private final TPS_DB_Connector dbCon;
+    private final Connection dbCon;
     private final String referenceKey;
 
     /**
@@ -44,13 +43,10 @@ public class ReferenceDBReader {
      * @throws ClassNotFoundException
      */
     public ReferenceDBReader(String referenceKey) throws IOException, ClassNotFoundException {
-        try {
-            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-            parameterClass.loadRuntimeParameters(new File(loginInfo));
-            dbCon = new TPS_DB_Connector(parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
-            throw e; // handle that outside of the class
-        }
+
+
+            dbCon = null;
+
 
         this.referenceKey = referenceKey;
 
@@ -84,7 +80,7 @@ public class ReferenceDBReader {
         HashMap<DistanceCategoryDefault, QualityChartData> dcData = new HashMap<>();
 
         try {
-            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
+            ResultSet rs = dbCon.createStatement().executeQuery(q);
 
             while (rs.next()) {
                 DistanceCategoryDefault dc = DistanceCategoryDefault.getById(rs.getInt("inner_key"));
@@ -108,7 +104,7 @@ public class ReferenceDBReader {
         q = "SELECT inner_key,cnt_trips,quality FROM reference WHERE outer_key='" + oKey + "'";
 
         try {
-            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
+            ResultSet rs = dbCon.createStatement().executeQuery(q);
 
             while (rs.next()) {
                 String[] keys = rs.getString("inner_key").split(";");
