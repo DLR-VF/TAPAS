@@ -1,6 +1,7 @@
 package de.dlr.ivf.api.io.implementation;
 
 import de.dlr.ivf.api.io.ColumnMappingConverter;
+import de.dlr.ivf.api.io.SqlArrayUtils;
 import lombok.NonNull;
 
 import java.lang.reflect.Field;
@@ -46,7 +47,15 @@ public class ResultSetConverter<T> extends ColumnMappingConverter<ResultSet, T> 
                     if (array.getArray() == null) {
                         field.set(convertedObject, new Object[0]);
                     } else {
-                        field.set(convertedObject, array.getArray());
+                        var intArray = SqlArrayUtils.extractIntArray(array);
+                        if(intArray != null) {
+                            field.set(convertedObject, intArray);
+                        }else{
+                            var doubleArray = SqlArrayUtils.extractDoubleArray(array);
+                            if(doubleArray != null){
+                                field.set(convertedObject, doubleArray);
+                            }
+                        }
                     }
 
                 } else {
