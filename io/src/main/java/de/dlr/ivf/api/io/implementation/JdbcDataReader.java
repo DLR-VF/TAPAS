@@ -4,7 +4,6 @@ import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.DataReader;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
-import de.dlr.ivf.api.io.configuration.model.RemoteDataSource;
 import org.apache.commons.lang3.math.NumberUtils;
 
 import java.sql.Connection;

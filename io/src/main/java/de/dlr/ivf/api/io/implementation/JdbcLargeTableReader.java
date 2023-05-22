@@ -3,7 +3,6 @@ package de.dlr.ivf.api.io.implementation;
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
-import de.dlr.ivf.api.io.configuration.model.RemoteDataSource;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,9 +24,6 @@ public class JdbcLargeTableReader extends JdbcDataReader {
 
     @Override
     public <T> Collection<T> read(Converter<ResultSet, T> objectFactory, DataSource dataSource) {
-
-        if(!(dataSource instanceof RemoteDataSource remoteDataSource))
-            throw new IllegalArgumentException("The provided datasource: " + dataSource + " is not a RemoteDataSource");
 
         Optional<Collection<Filter>> dataFilter = dataSource.getFilter();
         String whereClause = dataFilter.isPresent() ? dataFilterAsSqlString(dataFilter.get()) : "";
