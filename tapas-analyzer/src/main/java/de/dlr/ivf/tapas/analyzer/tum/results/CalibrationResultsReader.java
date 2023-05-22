@@ -10,9 +10,6 @@ package de.dlr.ivf.tapas.analyzer.tum.results;
 
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -29,7 +26,7 @@ import java.util.Map.Entry;
  */
 public class CalibrationResultsReader {
 
-    private final TPS_DB_Connector dbCon;
+
     private final String simkey;
 
     /**
@@ -41,13 +38,13 @@ public class CalibrationResultsReader {
      */
     public CalibrationResultsReader(String simkey) throws IOException, ClassNotFoundException {
         this.simkey = simkey;
-        try {
-            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-            parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-            dbCon = new TPS_DB_Connector(parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
-            throw e; // handle that outside of the class
-        }
+//        try {
+//            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+//            parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
+//            dbCon = new TPS_DB_Connector(parameterClass);
+//        } catch (IOException | ClassNotFoundException e) {
+//            throw e; // handle that outside of the class
+//        }
     }
 
     /**
@@ -119,25 +116,25 @@ public class CalibrationResultsReader {
         String q = "SELECT " + gc + "SUM(cnt_trips) AS sum FROM calibration_results WHERE sim_key = '" + simkey +
                 "'GROUP BY " + gc.substring(0, gc.length() - 1);
 
-        try {
-            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
-            while (rs.next()) {
-                double value = rs.getDouble("sum");
-
-                // get all enums
-                ArrayList<Enum> catList = new ArrayList<>();
-                for (Categories cat : categories) {
-                    catList.add(cat.getElementById(rs.getInt(cat.getCalibrationColumn())));
-                }
-                CategoryCombination cc = new CategoryCombination(catList.toArray(new Enum[0]));
-
-                result.put(cc, value);
-
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+//        try {
+//            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
+//            while (rs.next()) {
+//                double value = rs.getDouble("sum");
+//
+//                // get all enums
+//                ArrayList<Enum> catList = new ArrayList<>();
+//                for (Categories cat : categories) {
+//                    catList.add(cat.getElementById(rs.getInt(cat.getCalibrationColumn())));
+//                }
+//                CategoryCombination cc = new CategoryCombination(catList.toArray(new Enum[0]));
+//
+//                result.put(cc, value);
+//
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
         return result;
     }
 
@@ -154,16 +151,16 @@ public class CalibrationResultsReader {
 
         String q = "SELECT SUM(cnt_trips) AS sum" + " FROM calibration_results WHERE sim_key = '" + simkey + "' " + wc;
 
-        try {
-            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
-            if (rs.next()) {
-                return rs.getLong("sum");
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
+//        try {
+//            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
+//            if (rs.next()) {
+//                return rs.getLong("sum");
+//            }
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return -1;
+//        }
         return -1;
     }
 
@@ -175,17 +172,17 @@ public class CalibrationResultsReader {
     public long getCntTrips() {
         String q = "SELECT SUM(cnt_trips) AS sum FROM calibration_results WHERE sim_key = '" + simkey + "'";
 
-        try {
-            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
-
-            rs.next();
-            return rs.getLong("sum");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
-
+//        try {
+//            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
+//
+//            rs.next();
+//            return rs.getLong("sum");
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return -1;
+//        }
+        return -1;
     }
 
     /**
@@ -215,26 +212,26 @@ public class CalibrationResultsReader {
         String q = "SELECT trip_mode,SUM(cnt_trips) AS sum" + " FROM calibration_results WHERE sim_key = '" + simkey +
                 "' " + wc + " GROUP BY trip_mode" + " ORDER BY trip_mode";
 
-        try {
-            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
-            double sum = 0;
-            while (rs.next()) {
-                Mode mo = Mode.getById(rs.getInt("trip_mode"));
-                Double v = (double) rs.getLong("sum");
-                result.put(mo, v);
-                sum += v;
-            }
-            rs.close();
-
-            if (sum == 0) return result;
-
-            for (Entry<Mode, Double> e : result.entrySet()) {
-                result.put(e.getKey(), e.getValue() / sum);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
+//        try {
+//            ResultSet rs = dbCon.getConnection(this).createStatement().executeQuery(q);
+//            double sum = 0;
+//            while (rs.next()) {
+//                Mode mo = Mode.getById(rs.getInt("trip_mode"));
+//                Double v = (double) rs.getLong("sum");
+//                result.put(mo, v);
+//                sum += v;
+//            }
+//            rs.close();
+//
+//            if (sum == 0) return result;
+//
+//            for (Entry<Mode, Double> e : result.entrySet()) {
+//                result.put(e.getKey(), e.getValue() / sum);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
 
         return result;
     }

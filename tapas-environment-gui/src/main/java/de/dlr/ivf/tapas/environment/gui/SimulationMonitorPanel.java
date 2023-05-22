@@ -8,17 +8,13 @@
 
 package de.dlr.ivf.tapas.environment.gui;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.runtime.client.SimulationMonitor.SIM_INDEX;
-import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable;
-import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable.ClassifiedTableModel;
-import de.dlr.ivf.tapas.runtime.server.SimulationData;
-import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
-import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
-import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
+
 import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.parameter.ParamString;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.environment.gui.SimulationMonitor.SIM_INDEX;
+import de.dlr.ivf.tapas.environment.gui.util.table.ConfigurableJTable;
+import de.dlr.ivf.tapas.environment.gui.util.table.ConfigurableJTable.ClassifiedTableModel;
+import de.dlr.ivf.tapas.environment.model.SimulationData;
+
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -38,14 +34,13 @@ public class SimulationMonitorPanel extends JPanel {
      *
      */
     private static final long serialVersionUID = -9157874571784201217L;
-    private final TPS_DB_Connector connection;
+
     private final ConfigurableJTable table;
     private final Timer updateTimer;
     private final ClassifiedTableModel tableModel;
 
-    public SimulationMonitorPanel(TPS_DB_Connector connection, TPS_ParameterClass parameterClass) {
+    public SimulationMonitorPanel() {
         super();
-        this.connection = connection;
 
         tableModel = new ClassifiedTableModel(new Object[0][0], getColumnNames());
         table = new ConfigurableJTable(tableModel);
@@ -73,14 +68,9 @@ public class SimulationMonitorPanel extends JPanel {
         JFrame frame = new JFrame("TableDemo");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        File propFile = new File("client.properties");
-        ClientControlProperties props = new ClientControlProperties(propFile);
 
-        try {
-            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-            parameterClass.loadRuntimeParameters(new File(props.get(ClientControlPropKey.LOGIN_CONFIG)));
-            TPS_DB_Connector connection = new TPS_DB_Connector(parameterClass);
-            SimulationMonitorPanel panel = new SimulationMonitorPanel(connection, parameterClass);
+
+            SimulationMonitorPanel panel = new SimulationMonitorPanel();
 
             panel.setOpaque(true);
             frame.setContentPane(panel);
@@ -88,9 +78,7 @@ public class SimulationMonitorPanel extends JPanel {
             // frame.pack();
             frame.setVisible(true);
 
-        } catch (ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-        }
+
 
     }
 
@@ -123,9 +111,9 @@ public class SimulationMonitorPanel extends JPanel {
         data[SIM_INDEX.FILE.ordinal()] =simulation.getRelativeFileName();
         data[SIM_INDEX.PROGRESS.ordinal()] = 0;
         data[SIM_INDEX.COUNT.ordinal()] = simulation.getProgress() + "/" + simulation.getTotal();
-        data[SIM_INDEX.STOPPED.ordinal()] = simulation.minimumState(TPS_SimulationState.STOPPED);
-        data[SIM_INDEX.STARTED.ordinal()] = simulation.minimumState(TPS_SimulationState.STARTED);
-        data[SIM_INDEX.FINISHED.ordinal()] = simulation.minimumState(TPS_SimulationState.FINISHED);
+//        data[SIM_INDEX.STOPPED.ordinal()] = simulation.minimumState(TPS_SimulationState.STOPPED);
+//        data[SIM_INDEX.STARTED.ordinal()] = simulation.minimumState(TPS_SimulationState.STARTED);
+//        data[SIM_INDEX.FINISHED.ordinal()] = simulation.minimumState(TPS_SimulationState.FINISHED);
         data[SIM_INDEX.DATE_STARTED.ordinal()] = simulation.getTimestampStarted();
         data[SIM_INDEX.DATE_FINISHED.ordinal()] = simulation.getTimestampFinished();
         data[SIM_INDEX.ELAPSED.ordinal()] = 0;
@@ -211,29 +199,29 @@ public class SimulationMonitorPanel extends JPanel {
             HashSet<String> keySet = new HashSet<>(simulations.keySet());
 
             String simkey;
-            try {
-                ResultSet rs = connection.executeQuery(
-                        "SELECT * FROM " + this.connection.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
-                                " ORDER BY timestamp_insert", this);
-
-                while (rs.next()) {
-                    simkey = rs.getString("sim_key");
-                    if (keySet.remove(simkey)) { // key existed, update
-                        Object[] row = getRowFromSimulation(new SimulationData(rs));
-                        int simIdx = simulations.get(simkey);
-                        for (int i = 0; i < table.getColumnCount(); ++i) {
-                            table.setValueAt(row[i], simIdx, i);
-                        }
-
-                    } else {// new data
-                        tableModel.addRow(getRowFromSimulation(new SimulationData(rs)));
-                    }
-                }
-                rs.close();
-            } catch (SQLException e) {
-                System.err.println("Error while updating table data.");
-                e.printStackTrace();
-            }
+//            try {
+//                ResultSet rs = connection.executeQuery(
+//                        "SELECT * FROM " + this.connection.getParameters().getString(ParamString.DB_TABLE_SIMULATIONS) +
+//                                " ORDER BY timestamp_insert", this);
+//
+//                while (rs.next()) {
+//                    simkey = rs.getString("sim_key");
+//                    if (keySet.remove(simkey)) { // key existed, update
+//                        Object[] row = getRowFromSimulation(new SimulationData(rs));
+//                        int simIdx = simulations.get(simkey);
+//                        for (int i = 0; i < table.getColumnCount(); ++i) {
+//                            table.setValueAt(row[i], simIdx, i);
+//                        }
+//
+//                    } else {// new data
+//                        tableModel.addRow(getRowFromSimulation(new SimulationData(rs)));
+//                    }
+//                }
+//                rs.close();
+//            } catch (SQLException e) {
+//                System.err.println("Error while updating table data.");
+//                e.printStackTrace();
+//            }
 
             for (String s : keySet) {// remove old rows
                 removeSimulation(s);
@@ -650,11 +638,11 @@ public class SimulationMonitorPanel extends JPanel {
         private static final long serialVersionUID = 480350486132112132L;
         private final EnumMap<SIM_INDEX, String> columnNames;
         private final SimulationList data = new SimulationList();
-        private final TPS_ParameterClass parameterClass;
+        //private final TPS_ParameterClass parameterClass;
 
-        public SimulationTableModel(TPS_ParameterClass parameterClass) {
+        public SimulationTableModel() {
 
-            this.parameterClass = parameterClass;
+            //this.parameterClass = parameterClass;
 
             MultilanguageSupport.init(SimulationMonitor.class);
 
@@ -713,26 +701,26 @@ public class SimulationMonitorPanel extends JPanel {
                 SimulationData simulationData;
 
                 HashSet<String> keySet = data.getKeySet();
-                try {
-                    ResultSet rs = connection.executeQuery(
-                            "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATIONS) +
-                                    " ORDER BY timestamp_insert", this);
-
-                    while (rs.next()) {
-                        simkey = rs.getString("sim_key");
-                        if (keySet.remove(simkey)) { // key existed
-                            simulationData = data.get(simkey);
-                            simulationData.update(rs);
-                        } else {// new data
-                            simulationData = new SimulationData(rs);
-                            data.add(simulationData);
-                        }
-                    }
-                    rs.close();
-                } catch (SQLException e) {
-                    System.err.println("Error while updating table data.");
-                    e.printStackTrace();
-                }
+//                try {
+//                    ResultSet rs = connection.executeQuery(
+//                            "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATIONS) +
+//                                    " ORDER BY timestamp_insert", this);
+//
+//                    while (rs.next()) {
+//                        simkey = rs.getString("sim_key");
+//                        if (keySet.remove(simkey)) { // key existed
+//                            simulationData = data.get(simkey);
+//                            simulationData.update(rs);
+//                        } else {// new data
+//                            simulationData = new SimulationData(rs);
+//                            data.add(simulationData);
+//                        }
+//                    }
+//                    rs.close();
+//                } catch (SQLException e) {
+//                    System.err.println("Error while updating table data.");
+//                    e.printStackTrace();
+//                }
 
                 for (String s : keySet) {
                     data.remove(s);
@@ -754,35 +742,35 @@ public class SimulationMonitorPanel extends JPanel {
 
                     SimulationData simulation = get(row);
                     switch (key) {
-                        case SIM_INDEX.KEY:
-                            return simulation.getKey();
-                        case SIM_INDEX.DESCRIPTION:
-                            return simulation.getDescription();
-                        case SIM_INDEX.FILE:
-                            return simulation.getRelativeFileName();
-                        case SIM_INDEX.STOPPED:
-                            return simulation.minimumState(TPS_SimulationState.STOPPED);
-                        case SIM_INDEX.STARTED:
-                            return simulation.minimumState(TPS_SimulationState.STARTED);
-                        case SIM_INDEX.FINISHED:
-                            return simulation.minimumState(TPS_SimulationState.FINISHED);
-                        case SIM_INDEX.PROGRESS:
-                            return (double) simulation.getProgress() / simulation.getTotal();
-                        case SIM_INDEX.COUNT:
-                            return simulation.getProgress() + "/" + simulation.getTotal();
-                        // TODO @PB add elapsed, esitmated control?
-                        // case ELAPSED:
-                        // return simulation.getElapsedTime(control
-                        // .getCurrentDatabaseTimestamp());
-                        // case ESTIMATED:
-                        // return simulation.getEstimatedTime(control
-                        // .getCurrentDatabaseTimestamp());
-                        case SIM_INDEX.DATE_STARTED:
-                            return simulation.getTimestampStarted();
-                        case SIM_INDEX.DATE_FINISHED:
-                            return simulation.getTimestampFinished();
-                        case SIM_INDEX.ACTION:
-                            return simulation.getState().getAction();
+//                        case SIM_INDEX.KEY:
+//                            return simulation.getKey();
+//                        case SIM_INDEX.DESCRIPTION:
+//                            return simulation.getDescription();
+//                        case SIM_INDEX.FILE:
+//                            return simulation.getRelativeFileName();
+//                        case SIM_INDEX.STOPPED:
+//                            return simulation.minimumState(TPS_SimulationState.STOPPED);
+//                        case SIM_INDEX.STARTED:
+//                            return simulation.minimumState(TPS_SimulationState.STARTED);
+//                        case SIM_INDEX.FINISHED:
+//                            return simulation.minimumState(TPS_SimulationState.FINISHED);
+//                        case SIM_INDEX.PROGRESS:
+//                            return (double) simulation.getProgress() / simulation.getTotal();
+//                        case SIM_INDEX.COUNT:
+//                            return simulation.getProgress() + "/" + simulation.getTotal();
+//                        // TODO @PB add elapsed, esitmated control?
+//                        // case ELAPSED:
+//                        // return simulation.getElapsedTime(control
+//                        // .getCurrentDatabaseTimestamp());
+//                        // case ESTIMATED:
+//                        // return simulation.getEstimatedTime(control
+//                        // .getCurrentDatabaseTimestamp());
+//                        case SIM_INDEX.DATE_STARTED:
+//                            return simulation.getTimestampStarted();
+//                        case SIM_INDEX.DATE_FINISHED:
+//                            return simulation.getTimestampFinished();
+//                        case SIM_INDEX.ACTION:
+//                            return simulation.getState().getAction();
                         default:
                             return null;
                     }

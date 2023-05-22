@@ -3,12 +3,12 @@ package de.dlr.ivf.tapas;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
+import de.dlr.ivf.tapas.dto.PersonCodeDto;
 import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.misc.PrimaryDriverScoreFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.Modes;
-import de.dlr.ivf.tapas.model.constants.AgeClasses;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
@@ -21,6 +21,8 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.persistence.io.DataStore;
 import de.dlr.ivf.tapas.persistence.io.DataStore.DataStoreBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
+import de.dlr.ivf.tapas.model.constants.PersonGroups.PersonGroupsBuilder;
+
 
 import java.sql.Connection;
 import java.util.Collection;
@@ -51,8 +53,9 @@ public class TapasInitializer {
         DataStoreBuilder dataStoreBuilder = DataStore.builder();
 
         //activities
-        DataSource activityConstants = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY),null);
-        dataStoreBuilder.activityConstants(dbIo.readActivityConstantCodes(activityConstants));
+        DataSource activityConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY),null);
+        Collection<TPS_ActivityConstant> activityConstants = dbIo.readActivityConstantCodes(activityConstantsDs);
+        dataStoreBuilder.activityConstants(activityConstants);
 
         //age classes
         DataSource ageClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_AGE), null);
@@ -77,11 +80,11 @@ public class TapasInitializer {
         dataStoreBuilder.modes(modes);
 
         DataSource mctDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MCT),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_NAME_MCT))));
+                List.of(new Filter("name", parameters.getString(ParamString.DB_NAME_MCT))));
         TPS_ModeChoiceTree modeChoiceTree = dbIo.readModeChoiceTree(mctDataSource, modes.getModes());
 
         DataSource ektDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_EKT),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_NAME_EKT))));
+                List.of(new Filter("name", parameters.getString(ParamString.DB_NAME_EKT))));
         TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,modes.getModes());
 
         //todo init utility function
@@ -90,9 +93,13 @@ public class TapasInitializer {
         dataStoreBuilder.modeSet(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator));
 
         //person groups
-        DataSource personGroups = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON),
+        DataSource personGroupsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON),
                 List.of(new Filter("key", parameters.getString(ParamString.DB_PERSON_GROUP_KEY))));
-        dataStoreBuilder.personGroups(dbIo.readPersonGroupCodes(personGroups));
+        Collection<TPS_PersonGroup> personGroupCollection = dbIo.readPersonGroupCodes(personGroupsDs);
+        PersonGroupsBuilder personGroupsWrapper = PersonGroups.builder();
+        personGroupCollection.forEach(group -> personGroupsWrapper.personGroup(group.getCode(), group));
+        PersonGroups personGroups = personGroupsWrapper.build();
+        dataStoreBuilder.personGroups(personGroups);
 
         //settlement systems
         DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), null);
@@ -120,7 +127,8 @@ public class TapasInitializer {
                 List.of(new Filter("key", parameters.getString(ParamString.DB_EPISODE_KEY))));
         DataSource schemeClassDistributions = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION),
                 List.of(new Filter("key", parameters.getString(ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY))));
-        dataStoreBuilder.schemeSet(dbIo.readSchemeSet(schemeClasses,schemes,episodes,schemeClassDistributions));
+        var schemeSet = dbIo.readSchemeSet(schemeClasses,schemes,episodes,schemeClassDistributions, activityConstants, personGroups);
+        dataStoreBuilder.schemeSet(schemeSet);
 
         //read households, persons and cars
 
@@ -133,7 +141,7 @@ public class TapasInitializer {
 
         //read households
         DataSource households = new DataSource(parameters.getString(ParamString.DB_TABLE_HOUSEHOLD),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY))));
+                List.of(new Filter("hh_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY))));
         Map<Integer, TPS_HouseholdBuilder> hhBuilders = dbIo.readHouseholds(households, carFleet);
 
         //load persons
@@ -164,7 +172,7 @@ public class TapasInitializer {
                         system -> system
                 ));
 
-        TPS_Region region = dbIo.readRegion();
+       // TPS_Region region = dbIo.readRegion();
 
 
 

@@ -12,8 +12,8 @@ import lombok.Builder;
 import lombok.Singular;
 
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -67,7 +67,8 @@ public class TPS_ActivityConstant {
     /**
      * mapping enum TPS_ActivityCodeType to internal constant, i.e. its three properties (name, code, type)
      */
-    private final EnumMap<TPS_ActivityCodeType, TPS_InternalConstant<TPS_ActivityCodeType>> internalAttributes;
+    @Singular
+    private final Map<TPS_ActivityCodeType, TPS_InternalConstant<TPS_ActivityCodeType>> internalAttributes;
 
     @Singular
     private final Collection<TPS_InternalConstant<TPS_ActivityCodeType>> internalConstants;

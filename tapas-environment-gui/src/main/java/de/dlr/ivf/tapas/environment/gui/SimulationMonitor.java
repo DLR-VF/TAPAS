@@ -5,30 +5,21 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
-import de.dlr.ivf.tapas.analyzer.gui.Control;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.runtime.client.ParameterComparator.SimParamComparatorController;
-import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable;
-import de.dlr.ivf.tapas.runtime.client.util.table.ConfigurableJTable.ClassifiedTableModel;
-import de.dlr.ivf.tapas.runtime.client.util.table.LongTextRenderer;
-import de.dlr.ivf.tapas.runtime.client.util.table.TextPopupEditor;
-import de.dlr.ivf.tapas.runtime.server.SimulationData;
-import de.dlr.ivf.tapas.runtime.server.SimulationData.TPS_SimulationState;
-import de.dlr.ivf.tapas.runtime.server.SimulationServerData;
-import de.dlr.ivf.tapas.runtime.server.SimulationServerData.HashStatus;
-import de.dlr.ivf.tapas.runtime.server.SimulationServerData.ServerInfo;
-import de.dlr.ivf.tapas.runtime.util.ClientControlProperties.ClientControlPropKey;
-import de.dlr.ivf.tapas.runtime.util.MouseListenerFactory;
-import de.dlr.ivf.tapas.runtime.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.runtime.util.ServerControlState;
-import de.dlr.ivf.tapas.tools.TUM.ITumInterface;
-import de.dlr.ivf.tapas.tools.TUM.IntegratedTUM;
-import de.dlr.ivf.tapas.tools.TUM.StandardTUM;
+package de.dlr.ivf.tapas.environment.gui;
+import de.dlr.ivf.tapas.environment.gui.matrixmap.MatrixMapHandler;
+import de.dlr.ivf.tapas.environment.gui.parametercomparator.SimParamComparatorController;
+import de.dlr.ivf.tapas.environment.gui.tum.ITumInterface;
+import de.dlr.ivf.tapas.environment.gui.tum.IntegratedTUM;
+import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
+import de.dlr.ivf.tapas.environment.gui.util.table.ConfigurableJTable;
+import de.dlr.ivf.tapas.environment.gui.util.table.ConfigurableJTable.ClassifiedTableModel;
+import de.dlr.ivf.tapas.environment.gui.util.table.LongTextRenderer;
+import de.dlr.ivf.tapas.environment.gui.util.table.TextPopupEditor;
+import de.dlr.ivf.tapas.environment.model.SimulationData;
+import de.dlr.ivf.tapas.environment.model.SimulationServerData;
+import de.dlr.ivf.tapas.environment.model.SimulationServerData.ServerInfo;
+import de.dlr.ivf.tapas.environment.model.SimulationServerData.HashStatus;
 import de.dlr.ivf.tapas.tools.fileModifier.ExpertKnowledgeHandler;
-import de.dlr.ivf.tapas.tools.fileModifier.TPS_ParameterFileConverterGUI;
-import de.dlr.ivf.tapas.tools.matrixMap.MatrixMapHandler;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.fxml.FXMLLoader;
@@ -52,13 +43,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
-import java.nio.file.Paths;
-import java.sql.ResultSet;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.List;
-import java.util.Timer;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,7 +61,7 @@ import java.util.function.Predicate;
  * @author mark_ma
  */
 
-public class SimulationMonitor implements TableModelListener, ITumInterface {
+public class SimulationMonitor implements TableModelListener {
 
     private static final int SERVER_INDEX_CORES = 5;
     private static final int SERVER_INDEX_CPU = 4;
@@ -158,8 +147,8 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 
         this.control = control;
         this.frame = new JFrame();
-        this.frame.setTitle("TAPAS Simulation Control - Version: " + control.getVersion() + " | Build: " +
-                control.getBuildnumber() + " | Build-date: " + control.getBuilddate());
+//        this.frame.setTitle("TAPAS Simulation Control - Version: | Build: " +
+//                control.getBuildnumber() + " | Build-date: " + control.getBuilddate());
 
 
 
@@ -196,10 +185,10 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         this.frame.setJMenuBar(bar);
 
         // initialise strings for the state checkbox
-        TPS_SimulationState.FINISHED.setAction(MultilanguageSupport.getString("state.finished"));
-        TPS_SimulationState.INSERTED.setAction(MultilanguageSupport.getString("state.inserted"));
-        TPS_SimulationState.STOPPED.setAction(MultilanguageSupport.getString("state.stopped"));
-        TPS_SimulationState.STARTED.setAction(MultilanguageSupport.getString("state.started"));
+//        TPS_SimulationState.FINISHED.setAction(MultilanguageSupport.getString("state.finished"));
+//        TPS_SimulationState.INSERTED.setAction(MultilanguageSupport.getString("state.inserted"));
+//        TPS_SimulationState.STOPPED.setAction(MultilanguageSupport.getString("state.stopped"));
+//        TPS_SimulationState.STARTED.setAction(MultilanguageSupport.getString("state.started"));
 
         // setup server table panel
 
@@ -220,20 +209,20 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         TableCellRenderer delegate = new BorderedRenderer();
         blinkCellRenderer = new ServerColorRenderer(serverTable, delegate);
 
-        serverTable.getModel().addTableModelListener(e -> {
-            if (e.getColumn() == SERVER_INDEX_SHUTDOWN && serverTable.getModel().getValueAt(e.getFirstRow(),
-                    SERVER_INDEX_SHUTDOWN) == ServerControlState.STOP) blinkCellRenderer.addBlinkingCell(
-                    e.getFirstRow(), SERVER_INDEX_ONLINE);
-            else blinkCellRenderer.removeBlinkingCell(e.getFirstRow(), SERVER_INDEX_ONLINE);
-        });
+//        serverTable.getModel().addTableModelListener(e -> {
+//            if (e.getColumn() == SERVER_INDEX_SHUTDOWN && serverTable.getModel().getValueAt(e.getFirstRow(),
+//                    SERVER_INDEX_SHUTDOWN) == ServerControlState.STOP) blinkCellRenderer.addBlinkingCell(
+//                    e.getFirstRow(), SERVER_INDEX_ONLINE);
+//            else blinkCellRenderer.removeBlinkingCell(e.getFirstRow(), SERVER_INDEX_ONLINE);
+//        });
 
 
-        serverTable.addMouseListener(MouseListenerFactory.onClick(e -> {
-            if (serverTable.getSelectedRowCount() == 1) {
-                //String hostname = (String) serverTable.getValueAt(serverTable.getSelectedRow(), SERVER_INDEX_NAME);
-
-            }
-        }));
+//        serverTable.addMouseListener(MouseListenerFactory.onClick(e -> {
+//            if (serverTable.getSelectedRowCount() == 1) {
+//                //String hostname = (String) serverTable.getValueAt(serverTable.getSelectedRow(), SERVER_INDEX_NAME);
+//
+//            }
+//        }));
 
         //root server panel
         JPanel serverPanel = new JPanel(new BorderLayout(10, 0));
@@ -373,7 +362,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
          * ActionEvent)
          */
         this.insertButton.addActionListener(e -> {
-            SimulationMonitor.this.control.updateProperties();
+//            SimulationMonitor.this.control.updateProperties();
             SimulationMonitor.this.insertAction();
         });
 
@@ -447,14 +436,13 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                     final String simKeyOld = simTable.getModel().getValueAt(selectedRow, SIM_INDEX.KEY.ordinal())
                                                      .toString();
                     new Thread(() -> {
-                        String optionalNewSimKey = new TPS_ParameterFileConverterGUI(control.getParameters()).showModal(
-                                frame, simKeyOld);
+                        String optionalNewSimKey = "";//new TPS_ParameterFileConverterGUI(control.getParameters()).showModal(frame, simKeyOld);
                         if (!simKeyOld.equals(optionalNewSimKey)) {
                             // start new simulation on the basis of the simulation key
                             // configuration data is already in the DB
                             try {
-                                control.addSimulation(optionalNewSimKey,
-                                        TPS_BasicConnectionClass.getRuntimeFile().getAbsolutePath(), false);
+//                                control.addSimulation(optionalNewSimKey,
+//                                        TPS_BasicConnectionClass.getRuntimeFile().getAbsolutePath(), false);
                             } catch (Exception e12) {
                                 JOptionPane.showMessageDialog(null, e12.getMessage(), "Start Simulation Exception",
                                         JOptionPane.ERROR_MESSAGE);
@@ -536,15 +524,13 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                     final String simKeyOld = simTable.getModel().getValueAt(selectedRow, SIM_INDEX.KEY.ordinal())
                                                      .toString();
                     new Thread(() -> {
-                        String optionalNewSimKey = new TPS_ParameterFileConverterGUI(control.getParameters()).showModal(
-                                frame, simKeyOld);
+                        String optionalNewSimKey = "";//new TPS_ParameterFileConverterGUI(control.getParameters()).showModal(frame, simKeyOld);
 
                         if (!simKeyOld.equals(optionalNewSimKey)) {
                             // start new simulation on the basis of the simulation key
                             // configuration data is already in the DB
                             try {
-                                control.addSimulation(optionalNewSimKey,
-                                        TPS_BasicConnectionClass.getRuntimeFile().getAbsolutePath(), false);
+                               // control.addSimulation(optionalNewSimKey,TPS_BasicConnectionClass.getRuntimeFile().getAbsolutePath(), false);
                             } catch (Exception e) {
                                 JOptionPane.showMessageDialog(null, e.getMessage(), "Start Simulation Exception",
                                         JOptionPane.ERROR_MESSAGE);
@@ -582,7 +568,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                             FXMLLoader loader = new FXMLLoader(
                                     getClass().getClassLoader().getResource("ParamComparator.fxml"));
                             SimParamComparatorController controller = new SimParamComparatorController(simkey1, simkey2,
-                                    this.control.getConnection());
+                                    null);
                             loader.setController(controller);
                             Parent root;
                             root = loader.load();
@@ -612,17 +598,15 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         bTUM.addActionListener(e -> {
             //a dialog box that allows you to chose the destination for the TUM export
             JFileChooser tumfc = tumFileChooser(getSelectedSimkeys().length);
-            tumfc.setCurrentDirectory(
-                    Paths.get(this.control.getProperties().get(ClientControlPropKey.LAST_TUM_EXPORT)).toFile());
+            //tumfc.setCurrentDirectory(Paths.get(this.control.getProperties().get(ClientControlPropKey.LAST_TUM_EXPORT)).toFile());
             int approved = tumfc.showSaveDialog(null);
 
             if (approved == JFileChooser.APPROVE_OPTION) {
 
                 this.exportfiles = tumfc.getSelectedFiles();
-                this.control.getProperties().set(ClientControlPropKey.LAST_TUM_EXPORT,
-                        tumfc.getCurrentDirectory().toString());
-                this.control.updateProperties();
-                IntegratedTUM itum = new StandardTUM();
+//                this.control.getProperties().set(ClientControlPropKey.LAST_TUM_EXPORT, tumfc.getCurrentDirectory().toString());
+//                this.control.updateProperties();
+                IntegratedTUM itum = null;
                 //SwingWorker is done
                 itum.addPropertyChangeListener(evt -> {
                     if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(
@@ -645,14 +629,14 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                     //One simulation is finished
                     if ("intermediate".equals(evt.getPropertyName())) resetProgressBars();
                 });
-                if (itum.setInput(this)) {
-                    itum.execute();
-                    this.itum = itum;
-                    bTUM.setEnabled(false);
-                    this.progresspanel.setVisible(true);
-                } else JOptionPane.showMessageDialog(null,
-                        "Couldn't set the input for the TUM-export!\n\nPlease retry...", "Error passing input",
-                        JOptionPane.ERROR_MESSAGE);
+//                if (itum.setInput(this)) {
+//                    itum.execute();
+//                    this.itum = itum;
+//                    bTUM.setEnabled(false);
+//                    this.progresspanel.setVisible(true);
+//                } else JOptionPane.showMessageDialog(null,
+//                        "Couldn't set the input for the TUM-export!\n\nPlease retry...", "Error passing input",
+//                        JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -766,7 +750,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                     int n = JOptionPane.showConfirmDialog(frame,
                             MultilanguageSupport.getString("SAVE_CHANGES_QUESTION"), "", JOptionPane.YES_NO_OPTION);
                     if (n == JOptionPane.YES_OPTION) {
-                        SimulationMonitor.this.control.updateProperties();
+//                        SimulationMonitor.this.control.updateProperties();
                     }
                 }
                 System.exit(0);
@@ -791,7 +775,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                 data[SERVER_INDEX_CPU] = serverData.getCpu();
                 data[SERVER_INDEX_TIMESTAMP] = serverData.getFormattedTimestamp();
                 data[SERVER_INDEX_CORES] = serverData.getCores();
-                data[SERVER_INDEX_SHUTDOWN] = serverData.getServerState();
+//                data[SERVER_INDEX_SHUTDOWN] = serverData.getServerState();
 
                 ((DefaultTableModel) this.serverTable.getModel()).addRow(data);
             }
@@ -812,9 +796,9 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         data[SIM_INDEX.FILE.ordinal()] = simulation.getRelativeFileName();
         data[SIM_INDEX.PROGRESS.ordinal()] = 0;
         data[SIM_INDEX.COUNT.ordinal()] = simulation.getProgress() + "/" + simulation.getTotal();
-        data[SIM_INDEX.STOPPED.ordinal()] = simulation.minimumState(TPS_SimulationState.STOPPED);
-        data[SIM_INDEX.STARTED.ordinal()] = simulation.minimumState(TPS_SimulationState.STARTED);
-        data[SIM_INDEX.FINISHED.ordinal()] = simulation.minimumState(TPS_SimulationState.FINISHED);
+//        data[SIM_INDEX.STOPPED.ordinal()] = simulation.minimumState(TPS_SimulationState.STOPPED);
+//        data[SIM_INDEX.STARTED.ordinal()] = simulation.minimumState(TPS_SimulationState.STARTED);
+//        data[SIM_INDEX.FINISHED.ordinal()] = simulation.minimumState(TPS_SimulationState.FINISHED);
         data[SIM_INDEX.DATE_STARTED.ordinal()] = simulation.getTimestampStarted();
         data[SIM_INDEX.DATE_FINISHED.ordinal()] = simulation.getTimestampFinished();
         data[SIM_INDEX.ELAPSED.ordinal()] = 0;
@@ -908,7 +892,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
     }
 
     protected void exportSelected(Object[][] rows) {
-        TPS_DB_Connector connection = control.getConnection();
+        Connection connection = null;
         if (connection != null) {
 
             final JDialog jDialog = new JDialog((Dialog) null, true);
@@ -933,7 +917,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 
                 if ((Boolean) row[SIM_INDEX.FINISHED.ordinal()]) {
                     export.add(key);
-                    futures.add(threadPool.submit(new ExportThread(connection, params, key)));
+                   // futures.add(threadPool.submit(new ExportThread(connection, params, key)));
                 }
             }
 
@@ -968,13 +952,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 
     }
 
-    @Override
-    public TPS_DB_Connector getConnection() {
 
-        return this.control.getConnection();
-    }
-
-    @Override
     public StyledDocument getConsole() {
 
         return this.console;
@@ -983,7 +961,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
     /**
      * Implementation of the {@link ITumInterface}
      */
-    @Override
+
     public File[] getExportFiles() {
 
         return this.exportfiles;
@@ -1016,7 +994,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
         return simulations.toArray(new String[0]);
     }
 
-    @Override
     public String[] getSimKeys() {
 
         return getSelectedSimkeys();
@@ -1310,7 +1287,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
     private void startAnalyzer(int selectedRow) {
         final String simkey = (String) simTable.getModel().getValueAt(selectedRow, SIM_INDEX.KEY.ordinal());
 
-        new Thread(() -> new Control(simkey, this.control.getParameters())).start();
+        //new Thread(() -> new Control(simkey, this.control.getParameters())).start();
 
     }
 
@@ -1549,7 +1526,7 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
                 this.serverTable.setValueAt(serverData.getCpu(), index, SERVER_INDEX_CPU);
                 this.serverTable.setValueAt(serverData.getCores(), index, SERVER_INDEX_CORES);
                 this.serverTable.setValueAt(serverData.getFormattedTimestamp(), index, SERVER_INDEX_TIMESTAMP);
-                this.serverTable.getModel().setValueAt(serverData.getServerState(), index, SERVER_INDEX_SHUTDOWN);
+                //this.serverTable.getModel().setValueAt(serverData.getServerState(), index, SERVER_INDEX_SHUTDOWN);
             }
         }
     }
@@ -1568,17 +1545,17 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
             simTable.setValueAt((double) simulation.getProgress() / simulation.getTotal(), row,
                     SIM_INDEX.PROGRESS.ordinal());
             simTable.setValueAt(simulation.getProgress() + "/" + simulation.getTotal(), row, SIM_INDEX.COUNT.ordinal());
-            simTable.setValueAt(simulation.minimumState(TPS_SimulationState.STOPPED), row, SIM_INDEX.STOPPED.ordinal());
-            simTable.setValueAt(simulation.minimumState(TPS_SimulationState.STARTED), row, SIM_INDEX.STARTED.ordinal());
-            simTable.setValueAt(simulation.minimumState(TPS_SimulationState.FINISHED), row,
-                    SIM_INDEX.FINISHED.ordinal());
+//            simTable.setValueAt(simulation.minimumState(TPS_SimulationState.STOPPED), row, SIM_INDEX.STOPPED.ordinal());
+//            simTable.setValueAt(simulation.minimumState(TPS_SimulationState.STARTED), row, SIM_INDEX.STARTED.ordinal());
+//            simTable.setValueAt(simulation.minimumState(TPS_SimulationState.FINISHED), row,
+//                    SIM_INDEX.FINISHED.ordinal());
             simTable.setValueAt(simulation.getTimestampStarted(), row, SIM_INDEX.DATE_STARTED.ordinal());
             simTable.setValueAt(simulation.getTimestampFinished(), row, SIM_INDEX.DATE_FINISHED.ordinal());
             simTable.setValueAt(simulation.getElapsedTime(control.getCurrentDatabaseTimestamp()), row,
                     SIM_INDEX.ELAPSED.ordinal());
             simTable.setValueAt(simulation.getEstimatedTime(control.getCurrentDatabaseTimestamp()), row,
                     SIM_INDEX.ESTIMATED.ordinal());
-            simTable.setValueAt(simulation.getState().getAction(), row, SIM_INDEX.ACTION.ordinal());
+//            simTable.setValueAt(simulation.getState().getAction(), row, SIM_INDEX.ACTION.ordinal());
         }
 
     }
@@ -1590,10 +1567,10 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
      * @param simkey
      */
     private void updateSimulationDescription(String description, String simkey) {
-        TPS_DB_Connector connection = control.getConnection();
-        String query =
-                "UPDATE simulations SET sim_description = '" + description + "' WHERE sim_key = '" + simkey + "'";
-        connection.executeUpdate(query, control);
+//        TPS_DB_Connector connection = control.getConnection();
+//        String query =
+//                "UPDATE simulations SET sim_description = '" + description + "' WHERE sim_key = '" + simkey + "'";
+//        connection.executeUpdate(query, control);
     }
 
     private void updateTable() {
@@ -1609,33 +1586,6 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 
     enum SIM_INDEX {
         KEY, DESCRIPTION, FILE, STOPPED, STARTED, FINISHED, PROGRESS, COUNT, ELAPSED, ESTIMATED, DATE_STARTED, DATE_FINISHED, ACTION, PARAMS
-    }
-
-    private final class ExportThread implements Runnable {
-
-        private final String key;
-        private final String params;
-
-        private final TPS_DB_Connector connection;
-
-        private ExportThread(TPS_DB_Connector connection, String params, String key) {
-
-            this.key = key;
-            this.params = params;
-            this.connection = connection;
-        }
-
-        public void run() {
-            try {
-                ResultSet rs = connection.executeQuery(
-                        "SELECT core.simple_export_trip_table('" + params + "_trips_" + key + "')",
-                        SimulationMonitor.this.control);
-                rs.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
     }
 
     /**
@@ -1970,12 +1920,12 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
             this.delegate = delegate;
 
 
-            Timer blinkingTimer = new Timer(250, e -> {
-                blinkingState = !blinkingState;
-                table.repaint();
-            });
-            blinkingTimer.setInitialDelay(0);
-            blinkingTimer.start();
+//            Timer blinkingTimer = new Timer(250, e -> {
+//                blinkingState = !blinkingState;
+//                table.repaint();
+//            });
+//            blinkingTimer.setInitialDelay(0);
+//            blinkingTimer.start();
         }
 
         void addBlinkingCell(int r, int c) {
