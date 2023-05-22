@@ -24,8 +24,8 @@ public class TripChooserPanel extends JPanel {
     private final String title;
     private final StyledDocument console;
     // private JComboBox<String> cbChooser;
-    private final DBSimulationChooserPanel dbChooser;
-    private final FilesChooser filesChooser;
+//    private final DBSimulationChooserPanel dbChooser;
+//    private final FilesChooser filesChooser;
 
     public TripChooserPanel(String title, String initSimulation, StyledDocument console) {
         this.console = console;
@@ -33,37 +33,37 @@ public class TripChooserPanel extends JPanel {
 
         setLayout(new GridLayout(1, 2));
 
-        dbChooser = new DBSimulationChooserPanel("DB - Triptables", initSimulation, console);
-        add(dbChooser);
-        filesChooser = new FilesChooser("Files");
-        add(filesChooser);
+//        dbChooser = new DBSimulationChooserPanel("DB - Triptables", initSimulation, console);
+//        add(dbChooser);
+//        filesChooser = new FilesChooser("Files");
+//        add(filesChooser);
     }
 
     public TapasTripReader getTripReader() {
 
-        if (dbChooser.isReady() && filesChooser.isReady()) {
-            return null;
-        } else if (dbChooser.isReady()) {
-            return dbChooser.createDBTripReader();
-        } else if (filesChooser.isReady()) {
-            return filesChooser.createFileTripReader(console);
-        } else {
-            return null;
-        }
-
+//        if (dbChooser.isReady() && filesChooser.isReady()) {
+//            return null;
+//        } else if (dbChooser.isReady()) {
+//            return dbChooser.createDBTripReader();
+//        } else if (filesChooser.isReady()) {
+//            return filesChooser.createFileTripReader(console);
+//        } else {
+//            return null;
+//        }
+        return null;
     }
 
     public boolean isReady() {
-        if (dbChooser.isReady() && filesChooser.isReady()) {
-            JOptionPane.showMessageDialog(this, "Please choose only one input mode.");
+//        if (dbChooser.isReady() && filesChooser.isReady()) {
+//            JOptionPane.showMessageDialog(this, "Please choose only one input mode.");
+//            return false;
+//        } else if (dbChooser.isReady()) {
+//            return true;
+//        } else if (filesChooser.isReady()) {
+//            return true;
+//        } else {
+//            JOptionPane.showMessageDialog(this, "Please provide some input.");
             return false;
-        } else if (dbChooser.isReady()) {
-            return true;
-        } else if (filesChooser.isReady()) {
-            return true;
-        } else {
-            JOptionPane.showMessageDialog(this, "Please provide some input.");
-            return false;
-        }
+//        }
     }
 }

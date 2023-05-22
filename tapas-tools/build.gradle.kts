@@ -19,7 +19,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.12.0");
     implementation("org.apache.poi:poi:4.1.1")
     implementation("net.sourceforge.javacsv:javacsv:2.0")
-    implementation("org.jfree:jfreechart:1.5.0")
+    implementation("org.jfree:jfreechart:1.5.3")
     //jackson
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")
 
@@ -27,6 +27,7 @@ dependencies {
     implementation(project(":tapas-logger"))
     implementation(project(":io"))
     implementation(project(":tapas-model"))
+    implementation(project(":converter"))
 }
 
 tasks.test {

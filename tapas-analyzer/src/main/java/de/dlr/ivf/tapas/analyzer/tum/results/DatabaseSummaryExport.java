@@ -11,9 +11,7 @@ package de.dlr.ivf.tapas.analyzer.tum.results;
 import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.RegionAnalyzer;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -33,38 +31,37 @@ public class DatabaseSummaryExport {
     // TODO handle differentiated regions
     // TODO save distance category filters
 
-    private final TPS_DB_Connector dbCon;
+
     private final RegionAnalyzer regionAnalyzer;
     private boolean update = false;
 
     /**
      * @param regionAnalyzer
      * @throws IOException            if the loginInfo file is not found.
-     * @throws ClassNotFoundException if class {@link TPS_DB_Connector} is not found.
      */
     public DatabaseSummaryExport(RegionAnalyzer regionAnalyzer) throws IOException, ClassNotFoundException {
-        try {
-            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-            parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-            dbCon = new TPS_DB_Connector(parameterClass);
-        } catch (IOException | ClassNotFoundException e) {
-            throw e; // handle that outside of the class
-        }
-
-        String simkey = regionAnalyzer.getSource();
-        try {
-            String q = "SELECT * FROM calibration_results WHERE sim_key = '" + simkey + "'";
-            ResultSet rs = dbCon.executeQuery(q, this);
-            if (rs.next()) {
-                System.err.println("Simkey for export exists and will be overwritten.");
-                update = true;
-            }
-
-        } catch (SQLException e) {
-            // should never happen
-            System.err.println(e.getMessage());
-            e.printStackTrace();
-        }
+//        try {
+//            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+//            parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
+//            dbCon = new TPS_DB_Connector(parameterClass);
+//        } catch (IOException | ClassNotFoundException e) {
+//            throw e; // handle that outside of the class
+//        }
+//
+//        String simkey = regionAnalyzer.getSource();
+//        try {
+//            String q = "SELECT * FROM calibration_results WHERE sim_key = '" + simkey + "'";
+//            ResultSet rs = dbCon.executeQuery(q, this);
+//            if (rs.next()) {
+//                System.err.println("Simkey for export exists and will be overwritten.");
+//                update = true;
+//            }
+//
+//        } catch (SQLException e) {
+//            // should never happen
+//            System.err.println(e.getMessage());
+//            e.printStackTrace();
+//        }
 
         this.regionAnalyzer = regionAnalyzer;
     }
@@ -121,39 +118,39 @@ public class DatabaseSummaryExport {
      */
     public boolean writeSummary() {
 
-        try {
-            Connection con = dbCon.getConnection(this);
-            PreparedStatement updateStatement;
-
-            if (update) {
-                updateStatement = con.prepareStatement(
-                        "UPDATE calibration_results " + "SET cnt_persons = ?," + "cnt_trips = ?, " + "avg_dist = ?, " +
-                                "avg_time = ? " + "WHERE sim_key = ? AND " + "person_group = ? AND " +
-                                "distance_category = ? AND " + "trip_mode = ? AND trip_intention = ?");
-
-            } else {
-                updateStatement = con.prepareStatement(
-                        "INSERT INTO calibration_results " + "(cnt_persons, cnt_trips, avg_dist, avg_time, sim_key, " +
-                                "person_group, distance_category, trip_mode, trip_intention) " +
-                                "VALUES (?,?,?,?,?,?,?,?,?)");
-            }
-
-            con.setAutoCommit(false);
-            fillBatch(updateStatement);
-            /* int[] result = */
-            updateStatement.executeBatch();
-            con.commit();
-            updateStatement.close();
-            con.setAutoCommit(true);
-            // System.out.println(result.length);
-            // System.out.println(Arrays.toString(result));
-        } catch (SQLException e) {
-            System.err.println(e.getErrorCode());
-            System.err.println(e.getMessage());
-            e.printStackTrace();
-            System.err.println("Error when executing query.");
-            return false;
-        }
+//        try {
+//            Connection con = dbCon.getConnection(this);
+//            PreparedStatement updateStatement;
+//
+//            if (update) {
+//                updateStatement = con.prepareStatement(
+//                        "UPDATE calibration_results " + "SET cnt_persons = ?," + "cnt_trips = ?, " + "avg_dist = ?, " +
+//                                "avg_time = ? " + "WHERE sim_key = ? AND " + "person_group = ? AND " +
+//                                "distance_category = ? AND " + "trip_mode = ? AND trip_intention = ?");
+//
+//            } else {
+//                updateStatement = con.prepareStatement(
+//                        "INSERT INTO calibration_results " + "(cnt_persons, cnt_trips, avg_dist, avg_time, sim_key, " +
+//                                "person_group, distance_category, trip_mode, trip_intention) " +
+//                                "VALUES (?,?,?,?,?,?,?,?,?)");
+//            }
+//
+//            con.setAutoCommit(false);
+//            fillBatch(updateStatement);
+//            /* int[] result = */
+//            updateStatement.executeBatch();
+//            con.commit();
+//            updateStatement.close();
+//            con.setAutoCommit(true);
+//            // System.out.println(result.length);
+//            // System.out.println(Arrays.toString(result));
+//        } catch (SQLException e) {
+//            System.err.println(e.getErrorCode());
+//            System.err.println(e.getMessage());
+//            e.printStackTrace();
+//            System.err.println("Error when executing query.");
+//            return false;
+//        }
 
         return true;
 

@@ -76,12 +76,6 @@ public class TPS_PersonGroup implements Comparable<TPS_PersonGroup> {
         return maxAge;
     }
 
-    /**
-     * Empties the global static person group map
-     */
-    public static void clearPersonGroupMap() {
-        PERSON_GROUP_MAP.clear();
-    }
 
     /**
      * Returns a collection/view of the values of the PERSON_GROUP_MAP, i.e. all stored person group constants

@@ -11,14 +11,14 @@ package de.dlr.ivf.tapas.analyzer.tum.results;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.DistanceCategory;
 import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.RegionAnalyzer;
-import de.dlr.ivf.tapas.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
 
 /**
  * This RegionAnalyzer starts a standard analysis of the given simkey as a background task.<br>
@@ -43,7 +44,7 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
     private String source;
     private final LinkedList<String> simulations = new LinkedList<>();
     private String simulation;
-    private final TPS_DB_Connector connection;
+    private final Supplier<Connection> connection;
 
 
     /**
@@ -54,13 +55,13 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
      * @throws IOException            when some parameter loading does not work.
      * @throws SQLException           when some database connection does not work.
      */
-    public StandaloneRegionAnalyzer(String simulation, Set<Integer> acceptedTAZs, TPS_DB_Connector connection) {
+    public StandaloneRegionAnalyzer(String simulation, Set<Integer> acceptedTAZs, Supplier<Connection> connection) {
 
         this(new String[]{simulation}, acceptedTAZs, connection);
         source = simulation;
     }
 
-    public StandaloneRegionAnalyzer(String[] simulation, Set<Integer> acceptedTAZs, TPS_DB_Connector connection) {
+    public StandaloneRegionAnalyzer(String[] simulation, Set<Integer> acceptedTAZs, Supplier<Connection> connection) {
         this.simulations.addAll(Arrays.asList(simulation));
         this.connection = connection;
     }
@@ -78,20 +79,20 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
         String loginInfo = "T:\\Simulationen\\runtime_perseus.csv";
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.loadRuntimeParameters(new File(loginInfo));
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
 
-        HashSet<Integer> acceptedTAZs = null;
-        String sim = "2013y_03m_18d_11h_43m_32s_420ms";
-        System.out.println("Creating and starting export for " + sim + " with tazFilter " + acceptedTAZs);
-        StandaloneRegionAnalyzer ra = new StandaloneRegionAnalyzer(sim, acceptedTAZs, dbCon) {
-            @Override
-            protected void done() {
-                super.done();
-                System.out.println("Done in worker");
-            }
-        };
-        ra.execute();
-        ra.get();
+//        Supplier<Connection> connectionSupplier =
+//        HashSet<Integer> acceptedTAZs = null;
+//        String sim = "2013y_03m_18d_11h_43m_32s_420ms";
+//        System.out.println("Creating and starting export for " + sim + " with tazFilter " + acceptedTAZs);
+//        StandaloneRegionAnalyzer ra = new StandaloneRegionAnalyzer(sim, acceptedTAZs, dbCon) {
+//            @Override
+//            protected void done() {
+//                super.done();
+//                System.out.println("Done in worker");
+//            }
+//        };
+//        ra.execute();
+//        ra.get();
     }
 
     @Override
@@ -100,7 +101,7 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
         while (!simulations.isEmpty()) {
 
             simulation = simulations.poll();
-            PreparedStatement getParamStatement = connection.getConnection(this).prepareStatement(
+            PreparedStatement getParamStatement = connection.get().prepareStatement(
                     "SELECT param_value FROM simulation_parameters WHERE sim_key = ? AND param_key = ?");
 
             getParamStatement.setString(1, simulation);
@@ -140,7 +141,7 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
             rs.close();
             getParamStatement.close();
 
-            tripReader = new DBTripReader(simulation, hhkey, schema, region, TPS_SettlementSystemType.FORDCP, null,
+            tripReader = new DBTripReader(simulation, hhkey, schema, region, TPS_SettlementSystem.TPS_SettlementSystemType.FORDCP, null,
                     connection, null);
 
 
@@ -162,7 +163,7 @@ public class StandaloneRegionAnalyzer extends SwingWorker<Integer, Object> {
 
                     setProgress(tripReader.getProgress());
 
-                    regionAnalyzer.prepare(simulation, tripReader.getIterator().next(), connection.getParameters());
+//                    regionAnalyzer.prepare(simulation, tripReader.getIterator().next(), connection.getParameters());
                 }
 
                 try {

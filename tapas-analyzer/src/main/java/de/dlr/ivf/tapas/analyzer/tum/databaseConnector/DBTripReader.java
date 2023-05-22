@@ -10,8 +10,8 @@ package de.dlr.ivf.tapas.analyzer.tum.databaseConnector;
 
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
-import de.dlr.ivf.tapas.util.constants.TPS_SettlementSystem;
-import de.dlr.ivf.tapas.util.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
@@ -61,7 +61,7 @@ public class DBTripReader implements TapasTripReader {
     private long totaltripcount;
     private boolean isCancelled = false;
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-    private TPS_SettlementSystemType settlementType;
+    private TPS_SettlementSystem.TPS_SettlementSystemType settlementType;
     private TripIterator tripIterator;
 
     /**
@@ -71,7 +71,7 @@ public class DBTripReader implements TapasTripReader {
      * @throws ClassNotFoundException
      * @throws IOException            if the connection file could not be found or read.
      */
-    public DBTripReader(String simulation, String hhkey, String schema, String region, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, TPS_DB_Connector connection, StyledDocument console) throws SQLException, ClassNotFoundException, IOException {
+    public DBTripReader(String simulation, String hhkey, String schema, String region, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, Supplier<Connection> connection, StyledDocument console) throws SQLException, ClassNotFoundException, IOException {
         init(simulation, hhkey, schema, region, settlementType, tazFilter, connection, console);
     }
 
@@ -98,7 +98,7 @@ public class DBTripReader implements TapasTripReader {
                 this.description = rs.getString("sim_description");
                 String hhkey = rs.getString("hhkey");
                 String schema = "core";
-                init(simulation, hhkey, schema, this.region, settlementType, tazFilter, connection, console);
+                init(simulation, hhkey, schema, this.region, settlementType, tazFilter, connectionSupplier, console);
             } else {
                 throw new IllegalStateException("Could not retrieve information about simulation" + simulation);
             }
@@ -163,7 +163,7 @@ public class DBTripReader implements TapasTripReader {
         return totaltripcount;
     }
 
-    private void init(String simulation, String hhkey, String schema, String region, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, Connection connection, StyledDocument console) throws SQLException, ClassNotFoundException, IOException {
+    private void init(String simulation, String hhkey, String schema, String region, TPS_SettlementSystemType settlementType, Set<Integer> tazFilter, Supplier<Connection> connection, StyledDocument console) throws SQLException, ClassNotFoundException, IOException {
 
         this.console = console;
         this.settlementType = settlementType;
@@ -171,7 +171,7 @@ public class DBTripReader implements TapasTripReader {
         String q = "SELECT param_value FROM simulation_parameters WHERE sim_key = '" + simulation +
                 "' and param_key = 'DB_TABLE_TRIPS'";
         String trip_table;
-        try(PreparedStatement st = connection.prepareStatement(q);
+        try(PreparedStatement st = connection.get().prepareStatement(q);
             ResultSet rs = st.executeQuery()) {
             if (rs.next()) {
                 trip_table = rs.getString("param_value") + "_" + simulation;
@@ -186,7 +186,7 @@ public class DBTripReader implements TapasTripReader {
 
         q = "SELECT sim_total FROM simulations WHERE sim_key = '" + simulation + "'";
 
-        try(PreparedStatement st = connection.prepareStatement(q);
+        try(PreparedStatement st = connection.get().prepareStatement(q);
             ResultSet rs = st.executeQuery()) {
 
             if (rs.next()) {
@@ -227,7 +227,7 @@ public class DBTripReader implements TapasTripReader {
 
         private final Supplier<Connection> dbCon;
 
-        private final PreparedStatement fetchNext;
+        private PreparedStatement fetchNext;
         private Statement fillTableStatement;
 
         private int fetchStart = 0;
@@ -247,56 +247,56 @@ public class DBTripReader implements TapasTripReader {
             this.queue = q;
 
             dbCon = connection;
-            try {
-
-                // get settlement type parameters
-                TPS_DB_IOManager dbIOM = new TPS_DB_IOManager(dbCon.getParameters());
-                TPS_DB_IO dbIO = new TPS_DB_IO(dbIOM);
-                dbIO.initStart();
-
-                dbIO.readSettlementSystemCodes(FuncUtils.toRawSimKey.apply(this.simulation));
-
-            } catch (IOException | ClassNotFoundException e) {
-                throw e; // handle that outside of the class
-            }
-
-            try {
-                fetchNext = dbCon.getConnection(this).prepareStatement(
-                        "SELECT * FROM tt_" + this.simulation + " WHERE t_id >= ? AND t_id < ? " + " ORDER BY t_id");
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-                System.err.println("Could no prepare fetch statement.");
-                throw e;
-            }
+//            try {
+//
+//                // get settlement type parameters
+//                TPS_DB_IOManager dbIOM = new TPS_DB_IOManager(dbCon.getParameters());
+//                TPS_DB_IO dbIO = new TPS_DB_IO(dbIOM);
+//                dbIO.initStart();
+//
+//                dbIO.readSettlementSystemCodes(FuncUtils.toRawSimKey.apply(this.simulation));
+//
+//            } catch (IOException | ClassNotFoundException e) {
+//                throw e; // handle that outside of the class
+//            }
+//
+//            try {
+//                fetchNext = dbCon.getConnection(this).prepareStatement(
+//                        "SELECT * FROM tt_" + this.simulation + " WHERE t_id >= ? AND t_id < ? " + " ORDER BY t_id");
+//
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                System.err.println("Could no prepare fetch statement.");
+//                throw e;
+//            }
         }
 
         private boolean cleanDB() {
-
-            if (verbose) {
-                // Check if tables exist
-                try {
-                    ArrayList<String> tables = new ArrayList<>();
-                    DatabaseMetaData metaData = dbCon.getConnection(this).getMetaData();
-                    ResultSet res = metaData.getTables(null, null, null, new String[]{"TABLE"});
-
-                    while (res.next()) {
-                        tables.add(res.getString("TABLE_NAME"));
-                    }
-
-                    if (tables.contains("tt_" + simulation)) {
-                        System.err.println("Trip table already existed and will be dropped.");
-                        if (dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE tt_" + simulation) <
-                                0) {
-                            System.err.println("Could not drop table!");
-                            return false;
-                        }
-                    }
-                } catch (SQLException e) {
-                    System.err.println("Could not fetch meta data. Check connection to database.");
-                    return false;
-                }
-            }
+//
+//            if (verbose) {
+//                // Check if tables exist
+//                try {
+//                    ArrayList<String> tables = new ArrayList<>();
+//                    DatabaseMetaData metaData = dbCon.getConnection(this).getMetaData();
+//                    ResultSet res = metaData.getTables(null, null, null, new String[]{"TABLE"});
+//
+//                    while (res.next()) {
+//                        tables.add(res.getString("TABLE_NAME"));
+//                    }
+//
+//                    if (tables.contains("tt_" + simulation)) {
+//                        System.err.println("Trip table already existed and will be dropped.");
+//                        if (dbCon.getConnection(this).createStatement().executeUpdate("DROP TABLE tt_" + simulation) <
+//                                0) {
+//                            System.err.println("Could not drop table!");
+//                            return false;
+//                        }
+//                    }
+//                } catch (SQLException e) {
+//                    System.err.println("Could not fetch meta data. Check connection to database.");
+//                    return false;
+//                }
+//            }
             return true;
         }
 

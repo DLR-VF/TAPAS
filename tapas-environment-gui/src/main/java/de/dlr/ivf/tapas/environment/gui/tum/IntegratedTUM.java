@@ -8,16 +8,16 @@
 
 package de.dlr.ivf.tapas.environment.gui.tum;
 
-import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
 import de.dlr.ivf.tapas.analyzer.tum.StandardTUM;
-import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
+
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTrip;
 import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.AnalyzerCollection;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.GeneralAnalyzer;
-import de.dlr.ivf.tapas.util.constants.TPS_SettlementSystem;
+import de.dlr.ivf.tapas.environment.gui.util.MultilanguageSupport;
+
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
  * <ul>
  * 	<li>first a trip table will be created after {@link DBTripReader} constructor's call.</li>
  * 	<li>then you can access every {@link TapasTrip} by its implemented {@link Iterator} calling {@link DBTripReader#getIterator()}.</li>
- * 	<li>every single trip can be passed as argument to {@link GeneralAnalyzer#prepare(String, TapasTrip, TPS_ParameterClass)} for
+ * 	<li>every single trip can be passed as argument to {@link GeneralAnalyzer} for
  * 	evaluation.</li>
  * 	<li>finally an excel-export will be done by invoking {@link GeneralAnalyzer#finish(File)}
  * </ul>
@@ -163,7 +163,7 @@ public abstract class IntegratedTUM extends SwingWorker<Void, String> {
                     MultilanguageSupport.getString("TUM_CONSOLE_OF") + " " + simcount + ": '" + simulations[i] + "'");
             publish(time, MultilanguageSupport.getString("TUM_CONSOLE_TRIPTABLE") + " ");
 
-            tripReader = new DBTripReader(simulations[i], null, TPS_SettlementSystem.TPS_SettlementSystemType.FORDCP, null, this.connection);
+            tripReader = null;// new DBTripReader(simulations[i], null, TPS_SettlementSystem.TPS_SettlementSystemType.FORDCP, null, this.connection);
 
             //handle trip table changes coming from {@link DBTripReader}
             tripReader.addPropertyChangeListener(evt -> {
@@ -199,8 +199,8 @@ public abstract class IntegratedTUM extends SwingWorker<Void, String> {
 
                         this.currenttripcnt++;
                         setProgress((int) ((float) this.currenttripcnt / this.totaltrips * 100));
-                        if (!ga.prepare(simulations[i], tripReader.getIterator().next(),
-                                this.connection.getParameters()))
+//                        if (!ga.prepare(simulations[i], tripReader.getIterator().next(),
+//                                this.connection.getParameters()))
                             break; // the very first trip that can't be evaluated will stop further evaluation on the remaining trips
                     }
 
@@ -359,7 +359,7 @@ public abstract class IntegratedTUM extends SwingWorker<Void, String> {
         try {
             this.exportfiles = input.getExportFiles();
             this.console = input.getConsole();
-            this.connection = input.getConnection();
+           // this.connection = input.getConnection();
             this.simulations = input.getSimKeys();
         } catch (Exception e) {
             e.printStackTrace();

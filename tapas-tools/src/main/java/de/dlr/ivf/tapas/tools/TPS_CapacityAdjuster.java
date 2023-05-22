@@ -9,10 +9,9 @@
 package de.dlr.ivf.tapas.tools;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.ConnectionProvider;
 import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.api.io.configuration.model.RemoteDataSource;
+import de.dlr.ivf.api.io.configuration.model.DataSource;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -24,11 +23,11 @@ import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.Supplier;
 
 public class TPS_CapacityAdjuster{
 
-    private final ConnectionProvider<Connection> connectionProvider;
-    private final ConnectionDetails connector;
+    private final Supplier<Connection> connectionProvider;
     String keyVal = "MID2008-Y2005";
     String scheme_class_distribution = "idspsg_shdg_14159_ward_PG32_BBR_RegTyp1_Di_Do";
     String region = "berlin";
@@ -42,9 +41,8 @@ public class TPS_CapacityAdjuster{
     Map<Integer, ValueDistribution> schemeClassActivityDistribution = new HashMap<>();
     Map<Integer, List<Triple<Integer, Double, Double>>> locCodeToTazIdAndXYGeoList = new HashMap<>();
 
-    public TPS_CapacityAdjuster(ConnectionProvider<Connection> connectionProvider, ConnectionDetails connector){
+    public TPS_CapacityAdjuster(Supplier<Connection> connectionProvider){
         this.connectionProvider = connectionProvider;
-        this.connector = connector;
     }
 
     public static void main(String[] args) throws IOException {
@@ -55,7 +53,7 @@ public class TPS_CapacityAdjuster{
 
         ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
 
-        TPS_CapacityAdjuster worker = new TPS_CapacityAdjuster(JdbcConnectionProvider.newJdbcConnectionProvider(), connector);
+        TPS_CapacityAdjuster worker = new TPS_CapacityAdjuster(() -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector));
 
         worker.keyVal = "WISTA_scen2030a";
         worker.scheme_class_distribution = "MID_2008_TBG_7_Mo-So";
@@ -126,8 +124,8 @@ public class TPS_CapacityAdjuster{
 
     public void calculateGenerationRates() {
 
-        RemoteDataSource schemesDataSource = new RemoteDataSource(connector, "core.global_schemes");
-        RemoteDataSource episodesDataSource = new RemoteDataSource(connector, "core.global_episodes");
+        DataSource schemesDataSource = new DataSource( "core.global_schemes",null);
+        DataSource episodesDataSource = new DataSource( "core.global_episodes",null);
 
         String query = """
                         WITH
@@ -154,7 +152,7 @@ public class TPS_CapacityAdjuster{
                                 episodesDataSource.getUri()
                             );
 
-        try(Connection connection = connectionProvider.get(schemesDataSource.getConnector())) {
+        try(Connection connection = connectionProvider.get()) {
             try (PreparedStatement st = connection.prepareStatement(query);
                  ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {
@@ -237,11 +235,11 @@ public class TPS_CapacityAdjuster{
 
     public void fillOverloadFactors() {
 
-            RemoteDataSource dataSource = new RemoteDataSource(connector,"core." + region + "_act_2_loc_code");
+            DataSource dataSource = new DataSource("core." + region + "_act_2_loc_code",null);
             //load act2loc
             String query = "select distinct act_code from "+dataSource.getUri();
 
-            try(Connection connection = connectionProvider.get(connector)){
+            try(Connection connection = connectionProvider.get()){
                 try (PreparedStatement st = connection.prepareStatement(query);
                      ResultSet rs = st.executeQuery()) {
                     while (rs.next()) {
@@ -356,10 +354,10 @@ public class TPS_CapacityAdjuster{
 
     public void createNewMinimalLocationTable(){
 
-        RemoteDataSource adressenBkgTable = new RemoteDataSource(connector, "public.adressen_bkg_2018");
-        RemoteDataSource tazTable = new RemoteDataSource(connector, "core.berlin_taz_1223_multiline");
-        RemoteDataSource locCodeTable = new RemoteDataSource(connector, "core.global_location_codes");
-        RemoteDataSource locTable = new RemoteDataSource(connector, "core.berlin_locations_baz");
+        DataSource adressenBkgTable = new DataSource("public.adressen_bkg_2018",null);
+        DataSource tazTable = new DataSource("core.berlin_taz_1223_multiline",null);
+        DataSource locCodeTable = new DataSource("core.global_location_codes",null);
+        DataSource locTable = new DataSource("core.berlin_locations_baz",null);
 
         int tazNumId;
         double x;
@@ -368,7 +366,7 @@ public class TPS_CapacityAdjuster{
         //get all location codes and write into a set
         String query = "select code_tapas from " + locCodeTable.getUri();
 
-        try(Connection connection = connectionProvider.get(connector)){
+        try(Connection connection = connectionProvider.get()){
 
             HashSet<Integer> locCodeSet = new HashSet<>();
 
@@ -433,7 +431,7 @@ public class TPS_CapacityAdjuster{
 
     public void loadDBEntries() {
 
-        try(Connection connection = connectionProvider.get(connector)){
+        try(Connection connection = connectionProvider.get()){
             //load act2loc
             String query = "select act_code, loc_code from core." + region + "_act_2_loc_code order by act_code";
             try(PreparedStatement st = connection.prepareStatement(query);
@@ -539,7 +537,7 @@ public class TPS_CapacityAdjuster{
     public void updateNewDemand() {
         String query;
 
-        try(Connection connection = connectionProvider.get(connector);
+        try(Connection connection = connectionProvider.get();
             Statement st = connection.createStatement()) {
 
             for (Integer key : this.locTypeCapDemanded.keySet()) {

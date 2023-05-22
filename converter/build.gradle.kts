@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    id("org.javamodularity.moduleplugin") version "1.8.12"
 }
 
 group = "de.dlr.ivf.api"

@@ -26,7 +26,7 @@ public class HouseholdDto {
     @Column("hh_income")
     private double hhIncome;
 
-    @Column("hh_taaz_id")
+    @Column("hh_taz_id")
     private int tazId;
 
     @Column("hh_key")

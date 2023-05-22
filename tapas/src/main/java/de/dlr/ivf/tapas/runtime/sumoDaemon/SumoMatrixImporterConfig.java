@@ -1,7 +1,8 @@
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import de.dlr.ivf.api.io.configuration.model.RemoteDataSource;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.model.DataSource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,10 +11,12 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SumoMatrixImporterConfig {
+    @JsonProperty
+    private final ConnectionDetails connectionDetails;
 
     @JsonProperty
-    private RemoteDataSource tazTable;
+    private DataSource tazTable;
 
     @JsonProperty
-    private RemoteDataSource matricesTable;
+    private DataSource matricesTable;
 }

@@ -21,7 +21,6 @@ module de.dlr.ivf.tapas {
     requires de.dlr.ivf.tapas.parameter;
     requires de.dlr.ivf.tapas.util;
     requires de.dlr.ivf.tapas.model;
-    requires de.dlr.ivf.tapas.tools;
     requires de.dlr.ivf.api.io;
     requires de.dlr.ivf.api.converter;
     requires javacsv;

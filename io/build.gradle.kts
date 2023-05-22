@@ -13,6 +13,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("org.postgresql:postgresql:42.2.27")
 
     //lombok
     implementation("org.projectlombok:lombok:1.18.24")

@@ -6,10 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.scripts;
+package de.dlr.ivf.tapas.tools;
 
-
-import de.dlr.ivf.tapas.tools.TPS_VisumOeVToDB;
 
 import java.io.FileWriter;
 import java.io.IOException;

@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.environment.gui.tum;
 
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 
 import javax.swing.text.StyledDocument;
 import java.io.File;
@@ -18,7 +17,6 @@ import java.io.File;
  */
 public interface ITumInterface {
 
-    TPS_DB_Connector getConnection();
 
     StyledDocument getConsole();
 

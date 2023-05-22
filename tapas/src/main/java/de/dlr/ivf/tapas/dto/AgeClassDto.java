@@ -30,7 +30,7 @@ public class AgeClassDto {
     @Column("code_persgroup")
     private int codePersgroup;
 
-    @Column("type_persgoup")
+    @Column("type_persgroup")
     private String typePersGroup;
 
     @Column("min")

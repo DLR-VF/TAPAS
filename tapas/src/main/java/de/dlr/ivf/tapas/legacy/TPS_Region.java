@@ -10,15 +10,12 @@ package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
-import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_PersonGroup;
 import de.dlr.ivf.tapas.logger.LogHierarchy;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.location.TPS_Block;
 import de.dlr.ivf.tapas.model.location.TPS_CFN;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
@@ -75,6 +72,10 @@ public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
         initLocationChoiceSet(locationChoiceSet);
     }
 
+    public void addTrafficAnalysisZone(TPS_TrafficAnalysisZone taz){
+        this.TAZ_Map.put(taz.getTAZId(), taz);
+    }
+
     /**
      * Adds the given location to this region;
      *
@@ -82,21 +83,6 @@ public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
      */
     public void addLocation(TPS_Location location) {
         this.locations.put(location.getId(), location);
-    }
-
-    /**
-     * This method adds the given traffic analysis zone when the id doesn't exist yet as a key in the traffic analysis
-     * zone map
-     *
-     * @param taz the traffic analysis zone to add
-     * @return true if added, false otherwise
-     */
-    private boolean addTrafficAnalysisZone(TPS_TrafficAnalysisZone taz) {
-        if (!containsTrafficAnalysisZone(taz.getTAZId())) {
-            TAZ_Map.put(taz.getTAZId(), taz);
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -123,36 +109,6 @@ public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
      */
     public boolean containsTrafficAnalysisZone(int id) {
         return TAZ_Map.containsKey(id);
-    }
-
-    /**
-     * Creates a new traffic analysis zone specified by the id in the region ad returns it. If the taz exists it returns the existing taz.
-     *
-     * @param id the new id for this taz
-     * @return the created taz
-     */
-
-    public TPS_TrafficAnalysisZone createTrafficAnalysisZone(int id) {
-        if (!containsTrafficAnalysisZone(id)) {
-            TPS_TrafficAnalysisZone taz = new TPS_TrafficAnalysisZone(id);
-            this.addTrafficAnalysisZone(taz);
-            return taz;
-        } else return TAZ_Map.get(id);
-    }
-
-    /**
-     * Retruns the block for the given id
-     *
-     * @param blockId the block id to look for
-     * @return the block or null if nothing was found
-     */
-    public TPS_Block getBlock(int blockId) {
-        for (TPS_TrafficAnalysisZone taz : this) {
-            if (taz.containsBlock(blockId)) {
-                return taz.getBlock(blockId);
-            }
-        }
-        return null;
     }
 
     /**
@@ -463,15 +419,15 @@ public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
 
         // call occurs only in case of a tour part!
         // check for existent location types for a specific activity code
-        Collection<TPS_LocationConstant> connectedLocCodesToActCode = TPS_TrafficAnalysisZone.ACTIVITY2LOCATIONS_MAP
-                .get(actCode);
-        //TPS_AbstractConstant.getConnectedConstants(actCode, TPS_LocationCode.class);
-        if (connectedLocCodesToActCode == null || connectedLocCodesToActCode.isEmpty()) {
-            TPS_Logger.log(SeverityLogLevel.SEVERE,
-                    "No location codes for activity code " + actCode.getId() + " " + "(ZBE:" +
-                            actCode.getCode(TPS_ActivityCodeType.ZBE) + ") found");
-            return this.selectDefaultLocation(plan, pc, locatedStay,coming_from,going_to);
-        }
+//        Collection<TPS_LocationConstant> connectedLocCodesToActCode = TPS_TrafficAnalysisZone.ACTIVITY2LOCATIONS_MAP
+//                .get(actCode);
+//        //TPS_AbstractConstant.getConnectedConstants(actCode, TPS_LocationCode.class);
+//        if (connectedLocCodesToActCode == null || connectedLocCodesToActCode.isEmpty()) {
+//            TPS_Logger.log(SeverityLogLevel.SEVERE,
+//                    "No location codes for activity code " + actCode.getId() + " " + "(ZBE:" +
+//                            actCode.getCode(TPS_ActivityCodeType.ZBE) + ") found");
+//            return this.selectDefaultLocation(plan, pc, locatedStay,coming_from,going_to);
+//        }
 
         // get the location choice set
         TPS_TourPart tour_part = (TPS_TourPart) locatedStay.getStay().getSchemePart();

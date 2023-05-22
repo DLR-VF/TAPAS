@@ -16,8 +16,8 @@ import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.PersonGroupAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.TripIntentionAnalyzer;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.AnalyzerBase;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.analyzer.tum.IntegratedTUM;
+import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import jxl.write.WriteException;
 
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
@@ -141,6 +141,8 @@ public class GeneralAnalyzer extends AbstractCoreProcess {
 
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (WriteException e) {
+            throw new RuntimeException(e);
         } finally {
             if (excelSuccess) {
                 if (null != console) {
@@ -268,7 +270,6 @@ public class GeneralAnalyzer extends AbstractCoreProcess {
     }
 
     /**
-     * Used by the {@link IntegratedTUM}
      *
      * @param clearSources
      * @return

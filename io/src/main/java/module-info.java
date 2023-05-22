@@ -3,6 +3,7 @@ module de.dlr.ivf.api.io {
     requires lombok;
     requires com.fasterxml.jackson.databind;
     requires java.sql;
+    requires org.postgresql.jdbc;
 
     requires de.dlr.ivf.tapas.logger;
     requires de.dlr.ivf.api.converter;

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.runtime.server;
+package de.dlr.ivf.tapas.environment.model;
 
 import java.io.File;
 import java.sql.ResultSet;
@@ -62,18 +62,10 @@ import java.util.Arrays;
 public class SimulationData {
 
     /**
-     * This format is used to print the minutes and seconds of a time always with two digits, e.g. 12:05.
-     */
-    @SuppressWarnings("unused")
-    private static final DecimalFormat DF = new DecimalFormat("00");
-    /**
      * This format is used to print dates in the format dd.MM.yyyy kk:mm:ss, e.g. 12.05.2011 12:01:12.
      */
     private static final SimpleDateFormat SDF = new SimpleDateFormat("dd.MM.yyyy kk:mm:ss");
-    /**
-     * Relative filename of the run properties file
-     */
-    private final String fileName;
+
     /**
      * a description field
      */
@@ -115,44 +107,17 @@ public class SimulationData {
      */
     private final ProgressCalculator progressCalc;
 
-
-    /**
-     * This constructor should be used when the simulation is build because of a database query. All members are set from the ResultSet of a database select statement.
-     *
-     * @param rs ResultSet of a database select statement
-     * @throws SQLException This exception is thrown if anything with the ResultSet is wrong, e.g. closed or too few values
-     */
-    public SimulationData(ResultSet rs) throws SQLException {
-        this(rs.getString("sim_key"), rs.getString("sim_file"), rs.getString("sim_description"),
-                rs.getLong("sim_progress"), rs.getLong("sim_total"), rs.getBoolean("sim_ready"),
-                rs.getBoolean("sim_started"), rs.getBoolean("sim_finished"));
-        this.update(rs);
-    }
-
-    /**
-     * This constructor is used when a simulation is build from a remote application. All values are initialised with default values. After the simulation is inserted in the database you have to
-     * update the local simulation.
-     *
-     * @param sim_key  The key value for this simulation
-     * @param fileName The filename of the config file
-     */
-    public SimulationData(String sim_key, String fileName) {
-        this(sim_key, fileName, "", 0, 0, false, false, false);
-    }
-
     /**
      * Internal constructor to set all member values.
      *
      * @param sim_key      unique identifier
-     * @param fileName     run properties file
      * @param sim_progress amount of simulated households
      * @param sim_total    total amount of households
      * @param sim_ready    ready flag
      * @param sim_started  started flag
      * @param sim_finished finished flag
      */
-    private SimulationData(String sim_key, String fileName, String description, long sim_progress, long sim_total, boolean sim_ready, boolean sim_started, boolean sim_finished) {
-        this.fileName = fileName;
+    private SimulationData(String sim_key, String description, long sim_progress, long sim_total, boolean sim_ready, boolean sim_started, boolean sim_finished) {
         this.description = description;
         this.sim_finished = sim_finished;
         this.sim_key = sim_key;
@@ -197,14 +162,6 @@ public class SimulationData {
     }
 
     /**
-     * @param path absolute path where the run properties file can be found.
-     * @return absolute path of the properties file
-     */
-    public String getAbsoluteFileName(File path) {
-        return new File(path, fileName).getAbsolutePath();
-    }
-
-    /**
      * @return the description
      */
     public String getDescription() {
@@ -218,7 +175,7 @@ public class SimulationData {
      * @return elapsed time of the simulation
      */
     public String getElapsedTime(Timestamp current) {
-        if (minimumState(TPS_SimulationState.STARTED) && timestamp_started != null) {
+        if (timestamp_started != null) {
             long duration = 0;
             if (isFinished()) {
                 duration = timestamp_finished.getTime() - timestamp_started.getTime();
@@ -263,14 +220,14 @@ public class SimulationData {
      * @return relative path to the run properties file
      */
     public String getRelativeFileName() {
-        return fileName;
+        return "";
     }
 
     /**
      * @return current state of the simulation
      */
-    public TPS_SimulationState getState() {
-        return TPS_SimulationState.getState(this);
+    public SimulationState getState() {
+        return SimulationState.getState(this);
     }
 
     /**
@@ -296,42 +253,28 @@ public class SimulationData {
         return sim_total;
     }
 
-    /**
-     * @param state state to compare the current state to
-     * @return true if the state of this simulation is higher than the given state
-     */
-    public boolean higherState(TPS_SimulationState state) {
-        return this.getState().value > state.value;
-    }
 
     /**
      * @return true if state is FINISHED
      */
     public boolean isFinished() {
-        return getState().equals(TPS_SimulationState.FINISHED);
+        return getState() == SimulationState.FINISHED;
     }
 
     /**
      * @return true if state is READY
      */
     public boolean isReady() {
-        return getState().equals(TPS_SimulationState.STOPPED);
+        return getState() == SimulationState.STOPPED;
     }
 
     /**
      * @return true if state is STARTED
      */
     public boolean isStarted() {
-        return getState().equals(TPS_SimulationState.STARTED);
+        return getState() == SimulationState.STARTED;
     }
 
-    /**
-     * @param state state to compare the current state to
-     * @return true if the state of this simulation is at least the given state
-     */
-    public boolean minimumState(TPS_SimulationState state) {
-        return this.getState().value >= state.value;
-    }
 
     /*
      * (non-Javadoc)
@@ -361,77 +304,7 @@ public class SimulationData {
         this.progressCalc.update();
     }
 
-    /**
-     * Possible states of a simulation. Each state holds an action string and a hierarchy value. The action string tells which is the next possible action with a simulation in this state, e.g. READY
-     * -> "Start". The hierarchy value is used for detecting the progress of the simulation.
-     *
-     * @author mark_ma
-     */
-    public enum TPS_SimulationState {
-        /**
-         * The simulation is stopped and all households are simulated
-         */
-        FINISHED(3),
-        /**
-         * The simulation is added to the database but is not ready to start
-         */
-        INSERTED(0),
-        /**
-         * The simulation is ready to start
-         */
-        STOPPED(1),
-        /**
-         * The simulation is started and not finished
-         */
-        STARTED(2);
 
-        /**
-         * Possible action the this state. This action string can be shown in a GUI.
-         */
-        private String action;
-        /**
-         * Hierarchy value of the state
-         */
-        private final int value;
-
-        /**
-         * Constructor initialises members.
-         *
-         * @param value hierarchy value
-         */
-        TPS_SimulationState(int value) {
-            this.action = "";
-            this.value = value;
-
-        }
-
-        /**
-         * @param simulation simulation to get the state of
-         * @return state of the current simulation
-         */
-        public static TPS_SimulationState getState(SimulationData simulation) {
-            if (simulation.sim_finished) {
-                if (simulation.getProgress() == simulation.getTotal()) return TPS_SimulationState.FINISHED;
-                return TPS_SimulationState.STOPPED;
-            } else if (simulation.sim_started) {
-                return TPS_SimulationState.STARTED;
-            } else if (simulation.sim_ready) {
-                return TPS_SimulationState.STOPPED;
-            }
-            return TPS_SimulationState.INSERTED;
-        }
-
-        /**
-         * @return action string
-         */
-        public String getAction() {
-            return action;
-        }
-
-        public void setAction(String string) {
-            this.action = string;
-        }
-    }
 
     private class ProgressCalculator {
 

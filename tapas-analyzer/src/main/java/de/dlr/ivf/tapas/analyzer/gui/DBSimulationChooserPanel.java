@@ -9,8 +9,8 @@
 package de.dlr.ivf.tapas.analyzer.gui;
 
 import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
+import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.tools.TAZFilter;
-import de.dlr.ivf.tapas.util.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
@@ -48,7 +48,7 @@ public class DBSimulationChooserPanel extends JPanel {
     private final String schema = "core";
     private JList<String> lstSimulations;
     private JLabel lblPicked;
-    private JComboBox<TPS_SettlementSystemType> cbConvert;
+    private JComboBox<TPS_SettlementSystem.TPS_SettlementSystemType> cbConvert;
     private JComboBox<String> cbFilter;
     private final List<String[]> simdata = new ArrayList<>();
     private final List<String> simulations = new ArrayList<>();
@@ -172,7 +172,7 @@ public class DBSimulationChooserPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         add(lblConvert, gbc);
 
-        cbConvert = new JComboBox<>(TPS_SettlementSystemType.values());
+        cbConvert = new JComboBox<>(TPS_SettlementSystem.TPS_SettlementSystemType.values());
         cbConvert.setSelectedIndex(0);
         gbc.gridx = 1;
         gbc.gridy = 2;
@@ -233,12 +233,12 @@ public class DBSimulationChooserPanel extends JPanel {
 
         try {
 
-            TPS_SettlementSystemType settlementType = (TPS_SettlementSystemType) cbConvert.getSelectedItem();
+            TPS_SettlementSystem.TPS_SettlementSystemType settlementType = (TPS_SettlementSystem.TPS_SettlementSystemType) cbConvert.getSelectedItem();
 
             String mapping = (String) cbFilter.getSelectedItem();
             Set<Integer> acceptedTAZs = null;
             if (!mapping.equals(NO_PICK)) {
-                acceptedTAZs = TAZFilter.getTAZValues(mapping, , this);
+               // acceptedTAZs = TAZFilter.getTAZValues(mapping, , this);
             }
 
             return new DBTripReader(simulation, hhkey, schema, region, settlementType, acceptedTAZs, dbCon, console);
@@ -290,22 +290,22 @@ public class DBSimulationChooserPanel extends JPanel {
         filters.addAll(TAZFilter.getMappingNames(dbCon));
 
         System.err.println("Could not fetch filters.");
-        System.err.println(e.getMessage());
+       // System.err.println(e.getMessage());
 
         return false;
 
 
         // update content
-        simulationDataModel = new StringListModel(simulations);
-        lstSimulations.setModel(simulationDataModel);
+       // simulationDataModel = new StringListModel(simulations);
+       // lstSimulations.setModel(simulationDataModel);
 
-        DefaultComboBoxModel<String> cbFilterModel = new DefaultComboBoxModel<>(new String[]{NO_PICK});
-        for (String f : filters)
-            cbFilterModel.addElement(f);
-        cbFilter.setModel(cbFilterModel);
-        updateLabel();
+       // DefaultComboBoxModel<String> cbFilterModel = new DefaultComboBoxModel<>(new String[]{NO_PICK});
+//        for (String f : filters)
+//            cbFilterModel.addElement(f);
+//        cbFilter.setModel(cbFilterModel);
+//        updateLabel();
 
-        return true;
+//        return true;
     }
 
     private List<String> getOldTables() {

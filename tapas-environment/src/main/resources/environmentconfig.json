@@ -1,0 +1,21 @@
+{
+  "connectionDetails" : {
+    "url" : "jdbc:postgresql://localhost:5432/tapas_new",
+    "login" : {
+      "user" : "postgres",
+      "password" : "postgres"
+    }
+  },
+  "simulationsTable" : {
+    "uri" : "public.simulations",
+    "filter" :[]
+  },
+  "serverTable" : {
+    "uri" : "public.servers",
+    "filter" :[]
+  },
+  "parameterTable" : {
+    "uri" : "public.simulation_parameters",
+    "filter" :[]
+  }
+}

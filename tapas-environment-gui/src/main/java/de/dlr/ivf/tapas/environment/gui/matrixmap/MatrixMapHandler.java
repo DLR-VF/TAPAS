@@ -1405,7 +1405,7 @@ public class MatrixMapHandler {
 //                        if (size * size != matrixVal.length) {
 //                            JOptionPane.showMessageDialog(this.controlInstance, rb.getString("MATRIX_NOT_SQUARE"));
 //                        } else {
-//                            double[][] values = Helpers.array1Dto2D(matrixVal);
+//                            double[][] values = SqlArrayUtils.array1Dto2D(matrixVal);
 //
 //                            TPS_Geometrics.calcTop3(values);
 //

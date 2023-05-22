@@ -13,5 +13,5 @@ module de.dlr.ivf.tapas.tools {
     requires de.dlr.ivf.api.io;
     requires de.dlr.ivf.tapas.model;
     requires poi;
-    requires jfreechart;
+    requires org.jfree.jfreechart;
 }

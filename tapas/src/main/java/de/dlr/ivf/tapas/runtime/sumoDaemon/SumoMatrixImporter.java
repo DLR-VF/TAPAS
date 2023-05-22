@@ -9,15 +9,13 @@
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.SqlArrayUtils;
+import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.misc.Helpers;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.TPS_Geometrics;
-import lombok.experimental.Helper;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -89,7 +87,7 @@ public class SumoMatrixImporter {
             String tableNameRelations = schema + "." + relationEntries;
             double[] tt, dist;
 
-        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getTazTable().getConnector());
+        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getConnectionDetails());
 
         try (Connection connection = connectionSupplier.get()){
 
@@ -129,8 +127,8 @@ public class SumoMatrixImporter {
                     while (rs.next()) {
                         from = this.tazMap.get(rs.getInt("taz_id_start"));
                         to = this.tazMap.get(rs.getInt("taz_id_end"));
-                        tt = Helpers.extractDoubleArray(rs, "travel_time_sec");
-                        dist = Helpers.extractDoubleArray(rs, "distance_real");
+                        tt = SqlArrayUtils.extractDoubleArray(rs, "travel_time_sec");
+                        dist = SqlArrayUtils.extractDoubleArray(rs, "distance_real");
                         if(tt != null  && tt.length == 3 && dist != null && dist.length == 3) {
                             travelTime.setValue(from, to, Math.round(tt[2]));
                             distance.setValue(from, to, Math.round(dist[2]));
@@ -182,7 +180,7 @@ public class SumoMatrixImporter {
 
     public void writeMatrix(Matrix matrix, String matrixName) {
 
-        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getMatricesTable().getConnector());
+        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getConnectionDetails());
         //load the data from the db
         String query = "SELECT * FROM " + config.getMatricesTable().getUri() + " WHERE \"matrix_name\" = '" +
                 matrixName + "'";

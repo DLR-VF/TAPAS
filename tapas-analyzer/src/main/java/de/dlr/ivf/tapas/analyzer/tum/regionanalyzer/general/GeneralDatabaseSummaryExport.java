@@ -13,9 +13,7 @@ import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.*;
 import de.dlr.ivf.tapas.analyzer.tum.databaseConnector.DBTripReader;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
-import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.tools.persitence.db.TPS_BasicConnectionClass;
-import de.dlr.ivf.tapas.parameter.TPS_ParameterClass;
+
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -26,7 +24,7 @@ import java.util.ArrayList;
 
 public class GeneralDatabaseSummaryExport {
 
-    private final TPS_DB_Connector dbCon;
+//    private final TPS_DB_Connector dbCon;
     private final Analyzer analyzer;
     private final String source;
 
@@ -40,13 +38,12 @@ public class GeneralDatabaseSummaryExport {
      * @param source
      * @throws SQLException             when the connection to the database fails.
      * @throws IOException              if the loginInfo is not found
-     * @throws ClassNotFoundException   if the {@link TPS_DB_Connector} could not login.
      * @throws IllegalArgumentException if any of the mentioned
      */
     public GeneralDatabaseSummaryExport(Analyzer analyzer, String source) throws IOException, ClassNotFoundException {
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-        dbCon = new TPS_DB_Connector(parameterClass);
+//        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+//        parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
+//        dbCon = new TPS_DB_Connector(parameterClass);
         this.analyzer = analyzer;
         this.source = source;
 
@@ -73,20 +70,20 @@ public class GeneralDatabaseSummaryExport {
             throw new IllegalArgumentException("Analyzer has no PersonGroup statistics");
         }
 
-        try {
-            PreparedStatement ps = dbCon.getConnection(this).prepareStatement(
-                    "SELECT * FROM calibration_results WHERE sim_key = ?");
-            ps.setString(1, source);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                System.err.println("Simkey for export exists and will be overwritten.");
-                update = true;
-            }
-            rs.close();
-        } catch (SQLException e) {
-            // should never happen
-            e.printStackTrace();
-        }
+//        try {
+//            PreparedStatement ps = dbCon.getConnection(this).prepareStatement(
+//                    "SELECT * FROM calibration_results WHERE sim_key = ?");
+//            ps.setString(1, source);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs.next()) {
+//                System.err.println("Simkey for export exists and will be overwritten.");
+//                update = true;
+//            }
+//            rs.close();
+//        } catch (SQLException e) {
+//            // should never happen
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -96,33 +93,33 @@ public class GeneralDatabaseSummaryExport {
      * @throws SQLException
      */
     public static void main(String[] args) throws ClassNotFoundException, IOException, SQLException {
-        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-        parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
-        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+//        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+//        parameterClass.loadRuntimeParameters(TPS_BasicConnectionClass.getRuntimeFile());
+//        TPS_DB_Connector dbCon = new TPS_DB_Connector(parameterClass);
+//
+//        ModeAnalyzer mo = new ModeAnalyzer();
+//        TripIntentionAnalyzer ti = new TripIntentionAnalyzer();
+//        DefaultDistanceCategoryAnalyzer dc = new DefaultDistanceCategoryAnalyzer();
+//        PersonGroupAnalyzer pg = new PersonGroupAnalyzer(mo, ti, dc);
+//
+//        Analyzer analyzer = new Analyzer(mo, pg, ti, dc);
+//
+//        String simkey = "2013y_09m_10d_11h_43m_03s_321ms";
+//
+//        DBTripReader tripReader = new DBTripReader(simkey, null, null, null, dbCon);
 
-        ModeAnalyzer mo = new ModeAnalyzer();
-        TripIntentionAnalyzer ti = new TripIntentionAnalyzer();
-        DefaultDistanceCategoryAnalyzer dc = new DefaultDistanceCategoryAnalyzer();
-        PersonGroupAnalyzer pg = new PersonGroupAnalyzer(mo, ti, dc);
-
-        Analyzer analyzer = new Analyzer(mo, pg, ti, dc);
-
-        String simkey = "2013y_09m_10d_11h_43m_03s_321ms";
-
-        DBTripReader tripReader = new DBTripReader(simkey, null, null, null, dbCon);
-
-        System.out.println("Starting the statistics");
-        while (tripReader.getIterator().hasNext()) {
-            TapasTrip tt = tripReader.getIterator().next();
-            analyzer.addTrip(tt);
-        }
-        System.out.println("Adding finished.");
-        tripReader.close();
-        GeneralDatabaseSummaryExport exporter = new GeneralDatabaseSummaryExport(analyzer, simkey);
-
-        if (exporter.writeSummary()) {
-            System.out.println("Database export successful");
-        }
+//        System.out.println("Starting the statistics");
+//        while (tripReader.getIterator().hasNext()) {
+//            TapasTrip tt = tripReader.getIterator().next();
+//            analyzer.addTrip(tt);
+//        }
+//        System.out.println("Adding finished.");
+//        tripReader.close();
+//        GeneralDatabaseSummaryExport exporter = new GeneralDatabaseSummaryExport(analyzer, simkey);
+//
+//        if (exporter.writeSummary()) {
+//            System.out.println("Database export successful");
+//        }
 
     }
 
@@ -172,37 +169,37 @@ public class GeneralDatabaseSummaryExport {
      */
     public boolean writeSummary() {
 
-        try {
-            Connection con = dbCon.getConnection(this);
-            con.setAutoCommit(false);
-            PreparedStatement updateStatement;
-            if (update) {
-                updateStatement = con.prepareStatement(
-                        "UPDATE calibration_results " + "SET cnt_persons = ?," + "cnt_trips = ?, " + "avg_dist = ?, " +
-                                "avg_time = ? " + "WHERE sim_key = ? AND " + "person_group = ? AND " +
-                                "distance_category = ? AND " + "trip_mode = ? AND trip_intention = ?");
-
-            } else {
-                updateStatement = con.prepareStatement(
-                        "INSERT INTO calibration_results " + "(cnt_persons, cnt_trips, avg_dist, avg_time, sim_key, " +
-                                "person_group, distance_category, trip_mode, trip_intention) " +
-                                "VALUES (?,?,?,?,?,?,?,?,?)");
-            }
-
-            fillBatch(updateStatement);
-
-            /* int[] result = */
-            updateStatement.executeBatch();
-            con.commit();
-            updateStatement.close();
-            con.setAutoCommit(true);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            System.err.println("Error when executing query.");
-            e = e.getNextException();
-            e.printStackTrace();
-            return false;
-        }
+//        try {
+//            Connection con = dbCon.getConnection(this);
+//            con.setAutoCommit(false);
+//            PreparedStatement updateStatement;
+//            if (update) {
+//                updateStatement = con.prepareStatement(
+//                        "UPDATE calibration_results " + "SET cnt_persons = ?," + "cnt_trips = ?, " + "avg_dist = ?, " +
+//                                "avg_time = ? " + "WHERE sim_key = ? AND " + "person_group = ? AND " +
+//                                "distance_category = ? AND " + "trip_mode = ? AND trip_intention = ?");
+//
+//            } else {
+//                updateStatement = con.prepareStatement(
+//                        "INSERT INTO calibration_results " + "(cnt_persons, cnt_trips, avg_dist, avg_time, sim_key, " +
+//                                "person_group, distance_category, trip_mode, trip_intention) " +
+//                                "VALUES (?,?,?,?,?,?,?,?,?)");
+//            }
+//
+//            fillBatch(updateStatement);
+//
+//            /* int[] result = */
+//            updateStatement.executeBatch();
+//            con.commit();
+//            updateStatement.close();
+//            con.setAutoCommit(true);
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//            System.err.println("Error when executing query.");
+//            e = e.getNextException();
+//            e.printStackTrace();
+//            return false;
+//        }
 
         return true;
 

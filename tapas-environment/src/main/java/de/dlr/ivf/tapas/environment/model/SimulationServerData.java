@@ -6,9 +6,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.runtime.server;
+package de.dlr.ivf.tapas.environment.model;
 
-import de.dlr.ivf.tapas.runtime.util.ServerControlState;
+
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

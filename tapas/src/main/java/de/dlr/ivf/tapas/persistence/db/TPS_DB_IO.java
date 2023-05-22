@@ -40,6 +40,7 @@ import de.dlr.ivf.tapas.mode.Modes.ModesBuilder;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager.CarFleetManagerBuilder;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.TPS_TrafficAnalysisZoneBuilder;
 
+
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
@@ -159,15 +160,16 @@ public class TPS_DB_IO {
 
             //init the fleet manager
             CarFleetManagerBuilder fleetManager = CarFleetManager.builder();
-            Arrays.stream(householdDto.getCarIds())
-                    .boxed()
-                    .map(cars::getCar)
-                    .map(CarController::new)
-                    .forEach(fleetManager::addCarController);
-
+            if(householdDto.getCarIds() != null) {
+                Arrays.stream(householdDto.getCarIds())
+                        .boxed()
+                        .map(cars::getCar)
+                        .map(CarController::new)
+                        .forEach(fleetManager::addCarController);
+            }
             householdBuilder.carFleetManager(fleetManager.build());
-
             householdBuilders.put(householdDto.getHhId(), householdBuilder);
+
         }
         return householdBuilders;
     }
@@ -215,18 +217,29 @@ public class TPS_DB_IO {
 
             String attribute = activityDto.getAttribute();
 
+            var mctConstant = new TPS_InternalConstant<>(activityDto.getNameMct(), activityDto.getCodeMct(),
+                    TPS_ActivityCodeType.valueOf(activityDto.getTypeMct()));
+            var tapasConstant = new TPS_InternalConstant<>(activityDto.getNameTapas(), activityDto.getCodeTapas(),
+                    TPS_ActivityCodeType.valueOf(activityDto.getTypeTapas()));
+            var priorityConstant = new TPS_InternalConstant<>(activityDto.getNamePriority(), activityDto.getCodePriority(),
+                    TPS_ActivityCodeType.valueOf(activityDto.getTypePriority()));
+            var zbeConstant = new TPS_InternalConstant<>(activityDto.getNameZbe(), activityDto.getCodeZbe(),
+                    TPS_ActivityCodeType.valueOf(activityDto.getTypeZbe()));
+            var votConstant = new TPS_InternalConstant<>(activityDto.getNameVot(), activityDto.getCodeVot(),
+                    TPS_ActivityCodeType.valueOf(activityDto.getTypeVot()));
+
             TPS_ActivityConstant act = TPS_ActivityConstant.builder()
                     .id(activityDto.getId())
-                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameMct(), activityDto.getCodeMct(),
-                            TPS_ActivityCodeType.valueOf(activityDto.getTypeMct())))
-                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameTapas(), activityDto.getCodeTapas(),
-                            TPS_ActivityCodeType.valueOf(activityDto.getTypeTapas())))
-                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNamePriority(), activityDto.getCodePriority(),
-                            TPS_ActivityCodeType.valueOf(activityDto.getTypePriority())))
-                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameZbe(), activityDto.getCodeZbe(),
-                            TPS_ActivityCodeType.valueOf(activityDto.getTypeZbe())))
-                    .internalConstant(new TPS_InternalConstant<>(activityDto.getNameVot(), activityDto.getCodeVot(),
-                            TPS_ActivityCodeType.valueOf(activityDto.getTypeVot())))
+                    .internalConstant(mctConstant)
+                    .internalAttribute(TPS_ActivityCodeType.MCT,mctConstant)
+                    .internalConstant(tapasConstant)
+                    .internalAttribute(TPS_ActivityCodeType.TAPAS,tapasConstant)
+                    .internalConstant(priorityConstant)
+                    .internalAttribute(TPS_ActivityCodeType.PRIORITY, priorityConstant)
+                    .internalConstant(zbeConstant)
+                    .internalAttribute(TPS_ActivityCodeType.ZBE, zbeConstant)
+                    .internalConstant(votConstant)
+                    .internalAttribute(TPS_ActivityCodeType.VOT, votConstant)
                     .attribute(!(attribute == null || attribute.equals("null"))
                             ? TPS_ActivityConstantAttribute.valueOf(activityDto.getAttribute()) : TPS_ActivityConstantAttribute.DEFAULT)
                     .isFix(activityDto.isFix())
@@ -962,6 +975,18 @@ public class TPS_DB_IO {
                 .build();
         modeParams.put(ModeType.WALK, walkModeParameters);
 
+        //bike params from config
+        ModeParameters bikeModeParameters =  ModeParameters.builder()
+                .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_BIKE))
+                .costPerKm(parameters.getDoubleValue(ParamValue.BIKE_COST_PER_KM))
+                .costPerKmBase(parameters.getDoubleValue(ParamValue.BIKE_COST_PER_KM_BASE))
+                .velocity(parameters.getDoubleValue(ParamValue.VELOCITY_BIKE))
+                .useBase(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE))
+                .variableCostPerKm(0)
+                .variableCostPerKmBase(0)
+                .build();
+        modeParams.put(ModeType.BIKE, bikeModeParameters);
+
         //taxi params from config
         ModeParameters taxiModeParameters =  ModeParameters.builder()
                 .beelineFactor(parameters.getDoubleValue(ParamValue.BEELINE_FACTOR_MIT))
@@ -1441,7 +1466,7 @@ public class TPS_DB_IO {
      * @return The TPS_SchemeSet containing all episodes.
      * @throws SQLException
      */
-    public TPS_SchemeSet readSchemeSet(DataSource schemeClasses, DataSource schemes, DataSource episodes, DataSource schemeClassDistributions) {
+    public TPS_SchemeSet readSchemeSet(DataSource schemeClasses, DataSource schemes, DataSource episodes, DataSource schemeClassDistributions, Collection<TPS_ActivityConstant> activityConstants, PersonGroups personGroups) {
 
         int timeSlotLength = this.parameters.getIntValue(ParamValue.SEC_TIME_SLOT);
 
@@ -1474,13 +1499,22 @@ public class TPS_DB_IO {
 
         Collection<EpisodeDto> episodeDtos = dataReader.read(new ResultSetConverter<>(EpisodeDto.class, EpisodeDto::new), episodes);
 
+        var sortCriteria = Comparator.comparing(EpisodeDto::getSchemeId)
+                .thenComparing(EpisodeDto::getStart);
+        var sortedEpisodes = episodeDtos.stream()
+                .sorted(sortCriteria)
+                .toList();
+
         double scaleShift = this.parameters.getDoubleValue(ParamValue.SCALE_SHIFT);
         double scaleStretch = this.parameters.getDoubleValue(ParamValue.SCALE_STRETCH);
 
-        for (EpisodeDto episodeDto : episodeDtos){
+        for (EpisodeDto episodeDto : sortedEpisodes){
 
-            TPS_ActivityConstant actCode = TPS_ActivityConstant.getActivityCodeByTypeAndCode(TPS_ActivityCodeType.ZBE,
-                    episodeDto.getActCodeZbe());
+            TPS_ActivityConstant actCode = activityConstants.stream()
+                    .filter(act -> act.getCode(TPS_ActivityCodeType.ZBE) == episodeDto.getActCodeZbe())
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("No activity constant for type ZBE and code: "+episodeDto.getActCodeZbe()));
+
             int actScheme = episodeDto.getSchemeId();
             if (lastScheme != actScheme) {
                 lastScheme = actScheme;
@@ -1526,6 +1560,7 @@ public class TPS_DB_IO {
 
 
         // read the mapping from person group to scheme classes
+        // the key of the outer map represents the person group id. The key of the inner map represents the scheme class id.
         HashMap<Integer, HashMap<Integer, Double>> personGroupSchemeProbabilityMap = new HashMap<>();
 
         Collection<SchemeClassDistributionDto> schemeClassDistributionDtos =
@@ -1540,7 +1575,7 @@ public class TPS_DB_IO {
         }
 
         for (Integer key : personGroupSchemeProbabilityMap.keySet()) { //add distributions to the schemeSet
-            schemeSet.addDistribution(TPS_PersonGroup.getPersonGroupByCode(key),
+            schemeSet.addDistribution(personGroups.getPersonGroupByCode(key),
                     new TPS_DiscreteDistribution<>(personGroupSchemeProbabilityMap.get(key)));
         }
         schemeSet.init();

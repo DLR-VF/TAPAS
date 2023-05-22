@@ -14,9 +14,6 @@ public class PersonCodeDto {
     @Column("code")
     private int code;
 
-    @Column("code_ageclass")
-    private int codeAgeClass;
-
     @Column("code_sex")
     private int codeSex;
 

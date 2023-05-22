@@ -12,16 +12,16 @@ import de.dlr.ivf.tapas.analyzer.tum.constants.CategoryCombination;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.Categories;
 import de.dlr.ivf.tapas.analyzer.tum.constants.TuMEnums.RegionCode;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.Analyzer;
-import de.dlr.ivf.tapas.tools.TUM.IntegratedTUM;
 import jxl.Workbook;
 import jxl.write.*;
-import jxl.write.Number;
 import jxl.write.biff.RowsExceededException;
+
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 import java.io.IOException;
 
+import jxl.write.Number;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,7 +55,7 @@ public class GeneralExcelExport {
     }
 
     /**
-     * Used by the {@link IntegratedTUM}
+
      *
      * @param file
      */
