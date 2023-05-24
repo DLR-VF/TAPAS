@@ -12,6 +12,7 @@ repositories {
 dependencies {
 
     implementation(project(":io"))
+    implementation(project(":converter"))
 
     //lombok
     implementation("org.projectlombok:lombok:1.18.24")

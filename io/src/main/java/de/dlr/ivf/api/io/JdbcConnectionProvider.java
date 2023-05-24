@@ -36,7 +36,7 @@ public interface JdbcConnectionProvider extends ConnectionProvider<Connection> {
         }
     }
 
-    public static JdbcConnectionProvider newJdbcConnectionProvider(){
+    static JdbcConnectionProvider newJdbcConnectionProvider(){
         return new BaseJdbcConnectionProvider();
     }
 }
