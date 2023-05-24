@@ -2,6 +2,7 @@ module de.dlr.ivf.tapas.environment {
 
     requires java.sql;
     requires de.dlr.ivf.api.io;
+    requires de.dlr.ivf.api.converter;
     requires lombok;
     requires com.fasterxml.jackson.annotation;
 
@@ -12,4 +13,6 @@ module de.dlr.ivf.tapas.environment {
 
     opens de.dlr.ivf.tapas.environment.configuration to com.fasterxml.jackson.databind;
     opens de.dlr.ivf.tapas.environment.dto to de.dlr.ivf.api.io;
+    exports de.dlr.ivf.tapas.environment.dao;
+    exports de.dlr.ivf.tapas.environment.dao.implementation;
 }

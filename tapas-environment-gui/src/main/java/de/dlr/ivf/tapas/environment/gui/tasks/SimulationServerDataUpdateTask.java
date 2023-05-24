@@ -1,22 +1,17 @@
 package de.dlr.ivf.tapas.environment.gui.tasks;
 
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
-import de.dlr.ivf.tapas.environment.gui.SimulationControl;
-import de.dlr.ivf.tapas.environment.model.SimulationServerData;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 
-import java.net.UnknownHostException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class SimulationServerDataUpdateTask extends ScheduledService<Void> {
 
@@ -85,17 +80,43 @@ public class SimulationServerDataUpdateTask extends ScheduledService<Void> {
         return new Task<>() {
             @Override
             protected Void call() throws Exception {
-
                 Collection<ServerEntry> entries = serverDataSupplier.get();
+                Map<String, ServerEntry> dbServerEntries = entries.stream().collect(Collectors.toMap(
+                        e -> e.getServerName(),
+                        e -> e
+                ));
 
+//                Collection<ServerEntry> updatedEntries = new ArrayList<>();
+                for(ServerEntry dbServerEntry : entries) {
+                    ServerEntry oldEntry = serverEntriesMap.put(dbServerEntry.getServerName(),dbServerEntry);
+//
+                    if(oldEntry == null){
+                        Platform.runLater(() -> serverEntries.add(dbServerEntry));
+                    }
+//
+//                   // serverEntriesMap.computeIfPresent(newEntry.getServerName(), (name, oldEntry) -> update(newEntry, oldEntry));
+                }
                 Platform.runLater(() -> {
-                    serverEntries.clear();
-                    serverEntries.addAll(entries);
-                    System.out.println(serverEntries);
+                    serverEntries.forEach(entry -> entry.setServerUsage(dbServerEntries.get(entry.getServerName()).getServerUsage()));
                 });
+               // Platform.runLater(() -> serverEntries.replaceAll( entry -> serverEntriesMap.get(entry.getServerName())));
+
+
+                    //serverEntries.clear();
+                   // serverEntries.addAll(entries);
+                    System.out.println(serverEntries);
+
                 return null;
             }
         };
+    }
+
+    private boolean update(ServerEntry oldEntry, ServerEntry newEntry) {
+
+        //update cpu usage
+        oldEntry.setServerUsage(newEntry.getServerUsage());
+        oldEntry.setServerOnline(newEntry.isServerOnline());
+        return true;
     }
 
     public final ObservableList<ServerEntry> getServerEntries(){

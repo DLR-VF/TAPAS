@@ -15,11 +15,8 @@ import java.util.function.Supplier;
 
 public class JdbcLargeTableReader extends JdbcDataReader {
 
-    private final Supplier<Connection> connectionSupplier;
-
     public JdbcLargeTableReader(Supplier<Connection> connectionSupplier) {
         super(connectionSupplier);
-        this.connectionSupplier = connectionSupplier;
     }
 
     @Override
@@ -30,7 +27,7 @@ public class JdbcLargeTableReader extends JdbcDataReader {
 
         Collection<T> readObjects;
 
-        try(Connection connection = connectionSupplier.get()){
+        try(Connection connection = connectionProvider.get()){
 
             connection.setAutoCommit(false);
 

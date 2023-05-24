@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class JdbcDataReader implements DataReader<ResultSet> {
 
-    private final Supplier<Connection> connectionProvider;
+    protected final Supplier<Connection> connectionProvider;
 
     public JdbcDataReader(Supplier<Connection> connectionProvider){
         this.connectionProvider = connectionProvider;
@@ -30,10 +30,7 @@ public class JdbcDataReader implements DataReader<ResultSet> {
 
         Collection<T> readObjects = new ArrayList<>();
 
-        Optional<Collection<Filter>> dataFilter = dataSource.getFilter();
-        String whereClause = dataFilter.isPresent() ? dataFilterAsSqlString(dataFilter.get()) : "";
-
-        String query = "SELECT * FROM "+ dataSource.getUri() +" "+ whereClause;
+        String query = generateSelectQuery(dataSource);
 
         try(Connection connection = connectionProvider.get();
             PreparedStatement statement = connection.prepareStatement(query);
@@ -50,7 +47,15 @@ public class JdbcDataReader implements DataReader<ResultSet> {
         return readObjects;
     }
 
-    String dataFilterAsSqlString(Collection<Filter> dataFilters) {
+    protected String generateSelectQuery(DataSource dataSource){
+
+        Optional<Collection<Filter>> dataFilter = dataSource.getFilter();
+        String whereClause = dataFilter.isPresent() ? dataFilterAsSqlString(dataFilter.get()) : "";
+
+        return "SELECT * FROM "+ dataSource.getUri() +" "+ whereClause;
+    }
+
+    protected String dataFilterAsSqlString(Collection<Filter> dataFilters) {
         return dataFilters.stream()
                 .map(filter -> filter.getColumn()+" = "+filterValueAsSqlString(filter.getValue()))
                 .collect(Collectors.joining(" AND ", "WHERE ", ""));
