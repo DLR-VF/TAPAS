@@ -54,7 +54,7 @@ javafx {
 application {
     // Define the main class for the application
     mainModule.set("de.dlr.ivf.tapas.environment.gui")
-    mainClass.set("de.dlr.ivf.tapas.environment.gui.TapasEnvironmentGui")
+    mainClass.set("de.dlr.ivf.tapas.environment.gui.fx.StartSimulationMonitor")
 }
 
 tasks.test {

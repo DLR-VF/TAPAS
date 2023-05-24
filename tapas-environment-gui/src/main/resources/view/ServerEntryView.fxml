@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="de.dlr.ivf.tapas.environment.gui.fx.view.controllers.ServerEntryController"
+            >
+
+    <children>
+        <TableView fx:id="serverTable" layoutX="10.0" layoutY="10.0" prefHeight="200.0" prefWidth="1045.0">
+            <columns>
+                <TableColumn fx:id="serverName" prefWidth="75.0" text="name" />
+                <TableColumn fx:id="serverIpAddress" prefWidth="75.0" text="IP-address" />
+                <TableColumn fx:id="serverCpuUsage" prefWidth="75.0" text="CPU-usage" />
+                <TableColumn fx:id="serverCoreCount" prefWidth="75.0" text="core count" />
+                <TableColumn fx:id="serverOnline" prefWidth="75.0" text="online" />
+            </columns>
+        </TableView>
+    </children>
+
+</AnchorPane>
