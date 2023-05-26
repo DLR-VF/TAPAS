@@ -2,7 +2,7 @@ package de.dlr.ivf.api.io;
 
 import de.dlr.ivf.api.io.implementation.JdbcDataReader;
 import de.dlr.ivf.api.io.implementation.JdbcLargeTableReader;
-import de.dlr.ivf.api.io.implementation.OpenConnectionJdbcReader;
+import de.dlr.ivf.api.io.implementation.NonClosingConnectionJdbcReader;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -21,6 +21,6 @@ public class DataReaderFactory {
     }
 
     public static DataReader<ResultSet> newOpenConnectionJdbcReader(Supplier<Connection> connectionSupplier){
-        return new OpenConnectionJdbcReader(connectionSupplier);
+        return new NonClosingConnectionJdbcReader(connectionSupplier);
     }
 }
