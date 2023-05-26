@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public class OpenConnectionJdbcReader extends JdbcDataReader{
-    public OpenConnectionJdbcReader(Supplier<Connection> connectionProvider) {
+public class NonClosingConnectionJdbcReader extends JdbcDataReader{
+    public NonClosingConnectionJdbcReader(Supplier<Connection> connectionProvider) {
         super(connectionProvider);
     }
 
