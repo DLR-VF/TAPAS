@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.environment.gui.fx.view.controllers;
 
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationEntryViewModel;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationsViewModel;
+import javafx.beans.property.SimpleListProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -21,7 +22,7 @@ import java.util.ResourceBundle;
 public class SimulationEntryController implements Initializable {
 
     @FXML
-    private TableView<SimulationsViewModel> simulationTable;
+    private TableView<SimulationEntryViewModel> simulationTable;
 
     @FXML
     public Button addSimulationButton;
@@ -65,6 +66,10 @@ public class SimulationEntryController implements Initializable {
         simStart.setCellValueFactory(cellData -> cellData.getValue().startDateTimeProperty());
         simEnd.setCellValueFactory(cellData -> cellData.getValue().endDateTimeProperty());
         simElapsedTime.setCellValueFactory(cellData -> cellData.getValue().elapsedTimeProperty());
+
+        simulationTable.itemsProperty().bind(new SimpleListProperty<>(viewModel.observableSimulations()));
+
+
     }
 
     @FXML

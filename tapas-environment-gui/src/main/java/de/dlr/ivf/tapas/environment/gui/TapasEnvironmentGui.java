@@ -8,8 +8,8 @@ import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.api.io.implementation.ResultSetConverter;
 import de.dlr.ivf.tapas.environment.configuration.EnvironmentConfiguration;
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
-import de.dlr.ivf.tapas.environment.gui.fx.controllers.SimulationMonitorController;
-import de.dlr.ivf.tapas.environment.gui.tasks.SimulationServerDataUpdateTask;
+import de.dlr.ivf.tapas.environment.gui.fx.view.controllers.SimulationMonitorController;
+import de.dlr.ivf.tapas.environment.gui.tasks.ServerDataUpdateTask;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -21,7 +21,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
@@ -30,10 +33,15 @@ import java.util.stream.Collectors;
 public class TapasEnvironmentGui extends Application {
 
     private SimulationMonitorController controller;
+    private final Collection<Connection> backGroundTaskConnections = new ArrayList<>();
 
     public static void main(String[] args) {
 
         Application.launch(args);
+    }
+
+    private void addConnection(Connection connection){
+        this.backGroundTaskConnections.add(connection);
     }
 
     @Override
@@ -66,12 +74,17 @@ public class TapasEnvironmentGui extends Application {
         }
 
         //init the controller
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(() -> JdbcConnectionProvider.newJdbcConnectionProvider().get(configDto.getConnectionDetails()));
+
+        Connection serverUpdateTaskConnection = JdbcConnectionProvider.newJdbcConnectionProvider().get(configDto.getConnectionDetails());
+        addConnection(serverUpdateTaskConnection);
+        DataReader<ResultSet> reader = DataReaderFactory.newOpenConnectionJdbcReader(() -> serverUpdateTaskConnection);
         Supplier<Collection<ServerEntry>> serverEntrySupplier = () -> reader.read(new ResultSetConverter<>(ServerEntry.class,ServerEntry::new),configDto.getServerTable());
-        SimulationServerDataUpdateTask serverDataUpdateTask = new SimulationServerDataUpdateTask(serverEntrySupplier);
+        ServerDataUpdateTask serverDataUpdateTask = new ServerDataUpdateTask(serverEntrySupplier);
         serverDataUpdateTask.setPeriod(Duration.seconds(1));
         serverDataUpdateTask.start();
-        this.controller = new SimulationMonitorController();
+
+
+        //this.controller = new SimulationMonitorController(serverDataUpdateTask);
         FXMLLoader loader = new FXMLLoader(SimulationMonitorController.class.getResource("/view/SimulationMonitor.fxml"));
 
 
@@ -85,10 +98,25 @@ public class TapasEnvironmentGui extends Application {
 
         primaryStage.setScene(scene);
 
-        primaryStage.setTitle("SimulationMonitor");
+        primaryStage.setTitle("SimulationMonitorOld");
+
+        //primaryStage.setOnCloseRequest(event -> Platform.exit());
 
         //ScenicView.show(scene);
 
         primaryStage.show();
+    }
+
+    @Override
+    public void stop() throws Exception{
+        System.out.println("Closing "+backGroundTaskConnections.size()+" background task connections");
+        backGroundTaskConnections.forEach(connection ->{
+            try {
+                connection.close();
+            }catch (SQLException e){
+                e.printStackTrace();
+            }
+        });
+        System.exit(0);
     }
 }
