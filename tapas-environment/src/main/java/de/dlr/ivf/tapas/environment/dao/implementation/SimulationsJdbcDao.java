@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas.environment.dao.implementation;
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.DataReader;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.implementation.OpenConnectionJdbcReader;
+import de.dlr.ivf.api.io.implementation.NonClosingConnectionJdbcReader;
 import de.dlr.ivf.api.io.implementation.ResultSetConverter;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
@@ -23,7 +23,7 @@ public class SimulationsJdbcDao implements SimulationsDao {
 
     public SimulationsJdbcDao(Supplier<Connection> connectionSupplier, DataSource simulationsTable) {
         this.simulationsTable = simulationsTable;
-        this.dataReader = new OpenConnectionJdbcReader(connectionSupplier);
+        this.dataReader = new NonClosingConnectionJdbcReader(connectionSupplier);
         this.objectFactory = new ResultSetConverter<>(SimulationEntry.class, SimulationEntry::new);
     }
 

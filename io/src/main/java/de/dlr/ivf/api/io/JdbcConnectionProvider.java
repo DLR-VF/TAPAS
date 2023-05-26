@@ -31,7 +31,7 @@ public interface JdbcConnectionProvider extends ConnectionProvider<Connection> {
                     '%1$s' might not be accessible and/or supplied login credentials are wrong.
                     """
                     .formatted(url);
-
+            System.err.println(message);
             throw new RuntimeException(message, e);
         }
     }

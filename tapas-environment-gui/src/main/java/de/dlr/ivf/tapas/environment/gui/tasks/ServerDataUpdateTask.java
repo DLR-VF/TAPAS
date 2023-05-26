@@ -13,66 +13,17 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class SimulationServerDataUpdateTask extends ScheduledService<Void> {
+public class ServerDataUpdateTask extends ScheduledService<Void> {
 
     private final Supplier<Collection<ServerEntry>> serverDataSupplier;
     private final Map<String, ServerEntry> serverEntriesMap;
 
     private final ObservableList<ServerEntry> serverEntries = FXCollections.observableArrayList();
 
-    public SimulationServerDataUpdateTask(Supplier<Collection<ServerEntry>> serverDataSupplier) {
+    public ServerDataUpdateTask(Supplier<Collection<ServerEntry>> serverDataSupplier) {
 
         this.serverDataSupplier = serverDataSupplier;
         this.serverEntriesMap = new HashMap<>();
-    }
-
-
-    public void run() {
-        // Select all available servers from the database
-//        SimulationServerData data;
-//        if (!SimulationControl.this.dbConnection.checkConnection(this)) return;
-//
-//        String query = "SELECT * FROM " + SimulationControl.this.dbConnection.getParameters().getString(
-//                ParamString.DB_TABLE_SERVERS) + " ORDER BY server_ip";
-//
-//        try (ResultSet rs = SimulationControl.this.dbConnection.executeQuery(query, this)) {
-//
-//            while (rs.next()) {
-//
-//                // receive or create SimulationServerData from database ResultSet
-//                String hostname = rs.getString("server_name");
-//                if (SimulationControl.this.simulationServerDataMap.containsKey(hostname)) {
-//                    data = SimulationControl.this.simulationServerDataMap.get(hostname);
-//                    data.update(rs);
-//                } else {
-//                    data = new SimulationServerData(rs);
-//                    SimulationControl.this.simulationServerDataMap.put(hostname, data);
-//                }
-//
-//                SimulationControl.this.gui.updateServerData(data);
-//            }
-//
-//        } catch (UnknownHostException | SQLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        query = "SELECT * FROM " + SimulationControl.this.dbConnection.getParameters().getString(
-//                ParamString.DB_TABLE_PROCESSES) + " WHERE end_time IS NULL";
-//        try (ResultSet rs = SimulationControl.this.dbConnection.executeQuery(query, this)) {
-//
-//            while (rs.next()) {
-//                String hostname = rs.getString("host");
-//                if (SimulationControl.this.simulationServerDataMap.containsKey(hostname)) {
-//
-//                    data = SimulationControl.this.simulationServerDataMap.get(hostname);
-//                    data.setServerProcessInfo(rs);
-//                    data.setServerState(
-//                            rs.getBoolean("shutdown") ? ServerControlState.STOP : ServerControlState.BOOT);
-//                }
-//            }
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
     }
 
     @Override

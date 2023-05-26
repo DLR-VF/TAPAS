@@ -7,7 +7,7 @@
  */
 package de.dlr.ivf.tapas.environment.gui.legacy;
 import de.dlr.ivf.tapas.environment.gui.tasks.SimulationDataUpdateTask;
-import de.dlr.ivf.tapas.environment.gui.tasks.SimulationServerDataUpdateTask;
+import de.dlr.ivf.tapas.environment.gui.tasks.ServerDataUpdateTask;
 import de.dlr.ivf.tapas.environment.gui.legacy.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.environment.model.SimulationData;
 import de.dlr.ivf.tapas.environment.model.SimulationServerData;
@@ -38,7 +38,7 @@ import java.util.function.Supplier;
  * 1. {@link SimulationDataUpdateTask}<br>
  * This task updates the simulation values in the memory of the client from the
  * database<br>
- * 2. {@link SimulationServerDataUpdateTask}<br>
+ * 2. {@link ServerDataUpdateTask}<br>
  * This task updates the simulation server data values in the memory of the
  * client from the database<br>
  * <br>
@@ -57,7 +57,7 @@ public class SimulationControl {
      */
     private Supplier<Connection> dbConnection;
 
-    private final SimulationServerDataUpdateTask simulationServerDataUpdateTask;
+    private final ServerDataUpdateTask simulationServerDataUpdateTask;
 
     private final SimulationDataUpdateTask simulationDataUpdateTask;
     /**
