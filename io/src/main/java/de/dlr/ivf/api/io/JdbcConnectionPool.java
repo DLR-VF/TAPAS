@@ -1,30 +1,50 @@
 package de.dlr.ivf.api.io;
 
-import lombok.Builder;
-import lombok.Singular;
-
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
-@Builder
 public class JdbcConnectionPool {
 
-    @Singular
     private final Map<ConnectionRequest, Connection> connections;
 
-    private final JdbcConnectionProvider connectionProvider;
+    private final ConnectionProvider<Connection> connectionProvider;
+
+    public JdbcConnectionPool(ConnectionProvider<Connection> connectionProvider){
+        this.connections = new HashMap<>();
+        this.connectionProvider = connectionProvider;
+    }
 
     //todo override hashcode and equals method in ConnectionRequest.
-    public Connection getConnection(ConnectionRequest connectionRequest) throws SQLException {
+    public Connection getConnection(ConnectionRequest connectionRequest) {
 
         Connection connection = connections.get(connectionRequest);
 
-        if(connection == null || connection.isClosed()){
-            connection = connectionProvider.get(connectionRequest.getConnectionDetails());
-            connections.put(connectionRequest, connection);
+        try {
+            if (connection == null || connection.isClosed()) {
+                connection = connectionProvider.get(connectionRequest.getConnectionDetails());
+                connections.put(connectionRequest, connection);
+            }
+        }catch (SQLException e){
+            String message = "An error occurred during connection request";
+            System.err.println(message);
+            e.printStackTrace();
+            throw new RuntimeException(message, e);
         }
 
         return connection;
+    }
+
+    public void shutDown() {
+        for(Map.Entry<ConnectionRequest, Connection> entry : connections.entrySet()){
+
+            System.out.println("Closing connection for: "+entry.getKey().getRequestingClass().getSimpleName());
+            try {
+                entry.getValue().close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
