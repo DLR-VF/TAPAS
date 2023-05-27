@@ -1,15 +1,16 @@
 package de.dlr.ivf.tapas.environment.gui.fx.view.controllers;
 
+import de.dlr.ivf.tapas.environment.gui.fx.view.factories.ProgressCell;
+import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationTableRow;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationEntryViewModel;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationsViewModel;
+import de.dlr.ivf.tapas.environment.model.SimulationState;
 import javafx.beans.property.SimpleListProperty;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
@@ -17,6 +18,7 @@ import java.io.File;
 import java.net.URL;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.ResourceBundle;
 
 public class SimulationEntryController implements Initializable {
@@ -34,7 +36,9 @@ public class SimulationEntryController implements Initializable {
     @FXML
     private TableColumn<SimulationEntryViewModel, String> simDescription;
     @FXML
-    private TableColumn<SimulationEntryViewModel, ProgressBar> simProgress;
+    private TableColumn<SimulationEntryViewModel, SimulationState> simState;
+    @FXML
+    private TableColumn<SimulationEntryViewModel, Double> simProgress;
     @FXML
     private TableColumn<SimulationEntryViewModel, Boolean> simReady;
     @FXML
@@ -48,18 +52,32 @@ public class SimulationEntryController implements Initializable {
     @FXML
     private TableColumn<SimulationEntryViewModel, Duration> simElapsedTime;
 
+    @FXML
+    private ScrollPane simScrollPane;
+
     private final SimulationsViewModel viewModel;
 
+    private final EnumMap<SimulationState, PseudoClass> simStatePseudoClasses = new EnumMap<>(SimulationState.class);
+
     public SimulationEntryController(SimulationsViewModel viewModel){
+
         this.viewModel = viewModel;
+
+        //add simulation state pseudo classes
+        simStatePseudoClasses.put(SimulationState.READY, PseudoClass.getPseudoClass("ready"));
+        simStatePseudoClasses.put(SimulationState.RUNNING, PseudoClass.getPseudoClass("running"));
+        simStatePseudoClasses.put(SimulationState.PAUSED, PseudoClass.getPseudoClass("paused"));
+        simStatePseudoClasses.put(SimulationState.FINISHED, PseudoClass.getPseudoClass("finished"));
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+
         simId.setCellValueFactory(cell -> cell.getValue().idProperty());
         simName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
         simDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
-        simProgress.setCellValueFactory(cellData -> cellData.getValue().progressProperty());
+        simState.setCellValueFactory(cellData -> cellData.getValue().simulationStateProperty());
+        simProgress.setCellValueFactory(cellData -> cellData.getValue().progressValueProperty().asObject());
         simReady.setCellValueFactory(cellData -> cellData.getValue().isReadyProperty());
         simStarted.setCellValueFactory(cellData -> cellData.getValue().isStartedProperty());
         simFinished.setCellValueFactory(cellData -> cellData.getValue().isFinishedProperty());
@@ -68,7 +86,11 @@ public class SimulationEntryController implements Initializable {
         simElapsedTime.setCellValueFactory(cellData -> cellData.getValue().elapsedTimeProperty());
 
         simulationTable.itemsProperty().bind(new SimpleListProperty<>(viewModel.observableSimulations()));
+        simulationTable.setRowFactory(row -> new SimulationTableRow(simStatePseudoClasses));
+        simProgress.setCellFactory(cell -> new ProgressCell<>());
 
+        simulationTable.prefWidthProperty().bind(simScrollPane.widthProperty());
+        simulationTable.prefHeightProperty().bind(simScrollPane.heightProperty());
 
     }
 

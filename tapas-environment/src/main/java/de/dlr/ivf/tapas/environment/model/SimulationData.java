@@ -8,11 +8,9 @@
 
 package de.dlr.ivf.tapas.environment.model;
 
-import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
@@ -226,8 +224,8 @@ public class SimulationData {
     /**
      * @return current state of the simulation
      */
-    public SimulationState getState() {
-        return SimulationState.getState(this);
+    public SimulationStateLegacy getState() {
+        return SimulationStateLegacy.getState(this);
     }
 
     /**
@@ -258,21 +256,21 @@ public class SimulationData {
      * @return true if state is FINISHED
      */
     public boolean isFinished() {
-        return getState() == SimulationState.FINISHED;
+        return getState() == SimulationStateLegacy.FINISHED;
     }
 
     /**
      * @return true if state is READY
      */
     public boolean isReady() {
-        return getState() == SimulationState.STOPPED;
+        return getState() == SimulationStateLegacy.STOPPED;
     }
 
     /**
      * @return true if state is STARTED
      */
     public boolean isStarted() {
-        return getState() == SimulationState.STARTED;
+        return getState() == SimulationStateLegacy.STARTED;
     }
 
 

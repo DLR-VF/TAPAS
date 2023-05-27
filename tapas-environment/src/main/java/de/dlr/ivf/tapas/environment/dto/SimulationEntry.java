@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.environment.dto;
 
 
 import de.dlr.ivf.api.io.Column;
+import de.dlr.ivf.tapas.environment.model.SimulationState;
 import lombok.Getter;
 
 import java.sql.Timestamp;
@@ -42,4 +43,7 @@ public class SimulationEntry {
 
     @Column("simulation_server")
     private String simServer;
+
+    @Column("simulation_state")
+    private SimulationState simState;
 }

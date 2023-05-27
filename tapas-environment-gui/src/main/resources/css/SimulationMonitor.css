@@ -1,0 +1,124 @@
+
+/*
+  table view styles
+ */
+
+.table-view {
+    -fx-background-color: transparent;
+}
+
+/*
+  selector for header corner
+ */
+.table-view .column-header-background .filler{}
+
+/*
+  selector for right corner between scrollbars
+ */
+.table-view .corner {}
+
+/*
+  global header selector
+ */
+.table-view .column-header-background{
+    -fx-background-color: linear-gradient(to bottom, #1dbbdd44, #93f9b944);
+    -fx-background-radius: 7px 7px 0px 0px;
+    -fx-background-insets: 0 11px 0 0;
+    -fx-padding: 0 0 5px 0;
+}
+
+/*
+  individual column headers
+ */
+.table-view .column-header {
+    -fx-background-color: transparent;
+}
+
+
+/*.table-row-cell:hover {*/
+/*    -fx-background-color: #93f9b911;*/
+/*    -fx-text-background-color: red;*/
+/*}*/
+/*.table-row-cell:odd{*/
+/*    -fx-background-color: #93f9b911;*/
+/*    -fx-background-insets: 0, 0 0 1 0;*/
+/*    -fx-padding: 0.0em;*/
+/*}*/
+/*.table-row-cell:even{*/
+/*    -fx-background-color: #1dbbdd11;*/
+/*    -fx-background-insets: 0, 0 0 1 0;*/
+/*    -fx-padding: 0.0em;*/
+/*}*/
+
+/*
+  scrollbars
+ */
+
+.table-view .virtual-flow .scroll-bar:vertical,
+.table-view .virtual-flow .scroll-bar:vertical .track,
+.table-view .virtual-flow .scroll-bar:vertical .track-background,
+.table-view .virtual-flow .scroll-bar:horizontal,
+.table-view .virtual-flow .scroll-bar:horizontal .track,
+.table-view .virtual-flow .scroll-bar:horizontal .track-background {
+    -fx-background-color: transparent;
+}
+
+/*
+  scrollbar arrows
+ */
+.table-view .virtual-flow .scroll-bar .increment-button,
+.table-view .virtual-flow .scroll-bar .decrement-button {
+    -fx-opacity: 0;
+    -fx-padding: 2;
+}
+
+/*
+  scrollbar itself
+ */
+.table-view .virtual-flow .scroll-bar:vertical .thumb{
+    -fx-background-color:  linear-gradient(to bottom, #1dbbdd44, #93f9b944);
+}
+.table-view .virtual-flow .scroll-bar:horizontal .thumb {
+    -fx-background-color:  linear-gradient(to right, #1dbbdd44, #93f9b944);
+}
+
+
+/*
+  set up simulations table
+ */
+/*
+  table cell selectors
+ */
+.table-view .table-cell{
+    -fx-border-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-padding: 2 0 2 10px;
+    /*-fx-background-color: transparent;*/
+}
+
+
+/*
+Simulations table
+  custom pseudo class for simulation state
+ */
+.table-row-cell:running {
+    -fx-background-color: #6ba962;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+.table-row-cell:ready {
+    -fx-background-color: #4c7243;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+.table-row-cell:paused {
+    -fx-background-color: #c0673c;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+.table-row-cell:finished {
+    -fx-background-color: #5d625d;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+
+#simulationTable .table-column {
+    -fx-alignment: CENTER;
+}

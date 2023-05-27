@@ -23,7 +23,7 @@ public class SimulationsViewModel {
         this.simulationDataUpdateTask = simulationDataUpdateTask;
 
         //Note: an extractor has been specified in order to fire property changes when nested properties change.
-        this.simulations = FXCollections.observableArrayList(simRow -> new Observable[]{
+        this.simulations = FXCollections.observableArrayList(simRow -> new Observable[]{ simRow.idProperty(),
                 simRow.descriptionProperty(), simRow.elapsedTimeProperty(), simRow.endDateTimeProperty(),
                 simRow.isFinishedProperty(), simRow.isReadyProperty(), simRow.isStartedProperty(),
                 simRow.progressProperty(), simRow.serverProperty(), simRow.startDateTimeProperty()
@@ -58,7 +58,6 @@ public class SimulationsViewModel {
             updateSimulationEntryViewModel(sim, entry);
             simulations.add(sim);
         }
-
     }
 
     private void updateSimulationEntryViewModel(SimulationEntryViewModel sim, SimulationEntry entry) {
@@ -67,6 +66,7 @@ public class SimulationsViewModel {
         sim.isStartedProperty().set(entry.isSimStarted());
         sim.nameProperty().set(entry.getSimKey());
         sim.idProperty().set(entry.getId());
-        //sim.progressProperty().set(entry.getSimProgress());
+        sim.simulationStateProperty().set(entry.getSimState());
+        sim.progressValueProperty().set(entry.getSimProgress() / 100);
     }
 }

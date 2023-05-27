@@ -26,7 +26,7 @@ public class DataStore {
 
     Modes modes;
 
-    Collection<TPS_PersonGroup> personGroups;
+    PersonGroups personGroups;
 
     Collection<TPS_SettlementSystem> settlementSystems;
 

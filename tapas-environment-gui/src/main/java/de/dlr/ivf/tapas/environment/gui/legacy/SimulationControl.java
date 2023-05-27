@@ -11,7 +11,7 @@ import de.dlr.ivf.tapas.environment.gui.tasks.ServerDataUpdateTask;
 import de.dlr.ivf.tapas.environment.gui.legacy.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.environment.model.SimulationData;
 import de.dlr.ivf.tapas.environment.model.SimulationServerData;
-import de.dlr.ivf.tapas.environment.model.SimulationState;
+import de.dlr.ivf.tapas.environment.model.SimulationStateLegacy;
 
 import lombok.Builder;
 
@@ -162,7 +162,7 @@ public class SimulationControl {
      */
     public void changeSimulationDataState(String sim_key) {
         SimulationData simulation = this.simulationDataMap.get(sim_key);
-        SimulationState state = SimulationState.getState(simulation);
+        SimulationStateLegacy state = SimulationStateLegacy.getState(simulation);
 
         // synchronized (simulationDataMap) {
         String query;
