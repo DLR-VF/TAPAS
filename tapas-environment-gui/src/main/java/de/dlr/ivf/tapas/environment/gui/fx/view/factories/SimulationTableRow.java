@@ -11,13 +11,12 @@ import javafx.scene.control.TableRow;
 import java.util.EnumMap;
 
 public class SimulationTableRow extends TableRow<SimulationEntryViewModel> {
-    private final ChangeListener<SimulationState> simStateListener;
     private final WeakChangeListener<SimulationState> simStateWeakListener;
     private final EnumMap<SimulationState, PseudoClass> simStatePseudoClasses;
 
     public SimulationTableRow(EnumMap<SimulationState, PseudoClass> simStatePseudoClasses){
         this.simStatePseudoClasses = simStatePseudoClasses;
-        this.simStateListener = ((observable, oldValue, newValue) -> updateSimStatePseudoClass(oldValue, newValue));
+        ChangeListener<SimulationState> simStateListener = ((observable, oldValue, newValue) -> updateSimStatePseudoClass(oldValue, newValue));
         this.simStateWeakListener = new WeakChangeListener<>(simStateListener);
     }
 
@@ -25,7 +24,7 @@ public class SimulationTableRow extends TableRow<SimulationEntryViewModel> {
 
         if(oldState != null)
             updateSimStatePseudoClass(oldState, false);
-        else
+        if(newState != null)
             updateSimStatePseudoClass(newState,true);
 
     }
