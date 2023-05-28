@@ -5,10 +5,12 @@ package de.dlr.ivf.tapas.environment.dto;
 import de.dlr.ivf.api.io.Column;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
 @Getter
+@NoArgsConstructor
 public class SimulationEntry {
 
     @Column("id")

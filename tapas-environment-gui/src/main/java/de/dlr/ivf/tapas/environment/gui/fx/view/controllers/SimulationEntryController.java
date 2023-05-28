@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.environment.gui.fx.view.controllers;
 
+import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationActionButtonCell;
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.ProgressCell;
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationTableRow;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationEntryViewModel;
@@ -51,6 +52,8 @@ public class SimulationEntryController implements Initializable {
     private TableColumn<SimulationEntryViewModel, LocalDateTime> simEnd;
     @FXML
     private TableColumn<SimulationEntryViewModel, Duration> simElapsedTime;
+    @FXML
+    private TableColumn<SimulationEntryViewModel, SimulationState> simAction;
 
     @FXML
     private ScrollPane simScrollPane;
@@ -84,6 +87,8 @@ public class SimulationEntryController implements Initializable {
         simStart.setCellValueFactory(cellData -> cellData.getValue().startDateTimeProperty());
         simEnd.setCellValueFactory(cellData -> cellData.getValue().endDateTimeProperty());
         simElapsedTime.setCellValueFactory(cellData -> cellData.getValue().elapsedTimeProperty());
+        simAction.setCellFactory(cell -> new SimulationActionButtonCell<>());
+        simAction.setCellValueFactory(cellData -> cellData.getValue().simulationStateProperty());
 
         simulationTable.itemsProperty().bind(new SimpleListProperty<>(viewModel.observableSimulations()));
         simulationTable.setRowFactory(row -> new SimulationTableRow(simStatePseudoClasses));
