@@ -55,8 +55,8 @@ public class SimulationsViewModel {
             updateSimulationEntryViewModel(sim,entry);
         }else {
             var sim = new SimulationEntryViewModel();
-            updateSimulationEntryViewModel(sim, entry);
             simulations.add(sim);
+            updateSimulationEntryViewModel(sim, entry);
         }
     }
 
