@@ -33,6 +33,16 @@ public class ServersJdbcDao implements ServersDao {
 
     @Override
     public void removeServer(ServerEntry serverEntry) {
+        System.out.println("not implemented yet");
+    }
+
+    @Override
+    public void save(ServerEntry serverEntry) {
+
+    }
+
+    @Override
+    public void update(ServerEntry serverEntry) {
 
     }
 }

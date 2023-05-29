@@ -9,4 +9,8 @@ public interface ServersDao {
     Collection<ServerEntry> load();
 
     void removeServer(ServerEntry serverEntry);
+
+    void save(ServerEntry serverEntry);
+
+    void update(ServerEntry serverEntry);
 }

@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.environment.gui.fx.model.implementation;
 import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 import de.dlr.ivf.tapas.environment.gui.fx.model.ServersModel;
+import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServerEntryViewModel;
 
 import java.util.Collection;
 
@@ -16,5 +17,10 @@ public class ServersModelManager implements ServersModel {
     @Override
     public Collection<ServerEntry> getServerData() {
         return dao.load();
+    }
+
+    @Override
+    public void save(ServerEntryViewModel server) {
+        //dao.
     }
 }
