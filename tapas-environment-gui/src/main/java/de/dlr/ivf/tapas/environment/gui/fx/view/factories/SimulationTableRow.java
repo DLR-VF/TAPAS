@@ -11,12 +11,15 @@ import javafx.scene.control.TableRow;
 import java.util.EnumMap;
 
 public class SimulationTableRow extends TableRow<SimulationEntryViewModel> {
+
+    //a strong reference to the change listener is needed otherwise it might get garbage collected
+    private final ChangeListener<SimulationState> simStateListener;
     private final WeakChangeListener<SimulationState> simStateWeakListener;
     private final EnumMap<SimulationState, PseudoClass> simStatePseudoClasses;
 
     public SimulationTableRow(EnumMap<SimulationState, PseudoClass> simStatePseudoClasses){
         this.simStatePseudoClasses = simStatePseudoClasses;
-        ChangeListener<SimulationState> simStateListener = ((observable, oldValue, newValue) -> updateSimStatePseudoClass(oldValue, newValue));
+        this.simStateListener = ((observable, oldValue, newValue) -> updateSimStatePseudoClass(oldValue, newValue));
         this.simStateWeakListener = new WeakChangeListener<>(simStateListener);
     }
 
@@ -43,13 +46,14 @@ public class SimulationTableRow extends TableRow<SimulationEntryViewModel> {
             ObjectProperty<SimulationState> stateProperty = oldItem.simulationStateProperty();
             stateProperty.removeListener(simStateWeakListener);
             pseudoClassStateChanged(simStatePseudoClasses.get(stateProperty.get()),false);
-        }
 
+        }
         super.updateItem(item, empty);
 
         if(item != null){
             item.simulationStateProperty().addListener(simStateWeakListener);
             updateSimStatePseudoClass(item.simulationStateProperty().get(), true);
         }
+
     }
 }
