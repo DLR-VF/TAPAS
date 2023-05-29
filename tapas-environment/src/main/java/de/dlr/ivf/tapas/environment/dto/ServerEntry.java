@@ -1,11 +1,12 @@
 package de.dlr.ivf.tapas.environment.dto;
 
 import de.dlr.ivf.api.io.Column;
+import de.dlr.ivf.tapas.environment.model.ServerState;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Setter
+@NoArgsConstructor
 public class ServerEntry {
     @Column("server_name")
     private String serverName;
@@ -21,4 +22,7 @@ public class ServerEntry {
 
     @Column("server_usage")
     private double serverUsage;
+
+    @Column("server_state")
+    private ServerState serverState;
 }

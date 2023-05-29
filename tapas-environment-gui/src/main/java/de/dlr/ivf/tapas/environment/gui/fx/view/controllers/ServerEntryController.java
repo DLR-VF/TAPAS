@@ -1,13 +1,12 @@
 package de.dlr.ivf.tapas.environment.gui.fx.view.controllers;
 
-import de.dlr.ivf.tapas.environment.dto.ServerEntry;
+import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServerEntryViewModel;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServersViewModel;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleIntegerProperty;
-import javafx.beans.property.SimpleStringProperty;
+import de.dlr.ivf.tapas.environment.model.ServerState;
+import javafx.beans.property.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -17,19 +16,23 @@ import java.util.ResourceBundle;
 public class ServerEntryController implements Initializable {
 
     @FXML
-    TableView<ServerEntry> serverTable;
+    TableView<ServerEntryViewModel> serverTable;
     @FXML
-    private TableColumn<ServerEntry, Integer> serverCoreCount;
+    private TableColumn<ServerEntryViewModel, Integer> serverCoreCount;
     @FXML
-    private TableColumn<ServerEntry, Double> serverCpuUsage;
+    private TableColumn<ServerEntryViewModel, Double> serverCpuUsage;
     @FXML
-    private TableColumn<ServerEntry, String> serverIpAddress;
+    private TableColumn<ServerEntryViewModel, String> serverIpAddress;
     @FXML
-    private TableColumn<ServerEntry, String> serverName;
+    private TableColumn<ServerEntryViewModel, String> serverName;
     @FXML
-    private TableColumn<ServerEntry, Boolean> serverOnline;
+    private TableColumn<ServerEntryViewModel, Boolean> serverOnline;
+    @FXML
+    private TableColumn<ServerEntryViewModel, ServerState> serverState;
+    @FXML
+    ScrollPane serverScrollPane;
 
-    private ServersViewModel viewModel;
+    private final ServersViewModel viewModel;
 
     public ServerEntryController(ServersViewModel serversViewModel) {
         this.viewModel = serversViewModel;
@@ -38,11 +41,15 @@ public class ServerEntryController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
 
-        this.serverName.setCellValueFactory(serverEntry -> new SimpleStringProperty(serverEntry.getValue().getServerName()));
-        this.serverIpAddress.setCellValueFactory(serverEntry -> new SimpleStringProperty(serverEntry.getValue().getServerIp()));
-        this.serverOnline.setCellValueFactory(serverEntry -> new SimpleBooleanProperty(serverEntry.getValue().isServerOnline()));
-        this.serverCpuUsage.setCellValueFactory(serverEntry -> new SimpleDoubleProperty(serverEntry.getValue().getServerUsage()).asObject());
-        this.serverCoreCount.setCellValueFactory(serverEntry -> new SimpleIntegerProperty(serverEntry.getValue().getServerCores()).asObject());
+        this.serverName.setCellValueFactory(serverEntry -> serverEntry.getValue().serverNameProperty());
+        this.serverIpAddress.setCellValueFactory(serverEntry -> serverEntry.getValue().serverIpAddressProperty());
+        this.serverOnline.setCellValueFactory(serverEntry -> serverEntry.getValue().serverOnlineProperty());
+        this.serverCpuUsage.setCellValueFactory(serverEntry -> serverEntry.getValue().serverCpuUsageProperty().asObject());
+        this.serverCoreCount.setCellValueFactory(serverEntry -> serverEntry.getValue().serverCoreCountProperty().asObject());
+        this.serverState.setCellValueFactory(serverEntry -> serverEntry.getValue().serverStateProperty());
 
+        serverTable.itemsProperty().bind(new SimpleListProperty<>(viewModel.observableServers()));
+        serverTable.prefWidthProperty().bind(serverScrollPane.widthProperty());
+        serverTable.prefHeightProperty().bind(serverScrollPane.heightProperty());
     }
 }
