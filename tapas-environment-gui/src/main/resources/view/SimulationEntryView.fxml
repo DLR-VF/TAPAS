@@ -12,21 +12,19 @@
     <children>
       <VBox layoutX="10.0" layoutY="10.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
          <children>
-            <ScrollPane fx:id="simScrollPane" pannable="true" vbarPolicy="ALWAYS" VBox.vgrow="ALWAYS">
+            <ScrollPane fx:id="simScrollPane" fitToHeight="true" fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" pannable="true" vbarPolicy="NEVER" VBox.vgrow="ALWAYS">
                <content>
-                    <TableView fx:id="simulationTable" nodeOrientation="LEFT_TO_RIGHT" tableMenuButtonVisible="true">
+                    <TableView fx:id="simulationTable" focusTraversable="false" nodeOrientation="LEFT_TO_RIGHT">
                     <columns>
-                        <TableColumn fx:id="simId" prefWidth="75.0" text="id" />
-                        <TableColumn fx:id="simName" prefWidth="75.0" text="name" />
-                        <TableColumn fx:id="simDescription" prefWidth="75.0" text="description" />
-                        <TableColumn fx:id="simState" prefWidth="75.0" text="state" />
-                        <TableColumn fx:id="simReady" prefWidth="75.0" text="ready" />
-                        <TableColumn fx:id="simStarted" prefWidth="75.0" text="started" />
-                        <TableColumn fx:id="simFinished" prefWidth="75.0" text="finished" />
-                        <TableColumn fx:id="simProgress" prefWidth="75.0" text="progress" />
-                        <TableColumn fx:id="simStart" prefWidth="75.0" text="start date" />
-                        <TableColumn fx:id="simEnd" prefWidth="75.0" text="end date" />
-                        <TableColumn fx:id="simElapsedTime" prefWidth="75.0" text="elapsed time" />
+                        <TableColumn fx:id="simId" editable="false" maxWidth="50.0" minWidth="50.0" prefWidth="50.0" resizable="false" text="id" />
+                        <TableColumn fx:id="simName" prefWidth="300.0" text="Name" />
+                        <TableColumn fx:id="simState" maxWidth="90.0" minWidth="90.0" prefWidth="90.0" resizable="false" text="State" />
+                        <TableColumn fx:id="simAction" editable="false" maxWidth="150.0" minWidth="150.0" prefWidth="150.0" resizable="false" text="Action" />
+                        <TableColumn fx:id="simProgress" prefWidth="75.0" text="Progress" />
+                        <TableColumn fx:id="simDescription" prefWidth="200.0" text="Description" />
+                        <TableColumn fx:id="simStart" prefWidth="75.0" text="Start date" />
+                        <TableColumn fx:id="simEnd" prefWidth="75.0" text="End date" />
+                        <TableColumn fx:id="simElapsedTime" prefWidth="75.0" text="Elapsed time" />
                     </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

@@ -2,12 +2,16 @@ package de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation;
 
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import de.dlr.ivf.tapas.environment.gui.fx.model.SimulationsModel;
+import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.util.LocalDateTimeUtils;
 import de.dlr.ivf.tapas.environment.gui.tasks.SimulationDataUpdateTask;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.File;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class SimulationsViewModel {
 
@@ -16,16 +20,18 @@ public class SimulationsViewModel {
     private final ObservableList<SimulationEntryViewModel> simulations;
     private final SimulationDataUpdateTask simulationDataUpdateTask;
 
+    private final DateTimeFormatter dateTimeFormatter;
+
 
     public SimulationsViewModel(SimulationsModel dataModel, SimulationDataUpdateTask simulationDataUpdateTask){
 
         this.dataModel = dataModel;
         this.simulationDataUpdateTask = simulationDataUpdateTask;
+        this.dateTimeFormatter =  LocalDateTimeUtils.dateTimeFormatter();
 
         //Note: an extractor has been specified in order to fire property changes when nested properties change.
         this.simulations = FXCollections.observableArrayList(simRow -> new Observable[]{ simRow.idProperty(),
                 simRow.descriptionProperty(), simRow.elapsedTimeProperty(), simRow.endDateTimeProperty(),
-                simRow.isFinishedProperty(), simRow.isReadyProperty(), simRow.isStartedProperty(),
                 simRow.progressProperty(), simRow.serverProperty(), simRow.startDateTimeProperty()
         });
 
@@ -61,12 +67,20 @@ public class SimulationsViewModel {
     }
 
     private void updateSimulationEntryViewModel(SimulationEntryViewModel sim, SimulationEntry entry) {
-        sim.isFinishedProperty().set(entry.isSimFinished());
-        sim.isReadyProperty().set(entry.isSimReady());
-        sim.isStartedProperty().set(entry.isSimStarted());
         sim.nameProperty().set(entry.getSimKey());
         sim.idProperty().set(entry.getId());
         sim.simulationStateProperty().set(entry.getSimState());
         sim.progressValueProperty().set(entry.getSimProgress() / 100);
+
+        var startDate = entry.getSimStartedTime() == null ? null : entry.getSimStartedTime().toLocalDateTime();
+        var endDate = entry.getSimFinishedTime() == null ? null  : entry.getSimFinishedTime().toLocalDateTime();
+
+        sim.startDateTimeProperty().set(startDate.format(dateTimeFormatter));
+        sim.endDateTimeProperty().set(endDate.format(dateTimeFormatter));
+
+        Duration duration = startDate == null || endDate == null ? Duration.ofSeconds(0) : Duration.between(startDate,endDate);
+
+        String elapsedTime = LocalDateTimeUtils.durationToFormattedTime(duration);
+        sim.elapsedTimeProperty().set(elapsedTime);
     }
 }

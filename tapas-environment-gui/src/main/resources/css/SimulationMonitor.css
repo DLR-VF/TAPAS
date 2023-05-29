@@ -1,3 +1,20 @@
+.root{
+    -main-color: #393A32;
+    -background-dark: #393A32;
+}
+
+#simMonitor{
+    -fx-background-color: -main-color;
+}
+
+.root {
+    -table-select-color: #32759f;
+    -fx-accent: #1e74c6;
+    -fx-focus-color: -fx-accent;
+    -fx-base: #373e43;
+    -fx-control-inner-background: derive(-fx-base, 35%);
+    -fx-control-inner-background-alt: -fx-control-inner-background ;
+}
 
 /*
   table view styles
@@ -10,12 +27,16 @@
 /*
   selector for header corner
  */
-.table-view .column-header-background .filler{}
+.table-view .column-header-background .filler{
+    -fx-background-color: transparent;
+}
 
 /*
   selector for right corner between scrollbars
  */
-.table-view .corner {}
+.table-view .corner {
+    -fx-background-color: transparent;
+}
 
 /*
   global header selector
@@ -33,22 +54,6 @@
 .table-view .column-header {
     -fx-background-color: transparent;
 }
-
-
-/*.table-row-cell:hover {*/
-/*    -fx-background-color: #93f9b911;*/
-/*    -fx-text-background-color: red;*/
-/*}*/
-/*.table-row-cell:odd{*/
-/*    -fx-background-color: #93f9b911;*/
-/*    -fx-background-insets: 0, 0 0 1 0;*/
-/*    -fx-padding: 0.0em;*/
-/*}*/
-/*.table-row-cell:even{*/
-/*    -fx-background-color: #1dbbdd11;*/
-/*    -fx-background-insets: 0, 0 0 1 0;*/
-/*    -fx-padding: 0.0em;*/
-/*}*/
 
 /*
   scrollbars
@@ -93,7 +98,7 @@
     -fx-border-color: transparent;
     -fx-text-fill: white;
     -fx-font-size: 13px;
-    -fx-padding: 2 0 2 10px;
+/*    -fx-padding: 2 0 2 10px;*/
     /*-fx-background-color: transparent;*/
 }
 
@@ -102,23 +107,106 @@
 Simulations table
   custom pseudo class for simulation state
  */
-.table-row-cell:running {
+
+#simulationTable .table-row-cell:running {
     -fx-background-color: #6ba962;
+
     /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
 }
-.table-row-cell:ready {
+#simulationTable .table-row-cell:selected:running {
+    -fx-background-color: -table-select-color;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+#simulationTable .table-row-cell:ready {
     -fx-background-color: #4c7243;
     /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
 }
-.table-row-cell:paused {
+#simulationTable .table-row-cell:selected:ready {
+    -fx-background-color: -table-select-color;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+#simulationTable .table-row-cell:paused {
     -fx-background-color: #c0673c;
     /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
 }
-.table-row-cell:finished {
-    -fx-background-color: #5d625d;
+#simulationTable .table-row-cell:selected:paused {
+    -fx-background-color: -table-select-color;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+#simulationTable .table-row-cell:finished {
+    -fx-background-color: #3f423f;
+    /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
+}
+#simulationTable .table-row-cell:selected:finished {
+    -fx-background-color: -table-select-color;
     /*-fx-border-color: transparent -fx-box-border transparent transparent;*/
 }
 
-#simulationTable .table-column {
+/*#simulationTable .table-row-cell{*/
+/*    -fx-text-background-color: red;*/
+/*    -fx-background-insets: 0, 0 1 1 0;*/
+/*}*/
+
+#simulationTable .table-column, #serverTable .table-column {
     -fx-alignment: CENTER;
+}
+
+#simulationTable .progress-bar > .bar{
+    /*-fx-accent: #d90921;*/
+    -fx-background-color: #28a904;
+    -fx-background-insets: 0;
+}
+
+#simulationTable .progress-bar{
+
+    -fx-border-color: #474959;
+}
+
+/*#simProgress > .text-field{*/
+/*    -fx-fill: #FFFFFF;*/
+/*}*/
+
+#simulationTable .progress-bar > .track{
+
+    -fx-background-color: transparent;
+}
+
+#simulationTable .button{
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-min-height: 20px;
+    -fx-min-width: 60px;
+    -fx-max-height: 20px;
+    -fx-max-width: 60px;
+    /*-fx-background-color: #818ac4;*/
+}
+
+#simulationTable{
+    -fx-border-color: transparent;
+}
+
+.scroll-pane {
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.scroll-pane:focused {
+    -fx-background-insets: 0;
+}
+
+.scroll-pane .corner {
+    -fx-background-insets: 0;
+}
+
+.sim-action-button-graphic, .sim-action-button-text{
+    -fx-fill: white;
+    -fx-text-fill: white;
+}
+
+.no-fill{
+    -fx-fill: transparent;
+    -fx-border-color: white;
+    -fx-stroke: white;
+    -fx-border-style: solid;
 }

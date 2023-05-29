@@ -4,23 +4,23 @@ import javafx.geometry.Pos;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableCell;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.text.Text;
 
 public class ProgressCell<S> extends TableCell<S, Double> {
 
-    private ProgressBar progressBar;
-    private Text cellText;
+    private final ProgressBar progressBar;
+    private final Text cellText;
 
-    private HBox horizontalWrapper;
+    private final StackPane stackPane;
 
     public ProgressCell(){
         this.progressBar = new ProgressBar();
+        progressBar.prefWidthProperty().bind(widthProperty());
         this.cellText = new Text();
-        horizontalWrapper = new HBox();
-        horizontalWrapper.getChildren().addAll(progressBar,cellText);
-        horizontalWrapper.setAlignment(Pos.CENTER_LEFT);
-        horizontalWrapper.setSpacing(5);
+        stackPane = new StackPane();
+        stackPane.getChildren().addAll(progressBar,cellText);
+        stackPane.setAlignment(Pos.CENTER);
     }
 
     @Override
@@ -31,9 +31,9 @@ public class ProgressCell<S> extends TableCell<S, Double> {
             setGraphic(null);
         }else{
             progressBar.setProgress(item);
-            cellText.setText("value: "+item);
-            setGraphic(horizontalWrapper);
-            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            setText(item * 100+"%");
+            setGraphic(stackPane);
+            setContentDisplay(ContentDisplay.CENTER);
         }
     }
 }

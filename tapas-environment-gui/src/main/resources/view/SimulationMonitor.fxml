@@ -2,14 +2,12 @@
 
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.VBox?>
 
 <AnchorPane prefHeight="809.0" prefWidth="1065.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.dlr.ivf.tapas.environment.gui.fx.view.controllers.SimulationMonitorController">
-   <VBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="0.0" />
-   <SplitPane fx:id="simSplitPane" dividerPositions="0.7" orientation="VERTICAL" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="8.0" AnchorPane.topAnchor="0.0">
+   <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="200.0" prefWidth="160.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
      <items>
-         <fx:include source="SimulationEntryView.fxml" VBox.vgrow="SOMETIMES" />
-         <fx:include source="ServerEntryView.fxml" VBox.vgrow="NEVER" />
+         <fx:include source="SimulationEntryView.fxml" />
+         <fx:include source="ServerEntryView.fxml" />
      </items>
    </SplitPane>
 </AnchorPane>

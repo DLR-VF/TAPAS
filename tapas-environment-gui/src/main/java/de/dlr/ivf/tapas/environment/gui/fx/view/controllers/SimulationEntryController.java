@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.environment.gui.fx.view.controllers;
 
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationActionButtonCell;
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.ProgressCell;
+import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationProgress;
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationTableRow;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationEntryViewModel;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationsViewModel;
@@ -11,15 +12,15 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 import java.io.File;
 import java.net.URL;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.EnumMap;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class SimulationEntryController implements Initializable {
@@ -41,17 +42,11 @@ public class SimulationEntryController implements Initializable {
     @FXML
     private TableColumn<SimulationEntryViewModel, Double> simProgress;
     @FXML
-    private TableColumn<SimulationEntryViewModel, Boolean> simReady;
+    private TableColumn<SimulationEntryViewModel, String> simStart;
     @FXML
-    private TableColumn<SimulationEntryViewModel, Boolean> simStarted;
+    private TableColumn<SimulationEntryViewModel, String> simEnd;
     @FXML
-    private TableColumn<SimulationEntryViewModel, Boolean> simFinished;
-    @FXML
-    private TableColumn<SimulationEntryViewModel, LocalDateTime> simStart;
-    @FXML
-    private TableColumn<SimulationEntryViewModel, LocalDateTime> simEnd;
-    @FXML
-    private TableColumn<SimulationEntryViewModel, Duration> simElapsedTime;
+    private TableColumn<SimulationEntryViewModel, String> simElapsedTime;
     @FXML
     private TableColumn<SimulationEntryViewModel, SimulationState> simAction;
 
@@ -61,6 +56,7 @@ public class SimulationEntryController implements Initializable {
     private final SimulationsViewModel viewModel;
 
     private final EnumMap<SimulationState, PseudoClass> simStatePseudoClasses = new EnumMap<>(SimulationState.class);
+    private final EnumMap<SimulationState, PseudoClass> simActionPseudoClasses = new EnumMap<>(SimulationState.class);
 
     public SimulationEntryController(SimulationsViewModel viewModel){
 
@@ -71,6 +67,11 @@ public class SimulationEntryController implements Initializable {
         simStatePseudoClasses.put(SimulationState.RUNNING, PseudoClass.getPseudoClass("running"));
         simStatePseudoClasses.put(SimulationState.PAUSED, PseudoClass.getPseudoClass("paused"));
         simStatePseudoClasses.put(SimulationState.FINISHED, PseudoClass.getPseudoClass("finished"));
+
+        //add simulation state action pseudo classes
+        simActionPseudoClasses.put(SimulationState.READY, PseudoClass.getPseudoClass("start-sim"));
+        simActionPseudoClasses.put(SimulationState.PAUSED, PseudoClass.getPseudoClass("start-sim"));
+        simActionPseudoClasses.put(SimulationState.RUNNING, PseudoClass.getPseudoClass("stop-sim"));
     }
 
     @Override
@@ -81,21 +82,24 @@ public class SimulationEntryController implements Initializable {
         simDescription.setCellValueFactory(cellData -> cellData.getValue().descriptionProperty());
         simState.setCellValueFactory(cellData -> cellData.getValue().simulationStateProperty());
         simProgress.setCellValueFactory(cellData -> cellData.getValue().progressValueProperty().asObject());
-        simReady.setCellValueFactory(cellData -> cellData.getValue().isReadyProperty());
-        simStarted.setCellValueFactory(cellData -> cellData.getValue().isStartedProperty());
-        simFinished.setCellValueFactory(cellData -> cellData.getValue().isFinishedProperty());
         simStart.setCellValueFactory(cellData -> cellData.getValue().startDateTimeProperty());
         simEnd.setCellValueFactory(cellData -> cellData.getValue().endDateTimeProperty());
         simElapsedTime.setCellValueFactory(cellData -> cellData.getValue().elapsedTimeProperty());
-        simAction.setCellFactory(cell -> new SimulationActionButtonCell<>());
+        simAction.setCellFactory(cell -> new SimulationActionButtonCell<>(simActionPseudoClasses));
         simAction.setCellValueFactory(cellData -> cellData.getValue().simulationStateProperty());
 
         simulationTable.itemsProperty().bind(new SimpleListProperty<>(viewModel.observableSimulations()));
         simulationTable.setRowFactory(row -> new SimulationTableRow(simStatePseudoClasses));
-        simProgress.setCellFactory(cell -> new ProgressCell<>());
+        simProgress.setCellFactory(new SimulationProgress<>());
 
-        simulationTable.prefWidthProperty().bind(simScrollPane.widthProperty());
         simulationTable.prefHeightProperty().bind(simScrollPane.heightProperty());
+
+        //adjust width of virtual flow to match width of visible header
+        Optional<Node> verticalScrollbar = simulationTable.lookupAll(".scroll-bar")
+                .stream()
+                //.filter(node -> node.getPseudoClassStates().contains(PseudoClass.getPseudoClass("vertical")))
+                .findAny();
+
 
     }
 
