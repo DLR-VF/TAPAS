@@ -27,6 +27,8 @@ dependencies {
     implementation(project(":tapas-parameter"))
     implementation(project(":tapas-util"))
 
+    implementation(files("D:/scenicview/lib/scenicview.jar"))
+
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -48,7 +50,7 @@ dependencies {
 
 javafx {
     version = "19"
-    modules("javafx.controls", "javafx.fxml", "javafx.swing","javafx.graphics")
+    modules("javafx.controls", "javafx.fxml", "javafx.swing","javafx.graphics", "javafx.web")
 }
 
 application {

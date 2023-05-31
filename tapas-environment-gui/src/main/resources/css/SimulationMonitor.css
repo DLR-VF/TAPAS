@@ -204,6 +204,11 @@ Simulations table
     -fx-text-fill: white;
 }
 
+.sim-action-button-graphic, .sim-action-button-text{
+    -fx-fill: white;
+    -fx-text-fill: white;
+}
+
 .no-fill{
     -fx-fill: transparent;
     -fx-border-color: white;

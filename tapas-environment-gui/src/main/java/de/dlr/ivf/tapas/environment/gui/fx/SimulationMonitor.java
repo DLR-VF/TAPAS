@@ -29,6 +29,7 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.scenicview.ScenicView;
 
 import java.io.IOException;
 import java.net.URL;

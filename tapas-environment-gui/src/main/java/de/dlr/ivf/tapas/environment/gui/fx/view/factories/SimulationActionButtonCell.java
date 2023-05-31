@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.environment.gui.fx.view.factories;
 
+import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationEntryViewModel;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
 import javafx.css.PseudoClass;
 import javafx.geometry.Pos;
@@ -15,17 +16,25 @@ import javafx.scene.text.TextAlignment;
 
 import java.util.EnumMap;
 
-public class SimulationActionButtonCell<S> extends TableCell<S,SimulationState> {
+public class SimulationActionButtonCell extends TableCell<SimulationEntryViewModel,SimulationState> {
 
     private final Button button;
     private final SVGPath triangle = new SVGPath();
     private final SVGPath rectangle = new SVGPath();
 
+    //todo extract this, single instances should suffice
     private final HBox startSimWrapper;
-
     private final HBox stopSimWrapper;
 
+//    private final WeakChangeListener<SimulationState> simStateWeakListener;
+//    private final EnumMap<SimulationState, PseudoClass> simStatePseudoClasses;
+
     public SimulationActionButtonCell(EnumMap<SimulationState, PseudoClass> simStatePseudoClasses){
+
+        //todo implement change listener
+//        this.simStatePseudoClasses = simStatePseudoClasses;
+//        ChangeListener<SimulationState> simStateListener = ((observable, oldValue, newValue) -> updateSimStatePseudoClass(oldValue, newValue));
+//        this.simStateWeakListener = new WeakChangeListener<>(simStateListener);
 
         this.button = new Button();
         triangle.setContent("M 0, 0 L0, 8 L8,4z");
@@ -43,7 +52,6 @@ public class SimulationActionButtonCell<S> extends TableCell<S,SimulationState> 
             setGraphic(null);
         }else{
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-            //button.setGraphic(startButtonSkin);
             button.setPickOnBounds(true);
             setGraphic(button);
 

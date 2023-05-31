@@ -85,7 +85,7 @@ public class SimulationEntryController implements Initializable {
         simStart.setCellValueFactory(cellData -> cellData.getValue().startDateTimeProperty());
         simEnd.setCellValueFactory(cellData -> cellData.getValue().endDateTimeProperty());
         simElapsedTime.setCellValueFactory(cellData -> cellData.getValue().elapsedTimeProperty());
-        simAction.setCellFactory(cell -> new SimulationActionButtonCell<>(simActionPseudoClasses));
+        simAction.setCellFactory(cell -> new SimulationActionButtonCell(simActionPseudoClasses));
         simAction.setCellValueFactory(cellData -> cellData.getValue().simulationStateProperty());
 
         simulationTable.itemsProperty().bind(new SimpleListProperty<>(viewModel.observableSimulations()));
@@ -94,13 +94,7 @@ public class SimulationEntryController implements Initializable {
 
         simulationTable.prefHeightProperty().bind(simScrollPane.heightProperty());
 
-        //adjust width of virtual flow to match width of visible header
-        Optional<Node> verticalScrollbar = simulationTable.lookupAll(".scroll-bar")
-                .stream()
-                //.filter(node -> node.getPseudoClassStates().contains(PseudoClass.getPseudoClass("vertical")))
-                .findAny();
-
-
+        simulationTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
     }
 
     @FXML

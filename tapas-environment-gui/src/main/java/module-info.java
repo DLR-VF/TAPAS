@@ -15,11 +15,15 @@ module de.dlr.ivf.tapas.environment.gui {
     requires de.dlr.ivf.tapas.parameter;
     requires de.dlr.ivf.tapas.util;
     requires de.dlr.ivf.tapas.environment;
-    requires javafx.swing;
+    requires transitive javafx.swing;
     requires de.dlr.ivf.tapas.tools;
     requires de.dlr.ivf.api.io;
     requires de.dlr.ivf.tapas.matrixtool;
     requires de.dlr.ivf.tapas.logger;
+
+    //scenicview
+    requires transitive javafx.web;
+    requires org.scenicview.scenicview;
 
     exports de.dlr.ivf.tapas.environment.gui to javafx.graphics;
     opens de.dlr.ivf.tapas.environment.gui.fx.view.controllers to javafx.fxml;
