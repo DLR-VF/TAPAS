@@ -1,20 +1,23 @@
-package de.dlr.ivf.api.io.implementation;
+package de.dlr.ivf.api.io.conversion;
 
-import de.dlr.ivf.api.io.ColumnMappingConverter;
-import de.dlr.ivf.api.io.SqlArrayUtils;
+import de.dlr.ivf.api.converter.Converter;
+import de.dlr.ivf.api.io.util.SqlArrayUtils;
+import de.dlr.ivf.api.io.annotation.Column;
 import lombok.NonNull;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * This converter converts a {@link ResultSet} to an object {@link T} using reflection. {@link de.dlr.ivf.api.io.Column}
+ * This converter converts a {@link ResultSet} to an object {@link T} using reflection. {@link Column}
  * annotated fields will be directly mapped to the column name in the {@link ResultSet}.
  *
  * @param <T> type of object after conversion
@@ -22,21 +25,25 @@ import java.util.function.Supplier;
  * @author Alain Schengen
  */
 
-public class ResultSetConverter<T> extends ColumnMappingConverter<ResultSet, T> {
+public class ResultSetConverter<T> implements Converter<ResultSet, T> {
 
-    private final String className;
+    private final Supplier<T> objectFactory;
+    private final ColumnToFieldMapping<T> columnMapping;
 
-    public ResultSetConverter(Class<T> targetClass, Supplier<T> objectFactory) {
-        super(targetClass, objectFactory);
-        this.className = targetClass.getName();
+    public ResultSetConverter(ColumnToFieldMapping<T> columnMapping, Supplier<T> objectFactory) {
+        //super(targetClass);
+        this.columnMapping = columnMapping;
+        this.objectFactory = objectFactory;
+        setFieldAccessibility();
+        checkForDefaultConstructor(columnMapping.getTargetClass());
     }
 
     @Override
     public T convert(@NonNull ResultSet objectToConvert) {
 
-        T convertedObject = getObjectFactory().get();
+        T convertedObject = this.objectFactory.get();
 
-        for(Map.Entry<String, Field> fieldEntry : getTargetClassFieldMap().entrySet()){
+        for(Map.Entry<String, Field> fieldEntry : columnMapping.getTargetClassFieldMap().entrySet()){
 
             String columnName = fieldEntry.getKey();
             Field field = fieldEntry.getValue();
@@ -60,7 +67,7 @@ public class ResultSetConverter<T> extends ColumnMappingConverter<ResultSet, T> 
                         }
                     }
 
-                } else { //todo extract this to super class
+                } else {
                     if (field.getType().isEnum()) {
                         if(valueToSet instanceof String stringValue){ //try to map the enum from String
                             Method valueOf = field.getType().getMethod("valueOf", String.class);
@@ -81,7 +88,7 @@ public class ResultSetConverter<T> extends ColumnMappingConverter<ResultSet, T> 
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
-                throw new RuntimeException("Can't access field: "+field.getName() + " in class: "+ className, e);
+                throw new RuntimeException("Can't access field: "+field.getName() + " in class: "+ columnMapping.getTargetClass(), e);
             } catch (NoSuchMethodException e) {
                 e.printStackTrace();
                 throw new RuntimeException("Can't access method.", e);
@@ -91,5 +98,19 @@ public class ResultSetConverter<T> extends ColumnMappingConverter<ResultSet, T> 
             }
         }
         return convertedObject;
+    }
+
+    private void setFieldAccessibility(){
+        this.columnMapping.getTargetClassFieldMap().values()
+                .forEach(field -> field.setAccessible(true));
+    }
+
+    private void checkForDefaultConstructor(Class<?> dtoClass) {
+        Constructor<?>[] constructors= dtoClass.getConstructors();
+
+        Arrays.stream(constructors)
+                .filter(constructor -> constructor.getParameterCount() == 0)
+                .findAny()
+                .orElseThrow(() -> new IllegalArgumentException("The provided class does not contain an empty constructor"));
     }
 }
