@@ -1,5 +1,7 @@
 plugins {
     id("java")
+    id("org.javamodularity.moduleplugin") version "1.8.12"
+    idea
 }
 
 group = "de.dlr.ivf"
