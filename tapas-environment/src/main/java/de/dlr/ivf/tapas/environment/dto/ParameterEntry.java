@@ -1,10 +1,12 @@
 package de.dlr.ivf.tapas.environment.dto;
 
-import de.dlr.ivf.api.io.Column;
+import de.dlr.ivf.api.io.annotation.Column;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-public class SimulationParameterEntry {
+@NoArgsConstructor
+public class ParameterEntry {
 
     @Column("sim_key")
     private String simKey;
@@ -14,4 +16,7 @@ public class SimulationParameterEntry {
 
     @Column("param_value")
     private String paramValue;
+
+    @Column("sim_id")
+    private int simId;
 }

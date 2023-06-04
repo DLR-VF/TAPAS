@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
-import de.dlr.ivf.tapas.dto.PersonCodeDto;
+import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.misc.PrimaryDriverScoreFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
@@ -53,39 +53,39 @@ public class TapasInitializer {
         DataStoreBuilder dataStoreBuilder = DataStore.builder();
 
         //activities
-        DataSource activityConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY),null);
+        DataSource activityConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY));
         Collection<TPS_ActivityConstant> activityConstants = dbIo.readActivityConstantCodes(activityConstantsDs);
         dataStoreBuilder.activityConstants(activityConstants);
 
         //age classes
-        DataSource ageClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_AGE), null);
+        DataSource ageClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_AGE));
         AgeClasses ageClasses = dbIo.readAgeClasses(ageClassesDs);
         dataStoreBuilder.ageClasses(ageClasses);
 
         //distance classes
-        DataSource distanceClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), null);
+        DataSource distanceClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE));
         dataStoreBuilder.distanceClasses(dbIo.readDistanceCodes(distanceClasses));
 
         //income classes
-        DataSource incomeClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_INCOME), null);
+        DataSource incomeClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_INCOME));
         dataStoreBuilder.incomes(dbIo.readIncomeCodes(incomeClasses));
 
         //location constants
-        DataSource locationConstants = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_LOCATION), null);
+        DataSource locationConstants = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_LOCATION));
         dataStoreBuilder.locationConstants(dbIo.readLocationConstantCodes(locationConstants));
 
         //init modes and mode set
-        DataSource modeDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_MODE), null);
+        DataSource modeDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_MODE));
         Modes modes = dbIo.readModes(modeDataSource);
         dataStoreBuilder.modes(modes);
 
-        DataSource mctDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MCT),
-                List.of(new Filter("name", parameters.getString(ParamString.DB_NAME_MCT))));
-        TPS_ModeChoiceTree modeChoiceTree = dbIo.readModeChoiceTree(mctDataSource, modes.getModes());
+        DataSource mctDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MCT));
+        Filter modeFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_MCT));
+        TPS_ModeChoiceTree modeChoiceTree = dbIo.readModeChoiceTree(mctDataSource, modeFilter, modes.getModes());
 
-        DataSource ektDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_EKT),
-                List.of(new Filter("name", parameters.getString(ParamString.DB_NAME_EKT))));
-        TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,modes.getModes());
+        DataSource ektDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_EKT));
+        Filter ektFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_EKT));
+        TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,ektFilter, modes.getModes());
 
         //todo init utility function
         TPS_UtilityFunction utilityFunction = null;
@@ -93,62 +93,71 @@ public class TapasInitializer {
         dataStoreBuilder.modeSet(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator));
 
         //person groups
-        DataSource personGroupsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_PERSON_GROUP_KEY))));
-        Collection<TPS_PersonGroup> personGroupCollection = dbIo.readPersonGroupCodes(personGroupsDs);
+        DataSource personGroupsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON));
+        Filter personGroupFilter = new Filter("key", parameters.getString(ParamString.DB_PERSON_GROUP_KEY));
+        Collection<TPS_PersonGroup> personGroupCollection = dbIo.readPersonGroupCodes(personGroupsDs, personGroupFilter);
         PersonGroupsBuilder personGroupsWrapper = PersonGroups.builder();
         personGroupCollection.forEach(group -> personGroupsWrapper.personGroup(group.getCode(), group));
         PersonGroups personGroups = personGroupsWrapper.build();
         dataStoreBuilder.personGroups(personGroups);
 
         //settlement systems
-        DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), null);
+        DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT));
         Collection<TPS_SettlementSystem> settlementSystems = dbIo.readSettlementSystemCodes(settlementSystemsDs);
         dataStoreBuilder.settlementSystems(settlementSystems);
 
         //activity to location mappings
-        DataSource activityToLocationMappings = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY))));
-        dataStoreBuilder.activityAndLocationCodeMapping(dbIo.readActivity2LocationCodes(activityToLocationMappings));
+        DataSource activityToLocationMappings = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION));
+        Filter actToLocFilter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY));
+        dataStoreBuilder.activityAndLocationCodeMapping(dbIo.readActivity2LocationCodes(activityToLocationMappings, actToLocFilter));
 
         //read utility function data
-        DataSource utilityFunctionData = new DataSource(parameters.getString(ParamString.DB_NAME_MODEL_PARAMETERS),
-                List.of(new Filter("key", parameters.getString(ParamString.UTILITY_FUNCTION_KEY)),
-                        new Filter("utility_function_class", parameters.getString(ParamString.UTILITY_FUNCTION_NAME))));
-        dataStoreBuilder.utilityFunctionData(dbIo.readUtilityFunction(utilityFunctionData));
+        DataSource utilityFunctionData = new DataSource(parameters.getString(ParamString.DB_NAME_MODEL_PARAMETERS));
+        Collection<Filter> utilityFunctionFilters = List.of(new Filter("key", parameters.getString(ParamString.UTILITY_FUNCTION_KEY)),
+                new Filter("utility_function_class", parameters.getString(ParamString.UTILITY_FUNCTION_NAME)));
+
+        dataStoreBuilder.utilityFunctionData(dbIo.readUtilityFunction(utilityFunctionData, utilityFunctionFilters));
 
 
         //read SchemeSet
-        DataSource schemeClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME_CLASS),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_SCHEME_CLASS_KEY))));
-        DataSource schemes = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME),
-                List.of(new Filter("key", this.parameters.getString(ParamString.DB_SCHEME_KEY))));
-        DataSource episodes = new DataSource(parameters.getString(ParamString.DB_TABLE_EPISODE),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_EPISODE_KEY))));
-        DataSource schemeClassDistributions = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY))));
-        var schemeSet = dbIo.readSchemeSet(schemeClasses,schemes,episodes,schemeClassDistributions, activityConstants, personGroups);
+        DataSource schemeClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME_CLASS));
+        Filter schemeClassFilter = new Filter("key", parameters.getString(ParamString.DB_SCHEME_CLASS_KEY));
+        Collection<SchemeClassDto> schemeClassDtos = dbIo.readSchemeClasses(schemeClasses, schemeClassFilter);
+
+        DataSource schemes = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME));
+        Filter schemeFilter = new Filter("key", this.parameters.getString(ParamString.DB_SCHEME_KEY));
+        Collection<SchemeDto> schemeDtos = dbIo.readSchemes(schemes, schemeFilter);
+
+        DataSource episodes = new DataSource(parameters.getString(ParamString.DB_TABLE_EPISODE));
+        Filter episodeFilter = new Filter("key", parameters.getString(ParamString.DB_EPISODE_KEY));
+        Collection<EpisodeDto> episodeDtos = dbIo.readEpisodes(episodes, episodeFilter);
+
+        DataSource schemeClassDistributions = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME_CLASS_DISTRIBUTION));
+        Filter schemeClassDistributionFilter = new Filter("key", parameters.getString(ParamString.DB_SCHEME_CLASS_DISTRIBUTION_KEY));
+        Collection<SchemeClassDistributionDto> distributionDtos = dbIo.readSchemeClassDistributions(schemeClassDistributions, schemeClassDistributionFilter);
+
+        var schemeSet = dbIo.readSchemeSet(schemeClassDtos,schemeDtos,episodeDtos,distributionDtos, activityConstants, personGroups);
         dataStoreBuilder.schemeSet(schemeSet);
 
         //read households, persons and cars
 
         //read cars
-        DataSource cars = new DataSource(parameters.getString(ParamString.DB_TABLE_CARS),
-                List.of(new Filter("car_key", parameters.getString(ParamString.DB_CAR_FLEET_KEY))));
+        DataSource cars = new DataSource(parameters.getString(ParamString.DB_TABLE_CARS));
+        Filter carFilter = new Filter("car_key", parameters.getString(ParamString.DB_CAR_FLEET_KEY));
         //init FuelTypes
         FuelTypes fuelTypes = initFuelTypes();
-        Cars carFleet = dbIo.loadCars(cars,fuelTypes);
+        Cars carFleet = dbIo.loadCars(cars, carFilter, fuelTypes);
 
         //read households
-        DataSource households = new DataSource(parameters.getString(ParamString.DB_TABLE_HOUSEHOLD),
-                List.of(new Filter("hh_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY))));
-        Map<Integer, TPS_HouseholdBuilder> hhBuilders = dbIo.readHouseholds(households, carFleet);
+        DataSource households = new DataSource(parameters.getString(ParamString.DB_TABLE_HOUSEHOLD));
+        Filter hhFilter = new Filter("hh_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
+        Map<Integer, TPS_HouseholdBuilder> hhBuilders = dbIo.readHouseholds(households, hhFilter, carFleet);
 
         //load persons
-        DataSource persons = new DataSource(parameters.getString(ParamString.DB_TABLE_PERSON),
-                List.of(new Filter("p_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY))));
+        DataSource persons = new DataSource(parameters.getString(ParamString.DB_TABLE_PERSON));
+        Filter personFilter = new Filter("p_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
 
-        Map<Integer, Collection<TPS_Person>> personsByHhId = dbIo.loadPersons(persons, new PersonDtoToPersonConverter(parameters, ageClasses));
+        Map<Integer, Collection<TPS_Person>> personsByHhId = dbIo.loadPersons(persons, personFilter, new PersonDtoToPersonConverter(parameters, ageClasses));
 
         //add persons to households
         for(Map.Entry<Integer,TPS_HouseholdBuilder> hhBuilderEntry : hhBuilders.entrySet()){
@@ -187,9 +196,9 @@ public class TapasInitializer {
 
     private void setUpCodes(){
 
-        dbIo.readCarCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_CARS), null));
-        dbIo.readDrivingLicenseCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION), null));
-        dbIo.readSexCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SEX), null));
+        dbIo.readCarCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_CARS)));
+        dbIo.readDrivingLicenseCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION)));
+        dbIo.readSexCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SEX)));
     }
 
     public FuelTypes initFuelTypes(){

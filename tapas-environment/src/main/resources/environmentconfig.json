@@ -7,15 +7,12 @@
     }
   },
   "simulationsTable" : {
-    "uri" : "public.simulations",
-    "filter" :[]
+    "uri" : "public.simulations"
   },
   "serverTable" : {
-    "uri" : "public.servers",
-    "filter" :[]
+    "uri" : "public.servers"
   },
   "parameterTable" : {
-    "uri" : "public.simulation_parameters",
-    "filter" :[]
+    "uri" : "public.simulation_parameters"
   }
 }

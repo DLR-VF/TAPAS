@@ -124,8 +124,8 @@ public class TPS_CapacityAdjuster{
 
     public void calculateGenerationRates() {
 
-        DataSource schemesDataSource = new DataSource( "core.global_schemes",null);
-        DataSource episodesDataSource = new DataSource( "core.global_episodes",null);
+        DataSource schemesDataSource = new DataSource( "core.global_schemes");
+        DataSource episodesDataSource = new DataSource( "core.global_episodes");
 
         String query = """
                         WITH
@@ -235,7 +235,7 @@ public class TPS_CapacityAdjuster{
 
     public void fillOverloadFactors() {
 
-            DataSource dataSource = new DataSource("core." + region + "_act_2_loc_code",null);
+            DataSource dataSource = new DataSource("core." + region + "_act_2_loc_code");
             //load act2loc
             String query = "select distinct act_code from "+dataSource.getUri();
 
@@ -354,10 +354,10 @@ public class TPS_CapacityAdjuster{
 
     public void createNewMinimalLocationTable(){
 
-        DataSource adressenBkgTable = new DataSource("public.adressen_bkg_2018",null);
-        DataSource tazTable = new DataSource("core.berlin_taz_1223_multiline",null);
-        DataSource locCodeTable = new DataSource("core.global_location_codes",null);
-        DataSource locTable = new DataSource("core.berlin_locations_baz",null);
+        DataSource adressenBkgTable = new DataSource("public.adressen_bkg_2018");
+        DataSource tazTable = new DataSource("core.berlin_taz_1223_multiline");
+        DataSource locCodeTable = new DataSource("core.global_location_codes");
+        DataSource locTable = new DataSource("core.berlin_locations_baz");
 
         int tazNumId;
         double x;

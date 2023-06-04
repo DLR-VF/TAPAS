@@ -27,7 +27,6 @@ import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlannedTrip;
 import de.dlr.ivf.tapas.util.IPInfo;
-import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
@@ -413,71 +412,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
         return true;
     }
 
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see de.dlr.de.dlr.ivf.persistence.tapas.ivf.TPS_PersistenceManager#init()
-     */
-    public void init() {
-        try {
-            this.dbConnector.checkConnectivity();
-
-            // clearing initial information from database
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Clearing constants (all codes: age," + " distance, person, activity, location, ...)");
-            }
-
-            // reading initial information from database
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Reading constants (all codes: age," + " distance, person, activity, location, ...)");
-            }
-            //this.dbIO.readConstants(getParameters());
-
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Reading parameters for the utility function");
-            }
-            this.dbIO.readUtilityFunction(new DataSource(getParameters().getString(ParamString.DB_NAME_MODEL_PARAMETERS),
-                    List.of(new Filter("key", getParameters().getString(ParamString.UTILITY_FUNCTION_KEY)),
-                            new Filter("utility_function_class", getParameters().getString(ParamString.UTILITY_FUNCTION_NAME)))));
-
-            // read scheme set
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Reading scheme set (includes scheme classes, schemes and episodes)");
-            }
-           // this.schemeSet = this.dbIO.readSchemeSet();
-
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Reading region with all blocks and locations");
-            }
-            this.region = this.dbIO.readRegion();
-
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Reading mode set with mode choice tree");
-            }
-//            this.modeSet = new TPS_ModeSet(
-//                    this.dbIO.readModeChoiceTree(new DataSource(getParameters().getString(ParamString.DB_TABLE_MCT),
-//                                    List.of(new Filter("key",getParameters().getString(ParamString.DB_NAME_MCT))))),
-//                    this.dbIO.readExpertKnowledgeTree(new DataSource(getParameters().getString(ParamString.DB_TABLE_EKT),
-//                            List.of(new Filter("key",getParameters().getString(ParamString.DB_NAME_EKT))))),
-//                    this.getParameters());
-
-            if (TPS_Logger.isLogging(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO)) {
-                TPS_Logger.log(HierarchyLogLevel.CLIENT, SeverityLogLevel.INFO,
-                        "Reading matrices (distances, travel times, access and egress times)");
-            }
-            this.dbIO.readMatrices(this.getRegion());
-        } catch (SQLException e) {
-            TPS_Logger.log(SeverityLogLevel.ERROR, e);
-            throw new RuntimeException(e);
-        }
-    }
 
     /*
      * (non-Javadoc)

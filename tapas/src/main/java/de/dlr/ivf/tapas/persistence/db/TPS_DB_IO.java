@@ -10,11 +10,12 @@ package de.dlr.ivf.tapas.persistence.db;
 
 
 import de.dlr.ivf.api.converter.Converter;
-import de.dlr.ivf.api.io.DataReader;
-import de.dlr.ivf.api.io.DataReaderFactory;
+import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
+import de.dlr.ivf.api.io.reader.DataReader;
+import de.dlr.ivf.api.io.reader.DataReaderFactory;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
-import de.dlr.ivf.api.io.implementation.ResultSetConverter;
+import de.dlr.ivf.api.io.conversion.ResultSetConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
 import de.dlr.ivf.tapas.mode.Modes;
@@ -106,21 +107,21 @@ public class TPS_DB_IO {
         this.parameters = parameterClass;
     }
 
-    public Map<Integer, Collection<TPS_Person>> loadPersons(DataSource dataSource, Converter<PersonDto, TPS_Person> converter){
+    public Map<Integer, Collection<TPS_Person>> loadPersons(DataSource dataSource, Filter personFilter, Converter<PersonDto, TPS_Person> converter){
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcLargeTableReader(connectionSupplier);
 
-        Collection<PersonDto> personDtos = reader.read(new ResultSetConverter<>(PersonDto.class, PersonDto::new), dataSource);
+        Collection<PersonDto> personDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(PersonDto.class), PersonDto::new), dataSource, personFilter);
 
         return converter.convertCollectionToMapWithSourceKey(personDtos, PersonDto::getHhId);
     }
 
-    public Cars loadCars(DataSource dataSource, FuelTypes fuelTypes){
+    public Cars loadCars(DataSource dataSource, Filter carFilter, FuelTypes fuelTypes){
 
         CarsBuilder cars = Cars.builder();
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-        Collection<CarDto> carDtos = reader.read(new ResultSetConverter<>(CarDto.class, CarDto::new),dataSource);
+        Collection<CarDto> carDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(CarDto.class), CarDto::new),dataSource, carFilter);
 
         for(CarDto carDto :carDtos){
 
@@ -144,11 +145,14 @@ public class TPS_DB_IO {
         return cars.build();
     }
 
-    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Cars cars){
+    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Filter hhFilter, Cars cars){
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<HouseholdDto> householdDtos = reader.read(new ResultSetConverter<>(HouseholdDto.class,HouseholdDto::new), dataSource);
+        Collection<HouseholdDto> householdDtos =
+                reader.read(
+                        new ResultSetConverter<>(new ColumnToFieldMapping<>(HouseholdDto.class),HouseholdDto::new),
+                        dataSource, hhFilter);
 
         Map<Integer, TPS_HouseholdBuilder> householdBuilders = new HashMap<>(householdDtos.size());
 
@@ -180,11 +184,14 @@ public class TPS_DB_IO {
      * Note: First the activity and locations must be read,
      * i.e. readActivityConstantCodes and readLocationConstantCodes must be called beforehand
      */
-    public ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource) {
+    public ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource, Filter actToLocFilter) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<ActivityToLocationDto> activityToLocationDtos = reader.read(new ResultSetConverter<>(ActivityToLocationDto.class,ActivityToLocationDto::new), dataSource);
+        Collection<ActivityToLocationDto> activityToLocationDtos =
+                reader.read(
+                        new ResultSetConverter<>(new ColumnToFieldMapping<>(ActivityToLocationDto.class),ActivityToLocationDto::new),
+                        dataSource, actToLocFilter);
 
         ActivityAndLocationCodeMapping mapping = new ActivityAndLocationCodeMapping();
 
@@ -209,7 +216,8 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<ActivityDto> activityDtos = reader.read(new ResultSetConverter<>(ActivityDto.class,ActivityDto::new), dataSource);
+        Collection<ActivityDto> activityDtos =
+                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ActivityDto.class),ActivityDto::new), dataSource);
 
         Collection<TPS_ActivityConstant> activityConstants = new ArrayList<>();
 
@@ -262,7 +270,7 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<AgeClassDto> ageClassDtos = reader.read(new ResultSetConverter<>(AgeClassDto.class,AgeClassDto::new), dataSource);
+        Collection<AgeClassDto> ageClassDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(AgeClassDto.class),AgeClassDto::new), dataSource);
 
         AgeClassesBuilder ageClasses = AgeClasses.builder();
 
@@ -292,7 +300,8 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<CarCodeDto> carCodeDtos = reader.read(new ResultSetConverter<>(CarCodeDto.class, CarCodeDto::new), dataSource);
+        Collection<CarCodeDto> carCodeDtos =
+                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(CarCodeDto.class), CarCodeDto::new), dataSource);
 
         for(CarCodeDto carCodeDto : carCodeDtos){
             try {
@@ -307,31 +316,6 @@ public class TPS_DB_IO {
     }
 
     /**
-     * Method to read the constant values from the database. It provides the mapping of the enums to a value, which
-     * is used in the survey or similar.
-     */
-    void readConstants(TPS_ParameterClass parameterClass) {
-
-        //read all constants
-        this.readActivityConstantCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY),null));
-        this.readAgeClasses(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_AGE), null));
-        this.readCarCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_CARS), null));
-        this.readDistanceCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE), null));
-        this.readDrivingLicenseCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION), null));
-        this.readIncomeCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_INCOME), null));
-        this.readLocationConstantCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_LOCATION), null));
-        this.readModes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_MODE), null));
-        this.readPersonGroupCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_PERSON),
-                List.of(new Filter("key", parameterClass.getString(ParamString.DB_PERSON_GROUP_KEY)))));
-        this.readSettlementSystemCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT), null));
-        this.readSexCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_SEX), null));
-
-        //must be after reading of activities and locations because they are used in it
-        this.readActivity2LocationCodes(new DataSource(parameterClass.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION),
-                List.of(new Filter("key",parameterClass.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY)))));
-    }
-
-    /**
      * Reads all distance codes from the database and stores them in to a global static map
      * A Distance has the form (id, 3-tuples of (name, code, type), max)
      * Example: (5, (under 5k, 1, VOT),	(under 2k, 2000, MCT), 2000)
@@ -340,7 +324,8 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<DistanceCodeDto> distanceCodeDtos = reader.read(new ResultSetConverter<>(DistanceCodeDto.class,DistanceCodeDto::new), dataSource);
+        Collection<DistanceCodeDto> distanceCodeDtos =
+                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(DistanceCodeDto.class),DistanceCodeDto::new), dataSource);
 
         Collection<TPS_Distance> distanceCodes = new ArrayList<>();
 
@@ -371,8 +356,10 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<DrivingLicenseInformationDto> drivingLicenseInformationDtos = reader.read(new ResultSetConverter<>(DrivingLicenseInformationDto.class,
-                DrivingLicenseInformationDto::new), dataSource);
+        Collection<DrivingLicenseInformationDto> drivingLicenseInformationDtos =
+                reader.read(
+                        new ResultSetConverter<>(new ColumnToFieldMapping<>(DrivingLicenseInformationDto.class),
+                        DrivingLicenseInformationDto::new), dataSource);
 
         for(DrivingLicenseInformationDto drivingLicenseInformationDto : drivingLicenseInformationDtos) {
 
@@ -392,11 +379,12 @@ public class TPS_DB_IO {
      * @return The tree read from the db.
      * @throws SQLException
      */
-    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource, Collection<TPS_Mode> modes) {
+    public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource, Filter ektFilter, Collection<TPS_Mode> modes) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<ExpertKnowledgeTreeDto> expertKnowledgeTreeDtos = reader.read(new ResultSetConverter<>(ExpertKnowledgeTreeDto.class,
+        Collection<ExpertKnowledgeTreeDto> expertKnowledgeTreeDtos =
+                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ExpertKnowledgeTreeDto.class),
                 ExpertKnowledgeTreeDto::new), dataSource);
 
 
@@ -471,7 +459,8 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<IncomeDto> incomeDtos = reader.read(new ResultSetConverter<>(IncomeDto.class,IncomeDto::new), dataSource);
+        Collection<IncomeDto> incomeDtos =
+                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(IncomeDto.class),IncomeDto::new), dataSource);
 
         IncomesBuilder incomeMappings = Incomes.builder();
 
@@ -500,7 +489,7 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<LocationCodeDto> locationCodeDtos = reader.read(new ResultSetConverter<>(LocationCodeDto.class,LocationCodeDto::new), dataSource);
+        Collection<LocationCodeDto> locationCodeDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(LocationCodeDto.class),LocationCodeDto::new), dataSource);
 
         Collection<TPS_LocationConstant> locationConstants = new ArrayList<>();
 
@@ -532,14 +521,15 @@ public class TPS_DB_IO {
         String matrixUri = parameters.getString(ParamString.DB_TABLE_MATRICES);
         String matrixMapUri = parameters.getString(ParamString.DB_TABLE_MATRIXMAPS);
 
-        DataSource streetDist = new DataSource(matrixUri,
-                List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_STREET))));
-        this.readMatrix(streetDist, ParamMatrix.DISTANCES_STREET, null, sIndex);
+        DataSource streetDist = new DataSource(matrixUri);
+        Filter streetDistFilter =  new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_STREET));
+        this.readMatrix(streetDist, streetDistFilter, ParamMatrix.DISTANCES_STREET, null, sIndex);
 
         //walk net distances
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_WALK)) {
-            DataSource walkDistances = new DataSource(matrixUri, List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_WALK))));
-            this.readMatrix(walkDistances, ParamMatrix.DISTANCES_WALK, null, sIndex);
+            Filter walkDistFilter = new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_WALK));
+            DataSource walkDistances = new DataSource(matrixUri);
+            this.readMatrix(walkDistances, walkDistFilter, ParamMatrix.DISTANCES_WALK, null, sIndex);
         } else {
             TPS_Logger.log(SeverityLogLevel.INFO, "Setting walk distances equal to street distances.");
             this.parameters.setMatrix(ParamMatrix.DISTANCES_WALK,
@@ -548,8 +538,9 @@ public class TPS_DB_IO {
 
         //bike net distances
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE)) {
-            DataSource bikeDistances = new DataSource(matrixUri,List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE))));
-            this.readMatrix(bikeDistances, ParamMatrix.DISTANCES_BIKE, null, sIndex);
+            DataSource bikeDistances = new DataSource(matrixUri);
+            Filter bikeDistFilter = new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE));
+            this.readMatrix(bikeDistances, bikeDistFilter, ParamMatrix.DISTANCES_BIKE, null, sIndex);
         } else {
             TPS_Logger.log(SeverityLogLevel.INFO, "Setting bike distances equal to street distances.");
             this.parameters.setMatrix(ParamMatrix.DISTANCES_BIKE,
@@ -558,8 +549,9 @@ public class TPS_DB_IO {
 
         //pt net distances
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_DISTANCES_PT)) {
-            DataSource ptDistances = new DataSource(matrixUri,List.of(new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_PT))));
-            this.readMatrix(ptDistances, ParamMatrix.DISTANCES_PT, null, sIndex);
+            DataSource ptDistances = new DataSource(matrixUri);
+            Filter ptDistFilter = new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_PT));
+            this.readMatrix(ptDistances, ptDistFilter, ParamMatrix.DISTANCES_PT, null, sIndex);
         } else {
             TPS_Logger.log(SeverityLogLevel.INFO, "Setting public transport distances equal to street distances.");
             this.parameters.setMatrix(ParamMatrix.DISTANCES_PT,
@@ -587,83 +579,101 @@ public class TPS_DB_IO {
 
         //walk
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK)) {
-            DataSource walkTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK))));
-            this.readMatrixMap(walkTt, ParamMatrixMap.TRAVEL_TIME_WALK,
+            DataSource walkTt = new DataSource(matrixMapUri);
+            Filter walkTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK));
+            this.readMatrixMap(walkTt, walkTtFilter, ParamMatrixMap.TRAVEL_TIME_WALK,
                     SimulationType.SCENARIO, sIndex);
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK)) {
-                DataSource walkAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK))));
-                this.readMatrixMap(walkAccess, ParamMatrixMap.ARRIVAL_WALK, SimulationType.SCENARIO, sIndex);
+                DataSource walkAccess = new DataSource(matrixMapUri);
+                Filter walkAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK));
+                this.readMatrixMap(walkAccess, walkAccessFilter, ParamMatrixMap.ARRIVAL_WALK, SimulationType.SCENARIO, sIndex);
             }
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK)) {
-                DataSource walkEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK))));
-                this.readMatrixMap(walkEgress, ParamMatrixMap.EGRESS_WALK, SimulationType.SCENARIO, sIndex);
+                DataSource walkEgress = new DataSource(matrixMapUri);
+                Filter walkEgressFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK));
+                this.readMatrixMap(walkEgress, walkEgressFilter, ParamMatrixMap.EGRESS_WALK, SimulationType.SCENARIO, sIndex);
             }
         }
 
         //bike
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE)) {
-            DataSource bikeTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE))));
-            this.readMatrixMap(bikeTt, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.SCENARIO, sIndex);
+            DataSource bikeTt = new DataSource(matrixMapUri);
+            Filter bikeTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE));
+            this.readMatrixMap(bikeTt,bikeTtFilter, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.SCENARIO, sIndex);
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE)) {
-                DataSource bikeAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE))));
-                this.readMatrixMap(bikeAccess, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.SCENARIO, sIndex);
+                DataSource bikeAccess = new DataSource(matrixMapUri);
+                Filter bikeAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE));
+                this.readMatrixMap(bikeAccess, bikeAccessFilter, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.SCENARIO, sIndex);
             }
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE)) {
-                DataSource bikeEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE))));
-                this.readMatrixMap(bikeEgress, ParamMatrixMap.EGRESS_BIKE, SimulationType.SCENARIO, sIndex);
+                DataSource bikeEgress = new DataSource(matrixMapUri);
+                Filter bikeEgressFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE));
+                this.readMatrixMap(bikeEgress,bikeEgressFilter, ParamMatrixMap.EGRESS_BIKE, SimulationType.SCENARIO, sIndex);
             }
         }
 
         //MIT, MIT passenger, Taxi
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT)) {
-            DataSource mitTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT))));
-            this.readMatrixMap(mitTt, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.SCENARIO, sIndex);
+            DataSource mitTt = new DataSource(matrixMapUri);
+            Filter mitTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT));
+            this.readMatrixMap(mitTt, mitTtFilter, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.SCENARIO, sIndex);
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT)) {
-                DataSource mitAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT))));
-                this.readMatrixMap(mitAccess, ParamMatrixMap.ARRIVAL_MIT, SimulationType.SCENARIO, sIndex);
+                DataSource mitAccess = new DataSource(matrixMapUri);
+                Filter mitAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT));
+                this.readMatrixMap(mitAccess, mitAccessFilter, ParamMatrixMap.ARRIVAL_MIT, SimulationType.SCENARIO, sIndex);
             }
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT)) {
-                DataSource mitEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT))));
-                this.readMatrixMap(mitEgress, ParamMatrixMap.EGRESS_MIT, SimulationType.SCENARIO, sIndex);
+                DataSource mitEgress = new DataSource(matrixMapUri);
+                Filter mitEgressFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT));
+                this.readMatrixMap(mitEgress, mitEgressFilter, ParamMatrixMap.EGRESS_MIT, SimulationType.SCENARIO, sIndex);
             }
         }
 
         //pt, train
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT)) {
-            DataSource ptTt = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT))));
-            this.readMatrixMap(ptTt, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.SCENARIO, sIndex);
+            DataSource ptTt = new DataSource(matrixMapUri);
+            Filter ptTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT));
+            this.readMatrixMap(ptTt, ptTtFilter, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.SCENARIO, sIndex);
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT)) {
-                DataSource ptAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT))));
-                this.readMatrixMap(ptAccess, ParamMatrixMap.ARRIVAL_PT, SimulationType.SCENARIO, sIndex);
+                DataSource ptAccess = new DataSource(matrixMapUri);
+                Filter ptAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT));
+                this.readMatrixMap(ptAccess, ptAccessFilter, ParamMatrixMap.ARRIVAL_PT, SimulationType.SCENARIO, sIndex);
             }
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT)) {
-                DataSource ptEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT))));
-                this.readMatrixMap(ptEgress, ParamMatrixMap.EGRESS_PT, SimulationType.SCENARIO, sIndex);
+                DataSource ptEgress = new DataSource(matrixMapUri);
+                Filter ptEgressFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT));
+                this.readMatrixMap(ptEgress, ptEgressFilter, ParamMatrixMap.EGRESS_PT, SimulationType.SCENARIO, sIndex);
             }
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT)) {
-                DataSource ptInterchange = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT))));
-                this.readMatrixMap(ptInterchange, ParamMatrixMap.INTERCHANGES_PT, SimulationType.SCENARIO, sIndex);
+                DataSource ptInterchange = new DataSource(matrixMapUri);
+                Filter ptInterFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT));
+                this.readMatrixMap(ptInterchange, ptInterFilter, ParamMatrixMap.INTERCHANGES_PT, SimulationType.SCENARIO, sIndex);
             }
         }
         if (this.parameters.isDefined(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ)) {
-            DataSource ptBikeAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ))));
-            this.readMatrixMap(ptBikeAccess, ParamMatrixMap.PTBIKE_ACCESS_TAZ, SimulationType.SCENARIO, sIndex);
+            DataSource ptBikeAccess = new DataSource(matrixMapUri);
+            Filter ptBikeAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ));
+            this.readMatrixMap(ptBikeAccess, ptBikeAccessFilter, ParamMatrixMap.PTBIKE_ACCESS_TAZ, SimulationType.SCENARIO, sIndex);
         }
         if (this.parameters.isDefined(ParamString.DB_NAME_PTBIKE_EGRESS_TAZ)) {
-            DataSource ptBikeEgress = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_EGRESS_TAZ))));
-            this.readMatrixMap(ptBikeEgress, ParamMatrixMap.PTBIKE_EGRESS_TAZ, SimulationType.SCENARIO, sIndex);
+            DataSource ptBikeEgress = new DataSource(matrixMapUri);
+            Filter ptBikeEgressFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_EGRESS_TAZ));
+            this.readMatrixMap(ptBikeEgress, ptBikeEgressFilter, ParamMatrixMap.PTBIKE_EGRESS_TAZ, SimulationType.SCENARIO, sIndex);
         }
         if (this.parameters.isDefined(ParamString.DB_NAME_PTCAR_ACCESS_TAZ)) {
-            DataSource ptCarAccess = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTCAR_ACCESS_TAZ))));
-            this.readMatrixMap(ptCarAccess, ParamMatrixMap.PTCAR_ACCESS_TAZ, SimulationType.SCENARIO, sIndex);
+            DataSource ptCarAccess = new DataSource(matrixMapUri);
+            Filter ptCarAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTCAR_ACCESS_TAZ));
+            this.readMatrixMap(ptCarAccess, ptCarAccessFilter, ParamMatrixMap.PTCAR_ACCESS_TAZ, SimulationType.SCENARIO, sIndex);
         }
         if (this.parameters.isDefined(ParamString.DB_NAME_PTBIKE_INTERCHANGES)) {
-            DataSource ptBikeInterchange = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_INTERCHANGES))));
-            this.readMatrixMap(ptBikeInterchange, ParamMatrixMap.PTBIKE_INTERCHANGES, SimulationType.SCENARIO, sIndex);
+            DataSource ptBikeInterchange = new DataSource(matrixMapUri);
+            Filter ptBikeInterFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_INTERCHANGES));
+            this.readMatrixMap(ptBikeInterchange, ptBikeInterFilter, ParamMatrixMap.PTBIKE_INTERCHANGES, SimulationType.SCENARIO, sIndex);
         }
         if (this.parameters.isDefined(ParamString.DB_NAME_PTCAR_INTERCHANGES)) {
-            DataSource ptCarInterchange = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTCAR_INTERCHANGES))));
-            this.readMatrixMap(ptCarInterchange, ParamMatrixMap.PTCAR_INTERCHANGES, SimulationType.SCENARIO, sIndex);
+            DataSource ptCarInterchange = new DataSource(matrixMapUri);
+            Filter ptCarInterFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTCAR_INTERCHANGES));
+            this.readMatrixMap(ptCarInterchange, ptCarInterFilter, ParamMatrixMap.PTCAR_INTERCHANGES, SimulationType.SCENARIO, sIndex);
         }
 
         // providing base case travel times in case they are needed
@@ -671,62 +681,75 @@ public class TPS_DB_IO {
             // travel times for the base case
             //walk
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE)) {
-                DataSource walkTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK_BASE))));
-                this.readMatrixMap(walkTtBase, ParamMatrixMap.TRAVEL_TIME_WALK, SimulationType.BASE, sIndex);
+                DataSource walkTtBase = new DataSource(matrixMapUri);
+                Filter walkTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK_BASE));
+                this.readMatrixMap(walkTtBase, walkTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_WALK, SimulationType.BASE, sIndex);
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE)) {
-                    DataSource walkAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE))));
-                    this.readMatrixMap(walkAccessBase, ParamMatrixMap.ARRIVAL_WALK, SimulationType.BASE, sIndex);
+                    DataSource walkAccessBase = new DataSource(matrixMapUri);
+                    Filter walkAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE));
+                    this.readMatrixMap(walkAccessBase, walkAccessBaseFilter, ParamMatrixMap.ARRIVAL_WALK, SimulationType.BASE, sIndex);
                 }
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE)) {
-                    DataSource walkEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE))));
-                    this.readMatrixMap(walkEgressBase, ParamMatrixMap.EGRESS_WALK, SimulationType.BASE, sIndex);
+                    DataSource walkEgressBase = new DataSource(matrixMapUri);
+                    Filter walkEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE));
+                    this.readMatrixMap(walkEgressBase, walkEgressBaseFilter, ParamMatrixMap.EGRESS_WALK, SimulationType.BASE, sIndex);
                 }
             }
 
             //bike
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE)) {
-                DataSource bikeTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE))));
-                this.readMatrixMap(bikeTtBase, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.BASE, sIndex);
+                DataSource bikeTtBase = new DataSource(matrixMapUri);
+                Filter bikeTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE));
+                this.readMatrixMap(bikeTtBase, bikeTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.BASE, sIndex);
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE)) {
-                    DataSource bikeAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE))));
-                    this.readMatrixMap(bikeAccessBase, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.BASE, sIndex);
+                    DataSource bikeAccessBase = new DataSource(matrixMapUri);
+                    Filter bikeAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE));
+                    this.readMatrixMap(bikeAccessBase, bikeAccessBaseFilter, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.BASE, sIndex);
                 }
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE)) {
-                    DataSource bikeEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE))));
-                    this.readMatrixMap(bikeEgressBase, ParamMatrixMap.EGRESS_BIKE, SimulationType.BASE, sIndex);
+                    DataSource bikeEgressBase = new DataSource(matrixMapUri);
+                    Filter bikeEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE));
+                    this.readMatrixMap(bikeEgressBase, bikeEgressBaseFilter, ParamMatrixMap.EGRESS_BIKE, SimulationType.BASE, sIndex);
                 }
             }
 
             //MIT, MIT passenger, Taxi,
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE)) {
                 // car
-                DataSource carTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT_BASE))));
-                this.readMatrixMap(carTtBase, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.BASE, sIndex);
+                DataSource carTtBase = new DataSource(matrixMapUri);
+                Filter carTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT_BASE));
+                this.readMatrixMap(carTtBase, carTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.BASE, sIndex);
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE)) {
-                    DataSource carAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE))));
-                    this.readMatrixMap(carAccessBase, ParamMatrixMap.ARRIVAL_MIT, SimulationType.BASE, sIndex);
+                    DataSource carAccessBase = new DataSource(matrixMapUri);
+                    Filter carAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE));
+                    this.readMatrixMap(carAccessBase, carAccessBaseFilter, ParamMatrixMap.ARRIVAL_MIT, SimulationType.BASE, sIndex);
                 }
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE)) {
-                    DataSource carEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE))));
-                    this.readMatrixMap(carEgressBase, ParamMatrixMap.EGRESS_MIT, SimulationType.BASE, sIndex);
+                    DataSource carEgressBase = new DataSource(matrixMapUri);
+                    Filter carEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE));
+                    this.readMatrixMap(carEgressBase, carEgressBaseFilter, ParamMatrixMap.EGRESS_MIT, SimulationType.BASE, sIndex);
                 }
             }
 
             if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE)) {
                 // public transport
-                DataSource ptTtBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT_BASE))));
-                this.readMatrixMap(ptTtBase, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.BASE, sIndex);
+                DataSource ptTtBase = new DataSource(matrixMapUri);
+                Filter ptTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT_BASE));
+                this.readMatrixMap(ptTtBase, ptTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.BASE, sIndex);
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE)) {
-                    DataSource ptAccessBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE))));
-                    this.readMatrixMap(ptAccessBase, ParamMatrixMap.ARRIVAL_PT, SimulationType.BASE, sIndex);
+                    DataSource ptAccessBase = new DataSource(matrixMapUri);
+                    Filter ptAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE));
+                    this.readMatrixMap(ptAccessBase, ptAccessBaseFilter, ParamMatrixMap.ARRIVAL_PT, SimulationType.BASE, sIndex);
                 }
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE)) {
-                    DataSource ptEgressBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE))));
-                    this.readMatrixMap(ptEgressBase, ParamMatrixMap.EGRESS_PT, SimulationType.BASE, sIndex);
+                    DataSource ptEgressBase = new DataSource(matrixMapUri);
+                    Filter ptEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE));
+                    this.readMatrixMap(ptEgressBase, ptEgressBaseFilter, ParamMatrixMap.EGRESS_PT, SimulationType.BASE, sIndex);
                 }
                 if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE)) {
-                    DataSource ptInterchangeBase = new DataSource(matrixMapUri, List.of(new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE))));
-                    this.readMatrixMap(ptInterchangeBase, ParamMatrixMap.INTERCHANGES_PT, SimulationType.BASE, sIndex);
+                    DataSource ptInterchangeBase = new DataSource(matrixMapUri);
+                    Filter ptInterChangeBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE));
+                    this.readMatrixMap(ptInterchangeBase, ptInterChangeBaseFilter, ParamMatrixMap.INTERCHANGES_PT, SimulationType.BASE, sIndex);
                 }
             }
         }
@@ -741,10 +764,10 @@ public class TPS_DB_IO {
      * @param sIndex     the index for reading in the db. Should be zero.
      * @throws SQLException
      */
-    private void readMatrix(DataSource matrixDs, ParamMatrix matrix, SimulationType simType, int sIndex){
+    private void readMatrix(DataSource matrixDs, Filter filter, ParamMatrix matrix, SimulationType simType, int sIndex){
 
         TPS_Logger.log(SeverityLogLevel.INFO, "Loading " + matrix);
-        Matrix m = readMatrix(matrixDs, sIndex);
+        Matrix m = readMatrix(matrixDs, filter, sIndex);
 
         if (simType != null)
             this.parameters.setMatrix(matrix, m, simType);
@@ -758,9 +781,9 @@ public class TPS_DB_IO {
                 + this.parameters.getMatrix(matrix).getNumberOfColums());
     }
 
-    public void readMatrixMap(DataSource matrixMapDs, ParamMatrixMap matrixMap, SimulationType simType, int sIndex){
+    public void readMatrixMap(DataSource matrixMapDs, Filter filter, ParamMatrixMap matrixMap, SimulationType simType, int sIndex){
 
-        MatrixMap m = readMatrixMap(matrixMapDs, sIndex);
+        MatrixMap m = readMatrixMap(matrixMapDs, filter, sIndex);
 
         if (simType != null) this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrixMap, m, simType);
         else this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrixMap, m);
@@ -774,11 +797,16 @@ public class TPS_DB_IO {
      * @param sIndex     the matrixmap  to store in
      * @return the loaded MatrixMap
      */
-    public MatrixMap readMatrixMap(DataSource matrixMapDs,  int sIndex) {
+    public MatrixMap readMatrixMap(DataSource matrixMapDs, Filter filter, int sIndex) {
 
         //read the matrix map from db
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-        Collection<MatrixMapDto> matrixMapDtos = reader.read(new ResultSetConverter<>(MatrixMapDto.class,MatrixMapDto::new),matrixMapDs);
+        Collection<MatrixMapDto> matrixMapDtos;
+        if(filter == null){
+            matrixMapDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(MatrixMapDto.class),MatrixMapDto::new),matrixMapDs);
+        } else {
+            matrixMapDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(MatrixMapDto.class),MatrixMapDto::new),matrixMapDs, filter);
+        }
 
         //some plausibility checks
         if(matrixMapDtos.size() > 1)
@@ -803,8 +831,11 @@ public class TPS_DB_IO {
         //load matrix map
         for (int i = 0; i < numOfMatrices; ++i) {
 
-            matrices[i] = this.readMatrix(
-                    new DataSource(parameters.getString(ParamString.DB_TABLE_MATRICES), List.of(new Filter("matrix_name",matrixNames[i]))),  sIndex);
+            var matrixFilter = new Filter("matrix_name",matrixNames[i]);
+            var dataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MATRICES));
+
+            matrices[i] = this.readMatrix(dataSource, matrixFilter, sIndex);
+
             if(matrices[i] != null){
                 TPS_Logger.log(SeverityLogLevel.INFO,
                         "Loaded matrix from DB: " + matrixNames[i] + " End time: " + matrixDistributions[i] +
@@ -826,10 +857,17 @@ public class TPS_DB_IO {
      * @param sIndex the indexoffset of the matrix
      * @return the matrix or null, if nothing is found in the DB
      */
-    public Matrix readMatrix(DataSource matrixDs, int sIndex) {
+    public Matrix readMatrix(DataSource matrixDs, Filter filter,  int sIndex) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-        Collection<IntMatrixDto> matrixDtos = reader.read(new ResultSetConverter<>(IntMatrixDto.class,IntMatrixDto::new),matrixDs);
+
+        Collection<IntMatrixDto> matrixDtos;
+
+        if(filter == null){
+            matrixDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(IntMatrixDto.class),IntMatrixDto::new),matrixDs);
+        }else {
+            matrixDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(IntMatrixDto.class),IntMatrixDto::new),matrixDs, filter);
+        }
 
         if(matrixDtos.size() > 1)
             throw new IllegalArgumentException("the provided matrix datasource: '"+matrixDs.getUri()+"' does not return a single matrix result.");
@@ -855,11 +893,12 @@ public class TPS_DB_IO {
      * @return The tree read from the db.
      * @throws SQLException
      */
-    public TPS_ModeChoiceTree readModeChoiceTree(DataSource dataSource, Collection<TPS_Mode> modes) {
+    public TPS_ModeChoiceTree readModeChoiceTree(DataSource dataSource, Filter modeFilter, Collection<TPS_Mode> modes) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<ModeChoiceTreeNodeDto> mctDtos = reader.read(new ResultSetConverter<>(ModeChoiceTreeNodeDto.class, ModeChoiceTreeNodeDto::new), dataSource);
+        Collection<ModeChoiceTreeNodeDto> mctDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(ModeChoiceTreeNodeDto.class), ModeChoiceTreeNodeDto::new), dataSource, modeFilter);
 
         Collection<ModeChoiceTreeNodeDto> sortedNodes = mctDtos.stream()
                 .sorted(Comparator.comparingInt(ModeChoiceTreeNodeDto::getNodeId))
@@ -904,7 +943,7 @@ public class TPS_DB_IO {
 
         EnumMap<ModeType, ModeParameters> modeParams = getModeParameters();
 
-        Collection<ModeDto> modeDtos = dr.read(new ResultSetConverter<>(ModeDto.class, ModeDto::new),modesTable);
+        Collection<ModeDto> modeDtos = dr.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ModeDto.class), ModeDto::new),modesTable);
 
         ModesBuilder modesBuilder = Modes.builder();
         for(ModeDto modeDto : modeDtos){
@@ -1041,11 +1080,12 @@ public class TPS_DB_IO {
      * A PersGroup has the form (id, 3-tuples of (name, code, type), code_ageclass, code_sex, code_cars, persType)
      * Example: (3, (RoP65-74, 12, VISEVA_R), 6, ,1, 2, RETIREE)
      */
-    public Collection<TPS_PersonGroup> readPersonGroupCodes(DataSource dataSource) {
+    public Collection<TPS_PersonGroup> readPersonGroupCodes(DataSource dataSource, Filter personGroupFilter) {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<PersonCodeDto> personCodeDtos = reader.read(new ResultSetConverter<>(PersonCodeDto.class,PersonCodeDto::new), dataSource);
+        Collection<PersonCodeDto> personCodeDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(PersonCodeDto.class),PersonCodeDto::new), dataSource, personGroupFilter);
 
         Collection<TPS_PersonGroup> personGroups = new ArrayList<>();
 
@@ -1068,11 +1108,12 @@ public class TPS_DB_IO {
         return personGroups;
     }
 
-    public TPS_VariableMap readValuesOfTimes(DataSource dataSource){
+    public TPS_VariableMap readValuesOfTimes(DataSource dataSource, Filter votFilter){
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<ValueOfTimeDto> votDtos = reader.read(new ResultSetConverter<>(ValueOfTimeDto.class,ValueOfTimeDto::new), dataSource);
+        Collection<ValueOfTimeDto> votDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(ValueOfTimeDto.class),ValueOfTimeDto::new), dataSource, votFilter);
 
         TPS_VariableMap votTree = new TPS_VariableMap(List.of(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE, TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_VOT,
                 TPS_Attribute.CURRENT_MODE_CODE_VOT, TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_VOT));
@@ -1098,37 +1139,40 @@ public class TPS_DB_IO {
         String query;
 
         // read values of time
-        DataSource votDs = new DataSource(parameters.getString(ParamString.DB_TABLE_VOT),
-                List.of(new Filter("name", parameters.getString(ParamString.DB_NAME_VOT))));
-        region.setValuesOfTime(this.readValuesOfTimes(votDs));
+        DataSource votDs = new DataSource(parameters.getString(ParamString.DB_TABLE_VOT));
+        Filter votFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_VOT));
+        region.setValuesOfTime(this.readValuesOfTimes(votDs, votFilter));
 
 
         // read cfn values
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
         //read cfnx
-        DataSource cfnxDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFNX),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_REGION_CNF_KEY))));
+        DataSource cfnxDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFNX));
+        Filter cfnxFilter = new Filter("key", parameters.getString(ParamString.DB_REGION_CNF_KEY));
 
-        Collection<CfnxDto> cfnxDtos = reader.read(new ResultSetConverter<>(CfnxDto.class, CfnxDto::new),cfnxDs);
+        Collection<CfnxDto> cfnxDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(CfnxDto.class), CfnxDto::new),cfnxDs, cfnxFilter);
 
         TPS_CFN cfn = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
 
         cfnxDtos.forEach(cfnx -> cfn.addToCFNXMap(cfnx.getCurrentTazSettlementCodeTapas(),cfnx.getValue()));
 
         //read cfn4
-        DataSource cfn4Ds = new DataSource(parameters.getString(ParamString.DB_TABLE_CFN4),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_CNF_KEY))));
-        Collection<CfnFourDto> cfn4Dtos = reader.read(new ResultSetConverter<>(CfnFourDto.class, CfnFourDto::new), cfn4Ds);
+        DataSource cfn4Ds = new DataSource(parameters.getString(ParamString.DB_TABLE_CFN4));
+        Filter cfn4Filter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_CNF_KEY));
+        Collection<CfnFourDto> cfn4Dtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(CfnFourDto.class), CfnFourDto::new), cfn4Ds, cfn4Filter);
         cfn4Dtos.forEach(cfn4 -> cfn.addToCFN4Map(cfn4.getCurrentTazSettlementCodeTapas(),cfn4.getCurrentEpisodeActivityCodeTapas(),cfn4.getValue()));
 
         region.setCfn(cfn);
 
         //optional potential parameter, might return no result!
         TPS_CFN potential = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
-        DataSource cfnPotentialDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFN4),
-                List.of(new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY))));
-        Collection<CfnFourDto> cfn4PotentialDtos = reader.read(new ResultSetConverter<>(CfnFourDto.class, CfnFourDto::new), cfnPotentialDs);
+        DataSource cfnPotentialDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFN4));
+        Filter cfnPotentialFilter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY));
+        Collection<CfnFourDto> cfn4PotentialDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(CfnFourDto.class), CfnFourDto::new), cfnPotentialDs, cfnPotentialFilter);
         cfn4PotentialDtos.forEach(cfn4 -> potential.addToCFN4Map(cfn4.getCurrentTazSettlementCodeTapas(),cfn4.getCurrentEpisodeActivityCodeTapas(),cfn4.getValue()));
 
         region.setPotential(potential);
@@ -1147,8 +1191,9 @@ public class TPS_DB_IO {
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
         //read traffic analysis zones
-        DataSource tazDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ),null);
-        Collection<TrafficAnalysisZoneDto> tazDtoCollection = reader.read(new ResultSetConverter<>(TrafficAnalysisZoneDto.class, TrafficAnalysisZoneDto::new), tazDs);
+        DataSource tazDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ));
+        Collection<TrafficAnalysisZoneDto> tazDtoCollection = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(TrafficAnalysisZoneDto.class), TrafficAnalysisZoneDto::new), tazDs);
         Map<Integer, TrafficAnalysisZoneDto> tazDtos = collectionToMap(TrafficAnalysisZoneDto::getTazId, tazDtoCollection);
 
         //initialize TAZ builders with TAZ data
@@ -1171,9 +1216,12 @@ public class TPS_DB_IO {
 
         //read taz scores and update taz builders
         if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_SCORES)){
-            DataSource tazScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_SCORES),
-                    List.of(new Filter("score_name", parameters.getString(ParamString.DB_NAME_TAZ_SCORES))));
-            Collection<TrafficAnalysisZoneScoreDto> tazScores = reader.read(new ResultSetConverter<>(TrafficAnalysisZoneScoreDto.class, TrafficAnalysisZoneScoreDto::new), tazScoresDs);
+            DataSource tazScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_SCORES));
+            Filter tazScoreFilter = new Filter("score_name", parameters.getString(ParamString.DB_NAME_TAZ_SCORES));
+            Collection<TrafficAnalysisZoneScoreDto> tazScores =
+                    reader.read(new ResultSetConverter<>(
+                            new ColumnToFieldMapping<>(TrafficAnalysisZoneScoreDto.class), TrafficAnalysisZoneScoreDto::new),
+                            tazScoresDs, tazScoreFilter);
 
             tazScores.forEach(tazScore -> tazBuilders.get(tazScore.getTazId())
                     .score(tazScore.getScore())
@@ -1190,31 +1238,47 @@ public class TPS_DB_IO {
                 this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) &&
                 this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) &&
                 this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS)) {
-            DataSource intraTazInfoMitDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS),
-                    List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS))));
-            DataSource intraTazInfoPtDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS),
-                    List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS))));
+            DataSource intraTazInfoMitDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS));
+            Filter intraTazMitFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS));
+            DataSource intraTazInfoPtDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS));
+            Filter intraTazPtFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS));
 
-            initIntraTazInformation(intraTazInfoMitDs, intraTazInfoPtDs, reader, stvScenarioBuilders);
+            Collection<IntraTazInfoMit> intraMitDtos = reader.read(
+                    new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoMit.class), IntraTazInfoMit::new),
+                    intraTazInfoMitDs, intraTazMitFilter);
+            Collection<IntraTazInfoPt> intraPtDtos = reader.read(
+                    new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoPt.class), IntraTazInfoPt::new),
+                    intraTazInfoPtDs, intraTazPtFilter);
+
+
+
+            initIntraTazInformation(intraMitDtos, intraPtDtos, stvScenarioBuilders);
 
             if( this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) &&
                     this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) &&
                     this.parameters.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
                 //same procedure as above but this time for base scenario values
-                DataSource mitDsBase = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS),
-                        List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE))));
-                DataSource ptDsBase = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS),
-                        List.of(new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE))));
+                Filter intraTazMitBaseFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE));
+                Filter intraTazPtBaseFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE));
+                Collection<IntraTazInfoMit> intraMitBaseDtos = reader.read(
+                        new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoMit.class), IntraTazInfoMit::new),
+                        intraTazInfoMitDs, intraTazMitBaseFilter);
+                Collection<IntraTazInfoPt> intraPtBaseDtos = reader.read(
+                        new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoPt.class), IntraTazInfoPt::new),
+                        intraTazInfoPtDs, intraTazPtBaseFilter);
 
-                initIntraTazInformation(mitDsBase, ptDsBase, reader, stvBaseBuilders);
+
+                initIntraTazInformation(intraMitBaseDtos, intraPtBaseDtos, stvBaseBuilders);
             }
         }
 
         //read taz fees and tolls and set scenario type values
-        DataSource tazFeesAndTollsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS),
-                List.of(new Filter("ft_name", parameters.getString(ParamString.DB_NAME_FEES_TOLLS))));
+        DataSource tazFeesAndTollsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS));
+        Filter feesAndTollsFilter = new Filter("ft_name", parameters.getString(ParamString.DB_NAME_FEES_TOLLS));
 
-        Collection<TazFeesAndTollsDto> tazFeesAndTollsDtos = reader.read(new ResultSetConverter<>(TazFeesAndTollsDto.class, TazFeesAndTollsDto::new), tazFeesAndTollsDs);
+        Collection<TazFeesAndTollsDto> tazFeesAndTollsDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(TazFeesAndTollsDto.class), TazFeesAndTollsDto::new),
+                tazFeesAndTollsDs, feesAndTollsFilter);
         tazFeesAndTollsDtos.forEach(
                 dto -> tazBuilders.get(dto.getTazId())
                         .isPNR(dto.isParkAndRide())
@@ -1235,18 +1299,23 @@ public class TPS_DB_IO {
         Map<Integer, TPS_Block> blockMap = new HashMap<>();
 
         if(parameters.isDefined(ParamString.DB_TABLE_BLOCK)){
-            DataSource blocksDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK), null);
-            Collection<BlockDto> blockDtos = reader.read(new ResultSetConverter<>(BlockDto.class, BlockDto::new), blocksDs);
+            DataSource blocksDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK));
+            Collection<BlockDto> blockDtos = reader.read(
+                    new ResultSetConverter<>(new ColumnToFieldMapping<>(BlockDto.class), BlockDto::new), blocksDs);
 
-            DataSource blockScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_SCORES),
-                    List.of(new Filter("score_name", parameters.getString(ParamString.DB_NAME_BLOCK_SCORES))));
-            Collection<BlockScoreDto> blockScoreDtos = reader.read(new ResultSetConverter<>(BlockScoreDto.class, BlockScoreDto::new), blockScoresDs);
+            DataSource blockScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_SCORES));
+            Filter blockScoreFilter = new Filter("score_name", parameters.getString(ParamString.DB_NAME_BLOCK_SCORES));
+            Collection<BlockScoreDto> blockScoreDtos = reader.read(
+                    new ResultSetConverter<>(new ColumnToFieldMapping<>(BlockScoreDto.class), BlockScoreDto::new),
+                    blockScoresDs, blockScoreFilter);
             Map<Integer, BlockScoreDto> blockScoreDtoMap = collectionToMap(BlockScoreDto::getBlockId, blockScoreDtos);
 
-            DataSource blockNextPtStopDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP),
-                    List.of(new Filter("next_pt_stop_name", parameters.getString(ParamString.DB_NAME_BLOCK_NEXT_PT_STOP))));
+            DataSource blockNextPtStopDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP));
+            Filter nextPtStopFilter = new Filter("next_pt_stop_name", parameters.getString(ParamString.DB_NAME_BLOCK_NEXT_PT_STOP));
 
-            Collection<BlockNextPtStopDto> nextPtStopDtos = reader.read(new ResultSetConverter<>(BlockNextPtStopDto.class, BlockNextPtStopDto::new), blockNextPtStopDs);
+            Collection<BlockNextPtStopDto> nextPtStopDtos = reader.read(
+                    new ResultSetConverter<>(new ColumnToFieldMapping<>(BlockNextPtStopDto.class), BlockNextPtStopDto::new),
+                    blockNextPtStopDs, nextPtStopFilter);
             Map<Integer, BlockNextPtStopDto> blockNextPtStopDtoMap = collectionToMap(BlockNextPtStopDto::getNextPtStopBlockId, nextPtStopDtos);
 
             for(BlockDto blockDto : blockDtos){
@@ -1290,9 +1359,11 @@ public class TPS_DB_IO {
         }
 
         //finally read locations
-        DataSource locationsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_LOCATION),
-                List.of(new Filter("key",parameters.getString(ParamString.DB_LOCATION_KEY))));
-        Collection<LocationDto> locationDtos = reader.read(new ResultSetConverter<>(LocationDto.class, LocationDto::new),locationsDs);
+        DataSource locationsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_LOCATION));
+        Filter locationFilter = new Filter("key",parameters.getString(ParamString.DB_LOCATION_KEY));
+        Collection<LocationDto> locationDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(LocationDto.class), LocationDto::new),
+                locationsDs, locationFilter);
 
         for(LocationDto dto : locationDtos){
 
@@ -1336,16 +1407,13 @@ public class TPS_DB_IO {
     /**
      * Helper method that reads the intra taz information for MIT and PT and adds that to the TAZ builders.
      *
-     * @param mitInfo datasource to internal TAZ information for motorized individual transport
-     * @param ptInfo datasource to internal TAZ information for public transport
-     * @param reader reference to the reader that is used to read the data
+     * @param mitInfo collection of internal TAZ information for motorized individual transport
+     * @param ptInfo collection of internal TAZ information for public transport
      */
-    private void initIntraTazInformation(DataSource mitInfo, DataSource ptInfo, DataReader<ResultSet> reader,
-                                                                            Map<Integer, ScenarioTypeValuesBuilder> scenarioTypeValuesBuilders){
-        Collection<IntraTazInfoMit> intraMitDtos = reader.read(new ResultSetConverter<>(IntraTazInfoMit.class, IntraTazInfoMit::new), mitInfo);
-        Map<Integer,IntraTazInfoMit> intraMitMap = collectionToMap(IntraTazInfoMit::getTazId, intraMitDtos);
-        Collection<IntraTazInfoPt> intraPtDtos = reader.read(new ResultSetConverter<>(IntraTazInfoPt.class, IntraTazInfoPt::new), ptInfo);
-        Map<Integer,IntraTazInfoPt> intraPtMap = collectionToMap(IntraTazInfoPt::getTazId, intraPtDtos);
+    private void initIntraTazInformation(Collection<IntraTazInfoMit> mitInfo, Collection<IntraTazInfoPt> ptInfo,
+                                         Map<Integer, ScenarioTypeValuesBuilder> scenarioTypeValuesBuilders){
+        Map<Integer,IntraTazInfoMit> intraMitMap = collectionToMap(IntraTazInfoMit::getTazId, mitInfo);
+        Map<Integer,IntraTazInfoPt> intraPtMap = collectionToMap(IntraTazInfoPt::getTazId, ptInfo);
 
         for(Map.Entry<Integer, ScenarioTypeValuesBuilder> builderEntry : scenarioTypeValuesBuilders.entrySet()){
 
@@ -1460,22 +1528,46 @@ public class TPS_DB_IO {
                 .beelineFactorMIT(mitInfo.getBeelineFactorMit());
     }
 
+    public Collection<SchemeClassDto> readSchemeClasses(DataSource dataSource, Filter filter){
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeClassDto.class), SchemeClassDto::new);
+        return dataReader.read(converter, dataSource, filter);
+    }
+
+    public Collection<SchemeDto> readSchemes(DataSource dataSource, Filter filter){
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeDto.class), SchemeDto::new);
+        return dataReader.read(converter, dataSource, filter);
+    }
+
+    public Collection<EpisodeDto> readEpisodes(DataSource dataSource, Filter filter){
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(EpisodeDto.class), EpisodeDto::new);
+        return dataReader.read(converter, dataSource, filter);
+    }
+
+    public Collection<SchemeClassDistributionDto> readSchemeClassDistributions(DataSource dataSource, Filter filter){
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeClassDistributionDto.class), SchemeClassDistributionDto::new);
+        return dataReader.read(converter, dataSource, filter);
+    }
+
     /**
      * This method reads the scheme set, scheme class distribution values and all episodes from the db.
      *
      * @return The TPS_SchemeSet containing all episodes.
      * @throws SQLException
      */
-    public TPS_SchemeSet readSchemeSet(DataSource schemeClasses, DataSource schemes, DataSource episodes, DataSource schemeClassDistributions, Collection<TPS_ActivityConstant> activityConstants, PersonGroups personGroups) {
+    public TPS_SchemeSet readSchemeSet(Collection<SchemeClassDto> schemeClasses, Collection<SchemeDto> schemes,
+                                       Collection<EpisodeDto> episodes, Collection<SchemeClassDistributionDto> schemeClassDistributions,
+                                       Collection<TPS_ActivityConstant> activityConstants, PersonGroups personGroups) {
 
         int timeSlotLength = this.parameters.getIntValue(ParamValue.SEC_TIME_SLOT);
 
         TPS_SchemeSet schemeSet = new TPS_SchemeSet();
 
         // build scheme classes (with time distributions)
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
-        Collection<SchemeClassDto> schemeClassDtos = dataReader.read(new ResultSetConverter<>(SchemeClassDto.class, SchemeClassDto::new),schemeClasses);
-        for(SchemeClassDto schemeClassDto : schemeClassDtos){
+        for(SchemeClassDto schemeClassDto : schemeClasses){
             TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(schemeClassDto.getId());
             double mean = schemeClassDto.getAvgTravelTime() * 60;
             schemeClass.setTimeDistribution(mean, mean * schemeClassDto.getProcStdDev());
@@ -1483,8 +1575,7 @@ public class TPS_DB_IO {
 
         // build the schemes, assigning them to the right scheme classes
         Map<Integer, TPS_Scheme> schemeMap = new HashMap<>();
-        Collection<SchemeDto> schemeDtos = dataReader.read(new ResultSetConverter<>(SchemeDto.class, SchemeDto::new), schemes);
-        for(SchemeDto schemeDto : schemeDtos){
+        for(SchemeDto schemeDto : schemes){
             TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(schemeDto.getSchemeClassId());
             TPS_Scheme scheme = schemeClass.getScheme(schemeDto.getId(), this.parameters);
             schemeMap.put(scheme.getId(), scheme);
@@ -1497,11 +1588,10 @@ public class TPS_DB_IO {
         TPS_Episode lastEpisode = null;
         int lastScheme = -1;
 
-        Collection<EpisodeDto> episodeDtos = dataReader.read(new ResultSetConverter<>(EpisodeDto.class, EpisodeDto::new), episodes);
 
         var sortCriteria = Comparator.comparing(EpisodeDto::getSchemeId)
                 .thenComparing(EpisodeDto::getStart);
-        var sortedEpisodes = episodeDtos.stream()
+        var sortedEpisodes = episodes.stream()
                 .sorted(sortCriteria)
                 .toList();
 
@@ -1563,10 +1653,7 @@ public class TPS_DB_IO {
         // the key of the outer map represents the person group id. The key of the inner map represents the scheme class id.
         HashMap<Integer, HashMap<Integer, Double>> personGroupSchemeProbabilityMap = new HashMap<>();
 
-        Collection<SchemeClassDistributionDto> schemeClassDistributionDtos =
-                dataReader.read(new ResultSetConverter<>(SchemeClassDistributionDto.class, SchemeClassDistributionDto::new), schemeClassDistributions);
-
-        for(SchemeClassDistributionDto dto : schemeClassDistributionDtos){
+        for(SchemeClassDistributionDto dto : schemeClassDistributions){
             int personGroupId = dto.getPersonGroup();
             if (!personGroupSchemeProbabilityMap.containsKey(personGroupId)) {
                 personGroupSchemeProbabilityMap.put(personGroupId, new HashMap<>());
@@ -1593,7 +1680,8 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<SettlementSystemDto> settlementSystemDtos = reader.read(new ResultSetConverter<>(SettlementSystemDto.class,SettlementSystemDto::new), dataSource);
+        Collection<SettlementSystemDto> settlementSystemDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(SettlementSystemDto.class),SettlementSystemDto::new), dataSource);
 
         Collection<TPS_SettlementSystem> settlementSystems = new ArrayList<>();
 
@@ -1620,7 +1708,7 @@ public class TPS_DB_IO {
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<SexDto> sexDtos = reader.read(new ResultSetConverter<>(SexDto.class, SexDto::new), dataSource);
+        Collection<SexDto> sexDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(SexDto.class), SexDto::new), dataSource);
 
         for(SexDto sexDto : sexDtos){
             try{
@@ -1664,11 +1752,12 @@ public class TPS_DB_IO {
      */
 
     //todo fix reading utility functions
-    public Collection<UtilityFunctionDto> readUtilityFunction(DataSource dataSource){
+    public Collection<UtilityFunctionDto> readUtilityFunction(DataSource dataSource, Collection<Filter> utilityFunctionFilters){
 
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
 
-        Collection<UtilityFunctionDto> utilityFunctionDtos = reader.read(new ResultSetConverter<>(UtilityFunctionDto.class, UtilityFunctionDto::new), dataSource);
+        Collection<UtilityFunctionDto> utilityFunctionDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(UtilityFunctionDto.class), UtilityFunctionDto::new), dataSource);
 
         return utilityFunctionDtos;
     }

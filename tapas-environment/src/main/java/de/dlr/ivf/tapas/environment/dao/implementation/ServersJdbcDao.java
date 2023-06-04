@@ -1,10 +1,11 @@
 package de.dlr.ivf.tapas.environment.dao.implementation;
 
 import de.dlr.ivf.api.converter.Converter;
-import de.dlr.ivf.api.io.DataReader;
+import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
+import de.dlr.ivf.api.io.reader.DataReader;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.implementation.NonClosingConnectionJdbcReader;
-import de.dlr.ivf.api.io.implementation.ResultSetConverter;
+import de.dlr.ivf.api.io.reader.DataReaderFactory;
+import de.dlr.ivf.api.io.conversion.ResultSetConverter;
 import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 
@@ -23,8 +24,8 @@ public class ServersJdbcDao implements ServersDao {
 
     public ServersJdbcDao(Supplier<Connection> connectionSupplier, DataSource simulationsTable){
         this.simulationsTable = simulationsTable;
-        this.dataReader = new NonClosingConnectionJdbcReader(connectionSupplier);
-        this.objectFactory = new ResultSetConverter<>(ServerEntry.class, ServerEntry::new);
+        this.dataReader = DataReaderFactory.newOpenConnectionJdbcReader(connectionSupplier);
+        this.objectFactory = new ResultSetConverter<>(new ColumnToFieldMapping<>(ServerEntry.class), ServerEntry::new);
     }
     @Override
     public Collection<ServerEntry> load() {

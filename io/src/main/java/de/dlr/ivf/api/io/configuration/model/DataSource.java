@@ -15,15 +15,7 @@ public class DataSource {
     @JsonProperty
     private final String uri;
 
-    @JsonProperty
-    private final Collection<Filter> filter;
-
-
     public String getUri() {
         return uri;
-    }
-
-    public Optional<Collection<Filter>> getFilter() {
-        return filter == null || filter.size() == 0 ? Optional.empty() : Optional.of(filter);
     }
 }

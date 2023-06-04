@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
+
 @Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
@@ -15,6 +17,8 @@ public class DataInput {
     //todo integrate null values
     @JsonProperty
     private final DataSource dataSource;
+    @JsonProperty
+    private final Collection<Filter> filter;
     @JsonProperty
     private final ConnectionDetails connectionDetails;
     @JsonProperty
