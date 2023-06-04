@@ -25,7 +25,6 @@ module de.dlr.ivf.tapas.environment.gui {
     requires transitive javafx.web;
     requires org.scenicview.scenicview;
 
-    exports de.dlr.ivf.tapas.environment.gui to javafx.graphics;
     opens de.dlr.ivf.tapas.environment.gui.fx.view.controllers to javafx.fxml;
     opens de.dlr.ivf.tapas.environment.gui.fx.view to javafx.fxml;
     exports de.dlr.ivf.tapas.environment.gui.legacy to javafx.graphics;

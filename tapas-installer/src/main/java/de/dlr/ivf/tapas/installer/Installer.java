@@ -27,6 +27,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
+//todo remove the CLI stuff and replace with a json config
 /**
  * Installer scripts for a minimal and exemplary install of a TAPAS database installation
  */

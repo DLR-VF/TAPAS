@@ -42,21 +42,12 @@ repositories {
 }
 
 dependencies {
-    // These dependencies are used by the application.
 
-    //implementation("org.apache.logging.log4j:log4j:2.16.0")
     implementation("org.postgresql:postgresql:42.2.27")
     implementation("org.apache.commons:commons-lang3:3.9")
     implementation("org.apache.commons:commons-collections4:4.4")
     implementation("org.apache.commons:commons-math3:3.6.1")
-    implementation("commons-cli:commons-cli:1.5.0")
-    implementation("org.apache.poi:poi:4.1.1")
-    implementation("org.jfree:jfreechart:1.5.0")
     implementation("net.sourceforge.javacsv:javacsv:2.0")
-
-    implementation("com.miglayout:miglayout-swing:5.2")
-    implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
-    implementation("net.lingala.zip4j:zip4j:2.10.0")
     implementation("com.lmax:disruptor:3.4.2")
 
     //lombok
@@ -68,12 +59,7 @@ dependencies {
     //jackson
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")
 
-    //implementation(files("ext/simon_w.jar"))
-
-
-
     //local dependency
-   // implementation(project(":tapas-matrixtool"))
     implementation(project(":tapas-logger"))
     implementation(project(":tapas-parameter"))
     implementation(project(":tapas-util"))

@@ -16,5 +16,8 @@ module de.dlr.ivf.api.io {
     exports de.dlr.ivf.api.io;
 
     opens de.dlr.ivf.api.io.configuration.model to com.fasterxml.jackson.databind;
-    exports de.dlr.ivf.api.io.implementation;
+    exports de.dlr.ivf.api.io.reader;
+    exports de.dlr.ivf.api.io.annotation;
+    exports de.dlr.ivf.api.io.util;
+    exports de.dlr.ivf.api.io.conversion;
 }
