@@ -1,4 +1,4 @@
-package de.dlr.ivf.api.io;
+package de.dlr.ivf.api.io.util;
 
 import org.apache.commons.lang3.ArrayUtils;
 

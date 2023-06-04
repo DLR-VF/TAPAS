@@ -1,4 +1,4 @@
-package de.dlr.ivf.api.io.implementation;
+package de.dlr.ivf.api.io.reader.implementation;
 
 import de.dlr.ivf.api.io.JdbcConnectionProvider;
 

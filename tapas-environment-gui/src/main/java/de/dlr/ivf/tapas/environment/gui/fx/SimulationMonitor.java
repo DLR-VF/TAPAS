@@ -29,7 +29,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-import org.scenicview.ScenicView;
 
 import java.io.IOException;
 import java.net.URL;
@@ -46,7 +45,7 @@ import java.util.stream.Collectors;
 public class SimulationMonitor extends Application {
     private final Collection<ScheduledService<?>> scheduledServices = new ArrayList<>();
 
-    private JdbcConnectionPool connectionPool;
+    private JdbcConnectionManager connectionPool;
 
     private TapasEnvironment tapasEnvironment;
 
@@ -65,7 +64,7 @@ public class SimulationMonitor extends Application {
 
         //read config and set up connection pool
         EnvironmentConfiguration configDto = readConfigFile(configFile);
-        this.connectionPool = new JdbcConnectionPool(JdbcConnectionProvider.newJdbcConnectionProvider());
+        this.connectionPool = new JdbcConnectionManager(JdbcConnectionProvider.newJdbcConnectionProvider());
 
         TapasEnvironmentBuilder tapasEnvironmentBuilder = TapasEnvironment.builder();
         ConnectionDetails connectionDetails = configDto.getConnectionDetails();
@@ -89,68 +88,72 @@ public class SimulationMonitor extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        try {
+            ModelFactory modelFactory = new ModelFactory();
+            ViewModelFactory viewModelFactory = new ViewModelFactory(modelFactory);
+            ViewHandler viewHandler = new ViewHandler(primaryStage, viewModelFactory);
+            viewHandler.start();
 
-        ModelFactory modelFactory = new ModelFactory();
-        ViewModelFactory viewModelFactory = new ViewModelFactory(modelFactory);
-        ViewHandler viewHandler = new ViewHandler(primaryStage, viewModelFactory);
-        viewHandler.start();
+            //init simulations overview panel
+            SimulationsModel simulationsModel = modelFactory.getSimulationEntryModel(tapasEnvironment.getSimulationsDao());
 
-        //init simulations overview panel
-        SimulationsModel simulationsModel = modelFactory.getSimulationEntryModel(tapasEnvironment.getSimulationsDao());
+            //  scheduled service to reload simulation entries from the database
+            SimulationDataUpdateTask simulationDataUpdateTask = new SimulationDataUpdateTask(simulationsModel::getSimulations);
+            simulationDataUpdateTask.setPeriod(Duration.seconds(1));
+            scheduledServices.add(simulationDataUpdateTask);
 
-        //  scheduled service to reload simulation entries from the database
-        SimulationDataUpdateTask simulationDataUpdateTask = new SimulationDataUpdateTask(simulationsModel::getSimulations);
-        simulationDataUpdateTask.setPeriod(Duration.seconds(1));
-        scheduledServices.add(simulationDataUpdateTask);
+            SimulationsViewModel simViewModel = viewModelFactory.getSimulationEntryViewModel(simulationDataUpdateTask, tapasEnvironment.getSimulationsDao());
 
-        SimulationsViewModel simViewModel = viewModelFactory.getSimulationEntryViewModel(simulationDataUpdateTask, tapasEnvironment.getSimulationsDao());
+            //init servers overview panel
+            ServersModel serversModel = modelFactory.getServerEntryModel(tapasEnvironment.getServersDao());
 
-        //init servers overview panel
-        ServersModel serversModel = modelFactory.getServerEntryModel(tapasEnvironment.getServersDao());
+            //  scheduled service to reload server entries from the database
+            ServerDataUpdateTask serverDataUpdateTask = new ServerDataUpdateTask(serversModel::getServerData);
+            serverDataUpdateTask.setPeriod(Duration.seconds(1));
+            scheduledServices.add(serverDataUpdateTask);
 
-        //  scheduled service to reload server entries from the database
-        ServerDataUpdateTask serverDataUpdateTask = new ServerDataUpdateTask(serversModel::getServerData);
-        serverDataUpdateTask.setPeriod(Duration.seconds(1));
-        scheduledServices.add(serverDataUpdateTask);
+            ServersViewModel serversViewModel = viewModelFactory.getServerEntryViewModel(serverDataUpdateTask, tapasEnvironment.getServersDao());
 
-        ServersViewModel serversViewModel = viewModelFactory.getServerEntryViewModel(serverDataUpdateTask, tapasEnvironment.getServersDao());
+            //start all scheduled services
+            scheduledServices.forEach(ScheduledService::start);
 
-        //start all scheduled services
-        scheduledServices.forEach(ScheduledService::start);
+            //init the controller
+            FXMLLoader loader = new FXMLLoader(SimulationMonitorController.class.getResource("/view/SimulationMonitor.fxml"));
 
-        //init the controller
-        FXMLLoader loader = new FXMLLoader(SimulationMonitorController.class.getResource("/view/SimulationMonitor.fxml"));
+            loader.setControllerFactory(controllerClass -> {
+                if (controllerClass == SimulationMonitorController.class) {
+                    return new SimulationMonitorController();
+                } else if (controllerClass == SimulationEntryController.class) {
+                    return new SimulationEntryController(simViewModel);
+                } else if (controllerClass == ServerEntryController.class) {
+                    return new ServerEntryController(serversViewModel);
+                }
+                return null;
+            });
 
-        loader.setControllerFactory(controllerClass -> {
-            if (controllerClass == SimulationMonitorController.class) {
-                return new SimulationMonitorController();
-            } else if (controllerClass == SimulationEntryController.class) {
-                return new SimulationEntryController(simViewModel);
-            } else if (controllerClass == ServerEntryController.class) {
-                return new ServerEntryController(serversViewModel);
+            //set up layout
+            Pane root = loader.load();
+
+            Scene scene = new Scene(root);
+
+            URL cssFile = SimulationMonitor.class.getResource("/css/SimulationMonitor.css");
+            if (cssFile != null) {
+                scene.getStylesheets().add(cssFile.toExternalForm());
             }
-            return null;
-        });
 
-        //set up layout
-        Pane root = loader.load();
+            primaryStage.setScene(scene);
 
-        Scene scene = new Scene(root);
+            primaryStage.setTitle("SimulationMonitor");
 
-        URL cssFile = SimulationMonitor.class.getResource("/css/SimulationMonitor.css");
-        if(cssFile != null) {
-            scene.getStylesheets().add(cssFile.toExternalForm());
+            //primaryStage.setOnCloseRequest(event -> Platform.exit());
+
+            //ScenicView.show(scene);
+
+            primaryStage.show();
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-
-        primaryStage.setScene(scene);
-
-        primaryStage.setTitle("SimulationMonitor");
-
-        //primaryStage.setOnCloseRequest(event -> Platform.exit());
-
-        //ScenicView.show(scene);
-
-        primaryStage.show();
 
     }
 
@@ -191,7 +194,7 @@ public class SimulationMonitor extends Application {
         }
     }
 
-    private Supplier<Connection> newConnectionSupplier(ConnectionDetails connectionDetails, JdbcConnectionPool connectionPool, Class<?> requestingClass){
+    private Supplier<Connection> newConnectionSupplier(ConnectionDetails connectionDetails, JdbcConnectionManager connectionPool, Class<?> requestingClass){
         ConnectionRequest connectionRequest = new ConnectionRequest(requestingClass, connectionDetails);
         return  () -> connectionPool.getConnection(connectionRequest);
     }

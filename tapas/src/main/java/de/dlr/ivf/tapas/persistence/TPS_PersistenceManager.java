@@ -71,11 +71,6 @@ public interface TPS_PersistenceManager {
      */
     boolean incrementOccupancy();
 
-    /**
-     * This method initialises the the persistence manager, i.e. for the database that a connection is established and the
-     * main values are read or for files that the main path of the input files is set, etc.
-     */
-    void init();
 
     /**
      * This method checks if unfinished households are present in the database

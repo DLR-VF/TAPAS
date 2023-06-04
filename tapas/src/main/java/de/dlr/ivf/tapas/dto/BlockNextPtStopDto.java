@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.dto;
 
 
-import de.dlr.ivf.api.io.Column;
+import de.dlr.ivf.api.io.annotation.Column;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

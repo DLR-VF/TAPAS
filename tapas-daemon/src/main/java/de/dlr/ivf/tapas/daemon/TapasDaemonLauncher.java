@@ -21,29 +21,31 @@ public class TapasDaemonLauncher {
      */
     public static void main(String[] args) {
 
-        if (args.length != 1) {
+        try {
 
             String arguments = Arrays.stream(args)
                     .collect(Collectors.joining(",", "[", "]"));
 
-            throw new IllegalArgumentException("The TAPAS-Daemon needs a single configuration file as input argument. Provided arguments = " + arguments);
-        }
+            if (args.length != 1) {
+                throw new IllegalArgumentException("The TAPAS-Daemon needs a single configuration file as input argument. Provided arguments = " + arguments);
+            }
 
-        Path configFile = Paths.get(args[0]);
-        if (!Files.isRegularFile(configFile))
-            throw new IllegalArgumentException("The provided argument is not a file.");
+            Path configFile = Paths.get(args[0]);
+            if (!Files.isRegularFile(configFile))
+                throw new IllegalArgumentException("The provided argument is not a file. Provided arguments = "+ arguments);
 
 
-        try {
             //read the configuration file with Jackson
             DaemonConfiguration configDto = new ObjectMapper().readValue(configFile.toFile(), DaemonConfiguration.class);
 
-        } catch (DatabindException e) {
-            throw new IllegalArgumentException("The supplied file does not map to a DaemonConfiguration.", e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
+        } catch (DatabindException e) {
+            e.printStackTrace(); //throw new IllegalArgumentException("The supplied file does not map to a DaemonConfiguration.", e);
+        } catch (IOException e) {
+            e.printStackTrace();//throw new RuntimeException(e);
+        } catch (IllegalArgumentException e){
+            e.printStackTrace();
+        }
 
         //initialize the connection Provider
 //        ConnectionManager<Connection> connectionManager = ConnectionManager.newJdbcConnectionManager();

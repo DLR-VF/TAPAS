@@ -253,7 +253,7 @@ public class TPS_Main {
         ModeSelector modeSelector = new ModeSelector(PM.getModeSet(), this.parameterClass);
         LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(this.parameterClass,locationSelector,modeSelector);
 
-        initPM();
+
 //
 //        if(this.parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) && this.parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
 //            this.simulator = new SequentialSimulator(this.PM, this.dbConnector);
@@ -271,19 +271,6 @@ public class TPS_Main {
         return this.simulator.isRunningSimulation();
     }
 
-    private void initPM() {
-        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
-            TPS_Logger.log(SeverityLogLevel.INFO, "Initialize Persistence Manager ...");
-        }
-        long t0 = System.currentTimeMillis();
-
-        PM.init();
-
-        long t1 = System.currentTimeMillis();
-        if (TPS_Logger.isLogging(SeverityLogLevel.INFO)) {
-            TPS_Logger.log(SeverityLogLevel.INFO, "... finished in " + (t1 - t0) * 0.001 + "s");
-        }
-    }
 
 
     /**

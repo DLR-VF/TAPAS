@@ -1,4 +1,4 @@
-package de.dlr.ivf.api.io;
+package de.dlr.ivf.api.io.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

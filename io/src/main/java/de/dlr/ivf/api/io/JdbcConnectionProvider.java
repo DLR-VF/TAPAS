@@ -2,7 +2,7 @@ package de.dlr.ivf.api.io;
 
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.model.Login;
-import de.dlr.ivf.api.io.implementation.BaseJdbcConnectionProvider;
+import de.dlr.ivf.api.io.reader.implementation.BaseJdbcConnectionProvider;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

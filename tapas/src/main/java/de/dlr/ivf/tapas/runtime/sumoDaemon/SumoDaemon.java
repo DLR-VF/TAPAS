@@ -257,7 +257,7 @@ public class SumoDaemon extends Thread {
     }
 
     private MatrixMap loadSumoValues(String matrixMap, double weight) {
-        MatrixMap oldM = this.dbIo.readMatrixMap(new DataSource(matrixMap,null), 0);
+        MatrixMap oldM = this.dbIo.readMatrixMap(new DataSource(matrixMap), null, 0);
         MatrixMap newM = oldM.clone();
 
         Map<Integer, Integer> tazMap = new HashMap<>();

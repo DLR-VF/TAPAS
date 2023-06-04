@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.scripts;
 
-import de.dlr.ivf.api.io.SqlArrayUtils;
+import de.dlr.ivf.api.io.util.SqlArrayUtils;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;

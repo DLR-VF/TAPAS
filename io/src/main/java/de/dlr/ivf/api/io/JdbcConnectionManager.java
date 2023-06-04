@@ -5,13 +5,13 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JdbcConnectionPool {
+public class JdbcConnectionManager {
 
     private final Map<ConnectionRequest, Connection> connections;
 
     private final ConnectionProvider<Connection> connectionProvider;
 
-    public JdbcConnectionPool(ConnectionProvider<Connection> connectionProvider){
+    public JdbcConnectionManager(ConnectionProvider<Connection> connectionProvider){
         this.connections = new HashMap<>();
         this.connectionProvider = connectionProvider;
     }
