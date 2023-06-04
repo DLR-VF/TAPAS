@@ -31,7 +31,6 @@ public class ResultSetConverter<T> implements Converter<ResultSet, T> {
     private final ColumnToFieldMapping<T> columnMapping;
 
     public ResultSetConverter(ColumnToFieldMapping<T> columnMapping, Supplier<T> objectFactory) {
-        //super(targetClass);
         this.columnMapping = columnMapping;
         this.objectFactory = objectFactory;
         setFieldAccessibility();

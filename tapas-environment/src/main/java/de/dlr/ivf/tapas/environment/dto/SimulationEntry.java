@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class SimulationEntry {
 
-    @Column("id")
+    @Column(value = "id", ignoreWrite = true)
     private int id;
 
     @Column("sim_key")

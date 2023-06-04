@@ -11,7 +11,6 @@ module de.dlr.ivf.api.io {
     requires java.desktop;
     requires org.apache.commons.lang3;
 
-
     exports de.dlr.ivf.api.io.configuration.model;
     exports de.dlr.ivf.api.io;
 
@@ -20,4 +19,5 @@ module de.dlr.ivf.api.io {
     exports de.dlr.ivf.api.io.annotation;
     exports de.dlr.ivf.api.io.util;
     exports de.dlr.ivf.api.io.conversion;
+    exports de.dlr.ivf.api.io.writer;
 }
