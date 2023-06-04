@@ -15,14 +15,14 @@ import java.util.SortedMap;
 
 //todo implement locking mechanism when closing
 @Builder
-public class JdbcBatchWriter<S> implements DataWriter<S> {
+public class JdbcBatchWriter implements DataWriter {
 
     private final Connection connection;
     private final int batchSize;
     private final Converter<Object, Object> typeConverter;
 
     /**
-     * item order is important here. Each method invocation must map to a prepared statement parameter.
+     * item order is important here. The result of each method invocation must map to a prepared statement parameter.
      */
     private final SortedMap<Integer, Method> psIndexToMethodMap;
     private final PreparedStatement preparedStatement;
@@ -31,7 +31,7 @@ public class JdbcBatchWriter<S> implements DataWriter<S> {
     private int count = 0;
 
     @Override
-    public void write(S objectToWrite) {
+    public void write(Object objectToWrite) {
         try {
 
             for(Map.Entry<Integer, Method> entry : psIndexToMethodMap.entrySet()){
@@ -46,7 +46,7 @@ public class JdbcBatchWriter<S> implements DataWriter<S> {
             }
             preparedStatement.addBatch();
 
-            if(count++ % batchSize == 0){
+            if(++count % batchSize == 0){
                 preparedStatement.executeBatch();
             }
         }catch (SQLException e){

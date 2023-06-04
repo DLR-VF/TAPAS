@@ -20,16 +20,15 @@ import java.util.stream.Collectors;
 
 public class DataWriterFactory {
 
-    public static <T> DataWriter<T> newJdbcWriter(DataSource dataSource, Supplier<Connection>  connectionSupplier, Class<T> objectType) {
+    public static DataWriter newJdbcWriter(DataSource dataSource, Supplier<Connection>  connectionSupplier, Class<?> objectType) {
 
-        WriteableColumnToFieldMapping<T> columnToFieldMapping = new WriteableColumnToFieldMapping<>(objectType);
+        WriteableColumnToFieldMapping columnToFieldMapping = new WriteableColumnToFieldMapping(objectType);
 
         Map<String, Field> columnFieldMap = columnToFieldMapping.getTargetClassFieldMap();
 
         //since a prepared statement should be updated dynamically, the order of items does matter
         List<String> columnNames = new ArrayList<>(columnFieldMap.size());
         SortedMap<Integer, Method> methods = new TreeMap<>();
-
 
         Map<String, Field> fieldMap = columnFieldMap.values().stream().collect(Collectors.toMap(Field::getName, field-> field));
 
@@ -71,7 +70,7 @@ public class DataWriterFactory {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return JdbcBatchWriter.<T>builder()
+        return JdbcBatchWriter.builder()
                 .batchSize(1000)
                 .connection(connection)
                 .preparedStatement(preparedStatement)

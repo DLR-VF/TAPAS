@@ -9,13 +9,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
-public class WriteableColumnToFieldMapping<T> {
+public class WriteableColumnToFieldMapping {
 
     private final Map<String, Field> targetClassFieldMap;
-    private final Class<T> targetClass;
 
-    public WriteableColumnToFieldMapping(Class<T> targetClass){
-        this.targetClass = targetClass;
+    public WriteableColumnToFieldMapping(Class<?> targetClass){
         this.targetClassFieldMap = extractColumnFields(targetClass);
     }
 

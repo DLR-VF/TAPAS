@@ -2,11 +2,11 @@ package de.dlr.ivf.api.io.writer;
 
 import java.util.Collection;
 
-public interface DataWriter<S> {
+public interface DataWriter {
 
-    void write(S objectToWrite);
+    <S> void write(S objectToWrite);
 
-    default void write(Collection<S> objectsToWrite){
+    default <S> void write(Collection<S> objectsToWrite){
         objectsToWrite.forEach(this::write);
     }
 

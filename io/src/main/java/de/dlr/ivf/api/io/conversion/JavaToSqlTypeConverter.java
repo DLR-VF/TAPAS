@@ -7,6 +7,8 @@ import lombok.NonNull;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+
+//todo implement caching
 public class JavaToSqlTypeConverter implements Converter<Object, Object> {
     @Override
     public Object convert(@NonNull Object dto) {
