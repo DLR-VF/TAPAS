@@ -1,16 +1,11 @@
 package de.dlr.ivf.api.io.writer.implementation;
 
-import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.writer.DataWriter;
 import lombok.Builder;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Map;
-import java.util.SortedMap;
 
 
 //todo implement locking mechanism when closing
@@ -19,12 +14,7 @@ public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
 
     private final Connection connection;
     private final int batchSize;
-    private final Converter<Object, Object> typeConverter;
-
-    /**
-     * item order is important here. The result of each method invocation must map to a prepared statement parameter.
-     */
-    private final SortedMap<Integer, Method> psIndexToMethodMap;
+    private final PreparedStatementParameterSetter<S> statementParameterSetter;
     private final PreparedStatement preparedStatement;
 
     @Builder.Default
@@ -33,27 +23,16 @@ public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
     @Override
     public Void write(S objectToWrite) {
         try {
-            //todo extract this into a injectable writing strategy
-            for(Map.Entry<Integer, Method> entry : psIndexToMethodMap.entrySet()){
-
-                Method m = entry.getValue();
-
-                Object paramToSet = m.invoke(objectToWrite);
-                if(paramToSet != null){
-                    paramToSet = typeConverter.convert(paramToSet);
-                }
-                preparedStatement.setObject(entry.getKey(), paramToSet);
-            }
+            statementParameterSetter.accept(preparedStatement, objectToWrite);
             preparedStatement.addBatch();
 
             if(++count % batchSize == 0){
                 preparedStatement.executeBatch();
             }
+
         }catch (SQLException e){
             e.printStackTrace();
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            throw  new RuntimeException(e);
         }
         return null;
     }
@@ -61,10 +40,8 @@ public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
     @Override
     public void close() {
         try {
-
             preparedStatement.executeBatch();
             connection.close();
-
         }catch (SQLException e){
             e.printStackTrace();
             throw new RuntimeException(e);

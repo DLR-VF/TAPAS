@@ -29,7 +29,7 @@ public class SimulationsJdbcDao implements SimulationsDao {
     public SimulationsJdbcDao(Supplier<Connection> connectionSupplier, DataSource simulationsTable) {
         this.simulationsTable = simulationsTable;
         this.dataReader = DataReaderFactory.newOpenConnectionJdbcReader(connectionSupplier);
-        this.dataWriter = DataWriterFactory.newIdReturningSimpleJdbcWriteR(simulationsTable,connectionSupplier, SimulationEntry.class);
+        this.dataWriter = DataWriterFactory.newIdReturningSimpleJdbcWriter(simulationsTable,connectionSupplier, SimulationEntry.class);
         this.objectFactory = new ResultSetConverter<>(new ColumnToFieldMapping<>(SimulationEntry.class), SimulationEntry::new);
     }
 
@@ -40,7 +40,7 @@ public class SimulationsJdbcDao implements SimulationsDao {
     }
 
     @Override
-    public void save(SimulationEntry simulationEntry) {
-        int simId = dataWriter.write(simulationEntry);
+    public int save(SimulationEntry simulationEntry) {
+        return dataWriter.write(simulationEntry);
     }
 }
