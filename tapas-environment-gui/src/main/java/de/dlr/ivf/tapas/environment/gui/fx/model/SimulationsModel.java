@@ -11,4 +11,6 @@ public interface SimulationsModel {
 
 
     Collection<SimulationEntry> getSimulations();
+
+    void save(SimulationEntry simulationEntry);
 }

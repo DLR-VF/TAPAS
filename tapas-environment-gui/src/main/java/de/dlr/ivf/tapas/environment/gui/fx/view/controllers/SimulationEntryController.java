@@ -1,7 +1,6 @@
 package de.dlr.ivf.tapas.environment.gui.fx.view.controllers;
 
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationActionButtonCell;
-import de.dlr.ivf.tapas.environment.gui.fx.view.factories.ProgressCell;
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationProgress;
 import de.dlr.ivf.tapas.environment.gui.fx.view.factories.SimulationTableRow;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationEntryViewModel;
@@ -12,7 +11,6 @@ import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
@@ -20,7 +18,6 @@ import javafx.stage.Window;
 import java.io.File;
 import java.net.URL;
 import java.util.EnumMap;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class SimulationEntryController implements Initializable {
@@ -95,6 +92,8 @@ public class SimulationEntryController implements Initializable {
         simulationTable.prefHeightProperty().bind(simScrollPane.heightProperty());
 
         simulationTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        addSimulationButton.disableProperty().bind(viewModel.simulationInsertionServiceRunningProperty());
     }
 
     @FXML

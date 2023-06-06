@@ -2,7 +2,7 @@ package de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation;
 
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 import de.dlr.ivf.tapas.environment.gui.fx.model.ServersModel;
-import de.dlr.ivf.tapas.environment.gui.tasks.ServerDataUpdateTask;
+import de.dlr.ivf.tapas.environment.gui.services.ServerDataUpdateService;
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,12 +10,12 @@ import javafx.collections.ObservableList;
 public class ServersViewModel {
 
     private final ServersModel dataModel;
-    private final ServerDataUpdateTask updateTask;
+    private final ServerDataUpdateService updateTask;
 
     private final ObservableList<ServerEntryViewModel> servers;
 
 
-    public ServersViewModel(ServersModel dataModel, ServerDataUpdateTask updateTask){
+    public ServersViewModel(ServersModel dataModel, ServerDataUpdateService updateTask){
         this.dataModel = dataModel;
         this.updateTask = updateTask;
 

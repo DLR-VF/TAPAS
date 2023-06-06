@@ -2,11 +2,12 @@ package de.dlr.ivf.tapas.environment.dto;
 
 import de.dlr.ivf.api.io.annotation.Column;
 import de.dlr.ivf.tapas.environment.model.ServerState;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class ServerEntry {
     @Column("server_name")
     private String serverName;

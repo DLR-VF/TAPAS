@@ -17,4 +17,9 @@ public class SimulationsModelManager implements SimulationsModel {
     public Collection<SimulationEntry> getSimulations() {
         return dao.load();
     }
+
+    @Override
+    public void save(SimulationEntry simulationEntry) {
+        dao.save(simulationEntry);
+    }
 }

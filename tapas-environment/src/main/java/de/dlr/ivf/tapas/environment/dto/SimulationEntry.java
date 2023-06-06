@@ -4,6 +4,8 @@ package de.dlr.ivf.tapas.environment.dto;
 
 import de.dlr.ivf.api.io.annotation.Column;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +13,8 @@ import java.sql.Timestamp;
 
 @Getter
 @NoArgsConstructor
+@Builder
+@AllArgsConstructor
 public class SimulationEntry {
 
     @Column(value = "id", ignoreWrite = true)
@@ -21,15 +25,6 @@ public class SimulationEntry {
 
     @Column("sim_description")
     private String simDescription;
-
-    @Column("sim_ready")
-    private boolean simReady;
-
-    @Column("sim_started")
-    private boolean simStarted;
-
-    @Column("sim_finished")
-    private boolean simFinished;
 
     @Column("sim_progress")
     private double simProgress;

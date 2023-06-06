@@ -6,8 +6,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 package de.dlr.ivf.tapas.environment.gui.legacy;
-import de.dlr.ivf.tapas.environment.gui.tasks.SimulationDataUpdateTask;
-import de.dlr.ivf.tapas.environment.gui.tasks.ServerDataUpdateTask;
+import de.dlr.ivf.tapas.environment.gui.services.SimulationDataUpdateService;
+import de.dlr.ivf.tapas.environment.gui.services.ServerDataUpdateService;
 import de.dlr.ivf.tapas.environment.gui.legacy.util.MultilanguageSupport;
 import de.dlr.ivf.tapas.environment.model.SimulationData;
 import de.dlr.ivf.tapas.environment.model.SimulationServerData;
@@ -35,10 +35,10 @@ import java.util.function.Supplier;
  * the simulation entries in the database.<br>
  * <br>
  * The active tasks are:<br>
- * 1. {@link SimulationDataUpdateTask}<br>
+ * 1. {@link SimulationDataUpdateService}<br>
  * This task updates the simulation values in the memory of the client from the
  * database<br>
- * 2. {@link ServerDataUpdateTask}<br>
+ * 2. {@link ServerDataUpdateService}<br>
  * This task updates the simulation server data values in the memory of the
  * client from the database<br>
  * <br>
@@ -57,9 +57,9 @@ public class SimulationControl {
      */
     private Supplier<Connection> dbConnection;
 
-    private final ServerDataUpdateTask simulationServerDataUpdateTask;
+    private final ServerDataUpdateService simulationServerDataUpdateService;
 
-    private final SimulationDataUpdateTask simulationDataUpdateTask;
+    private final SimulationDataUpdateService simulationDataUpdateTask;
     /**
      * Current timestamp of database
      */
@@ -82,7 +82,7 @@ public class SimulationControl {
      * This method loads all values from the run properties file by the
      * parameter 'filename' and stores a simulation in the database. The
      * simulation is added to the internal map and the GUI via the
-     * SimulationDataUpdateTask.
+     * SimulationDataUpdateService.
      *
      * @param sim_key       key for the simulation in the database
      * @param filename      filename of the run properties file
@@ -131,7 +131,7 @@ public class SimulationControl {
      * This method loads all values from the run properties file by the
      * parameter 'filename' and stores a simulation in the database. The
      * simulation is added to the internal map and the GUI via the
-     * SimulationDataUpdateTask.
+     * SimulationDataUpdateService.
      *
      * @param sim_key  key for the simulation in the database
      * @param filename filename of the run properties file
@@ -307,7 +307,7 @@ public class SimulationControl {
     /**
      * This method completely removes a simulation from the database. The
      * changes take place in the internal map and the GUI when the
-     * SimulationDataUpdateTask works the next time.
+     * SimulationDataUpdateService works the next time.
      *
      * @param sim_key    key for the simulation in the database
      * @param withDialog flag if a "are you sure?" dialog should be presented

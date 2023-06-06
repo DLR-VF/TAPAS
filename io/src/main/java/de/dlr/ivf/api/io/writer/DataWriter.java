@@ -1,14 +1,15 @@
 package de.dlr.ivf.api.io.writer;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
-public interface DataWriter {
+public interface DataWriter<S, T> {
 
-    <S> void write(S objectToWrite);
+    T write(S objectToWrite);
 
-    default <S> void write(Collection<S> objectsToWrite){
-        objectsToWrite.forEach(this::write);
+    default Collection<T> write(Collection<S> objectsToWrite){
+        return objectsToWrite.stream()
+                .map(this::write)
+                .collect(Collectors.toList());
     }
-
-    void close();
 }

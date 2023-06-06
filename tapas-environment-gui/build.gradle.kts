@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":tapas-analyzer"))
     implementation(project(":tapas-parameter"))
     implementation(project(":tapas-util"))
+    implementation(project(":tapas-model"))
 
     implementation(files("D:/scenicview/lib/scenicview.jar"))
 
@@ -37,6 +38,7 @@ dependencies {
     implementation("org.openjfx:javafx:17")
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("commons-cli:commons-cli:1.5.0")
+    implementation("com.opencsv:opencsv:5.7.1")
 
     //jackson
     implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")

@@ -11,28 +11,24 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.function.Supplier;
 
-
-//todo implement locking mechanism when closing
 @Builder
-public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
+public class SimpleJdbcWriter<S> implements DataWriter<S, Void> {
 
-    private final Connection connection;
-    private final int batchSize;
+    private final Supplier<Connection> connection;
     private final Converter<Object, Object> typeConverter;
-
+    private final String query;
     /**
      * item order is important here. The result of each method invocation must map to a prepared statement parameter.
      */
     private final SortedMap<Integer, Method> psIndexToMethodMap;
-    private final PreparedStatement preparedStatement;
-
-    @Builder.Default
-    private int count = 0;
 
     @Override
     public Void write(S objectToWrite) {
-        try {
+        try (Connection con = connection.get();
+             PreparedStatement preparedStatement = con.prepareStatement(query)){
+
             //todo extract this into a injectable writing strategy
             for(Map.Entry<Integer, Method> entry : psIndexToMethodMap.entrySet()){
 
@@ -44,11 +40,8 @@ public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
                 }
                 preparedStatement.setObject(entry.getKey(), paramToSet);
             }
-            preparedStatement.addBatch();
+            preparedStatement.executeUpdate();
 
-            if(++count % batchSize == 0){
-                preparedStatement.executeBatch();
-            }
         }catch (SQLException e){
             e.printStackTrace();
         } catch (InvocationTargetException | IllegalAccessException e) {
@@ -56,18 +49,5 @@ public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
             throw new RuntimeException(e);
         }
         return null;
-    }
-
-    @Override
-    public void close() {
-        try {
-
-            preparedStatement.executeBatch();
-            connection.close();
-
-        }catch (SQLException e){
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
     }
 }

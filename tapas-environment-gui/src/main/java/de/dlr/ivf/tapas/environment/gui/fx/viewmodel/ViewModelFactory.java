@@ -5,8 +5,9 @@ import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.gui.fx.model.ModelFactory;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServersViewModel;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationsViewModel;
-import de.dlr.ivf.tapas.environment.gui.tasks.ServerDataUpdateTask;
-import de.dlr.ivf.tapas.environment.gui.tasks.SimulationDataUpdateTask;
+import de.dlr.ivf.tapas.environment.gui.services.ServerDataUpdateService;
+import de.dlr.ivf.tapas.environment.gui.services.SimulationDataUpdateService;
+import de.dlr.ivf.tapas.environment.gui.services.SimulationInsertionService;
 
 public class ViewModelFactory {
 
@@ -19,14 +20,14 @@ public class ViewModelFactory {
         this.modelFactory = modelFactory;
     }
 
-    public SimulationsViewModel getSimulationEntryViewModel(SimulationDataUpdateTask updateTask, SimulationsDao dao){
+    public SimulationsViewModel getSimulationEntryViewModel(SimulationDataUpdateService updateTask, SimulationsDao dao, SimulationInsertionService insertionService){
         if(simulationsViewModel == null){
-           simulationsViewModel = new SimulationsViewModel(modelFactory.getSimulationEntryModel(dao), updateTask);
+           simulationsViewModel = new SimulationsViewModel(modelFactory.getSimulationEntryModel(dao), updateTask, insertionService);
         }
         return simulationsViewModel;
     }
 
-    public ServersViewModel getServerEntryViewModel(ServerDataUpdateTask updateTask, ServersDao dao){
+    public ServersViewModel getServerEntryViewModel(ServerDataUpdateService updateTask, ServersDao dao){
         if(serversViewModel == null){
             serversViewModel = new ServersViewModel(modelFactory.getServerEntryModel(dao), updateTask);
         }

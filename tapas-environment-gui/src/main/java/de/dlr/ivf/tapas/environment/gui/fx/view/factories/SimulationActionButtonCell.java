@@ -48,7 +48,7 @@ public class SimulationActionButtonCell extends TableCell<SimulationEntryViewMod
     @Override
     protected void updateItem(SimulationState item, boolean empty) {
         super.updateItem(item, empty);
-        if(empty){
+        if(empty || item == null){
             setGraphic(null);
         }else{
             setContentDisplay(ContentDisplay.GRAPHIC_ONLY);

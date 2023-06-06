@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.environment.gui.tasks;
+package de.dlr.ivf.tapas.environment.gui.services;
 
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 
@@ -8,11 +8,11 @@ import javafx.concurrent.Task;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public class ServerDataUpdateTask extends ScheduledService<Collection<ServerEntry>> {
+public class ServerDataUpdateService extends ScheduledService<Collection<ServerEntry>> {
 
     private final Supplier<Collection<ServerEntry>> serverDataSupplier;
 
-    public ServerDataUpdateTask(Supplier<Collection<ServerEntry>> serverDataSupplier) {
+    public ServerDataUpdateService(Supplier<Collection<ServerEntry>> serverDataSupplier) {
 
         this.serverDataSupplier = serverDataSupplier;
     }

@@ -10,6 +10,7 @@ module de.dlr.ivf.tapas.environment.gui {
     requires javafx.controls;
     requires com.fasterxml.jackson.databind;
     requires lombok;
+    requires com.opencsv;
 
     requires de.dlr.ivf.tapas.analyzer;
     requires de.dlr.ivf.tapas.parameter;
@@ -20,6 +21,7 @@ module de.dlr.ivf.tapas.environment.gui {
     requires de.dlr.ivf.api.io;
     requires de.dlr.ivf.tapas.matrixtool;
     requires de.dlr.ivf.tapas.logger;
+    requires de.dlr.ivf.tapas.model;
 
     //scenicview
     requires transitive javafx.web;

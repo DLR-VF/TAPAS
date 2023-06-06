@@ -42,7 +42,7 @@ public class ResultSetConverter<T> implements Converter<ResultSet, T> {
 
         T convertedObject = this.objectFactory.get();
 
-        for(Map.Entry<String, Field> fieldEntry : columnMapping.getTargetClassFieldMap().entrySet()){
+        for(Map.Entry<String, Field> fieldEntry : columnMapping.getAllFieldMappings().entrySet()){
 
             String columnName = fieldEntry.getKey();
             Field field = fieldEntry.getValue();
@@ -100,7 +100,7 @@ public class ResultSetConverter<T> implements Converter<ResultSet, T> {
     }
 
     private void setFieldAccessibility(){
-        this.columnMapping.getTargetClassFieldMap().values()
+        this.columnMapping.getAllFieldMappings().values()
                 .forEach(field -> field.setAccessible(true));
     }
 

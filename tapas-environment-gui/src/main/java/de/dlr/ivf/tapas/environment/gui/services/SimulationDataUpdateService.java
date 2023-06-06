@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.environment.gui.tasks;
+package de.dlr.ivf.tapas.environment.gui.services;
 
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import javafx.concurrent.ScheduledService;
@@ -7,11 +7,11 @@ import javafx.concurrent.Task;
 import java.util.Collection;
 import java.util.function.Supplier;
 
-public class SimulationDataUpdateTask extends ScheduledService<Collection<SimulationEntry>> {
+public class SimulationDataUpdateService extends ScheduledService<Collection<SimulationEntry>> {
 
     private final Supplier<Collection<SimulationEntry>> simulationDataSupplier;
 
-    public SimulationDataUpdateTask(Supplier<Collection<SimulationEntry>> simulationDataSupplier){
+    public SimulationDataUpdateService(Supplier<Collection<SimulationEntry>> simulationDataSupplier){
 
         this.simulationDataSupplier = simulationDataSupplier;
     }

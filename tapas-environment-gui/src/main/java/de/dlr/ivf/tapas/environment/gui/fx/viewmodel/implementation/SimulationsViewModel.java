@@ -3,14 +3,15 @@ package de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import de.dlr.ivf.tapas.environment.gui.fx.model.SimulationsModel;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.util.LocalDateTimeUtils;
-import de.dlr.ivf.tapas.environment.gui.tasks.SimulationDataUpdateTask;
+import de.dlr.ivf.tapas.environment.gui.services.SimulationDataUpdateService;
+import de.dlr.ivf.tapas.environment.gui.services.SimulationInsertionService;
 import javafx.beans.Observable;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.File;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class SimulationsViewModel {
@@ -18,15 +19,19 @@ public class SimulationsViewModel {
     private final SimulationsModel dataModel;
 
     private final ObservableList<SimulationEntryViewModel> simulations;
-    private final SimulationDataUpdateTask simulationDataUpdateTask;
+    private final SimulationDataUpdateService simulationDataUpdateService;
+
+    private final SimulationInsertionService simulationInsertionService;
 
     private final DateTimeFormatter dateTimeFormatter;
 
 
-    public SimulationsViewModel(SimulationsModel dataModel, SimulationDataUpdateTask simulationDataUpdateTask){
+    public SimulationsViewModel(SimulationsModel dataModel, SimulationDataUpdateService simulationDataUpdateService,
+                                SimulationInsertionService simulationInsertionService){
 
         this.dataModel = dataModel;
-        this.simulationDataUpdateTask = simulationDataUpdateTask;
+        this.simulationDataUpdateService = simulationDataUpdateService;
+        this.simulationInsertionService = simulationInsertionService;
         this.dateTimeFormatter =  LocalDateTimeUtils.dateTimeFormatter();
 
         //Note: an extractor has been specified in order to fire property changes when nested properties change.
@@ -35,15 +40,16 @@ public class SimulationsViewModel {
                 simRow.progressProperty(), simRow.serverProperty(), simRow.startDateTimeProperty()
         });
 
-        simulationDataUpdateTask.setOnSucceeded( e -> {
-            if(this.simulationDataUpdateTask.getValue() != null)
-                this.simulationDataUpdateTask.getValue().forEach(this::updateSimulationEntry);
+        simulationDataUpdateService.setOnSucceeded(e -> {
+            if(this.simulationDataUpdateService.getValue() != null)
+                this.simulationDataUpdateService.getValue().forEach(this::updateSimulationEntry);
         });
     }
 
 
     public void addSimulation(File simFile) {
-
+        this.simulationInsertionService.setSimFile(simFile);
+        this.simulationInsertionService.start();
     }
 
 
@@ -75,12 +81,16 @@ public class SimulationsViewModel {
         var startDate = entry.getSimStartedTime() == null ? null : entry.getSimStartedTime().toLocalDateTime();
         var endDate = entry.getSimFinishedTime() == null ? null  : entry.getSimFinishedTime().toLocalDateTime();
 
-        sim.startDateTimeProperty().set(startDate.format(dateTimeFormatter));
-        sim.endDateTimeProperty().set(endDate.format(dateTimeFormatter));
+        sim.startDateTimeProperty().set(startDate == null ? null : startDate.format(dateTimeFormatter));
+        sim.endDateTimeProperty().set(endDate == null ? null : endDate.format(dateTimeFormatter));
 
         Duration duration = startDate == null || endDate == null ? Duration.ofSeconds(0) : Duration.between(startDate,endDate);
 
         String elapsedTime = LocalDateTimeUtils.durationToFormattedTime(duration);
         sim.elapsedTimeProperty().set(elapsedTime);
+    }
+
+    public ReadOnlyBooleanProperty simulationInsertionServiceRunningProperty(){
+        return this.simulationInsertionService.runningProperty();
     }
 }
