@@ -56,7 +56,7 @@ public class DataWriterFactory {
                 .build();
     }
 
-    public static <S> DataWriter<S, Integer> newIdReturningSimpleJdbcWriteR(DataSource dataSource, Supplier<Connection> connectionSupplier, Class<S> objectType){
+    public static <S> DataWriter<S, Integer> newIdReturningSimpleJdbcWriter(DataSource dataSource, Supplier<Connection> connectionSupplier, Class<S> objectType){
 
         PreparedStatementContext preparedStatementContext = generatePsInvocationMethods(objectType, dataSource);
         if(preparedStatementContext.getIdColumns().length != 1){
