@@ -43,4 +43,9 @@ public class SimulationsJdbcDao implements SimulationsDao {
     public int save(SimulationEntry simulationEntry) {
         return dataWriter.write(simulationEntry);
     }
+
+    @Override
+    public void update(int simId, SimulationEntry simulation) {
+
+    }
 }

@@ -11,4 +11,6 @@ import java.util.Collection;
 public interface SimulationsDao {
     Collection<SimulationEntry> load();
     int save(SimulationEntry simulationEntry);
+
+    void update(int simId, SimulationEntry simulation);
 }

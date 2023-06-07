@@ -4,10 +4,7 @@ package de.dlr.ivf.tapas.environment.dto;
 
 import de.dlr.ivf.api.io.annotation.Column;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.sql.Timestamp;
 
@@ -17,6 +14,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class SimulationEntry {
 
+    @Setter
     @Column(value = "id", ignoreWrite = true)
     private int id;
 
