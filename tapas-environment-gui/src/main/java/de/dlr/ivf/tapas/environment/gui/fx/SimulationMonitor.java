@@ -2,12 +2,13 @@ package de.dlr.ivf.tapas.environment.gui.fx;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.*;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.environment.TapasEnvironment;
 import de.dlr.ivf.tapas.environment.TapasEnvironment.TapasEnvironmentBuilder;
 import de.dlr.ivf.tapas.environment.configuration.EnvironmentConfiguration;
 import de.dlr.ivf.tapas.environment.dao.DaoFactory;
+import de.dlr.ivf.tapas.environment.dao.ParametersDao;
 import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.gui.fx.model.ModelFactory;
@@ -37,18 +38,16 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class SimulationMonitor extends Application {
     private final Collection<ScheduledService<?>> scheduledServices = new ArrayList<>();
     private final Collection<Service<?>> regularServices = new ArrayList<>();
 
-    private JdbcConnectionManager connectionPool;
+    private ConnectionPool connectionPool;
 
     private TapasEnvironment tapasEnvironment;
 
@@ -65,24 +64,25 @@ public class SimulationMonitor extends Application {
         if (!Files.isRegularFile(configFile))
             throw new IllegalArgumentException("The provided argument is not a file.");
 
-        //read config and set up connection pool
+        //read config and set up connection pool manager
         EnvironmentConfiguration configDto = readConfigFile(configFile);
-        this.connectionPool = new JdbcConnectionManager(JdbcConnectionProvider.newJdbcConnectionProvider());
+
+        this.connectionPool = new ConnectionPool(configDto.getConnectionDetails());
 
         TapasEnvironmentBuilder tapasEnvironmentBuilder = TapasEnvironment.builder();
         ConnectionDetails connectionDetails = configDto.getConnectionDetails();
 
         //setup simulation entries data access object
-        SimulationsDao simDao = DaoFactory.newJdbcSimulationsDao(
-                newConnectionSupplier(connectionDetails, connectionPool, SimulationDataUpdateService.class),
-                configDto.getSimulationsTable());
+        SimulationsDao simDao = DaoFactory.newJdbcSimulationsDao(connectionPool, configDto.getSimulationsTable());
         tapasEnvironmentBuilder.simulationsDao(simDao);
 
         //setup server entries data access object
-        ServersDao serversDao = DaoFactory.newJdbcServersDao(
-                newConnectionSupplier(connectionDetails, connectionPool, ServerDataUpdateService.class),
-                configDto.getServerTable());
+        ServersDao serversDao = DaoFactory.newJdbcServersDao(connectionPool, configDto.getServerTable());
         tapasEnvironmentBuilder.serversDao(serversDao);
+
+        //setup parameter entries data access object
+        ParametersDao paramDao = DaoFactory.newJdbcParametersDao(connectionPool, configDto.getParameterTable());
+        tapasEnvironmentBuilder.parametersDao(paramDao);
 
         this.tapasEnvironment = tapasEnvironmentBuilder.build();
     }
@@ -195,10 +195,5 @@ public class SimulationMonitor extends Application {
             System.err.println(message);
             throw new IllegalArgumentException(message);
         }
-    }
-
-    private Supplier<Connection> newConnectionSupplier(ConnectionDetails connectionDetails, JdbcConnectionManager connectionPool, Class<?> requestingClass){
-        ConnectionRequest connectionRequest = new ConnectionRequest(requestingClass, connectionDetails);
-        return  () -> connectionPool.getConnection(connectionRequest);
     }
 }

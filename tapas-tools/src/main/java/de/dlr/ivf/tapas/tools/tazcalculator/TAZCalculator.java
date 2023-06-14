@@ -9,12 +9,9 @@
 package de.dlr.ivf.tapas.tools.tazcalculator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.tools.TPS_CapacityAdjuster;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,10 +23,10 @@ import java.util.function.Supplier;
 
 public class TAZCalculator {
 
-    private final Supplier<Connection> connectionSupplier;
+    private final ConnectionPool connectionSupplier;
     Supplier<Connection> manager;
 
-    public TAZCalculator(Supplier<Connection> connectionSupplier){
+    public TAZCalculator(ConnectionPool connectionSupplier){
         this.connectionSupplier = connectionSupplier;
     }
 
@@ -50,7 +47,7 @@ public class TAZCalculator {
 
         ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
 
-        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector);
+        ConnectionPool connectionSupplier = new ConnectionPool(connector);
         TAZCalculator worker = new TAZCalculator(connectionSupplier);
         HashMap<Integer, Integer> mapping;
 //		worker.updateTAZ(region, 1);
@@ -86,7 +83,7 @@ public class TAZCalculator {
         HashMap<Integer, Integer> TAZRecalculated = new HashMap<>();
 
 
-        try (Connection connection = connectionSupplier.get()){
+        try (Connection connection = connectionSupplier.borrowObject()){
             String query = "SELECT " + idColumn + " FROM core." + region + table + " WHERE " + sqlCondition;
 
             try(PreparedStatement st = connection.prepareStatement(query);
@@ -150,6 +147,7 @@ public class TAZCalculator {
             }catch (SQLException e){
                 e.printStackTrace();
             }
+            connectionSupplier.returnObject(connection);
         } catch (SQLException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();
@@ -164,7 +162,7 @@ public class TAZCalculator {
 
         int counter;
         String query = "UPDATE core." + region + table + " SET " + tazColumn + " = ? WHERE " + idColumn + " = ? and " + sqlCondition;
-        try(Connection connection = connectionSupplier.get();
+        try(Connection connection = connectionSupplier.borrowObject();
             PreparedStatement st = connection.prepareStatement(query)){
 
             counter = 0;
@@ -180,7 +178,7 @@ public class TAZCalculator {
             }
             int[] successor = st.executeBatch();
             for (int i : successor) success &= i == 1;
-
+            connectionSupplier.returnObject(connection);
         } catch (SQLException e1) {
             // TODO Auto-generated catch block
             e1.printStackTrace();

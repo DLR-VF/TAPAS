@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Login;

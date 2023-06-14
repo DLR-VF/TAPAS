@@ -11,7 +11,6 @@ package de.dlr.ivf.tapas.runtime.sumoDaemon;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.dlr.ivf.api.io.util.SqlArrayUtils;
 import de.dlr.ivf.tapas.misc.Helpers;
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.TPS_Logger;
 import de.dlr.ivf.tapas.logger.SeverityLogLevel;

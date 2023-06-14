@@ -1,7 +1,7 @@
-package de.dlr.ivf.api.io.reader.implementation;
+package de.dlr.ivf.api.io.crud.read.implementation;
 
 import de.dlr.ivf.api.converter.Converter;
-import de.dlr.ivf.api.io.reader.DataReader;
+import de.dlr.ivf.api.io.crud.read.DataReader;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
 import lombok.Builder;
@@ -13,22 +13,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Builder
 public class JdbcDataReader implements DataReader<ResultSet> {
 
-    private final Supplier<Connection> connectionProvider;
+    private final Connection connection;
     private final boolean asLargeTable;
-    private final boolean autoCloseConnection;
 
     @Override
     public <T> Collection<T> read(Converter<ResultSet, T> resultSetConverter,
                                   DataSource dataSource,
                                   Collection<Filter> filters) {
-
-        Connection connection = connectionProvider.get();
 
         String whereClause = filters != null && filters.size() > 0 ? dataFilterAsSqlString(filters) : "";
 
@@ -76,10 +72,6 @@ public class JdbcDataReader implements DataReader<ResultSet> {
             }
 
             connection.setAutoCommit(true);
-
-            if(autoCloseConnection){
-                connection.close();
-            }
 
         }catch (SQLException e){
             e.printStackTrace();

@@ -2,7 +2,6 @@ package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.IOException;

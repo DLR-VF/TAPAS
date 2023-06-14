@@ -8,11 +8,12 @@
 
 package de.dlr.ivf.tapas.tools.riesel;
 
+import de.dlr.ivf.api.io.connection.ConnectionPool;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.concurrent.BlockingQueue;
-import java.util.function.Supplier;
 
 /**
  * <p>
@@ -31,13 +32,14 @@ public class UpdateAddressesWorker implements Runnable {
     private final int BATCH_MAX_SIZE = 10000;
     private final PreparedStatement updateBatch;
     private final Connection connection;
+    private final ConnectionPool connectionPool;
     private int BATCH_SIZE = 0;
 
-    public UpdateAddressesWorker(BlockingQueue<AddressPojo> queue, Supplier<Connection> dbCon) throws SQLException {
+    public UpdateAddressesWorker(BlockingQueue<AddressPojo> queue, ConnectionPool dbCon) throws SQLException {
         super();
         this.queue = queue;
-
-        connection = dbCon.get();
+        connectionPool = dbCon;
+        connection = dbCon.borrowObject();
         connection.setAutoCommit(false);
         updateBatch = connection.prepareStatement("UPDATE address_bkg SET inhabitants = ? WHERE id = ?");
     }
@@ -95,5 +97,6 @@ public class UpdateAddressesWorker implements Runnable {
                 break;
             }
         }
+        connectionPool.returnObject(connection);
     }
 }

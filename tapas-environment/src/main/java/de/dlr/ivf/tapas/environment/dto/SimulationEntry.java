@@ -39,6 +39,7 @@ public class SimulationEntry {
     @Column("simulation_server")
     private String simServer;
 
+    @Setter
     @Column("simulation_state")
     private SimulationState simState;
 }

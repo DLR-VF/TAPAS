@@ -9,11 +9,9 @@
 package de.dlr.ivf.tapas.tools.riesel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,13 +36,13 @@ public class SimpleCollector implements Runnable {
 
     private static final int QUEUE_SIZE = 10000;
 
-    private final Supplier<Connection> dbCon;
+    private final ConnectionPool dbCon;
 
     private final ArrayBlockingQueue<AddressPojo> queue;
 
     private final SimpleCollectorWriter writer;
 
-    public SimpleCollector(Supplier<Connection> dbCon, String outputFilePath) throws IOException {
+    public SimpleCollector(ConnectionPool dbCon, String outputFilePath) throws IOException {
         super();
         this.dbCon = dbCon;
         queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
@@ -64,7 +62,7 @@ public class SimpleCollector implements Runnable {
 
         ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
 
-        SimpleCollector sc = new SimpleCollector(() -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector),"D:\\tmp\\berlin_blocks.csv");
+        SimpleCollector sc = new SimpleCollector(new ConnectionPool(connector),"D:\\tmp\\berlin_blocks.csv");
 
         sc.run();
     }
@@ -91,7 +89,7 @@ public class SimpleCollector implements Runnable {
 
         ArrayList<Integer> buildings = new ArrayList<>();
 
-        try(Connection connection = dbCon.get();
+        try(Connection connection = dbCon.borrowObject();
             PreparedStatement st = connection.prepareStatement(query);
             ResultSet rs = st.executeQuery()) {
 
@@ -99,6 +97,7 @@ public class SimpleCollector implements Runnable {
                 buildings.add(rs.getInt("id"));
             }
 
+            dbCon.returnObject(connection);
         }catch (SQLException e){
             e.printStackTrace();
         }
@@ -111,7 +110,7 @@ public class SimpleCollector implements Runnable {
         String query = "SELECT gid, insgesamt FROM core.berlin_blocks_multiline " + " WHERE netzf = 'Block'";
 
         ArrayList<EWZPojo> result = new ArrayList<>();
-        try(Connection connection = dbCon.get();
+        try(Connection connection = dbCon.borrowObject();
             PreparedStatement st = connection.prepareStatement(query);
             ResultSet rs = st.executeQuery()) {
 
@@ -119,6 +118,7 @@ public class SimpleCollector implements Runnable {
                 EWZPojo ewz = new EWZPojo(rs.getInt("gid"), rs.getInt("insgesamt"));
                 result.add(ewz);
             }
+            dbCon.returnObject(connection);
         }catch (SQLException e){
             e.printStackTrace();
         }

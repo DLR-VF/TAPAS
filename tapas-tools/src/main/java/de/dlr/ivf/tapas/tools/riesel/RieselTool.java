@@ -9,13 +9,9 @@
 package de.dlr.ivf.tapas.tools.riesel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.ConnectionProvider;
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.tools.TPS_CapacityAdjuster;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,12 +39,12 @@ public class RieselTool {
     static final double MIN_PROB = 1E-5;
     private final BlockingQueue<AddressPojo> queue = new LinkedBlockingQueue<>();
     private final UpdateAddressesWorker updateWorker;
-    private final Supplier<Connection> connectionProvider;
+    private final ConnectionPool connectionProvider;
 
     /**
      * @throws SQLException if the database connection cannot be established.
      */
-    public RieselTool(Supplier<Connection> connectionProvider) throws SQLException {
+    public RieselTool(ConnectionPool connectionProvider) throws SQLException {
         this.connectionProvider = connectionProvider;
 
         updateWorker = new UpdateAddressesWorker(queue, connectionProvider);
@@ -68,7 +64,9 @@ public class RieselTool {
 
         ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
 
-        RieselTool rt = new RieselTool(() -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector));
+        ConnectionPool connectionPool = new ConnectionPool(connector);
+
+        RieselTool rt = new RieselTool(connectionPool);
 
         rt.updateAll();
     }
@@ -86,7 +84,7 @@ public class RieselTool {
         ArrayList<EWZPojo> result = new ArrayList<>();
 
         String query = "SELECT rs,ewz FROM vg250_ew_nam WHERE use=6 AND ewz > 0";
-        try(Connection  connection = connectionProvider.get();
+        try(Connection  connection = connectionProvider.borrowObject();
             PreparedStatement st = connection.prepareStatement(query);
             ResultSet rs = st.executeQuery()) {
 
@@ -95,6 +93,7 @@ public class RieselTool {
                 String key = rs.getString("rs");
                 result.add(new EWZPojo(key, ewz));
             }
+            connectionProvider.returnObject(connection);
         }catch (SQLException e){
             e.printStackTrace();
         }
@@ -128,7 +127,7 @@ public class RieselTool {
 
         EnumMap<LAND_USE, ArrayList<Long>> result = new EnumMap<>(LAND_USE.class);
 
-        try(Connection connection = connectionProvider.get()){
+        try(Connection connection = connectionProvider.borrowObject()){
             for (LAND_USE lu : LAND_USE.values()) {
                 String luQuery = query.replaceAll("_LU_", String.valueOf(lu.dbKey));
 
@@ -144,6 +143,7 @@ public class RieselTool {
                     e.printStackTrace();
                 }
             }
+            connectionProvider.returnObject(connection);
         }catch (SQLException e){
             e.printStackTrace();
         }
@@ -164,13 +164,14 @@ public class RieselTool {
                 " SELECT id  FROM address_bkg AS ad " + " JOIN geom ON ST_WITHIN(ad.the_geom,geom.fot_geom)";
 
         ArrayList<Integer> addr = new ArrayList<>();
-        try(Connection connection = connectionProvider.get();
+        try(Connection connection = connectionProvider.borrowObject();
             PreparedStatement st = connection.prepareStatement(query);
             ResultSet rs = st.executeQuery()) {
 
             while (rs.next()) {
                 addr.add(rs.getInt("id"));
             }
+            connectionProvider.returnObject(connection);
         }catch (SQLException e){
             e.printStackTrace();
         }

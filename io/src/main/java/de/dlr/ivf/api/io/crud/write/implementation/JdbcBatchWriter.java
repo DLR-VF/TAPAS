@@ -1,6 +1,7 @@
-package de.dlr.ivf.api.io.writer.implementation;
+package de.dlr.ivf.api.io.crud.write.implementation;
 
-import de.dlr.ivf.api.io.writer.DataWriter;
+import de.dlr.ivf.api.io.util.PreparedStatementParameterSetter;
+import de.dlr.ivf.api.io.crud.write.DataWriter;
 import lombok.Builder;
 
 import java.sql.Connection;
@@ -41,7 +42,7 @@ public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
     public void close() {
         try {
             preparedStatement.executeBatch();
-            connection.close();
+            connection.setAutoCommit(true);
         }catch (SQLException e){
             e.printStackTrace();
             throw new RuntimeException(e);

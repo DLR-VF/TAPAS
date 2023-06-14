@@ -1,9 +1,9 @@
-package de.dlr.ivf.api.io.writer;
+package de.dlr.ivf.api.io.crud.write;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-public interface DataWriter<S, T> {
+public interface DataWriter<S, T> extends AutoCloseable{
 
     T write(S objectToWrite);
 

@@ -1,4 +1,4 @@
-package de.dlr.ivf.api.io.reader;
+package de.dlr.ivf.api.io.crud.read;
 
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.configuration.model.DataSource;

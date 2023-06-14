@@ -1,24 +1,22 @@
-package de.dlr.ivf.api.io.writer.implementation;
+package de.dlr.ivf.api.io.crud.write.implementation;
 
-import de.dlr.ivf.api.io.writer.DataWriter;
+import de.dlr.ivf.api.io.crud.write.DataWriter;
 import lombok.Builder;
 
 import java.sql.*;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 
 @Builder
 public class IdReturningSimpleJdbcWriter<S> implements DataWriter<S,Integer> {
 
-    private final Supplier<Connection> connection;
+    private final Connection connection;
     private final String query;
     private final BiConsumer<PreparedStatement, S> psParameterSetter;
     private final String[] idColumn;
 
     @Override
     public Integer write(S objectToWrite) {
-        try (Connection con = connection.get();
-            PreparedStatement preparedStatement = con.prepareStatement(query, idColumn)){
+        try (PreparedStatement preparedStatement = connection.prepareStatement(query, idColumn)){
 
             psParameterSetter.accept(preparedStatement,objectToWrite);
 
@@ -29,11 +27,15 @@ public class IdReturningSimpleJdbcWriter<S> implements DataWriter<S,Integer> {
                     return generatedSimulationId.getInt(1);
                 }
             }
-
         }catch (SQLException e){
             e.printStackTrace();
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    @Override
+    public void close() throws Exception {
+        //nothing to do here since connections are injected from outside, and they should be handled from the outside
     }
 }

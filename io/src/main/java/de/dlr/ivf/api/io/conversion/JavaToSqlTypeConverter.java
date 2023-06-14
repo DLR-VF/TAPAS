@@ -23,7 +23,6 @@ public class JavaToSqlTypeConverter implements Converter<Object, Object> {
             }
 
         }
-
         return dto;
     }
 }

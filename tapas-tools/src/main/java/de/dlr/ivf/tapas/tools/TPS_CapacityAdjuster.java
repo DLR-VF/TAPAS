@@ -9,9 +9,9 @@
 package de.dlr.ivf.tapas.tools;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.JdbcConnectionProvider;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 public class TPS_CapacityAdjuster{
 
-    private final Supplier<Connection> connectionProvider;
+    private final ConnectionPool connectionProvider;
     String keyVal = "MID2008-Y2005";
     String scheme_class_distribution = "idspsg_shdg_14159_ward_PG32_BBR_RegTyp1_Di_Do";
     String region = "berlin";
@@ -41,7 +41,7 @@ public class TPS_CapacityAdjuster{
     Map<Integer, ValueDistribution> schemeClassActivityDistribution = new HashMap<>();
     Map<Integer, List<Triple<Integer, Double, Double>>> locCodeToTazIdAndXYGeoList = new HashMap<>();
 
-    public TPS_CapacityAdjuster(Supplier<Connection> connectionProvider){
+    public TPS_CapacityAdjuster(ConnectionPool connectionProvider){
         this.connectionProvider = connectionProvider;
     }
 
@@ -53,7 +53,7 @@ public class TPS_CapacityAdjuster{
 
         ConnectionDetails connector = new ObjectMapper().readValue(configFile.toFile(), ConnectionDetails.class);
 
-        TPS_CapacityAdjuster worker = new TPS_CapacityAdjuster(() -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connector));
+        TPS_CapacityAdjuster worker = new TPS_CapacityAdjuster(new ConnectionPool(connector));
 
         worker.keyVal = "WISTA_scen2030a";
         worker.scheme_class_distribution = "MID_2008_TBG_7_Mo-So";
@@ -152,7 +152,7 @@ public class TPS_CapacityAdjuster{
                                 episodesDataSource.getUri()
                             );
 
-        try(Connection connection = connectionProvider.get()) {
+        try(Connection connection = connectionProvider.borrowObject()) {
             try (PreparedStatement st = connection.prepareStatement(query);
                  ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {
@@ -175,6 +175,7 @@ public class TPS_CapacityAdjuster{
             }catch (SQLException e) {
                 e.printStackTrace();
             }
+            connectionProvider.returnObject(connection);
         }catch (SQLException e){
             e.printStackTrace();
         }
@@ -239,7 +240,7 @@ public class TPS_CapacityAdjuster{
             //load act2loc
             String query = "select distinct act_code from "+dataSource.getUri();
 
-            try(Connection connection = connectionProvider.get()){
+            try(Connection connection = connectionProvider.borrowObject()){
                 try (PreparedStatement st = connection.prepareStatement(query);
                      ResultSet rs = st.executeQuery()) {
                     while (rs.next()) {
@@ -347,6 +348,7 @@ public class TPS_CapacityAdjuster{
                 }catch (SQLException e){
                     e.printStackTrace();
                 }
+                connectionProvider.returnObject(connection);
             }catch (SQLException e){
                 e.printStackTrace();
             }
@@ -366,7 +368,7 @@ public class TPS_CapacityAdjuster{
         //get all location codes and write into a set
         String query = "select code_tapas from " + locCodeTable.getUri();
 
-        try(Connection connection = connectionProvider.get()){
+        try(Connection connection = connectionProvider.borrowObject()){
 
             HashSet<Integer> locCodeSet = new HashSet<>();
 
@@ -423,6 +425,7 @@ public class TPS_CapacityAdjuster{
             }catch (SQLException e){
                 e.printStackTrace();
             }
+            connectionProvider.returnObject(connection);
         }catch (SQLException e) {
             System.err.println(this.getClass().getCanonicalName() + " loadDB: SQL-Error during statement: " + query);
             e.printStackTrace();
@@ -431,7 +434,7 @@ public class TPS_CapacityAdjuster{
 
     public void loadDBEntries() {
 
-        try(Connection connection = connectionProvider.get()){
+        try(Connection connection = connectionProvider.borrowObject()){
             //load act2loc
             String query = "select act_code, loc_code from core." + region + "_act_2_loc_code order by act_code";
             try(PreparedStatement st = connection.prepareStatement(query);
@@ -511,6 +514,7 @@ public class TPS_CapacityAdjuster{
 
             this.fillOverloadFactors();
 
+            connectionProvider.returnObject(connection);
         } catch (SQLException e) {
             System.err.println(this.getClass().getCanonicalName() + " loadDB: SQL-Error during statement: ");
             e.printStackTrace();
@@ -537,7 +541,7 @@ public class TPS_CapacityAdjuster{
     public void updateNewDemand() {
         String query;
 
-        try(Connection connection = connectionProvider.get();
+        try(Connection connection = connectionProvider.borrowObject();
             Statement st = connection.createStatement()) {
 
             for (Integer key : this.locTypeCapDemanded.keySet()) {
@@ -551,6 +555,7 @@ public class TPS_CapacityAdjuster{
                     st.executeUpdate(query);
                 }
             }
+            connectionProvider.returnObject(connection);
         }catch (SQLException e){
             e.printStackTrace();
         }

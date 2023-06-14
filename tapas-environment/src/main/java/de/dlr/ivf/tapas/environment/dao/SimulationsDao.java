@@ -13,4 +13,6 @@ public interface SimulationsDao {
     int save(SimulationEntry simulationEntry);
 
     void update(int simId, SimulationEntry simulation);
+
+    void remove(int simId);
 }

@@ -46,11 +46,11 @@ public class ResultSetConverter<T> implements Converter<ResultSet, T> {
 
             String columnName = fieldEntry.getKey();
             Field field = fieldEntry.getValue();
-            field.setAccessible(true);
 
             try {
 
                 Object valueToSet = objectToConvert.getObject(columnName);
+                //todo extract this into a SqlToJavaConverter
                 if (valueToSet instanceof Array array) {
                     if (array.getArray() == null) {
                         field.set(convertedObject, new Object[0]);

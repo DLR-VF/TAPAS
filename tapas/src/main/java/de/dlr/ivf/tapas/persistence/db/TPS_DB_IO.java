@@ -10,9 +10,10 @@ package de.dlr.ivf.tapas.persistence.db;
 
 
 import de.dlr.ivf.api.converter.Converter;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
-import de.dlr.ivf.api.io.reader.DataReader;
-import de.dlr.ivf.api.io.reader.DataReaderFactory;
+import de.dlr.ivf.api.io.crud.read.DataReader;
+import de.dlr.ivf.api.io.crud.read.DataReaderFactory;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.api.io.conversion.ResultSetConverter;
@@ -62,12 +63,13 @@ import de.dlr.ivf.tapas.model.location.ScenarioTypeValues.ScenarioTypeValuesBuil
 
 import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
+import org.apache.commons.pool2.ObjectPool;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
@@ -78,7 +80,7 @@ public class TPS_DB_IO {
 
     /// The ip address of this machine
     private InetAddress ADDRESS = null;
-    private final Supplier<Connection> connectionSupplier;
+    private final ConnectionPool connectionSupplier;
     private final TPS_ParameterClass parameters;
     /// The reference to the persistence manager
     private TPS_DB_IOManager PM;
@@ -90,10 +92,9 @@ public class TPS_DB_IO {
      * @param pm the managing class for sql-commands
      * @throws IOException if the machine has no IP address, an exception is thrown.
      */
-    public TPS_DB_IO(TPS_DB_IOManager pm, Supplier<Connection> connectionSupplier) throws IOException {
-        if (ADDRESS == null) {
-            ADDRESS = IPInfo.getEthernetInetAddress();
-        }
+    public TPS_DB_IO(TPS_DB_IOManager pm, ConnectionPool connectionSupplier) throws IOException {
+
+        ADDRESS = IPInfo.getEthernetInetAddress();
 
         this.connectionSupplier = connectionSupplier;
 
@@ -101,7 +102,7 @@ public class TPS_DB_IO {
         this.parameters = pm.getParameters();
     }
     
-    public TPS_DB_IO(Supplier<Connection> connectionSupplier, TPS_ParameterClass parameterClass){
+    public TPS_DB_IO(ConnectionPool connectionSupplier, TPS_ParameterClass parameterClass){
         
         this.connectionSupplier = connectionSupplier;
         this.parameters = parameterClass;
@@ -109,9 +110,15 @@ public class TPS_DB_IO {
 
     public Map<Integer, Collection<TPS_Person>> loadPersons(DataSource dataSource, Filter personFilter, Converter<PersonDto, TPS_Person> converter){
 
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcLargeTableReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+                
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcLargeTableReader(connection);
 
-        Collection<PersonDto> personDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(PersonDto.class), PersonDto::new), dataSource, personFilter);
+        Collection<PersonDto> personDtos = reader.read(
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(PersonDto.class), PersonDto::new), 
+                dataSource, personFilter);
+
+        connectionSupplier.returnObject(connection);
 
         return converter.convertCollectionToMapWithSourceKey(personDtos, PersonDto::getHhId);
     }
@@ -120,9 +127,11 @@ public class TPS_DB_IO {
 
         CarsBuilder cars = Cars.builder();
 
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
         Collection<CarDto> carDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(CarDto.class), CarDto::new),dataSource, carFilter);
-
+        connectionSupplier.returnObject(connection);
+        
         for(CarDto carDto :carDtos){
 
             //build the car first
@@ -147,12 +156,16 @@ public class TPS_DB_IO {
 
     public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Filter hhFilter, Cars cars){
 
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<HouseholdDto> householdDtos =
                 reader.read(
                         new ResultSetConverter<>(new ColumnToFieldMapping<>(HouseholdDto.class),HouseholdDto::new),
                         dataSource, hhFilter);
+        
+        connectionSupplier.returnObject(connection);
 
         Map<Integer, TPS_HouseholdBuilder> householdBuilders = new HashMap<>(householdDtos.size());
 
@@ -186,13 +199,16 @@ public class TPS_DB_IO {
      */
     public ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource, Filter actToLocFilter) {
 
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
+        
         Collection<ActivityToLocationDto> activityToLocationDtos =
                 reader.read(
                         new ResultSetConverter<>(new ColumnToFieldMapping<>(ActivityToLocationDto.class),ActivityToLocationDto::new),
                         dataSource, actToLocFilter);
 
+        connectionSupplier.returnObject(connection);
+        
         ActivityAndLocationCodeMapping mapping = new ActivityAndLocationCodeMapping();
 
         for(ActivityToLocationDto activityToLocationDto : activityToLocationDtos){
@@ -214,11 +230,14 @@ public class TPS_DB_IO {
      */
     public Collection<TPS_ActivityConstant> readActivityConstantCodes(DataSource dataSource) {
 
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
+                
         Collection<ActivityDto> activityDtos =
                 reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ActivityDto.class),ActivityDto::new), dataSource);
 
+        connectionSupplier.returnObject(connection);
+        
         Collection<TPS_ActivityConstant> activityConstants = new ArrayList<>();
 
         for(ActivityDto activityDto : activityDtos){
@@ -268,10 +287,12 @@ public class TPS_DB_IO {
      */
     public AgeClasses readAgeClasses(DataSource dataSource) {
 
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<AgeClassDto> ageClassDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(AgeClassDto.class),AgeClassDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
+        
         AgeClassesBuilder ageClasses = AgeClasses.builder();
 
         for(AgeClassDto ageClassDto : ageClassDtos){
@@ -297,12 +318,13 @@ public class TPS_DB_IO {
      * Example: (YES, 1)
      */
     public void readCarCodes(DataSource dataSource) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
+        
         Collection<CarCodeDto> carCodeDtos =
                 reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(CarCodeDto.class), CarCodeDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
+        
         for(CarCodeDto carCodeDto : carCodeDtos){
             try {
                 TPS_CarCode s = TPS_CarCode.valueOf(carCodeDto.getNameCars());
@@ -321,12 +343,13 @@ public class TPS_DB_IO {
      * Example: (5, (under 5k, 1, VOT),	(under 2k, 2000, MCT), 2000)
      */
     public Collection<TPS_Distance> readDistanceCodes(DataSource dataSource) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<DistanceCodeDto> distanceCodeDtos =
                 reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(DistanceCodeDto.class),DistanceCodeDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
+        
         Collection<TPS_Distance> distanceCodes = new ArrayList<>();
 
         for(DistanceCodeDto distanceCodeDto : distanceCodeDtos){
@@ -353,14 +376,15 @@ public class TPS_DB_IO {
      */
     //todo check if this is still needed since it is a simple enum now
     public void readDrivingLicenseCodes(DataSource dataSource) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<DrivingLicenseInformationDto> drivingLicenseInformationDtos =
                 reader.read(
                         new ResultSetConverter<>(new ColumnToFieldMapping<>(DrivingLicenseInformationDto.class),
                         DrivingLicenseInformationDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
+        
         for(DrivingLicenseInformationDto drivingLicenseInformationDto : drivingLicenseInformationDtos) {
 
             try {
@@ -380,13 +404,13 @@ public class TPS_DB_IO {
      * @throws SQLException
      */
     public TPS_ExpertKnowledgeTree readExpertKnowledgeTree(DataSource dataSource, Filter ektFilter, Collection<TPS_Mode> modes) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<ExpertKnowledgeTreeDto> expertKnowledgeTreeDtos =
                 reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ExpertKnowledgeTreeDto.class),
                 ExpertKnowledgeTreeDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
 
         Collection<ExpertKnowledgeTreeDto> sortedNodes = expertKnowledgeTreeDtos.stream()
                 .sorted(Comparator.comparingInt(ExpertKnowledgeTreeDto::getNodeId))
@@ -456,12 +480,14 @@ public class TPS_DB_IO {
      * Example: (5, under 2600, 4, 2600)
      */
     public Incomes readIncomeCodes(DataSource dataSource) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
-
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
+        
         Collection<IncomeDto> incomeDtos =
                 reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(IncomeDto.class),IncomeDto::new), dataSource);
 
+        connectionSupplier.returnObject(connection);
+        
         IncomesBuilder incomeMappings = Incomes.builder();
 
         for(IncomeDto incomeDto : incomeDtos){
@@ -486,11 +512,13 @@ public class TPS_DB_IO {
      * Example: (5, (club, 7, GENERAL), (club, 7, TAPAS))
      */
     public Collection<TPS_LocationConstant> readLocationConstantCodes(DataSource dataSource) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<LocationCodeDto> locationCodeDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(LocationCodeDto.class),LocationCodeDto::new), dataSource);
 
+        connectionSupplier.returnObject(connection);
+        
         Collection<TPS_LocationConstant> locationConstants = new ArrayList<>();
 
         for(LocationCodeDto locationCodeDto : locationCodeDtos) {
@@ -800,13 +828,15 @@ public class TPS_DB_IO {
     public MatrixMap readMatrixMap(DataSource matrixMapDs, Filter filter, int sIndex) {
 
         //read the matrix map from db
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
         Collection<MatrixMapDto> matrixMapDtos;
         if(filter == null){
             matrixMapDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(MatrixMapDto.class),MatrixMapDto::new),matrixMapDs);
         } else {
             matrixMapDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(MatrixMapDto.class),MatrixMapDto::new),matrixMapDs, filter);
         }
+        connectionSupplier.returnObject(connection);
 
         //some plausibility checks
         if(matrixMapDtos.size() > 1)
@@ -858,8 +888,8 @@ public class TPS_DB_IO {
      * @return the matrix or null, if nothing is found in the DB
      */
     public Matrix readMatrix(DataSource matrixDs, Filter filter,  int sIndex) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<IntMatrixDto> matrixDtos;
 
@@ -868,7 +898,8 @@ public class TPS_DB_IO {
         }else {
             matrixDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(IntMatrixDto.class),IntMatrixDto::new),matrixDs, filter);
         }
-
+        connectionSupplier.returnObject(connection);
+        
         if(matrixDtos.size() > 1)
             throw new IllegalArgumentException("the provided matrix datasource: '"+matrixDs.getUri()+"' does not return a single matrix result.");
 
@@ -895,11 +926,14 @@ public class TPS_DB_IO {
      */
     public TPS_ModeChoiceTree readModeChoiceTree(DataSource dataSource, Filter modeFilter, Collection<TPS_Mode> modes) {
 
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<ModeChoiceTreeNodeDto> mctDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(ModeChoiceTreeNodeDto.class), ModeChoiceTreeNodeDto::new), dataSource, modeFilter);
 
+        connectionSupplier.returnObject(connection);
+        
         Collection<ModeChoiceTreeNodeDto> sortedNodes = mctDtos.stream()
                 .sorted(Comparator.comparingInt(ModeChoiceTreeNodeDto::getNodeId))
                 .collect(toCollection(ArrayList::new));
@@ -938,13 +972,14 @@ public class TPS_DB_IO {
      * Example: (3, (MIT, 2, MCT), (MIT, 1, VOT), true)
      */
     public Modes readModes(DataSource modesTable) {
-
-        DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> dr = DataReaderFactory.newJdbcReader(connection);
 
         EnumMap<ModeType, ModeParameters> modeParams = getModeParameters();
 
         Collection<ModeDto> modeDtos = dr.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ModeDto.class), ModeDto::new),modesTable);
-
+        connectionSupplier.returnObject(connection);
+        
         ModesBuilder modesBuilder = Modes.builder();
         for(ModeDto modeDto : modeDtos){
 
@@ -1081,12 +1116,14 @@ public class TPS_DB_IO {
      * Example: (3, (RoP65-74, 12, VISEVA_R), 6, ,1, 2, RETIREE)
      */
     public Collection<TPS_PersonGroup> readPersonGroupCodes(DataSource dataSource, Filter personGroupFilter) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<PersonCodeDto> personCodeDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(PersonCodeDto.class),PersonCodeDto::new), dataSource, personGroupFilter);
 
+        connectionSupplier.returnObject(connection);
+        
         Collection<TPS_PersonGroup> personGroups = new ArrayList<>();
 
         for(PersonCodeDto personCodeDto : personCodeDtos) {
@@ -1109,12 +1146,14 @@ public class TPS_DB_IO {
     }
 
     public TPS_VariableMap readValuesOfTimes(DataSource dataSource, Filter votFilter){
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<ValueOfTimeDto> votDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(ValueOfTimeDto.class),ValueOfTimeDto::new), dataSource, votFilter);
 
+        connectionSupplier.returnObject(connection);
+        
         TPS_VariableMap votTree = new TPS_VariableMap(List.of(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE, TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_VOT,
                 TPS_Attribute.CURRENT_MODE_CODE_VOT, TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_VOT));
 
@@ -1145,7 +1184,8 @@ public class TPS_DB_IO {
 
 
         // read cfn values
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         //read cfnx
         DataSource cfnxDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFNX));
@@ -1153,7 +1193,7 @@ public class TPS_DB_IO {
 
         Collection<CfnxDto> cfnxDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(CfnxDto.class), CfnxDto::new),cfnxDs, cfnxFilter);
-
+    
         TPS_CFN cfn = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
 
         cfnxDtos.forEach(cfnx -> cfn.addToCFNXMap(cfnx.getCurrentTazSettlementCodeTapas(),cfnx.getValue()));
@@ -1173,6 +1213,9 @@ public class TPS_DB_IO {
         Filter cfnPotentialFilter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY));
         Collection<CfnFourDto> cfn4PotentialDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(CfnFourDto.class), CfnFourDto::new), cfnPotentialDs, cfnPotentialFilter);
+        
+        connectionSupplier.returnObject(connection);
+        
         cfn4PotentialDtos.forEach(cfn4 -> potential.addToCFN4Map(cfn4.getCurrentTazSettlementCodeTapas(),cfn4.getCurrentEpisodeActivityCodeTapas(),cfn4.getValue()));
 
         region.setPotential(potential);
@@ -1187,8 +1230,8 @@ public class TPS_DB_IO {
     }
 
     private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones() {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         //read traffic analysis zones
         DataSource tazDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ));
@@ -1393,6 +1436,9 @@ public class TPS_DB_IO {
             tazMap.get(location.getTAZId()).addLocation(location);
             blockMap.get(location.getBlockId()).addLocation(location);
         }
+        
+        connectionSupplier.returnObject(connection);
+        
         return tazMap;
     }
 
@@ -1529,27 +1575,39 @@ public class TPS_DB_IO {
     }
 
     public Collection<SchemeClassDto> readSchemeClasses(DataSource dataSource, Filter filter){
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
         var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeClassDto.class), SchemeClassDto::new);
-        return dataReader.read(converter, dataSource, filter);
+        var schemeClasses = dataReader.read(converter, dataSource, filter);
+        connectionSupplier.returnObject(connection);
+        return schemeClasses;
     }
 
     public Collection<SchemeDto> readSchemes(DataSource dataSource, Filter filter){
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
         var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeDto.class), SchemeDto::new);
-        return dataReader.read(converter, dataSource, filter);
+        var schemes =  dataReader.read(converter, dataSource, filter);
+        connectionSupplier.returnObject(connection);
+        return schemes;
     }
 
     public Collection<EpisodeDto> readEpisodes(DataSource dataSource, Filter filter){
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
         var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(EpisodeDto.class), EpisodeDto::new);
-        return dataReader.read(converter, dataSource, filter);
+        var episodes =  dataReader.read(converter, dataSource, filter);
+        connectionSupplier.returnObject(connection);
+        return episodes;
     }
 
     public Collection<SchemeClassDistributionDto> readSchemeClassDistributions(DataSource dataSource, Filter filter){
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
         var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeClassDistributionDto.class), SchemeClassDistributionDto::new);
-        return dataReader.read(converter, dataSource, filter);
+        var schemeClassDistricutions = dataReader.read(converter, dataSource, filter);
+        connectionSupplier.returnObject(connection);
+        return schemeClassDistricutions;
     }
 
     /**
@@ -1677,12 +1735,13 @@ public class TPS_DB_IO {
      */
     public Collection<TPS_SettlementSystem> readSettlementSystemCodes(DataSource dataSource) {
 
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<SettlementSystemDto> settlementSystemDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(SettlementSystemDto.class),SettlementSystemDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
+        
         Collection<TPS_SettlementSystem> settlementSystems = new ArrayList<>();
 
         for(SettlementSystemDto settlementSystemDto : settlementSystemDtos){
@@ -1705,11 +1764,12 @@ public class TPS_DB_IO {
      * Example: (FEMALE, 2)
      */
     public void readSexCodes(DataSource dataSource) {
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<SexDto> sexDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(SexDto.class), SexDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
+        
         for(SexDto sexDto : sexDtos){
             try{
                 TPS_Sex s = TPS_Sex.valueOf(sexDto.getNameSex());
@@ -1753,12 +1813,13 @@ public class TPS_DB_IO {
 
     //todo fix reading utility functions
     public Collection<UtilityFunctionDto> readUtilityFunction(DataSource dataSource, Collection<Filter> utilityFunctionFilters){
-
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connectionSupplier);
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<UtilityFunctionDto> utilityFunctionDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(UtilityFunctionDto.class), UtilityFunctionDto::new), dataSource);
-
+        connectionSupplier.returnObject(connection);
+        
         return utilityFunctionDtos;
     }
 
