@@ -1,5 +1,7 @@
 package de.dlr.ivf.tapas.environment.dao;
 
+import de.dlr.ivf.api.converter.Converter;
+import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.model.DataSource;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
@@ -17,10 +19,13 @@ public class DaoFactory {
 
     public static SimulationsDao newJdbcSimulationsDao(ConnectionPool connectionPool, DataSource simulationsTable){
         PreparedStatementContext context = PreparedStatementContextFactory.newPreparedStatementContext(SimulationEntry.class);
+        PreparedStatementContext extendedContext = PreparedStatementContextFactory.newExtendedPreparedStatementContext(SimulationEntry.class);
 
+        Converter<Object, Object> javaToSqlConverter = new JavaToSqlTypeConverter();
         return SimulationsJdbcDao.builder()
                 .preparedStatementContext(context)
-                .parameterSetter(new PreparedStatementParameterSetter<>(context.getIndexedInvocableMethods(), new JavaToSqlTypeConverter()))
+                .insertParameterSetter(new PreparedStatementParameterSetter<>(context.getIndexedInvocableMethods(), javaToSqlConverter))
+                .updateParameterSetter(new PreparedStatementParameterSetter<>(extendedContext.getIndexedInvocableMethods(), javaToSqlConverter))
                 .connectionPool(connectionPool)
                 .inputConverter(new ResultSetConverter<>(new ColumnToFieldMapping<>(SimulationEntry.class), SimulationEntry::new))
                 .simulationsTable(simulationsTable)

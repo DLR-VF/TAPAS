@@ -21,5 +21,4 @@ module de.dlr.ivf.api.io {
     exports de.dlr.ivf.api.io.conversion;
     exports de.dlr.ivf.api.io.crud.write;
     exports de.dlr.ivf.api.io.connection;
-    exports de.dlr.ivf.api.io.crud.update;
 }

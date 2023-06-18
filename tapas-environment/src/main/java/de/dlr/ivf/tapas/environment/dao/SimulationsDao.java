@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.environment.dao;
 
+import de.dlr.ivf.tapas.environment.dao.exception.DaoDeleteException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoInsertException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoUpdateException;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
@@ -16,5 +17,5 @@ public interface SimulationsDao {
 
     void update(int simId, SimulationEntry simulation) throws DaoUpdateException;
 
-    void remove(int simId);
+    void remove(int simId) throws DaoDeleteException;
 }
