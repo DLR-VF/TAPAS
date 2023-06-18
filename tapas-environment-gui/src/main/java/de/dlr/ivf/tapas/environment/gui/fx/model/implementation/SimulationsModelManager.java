@@ -1,6 +1,7 @@
 package de.dlr.ivf.tapas.environment.gui.fx.model.implementation;
 
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
+import de.dlr.ivf.tapas.environment.dao.exception.DaoInsertException;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import de.dlr.ivf.tapas.environment.gui.fx.model.SimulationsModel;
 
@@ -19,7 +20,7 @@ public class SimulationsModelManager implements SimulationsModel {
     }
 
     @Override
-    public void save(SimulationEntry simulationEntry) {
+    public void save(SimulationEntry simulationEntry) throws DaoInsertException {
         dao.save(simulationEntry);
     }
 }

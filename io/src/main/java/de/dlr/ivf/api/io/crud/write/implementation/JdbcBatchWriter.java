@@ -24,7 +24,7 @@ public class JdbcBatchWriter<S> implements DataWriter<S, Void>, AutoCloseable {
     @Override
     public Void write(S objectToWrite) {
         try {
-            statementParameterSetter.accept(preparedStatement, objectToWrite);
+            statementParameterSetter.set(preparedStatement, objectToWrite);
             preparedStatement.addBatch();
 
             if(++count % batchSize == 0){

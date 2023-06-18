@@ -8,9 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.SortedMap;
-import java.util.function.BiConsumer;
 
-public class PreparedStatementParameterSetter<T> implements BiConsumer<PreparedStatement, T> {
+public class PreparedStatementParameterSetter<T> {
 
     /**
      * item order is important here. The result of each method invocation must map to a prepared statement parameter.
@@ -24,8 +23,7 @@ public class PreparedStatementParameterSetter<T> implements BiConsumer<PreparedS
         this.typeConverter = typeConverter;
     }
 
-    @Override
-    public void accept(PreparedStatement preparedStatement, T objectToWrite) {
+    public void set(PreparedStatement preparedStatement, T objectToWrite) {
         try{
             for(Map.Entry<Integer, Method> entry : psIndexToMethodMap.entrySet()){
 

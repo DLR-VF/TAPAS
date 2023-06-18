@@ -15,10 +15,10 @@ import de.dlr.ivf.tapas.environment.gui.legacy.util.table.ConfigurableJTable;
 import de.dlr.ivf.tapas.environment.gui.legacy.util.table.ConfigurableJTable.ClassifiedTableModel;
 import de.dlr.ivf.tapas.environment.gui.legacy.util.table.LongTextRenderer;
 import de.dlr.ivf.tapas.environment.gui.legacy.util.table.TextPopupEditor;
+import de.dlr.ivf.tapas.environment.model.ServerData;
 import de.dlr.ivf.tapas.environment.model.SimulationData;
-import de.dlr.ivf.tapas.environment.model.SimulationServerData;
-import de.dlr.ivf.tapas.environment.model.SimulationServerData.ServerInfo;
-import de.dlr.ivf.tapas.environment.model.SimulationServerData.HashStatus;
+import de.dlr.ivf.tapas.environment.model.ServerData.ServerInfo;
+import de.dlr.ivf.tapas.environment.model.ServerData.HashStatus;
 import de.dlr.ivf.tapas.tools.fileModifier.ExpertKnowledgeHandler;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -306,7 +306,7 @@ public class SimulationMonitorOld implements TableModelListener {
             String name = (String) serverTable.getModel().getValueAt(serverTable.getSelectedRow(), SERVER_INDEX_NAME);
 
             try {
-                SimulationServerData serverData = new SimulationServerData(InetAddress.getByName(ip), name);
+                ServerData serverData = new ServerData(InetAddress.getByName(ip), name);
                 removeServerData(serverData);
             } catch (Exception e1) {
                 e1.printStackTrace();
@@ -763,7 +763,7 @@ public class SimulationMonitorOld implements TableModelListener {
      *
      * @param serverData simulation server data to add
      */
-    public void addServerData(SimulationServerData serverData) {
+    public void addServerData(ServerData serverData) {
         synchronized (this.serverTable) {
             int index = containsServerData(serverData);
             if (index == -1) {
@@ -822,7 +822,7 @@ public class SimulationMonitorOld implements TableModelListener {
      * @return row number of the corresponding entry in the simulation server
      * table, /1 if not found
      */
-    private int containsServerData(SimulationServerData serverData) {
+    private int containsServerData(ServerData serverData) {
         synchronized (this.serverTable) {
             for (int i = 0; i < this.serverTable.getRowCount(); i++) {
                 if (serverTable.getModel().getValueAt(i, SERVER_INDEX_IP).equals(serverData.getIp().getHostAddress())) {
@@ -1233,7 +1233,7 @@ public class SimulationMonitorOld implements TableModelListener {
      * @param serverData simulation server data to remove
      * @throws SQLException
      */
-    public void removeServerData(SimulationServerData serverData) throws SQLException {
+    public void removeServerData(ServerData serverData) throws SQLException {
         synchronized (this.serverTable) {
             int index = containsServerData(serverData);
             if (index > -1) {
@@ -1330,7 +1330,7 @@ public class SimulationMonitorOld implements TableModelListener {
 //			try {
 //				InetAddress ip = InetAddress.getByName((String) serverTable
 //						.getValueAt(e.getFirstRow(), SERVER_INDEX_IP));
-//				SimulationServerData sd = new SimulationServerData(ip,
+//				ServerData sd = new ServerData(ip,
 //						(String) serverTable.getValueAt(e.getFirstRow(),
 //								SERVER_INDEX_NAME));
 //				sd.setName((String) serverTable.getValueAt(e.getFirstRow(),
@@ -1470,9 +1470,9 @@ public class SimulationMonitorOld implements TableModelListener {
      * This method updates the server control panel on the right side next to the servers table. It handles the presentation of additional server information
      * and the enable status of the control buttons
      *
-     * @param serverDataMap a map containing hostname as key and {@link SimulationServerData} as value
+     * @param serverDataMap a map containing hostname as key and {@link ServerData} as value
      */
-    public void updateServerControl(Map<String, SimulationServerData> serverDataMap) {
+    public void updateServerControl(Map<String, ServerData> serverDataMap) {
 
 
         int count = this.serverTable.getSelectedRowCount();
@@ -1481,7 +1481,7 @@ public class SimulationMonitorOld implements TableModelListener {
 
             String host = (String) this.serverTable.getModel().getValueAt(this.serverTable.getSelectedRow(),
                     SERVER_INDEX_NAME);
-            SimulationServerData ssd = serverDataMap.get(host);
+            ServerData ssd = serverDataMap.get(host);
             if (ssd != null) {
                 Map<ServerInfo, String> serverinfo = ssd.getServerProcessInfo();
                 lblIdentifier.setText(serverinfo.get(ServerInfo.IDENTIFIER));
@@ -1511,7 +1511,7 @@ public class SimulationMonitorOld implements TableModelListener {
      *
      * @param serverData simulation server data to update
      */
-    public void updateServerData(SimulationServerData serverData) {
+    public void updateServerData(ServerData serverData) {
 
 
         synchronized (this.serverTable) {

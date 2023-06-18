@@ -50,4 +50,9 @@ public class ParametersJdbcDao implements ParametersDao {
             connectionSupplier.returnObject(connection);
         }
     }
+
+    @Override
+    public void removeBySimulationId(int simulationId) {
+
+    }
 }

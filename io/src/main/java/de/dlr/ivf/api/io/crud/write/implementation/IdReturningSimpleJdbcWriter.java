@@ -1,24 +1,24 @@
 package de.dlr.ivf.api.io.crud.write.implementation;
 
 import de.dlr.ivf.api.io.crud.write.DataWriter;
+import de.dlr.ivf.api.io.util.PreparedStatementParameterSetter;
 import lombok.Builder;
 
 import java.sql.*;
-import java.util.function.BiConsumer;
 
 @Builder
 public class IdReturningSimpleJdbcWriter<S> implements DataWriter<S,Integer> {
 
     private final Connection connection;
     private final String query;
-    private final BiConsumer<PreparedStatement, S> psParameterSetter;
+    private final PreparedStatementParameterSetter<S> psParameterSetter;
     private final String[] idColumn;
 
     @Override
     public Integer write(S objectToWrite) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(query, idColumn)){
 
-            psParameterSetter.accept(preparedStatement,objectToWrite);
+            psParameterSetter.set(preparedStatement,objectToWrite);
 
             preparedStatement.executeUpdate();
 

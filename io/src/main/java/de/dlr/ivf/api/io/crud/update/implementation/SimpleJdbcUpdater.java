@@ -24,7 +24,7 @@ public class SimpleJdbcUpdater<T> implements DataUpdater<T> {
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)){
 
             //set parameters
-            statementParameterSetter.accept(preparedStatement, objectToUpdate);
+            statementParameterSetter.set(preparedStatement, objectToUpdate);
 
             //now set the value for the where clause
             preparedStatement.executeUpdate();

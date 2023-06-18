@@ -103,7 +103,7 @@ public class SimulationMonitor extends Application {
             simulationDataUpdateService.setPeriod(Duration.seconds(1));
             scheduledServices.add(simulationDataUpdateService);
 
-            SimulationInsertionService insertionService = new SimulationInsertionService(tapasEnvironment.getSimulationsDao(), tapasEnvironment.getParametersDao());
+            SimulationInsertionService insertionService = new SimulationInsertionService(tapasEnvironment);
             SimulationsViewModel simViewModel = viewModelFactory.getSimulationEntryViewModel(simulationDataUpdateService, tapasEnvironment.getSimulationsDao(), insertionService);
             regularServices.add(insertionService);
 

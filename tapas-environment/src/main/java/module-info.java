@@ -5,11 +5,13 @@ module de.dlr.ivf.tapas.environment {
     requires de.dlr.ivf.api.converter;
     requires lombok;
     requires com.fasterxml.jackson.annotation;
+    requires com.opencsv;
 
     exports de.dlr.ivf.tapas.environment;
     exports de.dlr.ivf.tapas.environment.configuration;
     exports de.dlr.ivf.tapas.environment.dto;
     exports de.dlr.ivf.tapas.environment.model;
+    exports de.dlr.ivf.tapas.environment.dao.exception;
 
     opens de.dlr.ivf.tapas.environment.configuration to com.fasterxml.jackson.databind;
     opens de.dlr.ivf.tapas.environment.dto to de.dlr.ivf.api.io;

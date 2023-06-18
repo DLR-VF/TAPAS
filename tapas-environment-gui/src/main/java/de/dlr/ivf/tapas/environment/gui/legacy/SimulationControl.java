@@ -9,8 +9,8 @@ package de.dlr.ivf.tapas.environment.gui.legacy;
 import de.dlr.ivf.tapas.environment.gui.services.SimulationDataUpdateService;
 import de.dlr.ivf.tapas.environment.gui.services.ServerDataUpdateService;
 import de.dlr.ivf.tapas.environment.gui.legacy.util.MultilanguageSupport;
+import de.dlr.ivf.tapas.environment.model.ServerData;
 import de.dlr.ivf.tapas.environment.model.SimulationData;
-import de.dlr.ivf.tapas.environment.model.SimulationServerData;
 import de.dlr.ivf.tapas.environment.model.SimulationStateLegacy;
 
 import lombok.Builder;
@@ -70,7 +70,7 @@ public class SimulationControl {
     /**
      * All available servers
      */
-    private final Map<String, SimulationServerData> simulationServerDataMap;
+    private final Map<String, ServerData> simulationServerDataMap;
     private final ExecutorService executorPool = Executors.newCachedThreadPool();
 
     /**
@@ -284,7 +284,7 @@ public class SimulationControl {
     public String getServerHash(String hostname) {
 
         if (simulationServerDataMap.containsKey(hostname)) {
-            SimulationServerData ssd = simulationServerDataMap.get(hostname);
+            ServerData ssd = simulationServerDataMap.get(hostname);
             String hashstring = ssd.getHashString() == null || ssd.getHashString().equals("") ? MultilanguageSupport
                     .getString("HASH_MESSAGE_ERROR") : ssd.getHashString();
 
@@ -339,7 +339,7 @@ public class SimulationControl {
      * @param hostname the host name of the remote computer where a SimulationServer needs to be shut down.
      */
     protected void shutServerDown(String hostname) {
-        final SimulationServerData ssd = this.simulationServerDataMap.get(hostname);
+        final ServerData ssd = this.simulationServerDataMap.get(hostname);
 //        ssd.setServerState(ServerControlState.STOP);
 //        this.gui.updateServerControl(this.simulationServerDataMap);
 //        CompletableFuture.runAsync(() -> dbConnection.executeUpdate(

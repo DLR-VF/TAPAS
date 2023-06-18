@@ -20,7 +20,7 @@ public class SimpleJdbcWriter<S> implements DataWriter<S, Void> {
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(query)){
 
-            statementParameterSetter.accept(preparedStatement, objectToWrite);
+            statementParameterSetter.set(preparedStatement, objectToWrite);
             preparedStatement.executeUpdate();
 
         }catch (SQLException e){

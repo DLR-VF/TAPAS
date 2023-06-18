@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * @author mark_ma
  */
-public class SimulationServerData {
+public class ServerData {
 
 
     /**
@@ -84,12 +84,12 @@ public class SimulationServerData {
      *                              wrong, e.g. closed or too few values
      * @throws UnknownHostException This exception is thrown if the host can't be found
      */
-    public SimulationServerData(ResultSet rs) throws SQLException, UnknownHostException {
+    public ServerData(ResultSet rs) throws SQLException, UnknownHostException {
         ip = InetAddress.getByName(rs.getString("server_ip"));
         this.hashstatus = HashStatus.UNKNOWN;
         this.update(rs);
     }
-    public SimulationServerData(InetAddress ip, String name) {
+    public ServerData(InetAddress ip, String name) {
         this.ip = ip;
         this.name = name;
     }
