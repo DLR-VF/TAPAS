@@ -29,6 +29,7 @@ public class SimulationsJdbcDao implements SimulationsDao {
     private final PreparedStatementContext preparedStatementContext;
     private final PreparedStatementParameterSetter<SimulationEntry> insertParameterSetter;
     private final PreparedStatementParameterSetter<SimulationEntry> updateParameterSetter;
+    private final PreparedStatementParameterSetter<SimulationEntry> removeParameterSetter;
 
     @Override
     public Collection<SimulationEntry> load() {
@@ -111,6 +112,7 @@ public class SimulationsJdbcDao implements SimulationsDao {
         String query = QueryFactory.deleteQuery(simulationsTable,preparedStatementContext);
 
         try(PreparedStatement preparedStatement = connection.prepareStatement(query)){
+            preparedStatement.setInt(1,simId);
             preparedStatement.executeUpdate();
         }catch (SQLException e){
             e.printStackTrace();

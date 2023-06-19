@@ -24,6 +24,7 @@ import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationsV
 import de.dlr.ivf.tapas.environment.gui.services.SimulationDataUpdateService;
 import de.dlr.ivf.tapas.environment.gui.services.ServerDataUpdateService;
 import de.dlr.ivf.tapas.environment.gui.services.SimulationInsertionService;
+import de.dlr.ivf.tapas.environment.gui.services.SimulationRemovalService;
 import javafx.application.Application;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Service;
@@ -104,7 +105,8 @@ public class SimulationMonitor extends Application {
             scheduledServices.add(simulationDataUpdateService);
 
             SimulationInsertionService insertionService = new SimulationInsertionService(tapasEnvironment);
-            SimulationsViewModel simViewModel = viewModelFactory.getSimulationEntryViewModel(simulationDataUpdateService, tapasEnvironment.getSimulationsDao(), insertionService);
+            SimulationRemovalService removalService = new SimulationRemovalService(tapasEnvironment);
+            SimulationsViewModel simViewModel = viewModelFactory.getSimulationEntryViewModel(simulationDataUpdateService, tapasEnvironment.getSimulationsDao(), insertionService, removalService);
             regularServices.add(insertionService);
 
             //init servers overview panel

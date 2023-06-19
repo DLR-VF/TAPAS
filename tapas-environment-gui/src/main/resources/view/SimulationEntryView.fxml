@@ -35,6 +35,7 @@
             <ButtonBar prefHeight="40.0" prefWidth="200.0">
                <buttons>
                   <Button fx:id="addSimulationButton" mnemonicParsing="false" onAction="#addSimulation" text="Add Simulation" />
+                  <Button fx:id="removeSimulationButton" mnemonicParsing="false" onAction="#removeSimulation" text="Remove Simulation" />
                </buttons>
             </ButtonBar>
          </children>

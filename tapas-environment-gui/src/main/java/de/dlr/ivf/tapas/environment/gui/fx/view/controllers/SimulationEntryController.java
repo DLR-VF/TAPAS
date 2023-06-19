@@ -29,6 +29,9 @@ public class SimulationEntryController implements Initializable {
     public Button addSimulationButton;
 
     @FXML
+    public Button removeSimulationButton;
+
+    @FXML
     private TableColumn<SimulationEntryViewModel, Number> simId;
     @FXML
     private TableColumn<SimulationEntryViewModel, String> simName;
@@ -105,5 +108,10 @@ public class SimulationEntryController implements Initializable {
         if (simFile != null)
             this.viewModel.addSimulation(simFile);
         actionEvent.consume();
+    }
+
+    @FXML
+    public void removeSimulation(ActionEvent actionEvent){
+        simulationTable.getSelectionModel().getSelectedItems().forEach(sim -> viewModel.removeSimulation(sim.idProperty().get()));
     }
 }
