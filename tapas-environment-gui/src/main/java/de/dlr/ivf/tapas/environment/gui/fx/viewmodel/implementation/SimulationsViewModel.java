@@ -14,6 +14,8 @@ import javafx.collections.ObservableList;
 import java.io.File;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class SimulationsViewModel {
 
@@ -57,9 +59,23 @@ public class SimulationsViewModel {
         this.simulationInsertionService.start();
     }
 
-    public void removeSimulation(int id){
-        this.simulationRemovalService.setSimulationId(id);
+    public void removeSimulations(Collection<Integer> simIds){
+
+        Collection<SimulationEntry> simulationsToRemove = new ArrayList<>(simIds.size());
+
+        for(int simId : simIds){
+            SimulationEntry simulationEntry = dataModel.getSimulations()
+                    .stream()
+                    .filter(sim -> sim.getId() == simId)
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Simulation with id: "+simId+ "is not present in the data model"));
+            simulationsToRemove.add(simulationEntry);
+        }
+
+        this.simulationRemovalService.setSimulations(simulationsToRemove);
         this.simulationRemovalService.start();
+        this.simulationRemovalService.setOnSucceeded(e ->
+                simulationsToRemove.forEach(simEntry -> this.simulations.removeIf(sim -> sim.idProperty().get() == simEntry.getId())));
     }
 
 

@@ -78,7 +78,7 @@ public class TapasEnvironment {
             parametersDao.insert(parameterEntries);
         }catch (DaoInsertException e){
             //remove the simulation
-            removeSimulation(simulation.getId()); //todo think about what is happening with the exception
+            removeSimulation(simulation); //todo think about what is happening with the exception
 
             throw new IOException("Unable to persist parameter entriesfor simultation with id: "+simulation.getId(), e);
         }
@@ -89,18 +89,18 @@ public class TapasEnvironment {
             simulationsDao.update(simulation.getId(), simulation);
         }catch (DaoUpdateException e){
             //remove simulation and parameters
-            removeSimulation(simulation.getId());
+            removeSimulation(simulation);
 
             throw new IOException("Unable to update simulation state.", e);
         }
     }
-    public void removeSimulation(int id) throws IOException{
+    public void removeSimulation(SimulationEntry simulation) throws IOException{
 
         try {
-            simulationsDao.remove(id);
-            parametersDao.removeBySimulationId(id);
+            simulationsDao.remove(simulation.getId());
+            parametersDao.removeBySimulationId(simulation.getId());
         } catch (DaoDeleteException e) {
-            throw new IOException("unable to remove simulation with id: "+ id, e);
+            throw new IOException("unable to remove simulation with id: "+ simulation.getId(), e);
         }
     }
 

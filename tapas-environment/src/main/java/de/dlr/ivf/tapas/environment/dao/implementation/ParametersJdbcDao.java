@@ -9,10 +9,13 @@ import de.dlr.ivf.api.io.crud.read.DataReaderFactory;
 import de.dlr.ivf.api.io.crud.write.DataWriter;
 import de.dlr.ivf.api.io.crud.write.DataWriterFactory;
 import de.dlr.ivf.tapas.environment.dao.ParametersDao;
+import de.dlr.ivf.tapas.environment.dao.exception.DaoDeleteException;
 import de.dlr.ivf.tapas.environment.dto.ParameterEntry;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 
 public class ParametersJdbcDao implements ParametersDao {
@@ -52,7 +55,18 @@ public class ParametersJdbcDao implements ParametersDao {
     }
 
     @Override
-    public void removeBySimulationId(int simulationId) {
+    public void removeBySimulationId(int simulationId) throws DaoDeleteException {
+        Connection connection = connectionSupplier.borrowObject();
 
+        String query = "DELETE FROM "+paramTable.getUri()+" WHERE sim_id = ?";
+
+        try(PreparedStatement preparedStatement = connection.prepareStatement(query)){
+            preparedStatement.setInt(1, simulationId);
+            preparedStatement.executeUpdate();
+        }catch (SQLException e){
+            throw new DaoDeleteException("Unable to remove simulation parameters for simulation id: "+simulationId,e);
+        }finally {
+            connectionSupplier.returnObject(connection);
+        }
     }
 }

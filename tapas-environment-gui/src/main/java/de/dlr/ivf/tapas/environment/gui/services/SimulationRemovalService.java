@@ -1,9 +1,12 @@
 package de.dlr.ivf.tapas.environment.gui.services;
 
 import de.dlr.ivf.tapas.environment.TapasEnvironment;
+import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
 import lombok.Setter;
+
+import java.util.Collection;
 
 
 public class SimulationRemovalService extends Service<Void> {
@@ -11,7 +14,7 @@ public class SimulationRemovalService extends Service<Void> {
     private final TapasEnvironment tapasEnvironment;
 
     @Setter
-    private int simulationId;
+    private Collection<SimulationEntry> simulations;
 
     public SimulationRemovalService(TapasEnvironment tapasEnvironment){
 
@@ -35,7 +38,9 @@ public class SimulationRemovalService extends Service<Void> {
             @Override
             protected Void call() throws Exception {
 
-                tapasEnvironment.removeSimulation(simulationId);
+                for(SimulationEntry simulationEntry : simulations){
+                    tapasEnvironment.removeSimulation(simulationEntry);
+                }
                 return null;
             }
         };

@@ -17,6 +17,7 @@ import javafx.stage.Window;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.ResourceBundle;
 
@@ -112,6 +113,11 @@ public class SimulationEntryController implements Initializable {
 
     @FXML
     public void removeSimulation(ActionEvent actionEvent){
-        simulationTable.getSelectionModel().getSelectedItems().forEach(sim -> viewModel.removeSimulation(sim.idProperty().get()));
+        Collection<Integer> simIds = simulationTable.getSelectionModel().getSelectedItems()
+                .stream()
+                .map(simEntry -> simEntry.idProperty().get())
+                .toList();
+        viewModel.removeSimulations(simIds);
+        actionEvent.consume();
     }
 }
