@@ -1,5 +1,7 @@
 package de.dlr.ivf.api.io.connection;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.connection.implementation.ConnectionFactory;
 import org.apache.commons.pool2.DestroyMode;
@@ -11,9 +13,19 @@ import java.sql.Connection;
 
 public class ConnectionPool{
 
-    private final ObjectPool<Connection> connectionPool;
+   // private final ObjectPool<Connection> connectionPool;
+    private final HikariDataSource connectionPool;
     public ConnectionPool(ConnectionDetails connectionDetails){
         GenericObjectPoolConfig<Connection> poolConfig = new GenericObjectPoolConfig<>();
+
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(connectionDetails.getUrl());
+        config.setUsername(connectionDetails.getLogin().getUser());
+        config.setPassword(connectionDetails.getLogin().getPassword());
+        config.setMaximumPoolSize(4);
+
+        this.connectionPool = new HikariDataSource(config);
+
 
         //todo think about making this parameterizable
 //        poolConfig.setMaxTotal(5);
@@ -26,13 +38,13 @@ public class ConnectionPool{
 
 
 
-        this.connectionPool = new GenericObjectPool<>(new ConnectionFactory(connectionDetails), poolConfig);
+        //this.connectionPool = new GenericObjectPool<>(new ConnectionFactory(connectionDetails), poolConfig);
 
     }
 
     public Connection borrowObject(){
         try {
-            Connection connection = connectionPool.borrowObject();
+            Connection connection = connectionPool.getConnection();
             if(connection == null){
                 throw new RuntimeException("Connection pool didnt return a connection");
             }
@@ -46,7 +58,7 @@ public class ConnectionPool{
 
     public void returnObject(Connection connection){
         try {
-            connectionPool.returnObject(connection);
+            connection.close();
         } catch (Exception e) {
             System.err.println("Error returning the connection to the pool.");
         }

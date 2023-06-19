@@ -16,6 +16,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("org.apache.commons:commons-dbcp2:2.9.0")
+    implementation("com.zaxxer:HikariCP:5.0.1")
     implementation("org.postgresql:postgresql:42.2.27")
 
     //lombok
