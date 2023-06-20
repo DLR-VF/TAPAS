@@ -1,42 +1,27 @@
 package de.dlr.ivf.tapas.environment.gui.services;
 
-import de.dlr.ivf.tapas.environment.TapasEnvironment;
-
+import de.dlr.ivf.tapas.environment.gui.fx.model.SimulationsModel;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import lombok.Setter;
 
 import java.io.File;
 
 public class SimulationInsertionService extends Service<Void> {
 
-    @Setter
-    private File simFile;
-    private final TapasEnvironment tapasEnvironment;
+    private final File simFile;
+    private final SimulationsModel simulationsModel;
 
-    public SimulationInsertionService(TapasEnvironment tapasEnvironment){
-        this.tapasEnvironment = tapasEnvironment;
+    public SimulationInsertionService(SimulationsModel simulationsModel, File simFile){
+        this.simulationsModel = simulationsModel;
+        this.simFile = simFile;
     }
     @Override
     protected Task<Void> createTask() {
 
         return new Task<>() {
             @Override
-            protected void failed() {
-                super.failed();
-                reset();
-            }
-
-            @Override
-            protected void succeeded() {
-                super.succeeded();
-                reset();
-            }
-
-            @Override
             protected Void call() throws Exception {
-
-                tapasEnvironment.addSimulation(simFile);
+                simulationsModel.insert(simFile);
 
                 return null;
             }

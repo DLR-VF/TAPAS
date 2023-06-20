@@ -10,7 +10,6 @@ module de.dlr.ivf.api.io {
 
     requires java.desktop;
     requires org.apache.commons.lang3;
-    requires org.apache.commons.pool2;
     requires com.zaxxer.hikari;
 
     exports de.dlr.ivf.api.io.configuration.model;

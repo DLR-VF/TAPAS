@@ -10,12 +10,13 @@ import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoDeleteException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoInsertException;
+import de.dlr.ivf.tapas.environment.dao.exception.DaoReadException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoUpdateException;
 import de.dlr.ivf.tapas.environment.dto.ParameterEntry;
+import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
 import lombok.Builder;
-import lombok.Getter;
 
 import java.io.File;
 import java.io.FileReader;
@@ -23,16 +24,29 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
+/**
+ * This class manages everything in a tapas environment. It provides a link to the dao layer and thus the functionality
+ * to retrieve, add and remove simulations as well as servers.
+ * Currently this class is not thread safe and access to it should be synchronized outside. This might change in the
+ * future.
+ */
 @Builder
-@Getter
 public class TapasEnvironment {
 
     private final SimulationsDao simulationsDao;
     private final ServersDao serversDao;
     private final ParametersDao parametersDao;
 
-    public void addSimulation(File parameterFile) throws IOException, IllegalArgumentException {
+
+    /**
+     * Adds a simulation to the environment from a legacy simulation runtime file.
+     * @param parameterFile runtime file containing all parameters for a tapas run.
+     * @throws IOException when the runtime file is not parseable or readable.
+     * @throws IllegalArgumentException when read parameters are empty.
+     */
+    public SimulationEntry addSimulation(File parameterFile) throws IOException, IllegalArgumentException {
 
         String simKey = EnvironmentHelpers.generateSimulationKey();
 
@@ -93,7 +107,15 @@ public class TapasEnvironment {
 
             throw new IOException("Unable to update simulation state.", e);
         }
+
+        return simulation;
     }
+
+    /**
+     * Removes a simulation from the environment. First the simulation is removed and then its parameters.
+     * @param simulation the simulation to remove from the environment.
+     * @throws IOException when an error occured during the removal of the simulation or its parameters.
+     */
     public void removeSimulation(SimulationEntry simulation) throws IOException{
 
         try {
@@ -104,9 +126,62 @@ public class TapasEnvironment {
         }
     }
 
+    /**
+     * Retrieves all simulations from the tapas environment.
+     * @return a map with simulation id to simulation entry mappings.
+     * @throws IOException when an error during reading the simulation entries occured.
+     */
+    public Map<Integer, SimulationEntry> loadSimulations() throws IOException {
+        try{
+            Collection<SimulationEntry> simulationEntries = simulationsDao.load();
+
+            return simulationEntries.stream()
+                    .collect(Collectors.toMap(
+                            sim -> sim.getId(),
+                            sim -> sim
+                    ));
+        }catch (DaoReadException e){
+            e.printStackTrace();
+            throw new IOException(e);
+        }
+    }
+
+    public void addServer(ServerEntry serverEntry) throws IOException {
+        try{
+            serversDao.insert(serverEntry);
+        } catch (DaoInsertException e) {
+            e.printStackTrace();
+            throw new IOException(e);
+        }
+    }
+
+    public void removeServers(Collection<ServerEntry> serverEntries) throws IOException{
+        try{
+            serversDao.removeServers(serverEntries);
+        } catch (DaoDeleteException e) {
+            e.printStackTrace();
+            throw new IOException(e);
+        }
+    }
+
+    public Map<String, ServerEntry> loadServers() throws IOException {
+        try{
+            Collection<ServerEntry> serverEntries = serversDao.load();
+
+            return serverEntries.stream()
+                    .collect(Collectors.toMap(
+                            server -> server.getServerIp(),
+                            server -> server
+                    ));
+        }catch (DaoReadException e){
+            e.printStackTrace();
+            throw new IOException(e);
+        }
+    }
+
 
     /**
-     *  This is mostly a port from the old simulation control
+     *  This is mostly a port from the old simulation control and will be removed in the future
      */
     private Map<String, String> readParameters(File parameterFile, String simKey) throws IOException, CsvException {
 

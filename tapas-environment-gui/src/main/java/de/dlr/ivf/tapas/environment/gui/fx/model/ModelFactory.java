@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.environment.gui.fx.model;
 
+import de.dlr.ivf.tapas.environment.TapasEnvironment;
 import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.gui.fx.model.implementation.ServersModelManager;
@@ -11,16 +12,16 @@ public class ModelFactory {
 
     private ServersModel serversModel;
 
-    public SimulationsModel getSimulationEntryModel(SimulationsDao dao){
+    public SimulationsModel getSimulationEntryModel(TapasEnvironment tapasEnvironment){
         if(simulationsModel == null){
-            simulationsModel = new SimulationsModelManager(dao);
+            simulationsModel = new SimulationsModelManager(tapasEnvironment);
         }
         return simulationsModel;
     }
 
-    public ServersModel getServerEntryModel(ServersDao dao){
+    public ServersModel getServerEntryModel(TapasEnvironment tapasEnvironment){
         if(serversModel == null){
-            serversModel = new ServersModelManager(dao);
+            serversModel = new ServersModelManager(tapasEnvironment);
         }
         return serversModel;
     }

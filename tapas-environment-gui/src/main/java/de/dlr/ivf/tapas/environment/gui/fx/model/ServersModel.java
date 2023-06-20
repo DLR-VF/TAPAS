@@ -1,15 +1,21 @@
 package de.dlr.ivf.tapas.environment.gui.fx.model;
 
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
-import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServerEntryViewModel;
 
+import java.io.IOException;
 import java.util.Collection;
 
 public interface ServersModel {
 
     Collection<ServerEntry> getServerData();
 
-    void save(ServerEntryViewModel server);
+    ServerEntry getServer(String serverIp);
+
+    Collection<ServerEntry> reload() throws IOException;
+
+    void remove(Collection<ServerEntry> serversToRemove) throws IOException;
+
+    void insert(ServerEntry server) throws IOException;
 
 
 }

@@ -4,8 +4,6 @@ import de.dlr.ivf.tapas.environment.model.SimulationState;
 import javafx.beans.property.*;
 import javafx.scene.control.ProgressBar;
 
-import java.time.LocalDateTime;
-
 public class SimulationEntryViewModel {
 
     private final StringProperty elapsedTime = new SimpleStringProperty();
@@ -19,10 +17,7 @@ public class SimulationEntryViewModel {
     private final StringProperty startDateTime = new SimpleStringProperty();
     private final StringProperty server = new SimpleStringProperty();
 
-    public SimulationEntryViewModel(){
-
-        //this.progress.get().progressProperty().bind(this.progressValue);
-    }
+    public SimulationEntryViewModel(){}
 
     public StringProperty elapsedTimeProperty() {
         return elapsedTime;

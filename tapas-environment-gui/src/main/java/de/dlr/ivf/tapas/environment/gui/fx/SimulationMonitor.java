@@ -2,7 +2,6 @@ package de.dlr.ivf.tapas.environment.gui.fx;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.environment.TapasEnvironment;
 import de.dlr.ivf.tapas.environment.TapasEnvironment.TapasEnvironmentBuilder;
@@ -23,11 +22,8 @@ import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServersViewM
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.SimulationsViewModel;
 import de.dlr.ivf.tapas.environment.gui.services.SimulationDataUpdateService;
 import de.dlr.ivf.tapas.environment.gui.services.ServerDataUpdateService;
-import de.dlr.ivf.tapas.environment.gui.services.SimulationInsertionService;
-import de.dlr.ivf.tapas.environment.gui.services.SimulationRemovalService;
 import javafx.application.Application;
 import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Service;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -46,7 +42,6 @@ import java.util.stream.Collectors;
 
 public class SimulationMonitor extends Application {
     private final Collection<ScheduledService<?>> scheduledServices = new ArrayList<>();
-    private final Collection<Service<?>> regularServices = new ArrayList<>();
 
     private ConnectionPool connectionPool;
 
@@ -71,7 +66,6 @@ public class SimulationMonitor extends Application {
         this.connectionPool = new ConnectionPool(configDto.getConnectionDetails());
 
         TapasEnvironmentBuilder tapasEnvironmentBuilder = TapasEnvironment.builder();
-        ConnectionDetails connectionDetails = configDto.getConnectionDetails();
 
         //setup simulation entries data access object
         SimulationsDao simDao = DaoFactory.newJdbcSimulationsDao(connectionPool, configDto.getSimulationsTable());
@@ -97,27 +91,24 @@ public class SimulationMonitor extends Application {
             viewHandler.start();
 
             //init simulations overview panel
-            SimulationsModel simulationsModel = modelFactory.getSimulationEntryModel(tapasEnvironment.getSimulationsDao());
+            SimulationsModel simulationsModel = modelFactory.getSimulationEntryModel(tapasEnvironment);
 
             //  scheduled service to reload simulation entries from the database
-            SimulationDataUpdateService simulationDataUpdateService = new SimulationDataUpdateService(simulationsModel::getSimulations);
+            SimulationDataUpdateService simulationDataUpdateService = new SimulationDataUpdateService(simulationsModel);
             simulationDataUpdateService.setPeriod(Duration.seconds(1));
             scheduledServices.add(simulationDataUpdateService);
 
-            SimulationInsertionService insertionService = new SimulationInsertionService(tapasEnvironment);
-            SimulationRemovalService removalService = new SimulationRemovalService(tapasEnvironment);
-            SimulationsViewModel simViewModel = viewModelFactory.getSimulationEntryViewModel(simulationDataUpdateService, tapasEnvironment.getSimulationsDao(), insertionService, removalService);
-            regularServices.add(insertionService);
+            SimulationsViewModel simViewModel = viewModelFactory.getSimulationEntryViewModel(simulationDataUpdateService, tapasEnvironment);
 
             //init servers overview panel
-            ServersModel serversModel = modelFactory.getServerEntryModel(tapasEnvironment.getServersDao());
+            ServersModel serversModel = modelFactory.getServerEntryModel(tapasEnvironment);
 
             //  scheduled service to reload server entries from the database
-            ServerDataUpdateService serverDataUpdateService = new ServerDataUpdateService(serversModel::getServerData);
+            ServerDataUpdateService serverDataUpdateService = new ServerDataUpdateService(serversModel);
             serverDataUpdateService.setPeriod(Duration.seconds(1));
             scheduledServices.add(serverDataUpdateService);
 
-            ServersViewModel serversViewModel = viewModelFactory.getServerEntryViewModel(serverDataUpdateService, tapasEnvironment.getServersDao());
+            ServersViewModel serversViewModel = viewModelFactory.getServerEntryViewModel(serverDataUpdateService, tapasEnvironment);
 
             //start all scheduled services
             scheduledServices.forEach(ScheduledService::start);

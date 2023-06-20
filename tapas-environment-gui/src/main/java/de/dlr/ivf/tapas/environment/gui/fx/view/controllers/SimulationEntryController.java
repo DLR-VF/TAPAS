@@ -98,6 +98,8 @@ public class SimulationEntryController implements Initializable {
         simulationTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         addSimulationButton.disableProperty().bind(viewModel.simulationInsertionServiceRunningProperty());
+        removeSimulationButton.disableProperty().bind(viewModel.simulationRemovalServiceRunningProperty()
+                .or(simulationTable.getSelectionModel().selectedIndexProperty().lessThan(0)));
     }
 
     @FXML

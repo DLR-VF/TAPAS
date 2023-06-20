@@ -1,19 +1,20 @@
 package de.dlr.ivf.tapas.environment.gui.services;
 
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
+import de.dlr.ivf.tapas.environment.gui.fx.model.SimulationsModel;
+
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 
 import java.util.Collection;
-import java.util.function.Supplier;
 
 public class SimulationDataUpdateService extends ScheduledService<Collection<SimulationEntry>> {
 
-    private final Supplier<Collection<SimulationEntry>> simulationDataSupplier;
+    private final SimulationsModel simulationsModel;
 
-    public SimulationDataUpdateService(Supplier<Collection<SimulationEntry>> simulationDataSupplier){
+    public SimulationDataUpdateService(SimulationsModel simulationsModel){
 
-        this.simulationDataSupplier = simulationDataSupplier;
+        this.simulationsModel = simulationsModel;
     }
 
     @Override
@@ -21,7 +22,7 @@ public class SimulationDataUpdateService extends ScheduledService<Collection<Sim
         return new Task<>() {
             @Override
             protected Collection<SimulationEntry> call() throws Exception {
-                return simulationDataSupplier.get();
+                return simulationsModel.reload();
             }
         };
     }

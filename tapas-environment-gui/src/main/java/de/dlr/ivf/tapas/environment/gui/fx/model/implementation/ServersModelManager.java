@@ -1,26 +1,71 @@
 package de.dlr.ivf.tapas.environment.gui.fx.model.implementation;
 
-import de.dlr.ivf.tapas.environment.dao.ServersDao;
+import de.dlr.ivf.tapas.environment.TapasEnvironment;
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 import de.dlr.ivf.tapas.environment.gui.fx.model.ServersModel;
-import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServerEntryViewModel;
-
+import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 
 public class ServersModelManager implements ServersModel {
-    private final ServersDao dao;
+    private final TapasEnvironment tapasEnvironment;
 
-    public ServersModelManager(ServersDao dao) {
-        this.dao = dao;
+    private final Map<String, ServerEntry> serverEntries;
+
+    private final ReadLock readLock;
+
+    private final WriteLock writeLock;
+    public ServersModelManager(TapasEnvironment tapasEnvironment) {
+        this.serverEntries = new HashMap<>();
+        this.tapasEnvironment = tapasEnvironment;
+
+        ReentrantReadWriteLock lock = new ReentrantReadWriteLock(true);
+        this.readLock = lock.readLock();
+        this.writeLock = lock.writeLock();
     }
 
     @Override
     public Collection<ServerEntry> getServerData() {
-        return dao.load();
+        try{
+            readLock.lock();
+            return serverEntries.values();
+        }finally {
+            readLock.unlock();
+        }
     }
 
     @Override
-    public void save(ServerEntryViewModel server) {
+    public ServerEntry getServer(String serverIp) {
+        return this.serverEntries.get(serverIp);
+    }
+
+    @Override
+    public Collection<ServerEntry> reload() throws IOException {
+        try{
+            writeLock.lock();
+
+            Map<String, ServerEntry> servers = tapasEnvironment.loadServers();
+
+            this.serverEntries.clear();
+            this.serverEntries.putAll(servers);
+
+            return serverEntries.values();
+        } finally{
+            writeLock.unlock();
+        }
+    }
+
+    @Override
+    public void remove(Collection<ServerEntry> serversToRemove) throws IOException {
+
+    }
+
+    @Override
+    public void insert(ServerEntry server) {
         //dao.
     }
 }

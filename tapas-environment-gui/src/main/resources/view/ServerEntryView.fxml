@@ -5,26 +5,23 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="de.dlr.ivf.tapas.environment.gui.fx.view.controllers.ServerEntryController">
+<AnchorPane xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="de.dlr.ivf.tapas.environment.gui.fx.view.controllers.ServerEntryController">
 
-    <children>
-      <ScrollPane fx:id="serverScrollPane" layoutX="10.0" layoutY="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <content>
-              <TableView fx:id="serverTable" prefHeight="200.0" prefWidth="1045.0">
-                  <columns>
-                      <TableColumn fx:id="serverName" prefWidth="75.0" text="name" />
-                      <TableColumn fx:id="serverIpAddress" prefWidth="75.0" text="IP-address" />
-                      <TableColumn fx:id="serverCpuUsage" prefWidth="75.0" text="CPU-usage" />
-                      <TableColumn fx:id="serverCoreCount" prefWidth="75.0" text="core count" />
-                      <TableColumn fx:id="serverOnline" prefWidth="75.0" text="online" />
-                  <TableColumn fx:id="serverState" prefWidth="75.0" text="State" />
-                  </columns>
-               <columnResizePolicy>
-                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-               </columnResizePolicy>
-              </TableView>
-         </content>
-      </ScrollPane>
-    </children>
-
+    <ScrollPane fx:id="serverScrollPane" layoutX="10.0" layoutY="10.0" AnchorPane.bottomAnchor="0.0"
+                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <TableView fx:id="serverTable" prefHeight="200.0" prefWidth="1045.0">
+            <columns>
+                <TableColumn fx:id="serverName" prefWidth="75.0" text="name"/>
+                <TableColumn fx:id="serverIpAddress" prefWidth="75.0" text="IP-address"/>
+                <TableColumn fx:id="serverCpuUsage" prefWidth="75.0" text="CPU-usage"/>
+                <TableColumn fx:id="serverCoreCount" prefWidth="75.0" text="core count"/>
+                <TableColumn fx:id="serverOnline" prefWidth="75.0" text="online"/>
+                <TableColumn fx:id="serverState" prefWidth="75.0" text="State"/>
+            </columns>
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+            </columnResizePolicy>
+        </TableView>
+    </ScrollPane>
 </AnchorPane>

@@ -7,9 +7,12 @@ import de.dlr.ivf.tapas.environment.gui.services.SimulationDataUpdateService;
 import de.dlr.ivf.tapas.environment.gui.services.SimulationInsertionService;
 import de.dlr.ivf.tapas.environment.gui.services.SimulationRemovalService;
 import javafx.beans.Observable;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
 
 import java.io.File;
 import java.time.Duration;
@@ -24,20 +27,15 @@ public class SimulationsViewModel {
     private final ObservableList<SimulationEntryViewModel> simulations;
     private final SimulationDataUpdateService simulationDataUpdateService;
 
-    private final SimulationInsertionService simulationInsertionService;
-
-    private final SimulationRemovalService simulationRemovalService;
-
     private final DateTimeFormatter dateTimeFormatter;
 
+    private final BooleanProperty insertionServiceRunningProperty = new SimpleBooleanProperty(false);
+    private final BooleanProperty removalServiceRunningProperty = new SimpleBooleanProperty(false);
 
-    public SimulationsViewModel(SimulationsModel dataModel, SimulationDataUpdateService simulationDataUpdateService,
-                                SimulationInsertionService simulationInsertionService, SimulationRemovalService simulationRemovalService){
+    public SimulationsViewModel(SimulationsModel dataModel, SimulationDataUpdateService simulationDataUpdateService){
 
         this.dataModel = dataModel;
         this.simulationDataUpdateService = simulationDataUpdateService;
-        this.simulationInsertionService = simulationInsertionService;
-        this.simulationRemovalService = simulationRemovalService;
 
         this.dateTimeFormatter =  LocalDateTimeUtils.dateTimeFormatter();
 
@@ -55,8 +53,9 @@ public class SimulationsViewModel {
 
 
     public void addSimulation(File simFile) {
-        this.simulationInsertionService.setSimFile(simFile);
-        this.simulationInsertionService.start();
+        Service<Void> simulationInsertionService = new SimulationInsertionService(dataModel, simFile);
+        this.insertionServiceRunningProperty.bind(simulationInsertionService.runningProperty());
+        simulationInsertionService.start();
     }
 
     public void removeSimulations(Collection<Integer> simIds){
@@ -64,18 +63,20 @@ public class SimulationsViewModel {
         Collection<SimulationEntry> simulationsToRemove = new ArrayList<>(simIds.size());
 
         for(int simId : simIds){
-            SimulationEntry simulationEntry = dataModel.getSimulations()
-                    .stream()
-                    .filter(sim -> sim.getId() == simId)
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Simulation with id: "+simId+ "is not present in the data model"));
+            SimulationEntry simulationEntry = dataModel.getSimulation(simId);
+
+            if(simulationEntry == null){
+                throw new IllegalArgumentException("Simulation with id: "+simId+ "is not present in the data model");
+            }
             simulationsToRemove.add(simulationEntry);
         }
 
-        this.simulationRemovalService.setSimulations(simulationsToRemove);
-        this.simulationRemovalService.start();
-        this.simulationRemovalService.setOnSucceeded(e ->
+        Service<Void> simulationRemovalService = new SimulationRemovalService(dataModel, simulationsToRemove);
+        removalServiceRunningProperty.bind(simulationRemovalService.runningProperty());
+
+        simulationRemovalService.setOnSucceeded(e ->
                 simulationsToRemove.forEach(simEntry -> this.simulations.removeIf(sim -> sim.idProperty().get() == simEntry.getId())));
+        simulationRemovalService.start();
     }
 
 
@@ -117,10 +118,10 @@ public class SimulationsViewModel {
     }
 
     public ReadOnlyBooleanProperty simulationInsertionServiceRunningProperty(){
-        return this.simulationInsertionService.runningProperty();
+        return this.insertionServiceRunningProperty;
     }
 
     public ReadOnlyBooleanProperty simulationRemovalServiceRunningProperty(){
-        return this.simulationRemovalService.runningProperty();
+        return this.removalServiceRunningProperty;
     }
 }

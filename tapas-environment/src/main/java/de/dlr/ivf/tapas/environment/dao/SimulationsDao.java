@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.environment.dao;
 
 import de.dlr.ivf.tapas.environment.dao.exception.DaoDeleteException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoInsertException;
+import de.dlr.ivf.tapas.environment.dao.exception.DaoReadException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoUpdateException;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 
@@ -12,7 +13,7 @@ import java.util.Collection;
  */
 
 public interface SimulationsDao {
-    Collection<SimulationEntry> load();
+    Collection<SimulationEntry> load() throws DaoReadException;
     int save(SimulationEntry simulationEntry) throws DaoInsertException;
 
     void update(int simId, SimulationEntry simulation) throws DaoUpdateException;

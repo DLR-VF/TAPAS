@@ -9,6 +9,7 @@ import de.dlr.ivf.api.io.util.QueryFactory;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoDeleteException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoInsertException;
+import de.dlr.ivf.tapas.environment.dao.exception.DaoReadException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoUpdateException;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import lombok.Builder;
@@ -32,24 +33,23 @@ public class SimulationsJdbcDao implements SimulationsDao {
     private final PreparedStatementParameterSetter<SimulationEntry> removeParameterSetter;
 
     @Override
-    public Collection<SimulationEntry> load() {
+    public Collection<SimulationEntry> load() throws DaoReadException {
 
-        Connection connection = connectionPool.borrowObject();
+
 
         String query = "SELECT * FROM "+ simulationsTable.getUri() ;
 
         Collection<SimulationEntry> simulations = new ArrayList<>();
 
-        try(PreparedStatement preparedStatement = connection.prepareStatement(query);
+        try(Connection connection = connectionPool.borrowObject();
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
             ResultSet rs = preparedStatement.executeQuery()){
             while(rs.next()){
                 simulations.add(inputConverter.convert(rs));
             }
         }catch (SQLException e){
             e.printStackTrace();
-            throw new IllegalArgumentException("unable to read datasource "+simulationsTable.getUri(),e);
-        }finally {
-            connectionPool.returnObject(connection);
+            throw new DaoReadException("unable to read datasource "+simulationsTable.getUri(),e);
         }
 
         return simulations;
