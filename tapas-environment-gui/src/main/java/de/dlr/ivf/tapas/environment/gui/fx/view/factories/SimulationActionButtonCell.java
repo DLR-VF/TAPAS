@@ -56,11 +56,18 @@ public class SimulationActionButtonCell extends TableCell<SimulationEntryViewMod
             setGraphic(button);
 
             switch (item){
-                case READY, PAUSED -> button.setGraphic(startSimWrapper);
+                case READY, PAUSED -> initStartButton(button);
                 case RUNNING -> button.setGraphic(stopSimWrapper);
                 default -> setGraphic(null); //for other states there is no need for a button
             }
         }
+    }
+
+    private void initStartButton(Button button) {
+        button.setGraphic(startSimWrapper);
+        button.setOnAction(event -> {
+
+        });
     }
 
     private HBox newButtonSkin(SVGPath svg, String buttonText){
