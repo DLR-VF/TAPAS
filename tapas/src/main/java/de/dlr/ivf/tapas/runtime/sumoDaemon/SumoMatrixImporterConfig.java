@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

@@ -10,8 +10,8 @@ package de.dlr.ivf.tapas.model.scheme;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 
 /**
  * This is the basic class for stays and trips. It stores the common member variables of both types of episodes and is extended by TPS_Stay and TPS_Trip

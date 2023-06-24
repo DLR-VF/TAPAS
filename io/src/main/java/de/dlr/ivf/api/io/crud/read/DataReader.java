@@ -1,8 +1,8 @@
 package de.dlr.ivf.api.io.crud.read;
 
 import de.dlr.ivf.api.converter.Converter;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.configuration.model.Filter;
+import de.dlr.ivf.api.io.configuration.DataSource;
+import de.dlr.ivf.api.io.configuration.Filter;
 
 import java.util.Collection;
 import java.util.Collections;

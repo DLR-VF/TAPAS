@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.tools.tazcalculator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 
 import java.io.IOException;

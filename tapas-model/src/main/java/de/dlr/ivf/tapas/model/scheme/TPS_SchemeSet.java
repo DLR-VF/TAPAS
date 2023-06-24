@@ -9,10 +9,10 @@
 package de.dlr.ivf.tapas.model.scheme;
 
 import de.dlr.ivf.tapas.model.constants.TPS_PersonGroup;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.util.ExtendedWritable;

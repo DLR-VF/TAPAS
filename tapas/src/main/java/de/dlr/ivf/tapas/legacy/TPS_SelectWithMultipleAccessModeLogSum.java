@@ -14,8 +14,8 @@ import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeTyp
 import de.dlr.ivf.tapas.model.constants.TPS_Distance;
 import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.TPS_CFN;
 import de.dlr.ivf.tapas.model.location.TPS_Location;

@@ -1,8 +1,7 @@
 package de.dlr.ivf.tapas.environment.dao;
 
 import de.dlr.ivf.api.converter.Converter;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
 import de.dlr.ivf.api.io.conversion.JavaToSqlTypeConverter;

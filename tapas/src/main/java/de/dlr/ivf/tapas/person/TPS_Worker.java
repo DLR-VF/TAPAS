@@ -10,10 +10,10 @@ package de.dlr.ivf.tapas.person;
 
 import de.dlr.ivf.tapas.choice.FeasibilityCalculator;
 import de.dlr.ivf.tapas.choice.LocationAndModeChooser;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;

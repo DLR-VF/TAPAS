@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.ResourceBundle;
 
-public class SimulationEntryController implements Initializable {
+public class SimulationsController implements Initializable {
 
     @FXML
     private TableView<SimulationEntryViewModel> simulationTable;
@@ -59,7 +59,7 @@ public class SimulationEntryController implements Initializable {
     private final EnumMap<SimulationState, PseudoClass> simStatePseudoClasses = new EnumMap<>(SimulationState.class);
     private final EnumMap<SimulationState, PseudoClass> simActionPseudoClasses = new EnumMap<>(SimulationState.class);
 
-    public SimulationEntryController(SimulationsViewModel viewModel){
+    public SimulationsController(SimulationsViewModel viewModel){
 
         this.viewModel = viewModel;
 

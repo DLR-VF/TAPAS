@@ -12,10 +12,10 @@ import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.TPS_VariableMap;
 
 import java.util.HashMap;

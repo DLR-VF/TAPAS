@@ -10,10 +10,10 @@ package de.dlr.ivf.tapas.iteration;
 
 import de.dlr.ivf.api.io.util.SqlArrayUtils;
 import de.dlr.ivf.tapas.TPS_Main;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.model.Matrix;

@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.model.location;
 
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 
 /**
  * Generic interface for all entities which are located in an coordinate system. These entities are numbered by an

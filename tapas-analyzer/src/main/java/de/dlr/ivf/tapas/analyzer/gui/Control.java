@@ -12,8 +12,8 @@ import de.dlr.ivf.tapas.analyzer.core.Core;
 import de.dlr.ivf.tapas.analyzer.core.CoreInputInterface;
 import de.dlr.ivf.tapas.analyzer.inputfileconverter.TapasTripReader;
 import de.dlr.ivf.tapas.analyzer.tum.regionanalyzer.general.TUMControlGeneral;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import javax.swing.*;

@@ -9,8 +9,8 @@
 package de.dlr.ivf.tapas.model.location;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 

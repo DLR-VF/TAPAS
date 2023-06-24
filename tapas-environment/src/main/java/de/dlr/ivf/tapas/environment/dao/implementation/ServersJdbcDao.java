@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas.environment.dao.implementation;
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.crud.read.DataReaderFactory;
 import de.dlr.ivf.api.io.conversion.ResultSetConverter;
 import de.dlr.ivf.tapas.environment.dao.ServersDao;

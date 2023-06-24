@@ -105,7 +105,7 @@ public class ResultSetConverter<T> implements Converter<ResultSet, T> {
     }
 
     private void checkForDefaultConstructor(Class<?> dtoClass) {
-        Constructor<?>[] constructors= dtoClass.getConstructors();
+        Constructor<?>[] constructors = dtoClass.getConstructors();
 
         Arrays.stream(constructors)
                 .filter(constructor -> constructor.getParameterCount() == 0)

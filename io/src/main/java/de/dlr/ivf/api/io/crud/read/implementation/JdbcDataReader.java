@@ -2,8 +2,8 @@ package de.dlr.ivf.api.io.crud.read.implementation;
 
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.crud.read.DataReader;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.configuration.model.Filter;
+import de.dlr.ivf.api.io.configuration.DataSource;
+import de.dlr.ivf.api.io.configuration.Filter;
 import lombok.Builder;
 import org.apache.commons.lang3.math.NumberUtils;
 

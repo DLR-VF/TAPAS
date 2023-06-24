@@ -9,8 +9,8 @@
 package de.dlr.ivf.tapas.tools;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 import java.sql.*;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Supplier;
 
 public class TPS_CapacityAdjuster{
 

@@ -8,15 +8,8 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.Map.Entry;
 

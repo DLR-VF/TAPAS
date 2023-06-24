@@ -2,9 +2,8 @@ package de.dlr.ivf.tapas.runtime.server;
 
 import de.dlr.ivf.tapas.choice.FeasibilityCalculator;
 import de.dlr.ivf.tapas.choice.LocationAndModeChooser;
-import de.dlr.ivf.tapas.choice.ModeSelector;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.person.TPS_Worker;
 

@@ -9,8 +9,8 @@
 package de.dlr.ivf.tapas.persistence.io;
 
 import com.csvreader.CsvReader;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

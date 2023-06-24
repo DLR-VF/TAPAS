@@ -3,8 +3,8 @@ package de.dlr.ivf.tapas.environment.configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import lombok.*;
 
 @ToString

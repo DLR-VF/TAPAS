@@ -1,4 +1,4 @@
-package de.dlr.ivf.api.io.configuration.model;
+package de.dlr.ivf.api.io.configuration;
 
 
 import lombok.AllArgsConstructor;

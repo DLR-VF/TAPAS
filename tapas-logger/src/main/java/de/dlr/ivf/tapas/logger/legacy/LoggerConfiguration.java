@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.logger;
+package de.dlr.ivf.tapas.logger.legacy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

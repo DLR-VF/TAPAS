@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.logger;
+package de.dlr.ivf.tapas.logger.legacy;
 
 public enum SeverityLogLevel {
 /**

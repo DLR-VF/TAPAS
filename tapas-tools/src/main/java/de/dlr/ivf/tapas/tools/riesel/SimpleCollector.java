@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.tools.riesel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 
 import java.io.IOException;
@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.function.Supplier;
 
 /**
  * This class distributes a given number of inhabitants on addresses found within the geometries.<br>

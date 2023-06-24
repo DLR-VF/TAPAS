@@ -14,8 +14,8 @@ import de.dlr.ivf.tapas.environment.gui.fx.model.ModelFactory;
 import de.dlr.ivf.tapas.environment.gui.fx.model.ServersModel;
 import de.dlr.ivf.tapas.environment.gui.fx.model.SimulationsModel;
 import de.dlr.ivf.tapas.environment.gui.fx.view.ViewHandler;
-import de.dlr.ivf.tapas.environment.gui.fx.view.controllers.ServerEntryController;
-import de.dlr.ivf.tapas.environment.gui.fx.view.controllers.SimulationEntryController;
+import de.dlr.ivf.tapas.environment.gui.fx.view.controllers.ServersController;
+import de.dlr.ivf.tapas.environment.gui.fx.view.controllers.SimulationsController;
 import de.dlr.ivf.tapas.environment.gui.fx.view.controllers.SimulationMonitorController;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.ViewModelFactory;
 import de.dlr.ivf.tapas.environment.gui.fx.viewmodel.implementation.ServersViewModel;
@@ -119,10 +119,10 @@ public class SimulationMonitor extends Application {
             loader.setControllerFactory(controllerClass -> {
                 if (controllerClass == SimulationMonitorController.class) {
                     return new SimulationMonitorController();
-                } else if (controllerClass == SimulationEntryController.class) {
-                    return new SimulationEntryController(simViewModel);
-                } else if (controllerClass == ServerEntryController.class) {
-                    return new ServerEntryController(serversViewModel);
+                } else if (controllerClass == SimulationsController.class) {
+                    return new SimulationsController(simViewModel);
+                } else if (controllerClass == ServersController.class) {
+                    return new ServersController(serversViewModel);
                 }
                 return null;
             });

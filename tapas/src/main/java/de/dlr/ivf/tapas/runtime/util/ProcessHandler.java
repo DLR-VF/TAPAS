@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.runtime.util;
 
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 
 import java.io.*;
 

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.logger;
+package de.dlr.ivf.tapas.logger.legacy;
 
 
 import de.dlr.ivf.tapas.util.IPInfo;

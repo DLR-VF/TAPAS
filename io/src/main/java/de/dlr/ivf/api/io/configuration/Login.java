@@ -1,21 +1,19 @@
-package de.dlr.ivf.api.io.configuration.model;
+package de.dlr.ivf.api.io.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.Optional;
-
+@Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class DataSource {
+public class Login {
 
     @JsonProperty
-    private final String uri;
+    private final String user;
 
-    public String getUri() {
-        return uri;
-    }
+    @JsonProperty
+    private final String password;
 }

@@ -1,6 +1,6 @@
 package de.dlr.ivf.api.io.util;
 
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.DataSource;
 
 import java.util.List;
 import java.util.stream.Collectors;

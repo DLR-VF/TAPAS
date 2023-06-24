@@ -94,7 +94,7 @@ public class TapasEnvironment {
             //remove the simulation
             removeSimulation(simulation); //todo think about what is happening with the exception
 
-            throw new IOException("Unable to persist parameter entriesfor simultation with id: "+simulation.getId(), e);
+            throw new IOException("Unable to persist parameter entries for simulation with id: "+simulation.getId(), e);
         }
 
         //now update the simulation state

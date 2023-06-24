@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas;
 
-import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.configuration.model.Filter;
+import de.dlr.ivf.api.io.configuration.DataSource;
+import de.dlr.ivf.api.io.configuration.Filter;
 import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;

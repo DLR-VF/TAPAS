@@ -2,7 +2,7 @@ package de.dlr.ivf.tapas.environment.dao.implementation;
 
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.util.PreparedStatementContext;
 import de.dlr.ivf.api.io.util.PreparedStatementParameterSetter;
 import de.dlr.ivf.api.io.util.QueryFactory;

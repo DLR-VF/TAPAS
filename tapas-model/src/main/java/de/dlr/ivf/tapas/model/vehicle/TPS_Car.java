@@ -8,15 +8,10 @@
 
 package de.dlr.ivf.tapas.model.vehicle;
 
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.mode.ModeUtils;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
-import de.dlr.ivf.tapas.model.plan.TPS_Plan;
-import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import lombok.Builder;
-
-import java.util.List;
 
 
 /**

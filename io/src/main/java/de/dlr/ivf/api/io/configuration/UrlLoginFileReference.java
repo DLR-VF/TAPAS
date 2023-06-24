@@ -1,4 +1,4 @@
-package de.dlr.ivf.api.io.configuration.model;
+package de.dlr.ivf.api.io.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
@@ -9,11 +9,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
-public class Login {
+public class UrlLoginFileReference {
 
     @JsonProperty
-    private final String user;
+    private final String urlFile;
 
     @JsonProperty
-    private final String password;
+    private final String loginFile;
 }

@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.model.location;
 
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 
 /**
  * This exception is used if there occurs an error in the capacity utilization.

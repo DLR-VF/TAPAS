@@ -8,12 +8,12 @@
 
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
-import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.configuration.model.Login;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.DataSource;
+import de.dlr.ivf.api.io.configuration.Login;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;

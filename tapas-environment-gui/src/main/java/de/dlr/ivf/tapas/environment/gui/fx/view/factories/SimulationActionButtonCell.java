@@ -7,6 +7,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.TableRow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Circle;
@@ -66,7 +67,9 @@ public class SimulationActionButtonCell extends TableCell<SimulationEntryViewMod
     private void initStartButton(Button button) {
         button.setGraphic(startSimWrapper);
         button.setOnAction(event -> {
-
+            TableRow<SimulationEntryViewModel> row = getTableRow();
+            SimulationEntryViewModel simulationEntry = row.getItem();
+            simulationEntry.simulationStateProperty().set(SimulationState.RUNNING);
         });
     }
 

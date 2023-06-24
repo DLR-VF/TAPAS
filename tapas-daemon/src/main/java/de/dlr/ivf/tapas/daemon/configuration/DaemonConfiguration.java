@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import de.dlr.ivf.tapas.environment.configuration.EnvironmentConfiguration;
-import de.dlr.ivf.tapas.logger.LoggerConfiguration;
+import de.dlr.ivf.tapas.logger.legacy.LoggerConfiguration;
 import lombok.*;
 
 /**

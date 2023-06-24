@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.model.parameter;
 
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 
 import de.dlr.ivf.tapas.model.Matrix;
 import org.apache.commons.lang3.tuple.MutablePair;

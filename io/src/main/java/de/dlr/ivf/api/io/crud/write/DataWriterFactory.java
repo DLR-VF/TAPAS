@@ -1,6 +1,6 @@
 package de.dlr.ivf.api.io.crud.write;
 
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.conversion.JavaToSqlTypeConverter;
 import de.dlr.ivf.api.io.crud.write.implementation.JdbcBatchWriter;
 import de.dlr.ivf.api.io.crud.write.implementation.SimpleJdbcWriter;

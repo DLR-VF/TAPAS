@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.model.plan;
 
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanAcceptance;

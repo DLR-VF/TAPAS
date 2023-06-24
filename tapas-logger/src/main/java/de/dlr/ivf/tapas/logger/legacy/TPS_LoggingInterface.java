@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package de.dlr.ivf.tapas.logger;
+package de.dlr.ivf.tapas.logger.legacy;
 
 /**
  * Interface for the logging function. This interface also holds the enums for the HierarchyLogLevel and SeverenceLogLevel.

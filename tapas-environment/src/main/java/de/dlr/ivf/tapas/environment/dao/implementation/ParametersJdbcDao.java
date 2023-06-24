@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.environment.dao.implementation;
 
-import de.dlr.ivf.api.io.configuration.model.DataSource;
+import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
 import de.dlr.ivf.api.io.conversion.ResultSetConverter;

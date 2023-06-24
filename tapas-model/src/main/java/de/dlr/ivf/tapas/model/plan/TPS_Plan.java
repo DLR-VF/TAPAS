@@ -16,13 +16,12 @@ import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
 import de.dlr.ivf.tapas.model.constants.TPS_Income;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
-import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.scheme.*;

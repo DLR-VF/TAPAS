@@ -5,16 +5,15 @@ module de.dlr.ivf.api.io {
     requires java.sql;
     requires org.postgresql.jdbc;
 
-    requires de.dlr.ivf.tapas.logger;
     requires de.dlr.ivf.api.converter;
 
     requires java.desktop;
     requires org.apache.commons.lang3;
     requires com.zaxxer.hikari;
 
-    exports de.dlr.ivf.api.io.configuration.model;
+    exports de.dlr.ivf.api.io.configuration;
 
-    opens de.dlr.ivf.api.io.configuration.model to com.fasterxml.jackson.databind;
+    opens de.dlr.ivf.api.io.configuration to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.api.io.crud.read;
     exports de.dlr.ivf.api.io.annotation;
     exports de.dlr.ivf.api.io.util;

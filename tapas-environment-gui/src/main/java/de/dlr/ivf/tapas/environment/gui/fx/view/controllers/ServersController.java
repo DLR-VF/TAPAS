@@ -13,7 +13,7 @@ import javafx.scene.control.TableView;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class ServerEntryController implements Initializable {
+public class ServersController implements Initializable {
 
     @FXML
     TableView<ServerEntryViewModel> serverTable;
@@ -34,7 +34,7 @@ public class ServerEntryController implements Initializable {
 
     private final ServersViewModel viewModel;
 
-    public ServerEntryController(ServersViewModel serversViewModel) {
+    public ServersController(ServersViewModel serversViewModel) {
         this.viewModel = serversViewModel;
     }
 

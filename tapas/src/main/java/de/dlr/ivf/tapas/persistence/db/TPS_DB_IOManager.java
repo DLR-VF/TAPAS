@@ -8,16 +8,14 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
-import de.dlr.ivf.api.io.configuration.model.DataSource;
-import de.dlr.ivf.api.io.configuration.model.Filter;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
-import de.dlr.ivf.tapas.logger.LogHierarchy;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.legacy.TPS_ModeSet;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;

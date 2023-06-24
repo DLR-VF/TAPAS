@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.logger.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
@@ -14,7 +14,6 @@ import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.vehicle.CarController;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
-import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -24,7 +23,6 @@ import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 

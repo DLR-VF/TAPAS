@@ -2,13 +2,16 @@ package de.dlr.ivf.api.io.connection;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
 
 import java.sql.Connection;
+import java.lang.System.Logger;
 
 public class ConnectionPool{
 
     private final HikariDataSource connectionPool;
+
+    private Logger logger = System.getLogger(ConnectionPool.class.getName());
     public ConnectionPool(ConnectionDetails connectionDetails){
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(connectionDetails.getUrl());

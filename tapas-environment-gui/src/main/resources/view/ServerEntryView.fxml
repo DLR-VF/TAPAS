@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="de.dlr.ivf.tapas.environment.gui.fx.view.controllers.ServerEntryController">
+            fx:controller="de.dlr.ivf.tapas.environment.gui.fx.view.controllers.ServersController">
 
     <ScrollPane fx:id="serverScrollPane" layoutX="10.0" layoutY="10.0" AnchorPane.bottomAnchor="0.0"
                 AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

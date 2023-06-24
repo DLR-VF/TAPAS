@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.tools.riesel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.configuration.model.ConnectionDetails;
+import de.dlr.ivf.api.io.configuration.ConnectionDetails;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 
 import java.io.IOException;
@@ -25,7 +25,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
 /**
  * This tool distributes households given on some geometries on the addresses

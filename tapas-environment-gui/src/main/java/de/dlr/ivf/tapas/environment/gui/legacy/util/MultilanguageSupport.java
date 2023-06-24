@@ -10,8 +10,8 @@ package de.dlr.ivf.tapas.environment.gui.legacy.util;
 
 
 
-import de.dlr.ivf.tapas.logger.SeverityLogLevel;
-import de.dlr.ivf.tapas.logger.TPS_Logger;
+import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
+import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 
 import javax.swing.*;
 import java.io.*;
