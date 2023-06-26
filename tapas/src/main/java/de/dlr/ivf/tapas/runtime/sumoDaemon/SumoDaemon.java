@@ -11,6 +11,7 @@ package de.dlr.ivf.tapas.runtime.sumoDaemon;
 import de.dlr.ivf.api.io.configuration.ConnectionDetails;
 import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.configuration.Login;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
@@ -29,12 +30,10 @@ import de.dlr.ivf.tapas.misc.Helpers;
 
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.function.Supplier;
 
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class SumoDaemon extends Thread {
@@ -85,7 +84,7 @@ public class SumoDaemon extends Thread {
                     ParamValue.DB_PORT) + "/" + this.parameterClass.getString(ParamString.DB_DBNAME);
 
             ConnectionDetails connectionDetails = new ConnectionDetails(url, login);
-            Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(connectionDetails);
+            ConnectionPool connectionSupplier = new ConnectionPool(connectionDetails);
             this.dbIo = new TPS_DB_IO(connectionSupplier, this.parameterClass);
             this.manager = new TPS_DB_Connector(this.parameterClass);
 

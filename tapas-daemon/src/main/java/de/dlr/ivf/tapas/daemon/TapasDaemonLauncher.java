@@ -2,15 +2,35 @@ package de.dlr.ivf.tapas.daemon;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.daemon.configuration.DaemonConfiguration;
+import de.dlr.ivf.tapas.daemon.task.ServerStateMonitor;
+import de.dlr.ivf.tapas.daemon.task.SimulationLaunchMonitor;
+import de.dlr.ivf.tapas.environment.TapasEnvironment;
+import de.dlr.ivf.tapas.environment.configuration.EnvironmentConfiguration;
+import de.dlr.ivf.tapas.environment.dao.DaoFactory;
+import de.dlr.ivf.tapas.environment.dao.ServersDao;
+import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
+import de.dlr.ivf.tapas.environment.dto.ServerEntry;
+import de.dlr.ivf.tapas.environment.model.ServerState;
+import de.dlr.ivf.tapas.util.IPInfo;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+
 public class TapasDaemonLauncher {
+
+    private static Logger logger = System.getLogger(ConnectionPool.class.getName());
 
     /**
      * Flow:
@@ -38,6 +58,47 @@ public class TapasDaemonLauncher {
             //read the configuration file with Jackson
             DaemonConfiguration configDto = new ObjectMapper().readValue(configFile.toFile(), DaemonConfiguration.class);
 
+            EnvironmentConfiguration environment = configDto.getTapasEnvironment();
+
+            ConnectionPool connectionPool = new ConnectionPool(environment.getConnectionDetails());
+
+
+            ServersDao serversDao = DaoFactory.newJdbcServersDao(connectionPool, environment.getServerTable());
+            SimulationsDao simulationsDao = DaoFactory.newJdbcSimulationsDao(connectionPool, environment.getSimulationsTable());
+
+            TapasEnvironment tapasEnvironment = TapasEnvironment.builder()
+                    .parametersDao(DaoFactory.newJdbcParametersDao(connectionPool, environment.getParameterTable()))
+                    .serversDao(serversDao)
+                    .simulationsDao(simulationsDao)
+                    .build();
+
+            ServerEntry serverEntry = ServerEntry.builder()
+                    .serverIp(IPInfo.getEthernetInetAddress().getHostAddress())
+                    .serverCores(Runtime.getRuntime().availableProcessors())
+                    .serverName(IPInfo.getHostname())
+                    .serverUsage(0)
+                    .serverState(ServerState.SLEEPING)
+                    .build();
+
+            ServerStateMonitor serverStateMonitor = new ServerStateMonitor(serversDao, serverEntry);
+            SimulationLaunchMonitor simulationLaunchMonitor = new SimulationLaunchMonitor(simulationsDao, serverEntry.getServerIp());
+
+            TapasDaemon tapasDaemon = TapasDaemon.builder()
+                    .tapasEnvironment(tapasEnvironment)
+                    .serverStateMonitor(serverStateMonitor)
+                    .serverEntry(serverEntry)
+                    .serverUpdateRate(configDto.getServerUpdateRate())
+                    .simTablePollingRate(configDto.getSimTablePollingRate())
+                    .simulationLaunchMonitor(simulationLaunchMonitor)
+                    .build();
+
+            ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+            scheduledExecutorService.submit(serverStateMonitor);
+            scheduledExecutorService.scheduleAtFixedRate(serverStateMonitor, 1, 5, TimeUnit.SECONDS);
+
+            Thread daemonThread = new Thread(tapasDaemon);
+            daemonThread.start();
+
 
         } catch (DatabindException e) {
             e.printStackTrace(); //throw new IllegalArgumentException("The supplied file does not map to a DaemonConfiguration.", e);
@@ -46,23 +107,5 @@ public class TapasDaemonLauncher {
         } catch (IllegalArgumentException e){
             e.printStackTrace();
         }
-
-        //initialize the connection Provider
-//        ConnectionManager<Connection> connectionManager = ConnectionManager.newJdbcConnectionManager();
-//        connectionManager.a
-//
-//    }
-//
-//        private Path composeLogDirPath(){
-//        String dirSeparator = System.getProperty("file.separator");
-//        String dirName = getString(ParamString.FILE_WORKING_DIRECTORY);
-//
-//        if (!dirName.endsWith(dirSeparator)) {
-//            dirName = dirName + dirSeparator;
-//        }
-//
-//        dirName = dirName + LOG_DIR + getString(ParamString.RUN_IDENTIFIER);
-
-        //return Paths.get("./");
     }
 }

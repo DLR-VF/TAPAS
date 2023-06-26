@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 import java.io.IOException;
@@ -36,7 +37,7 @@ public class TapasLauncher{
             parameterClass.loadRuntimeParameters(Paths.get(configDto.getRunTimeFile()).toFile());
 
             TapasInitializer initializer = new TapasInitializer(parameterClass,
-                    () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(configDto.getConnectionDetails()));
+                    new ConnectionPool(configDto.getConnectionDetails()));
 
             Tapas tapas = initializer.init();
 

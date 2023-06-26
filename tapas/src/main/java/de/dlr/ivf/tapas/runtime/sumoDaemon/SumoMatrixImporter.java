@@ -9,6 +9,7 @@
 package de.dlr.ivf.tapas.runtime.sumoDaemon;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.io.util.SqlArrayUtils;
 import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
@@ -24,7 +25,6 @@ import java.nio.file.Paths;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 
 /**
@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 public class SumoMatrixImporter {
 
     private final SumoMatrixImporterConfig config;
+    private final ConnectionPool connectionSupplier;
     /**
      * A reference to the existing converter, which provides several helper functions
      */
@@ -50,6 +51,7 @@ public class SumoMatrixImporter {
      */
     public SumoMatrixImporter(SumoMatrixImporterConfig config) {
         this.config = config;
+        this.connectionSupplier = new ConnectionPool(config.getConnectionDetails());
     }
 
     /**
@@ -86,9 +88,7 @@ public class SumoMatrixImporter {
             String tableNameRelations = schema + "." + relationEntries;
             double[] tt, dist;
 
-        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getConnectionDetails());
-
-        try (Connection connection = connectionSupplier.get()){
+        try (Connection connection = connectionSupplier.borrowObject()){
 
             int id = 0;
 
@@ -179,7 +179,6 @@ public class SumoMatrixImporter {
 
     public void writeMatrix(Matrix matrix, String matrixName) {
 
-        Supplier<Connection> connectionSupplier = () -> JdbcConnectionProvider.newJdbcConnectionProvider().get(config.getConnectionDetails());
         //load the data from the db
         String query = "SELECT * FROM " + config.getMatricesTable().getUri() + " WHERE \"matrix_name\" = '" +
                 matrixName + "'";
@@ -205,7 +204,7 @@ public class SumoMatrixImporter {
             }
         }
         writeStringToFile(query, "C:\\temp\\sumo-" + matrixName + ".sql");
-        try(Connection connection = connectionSupplier.get();
+        try(Connection connection = connectionSupplier.borrowObject();
             Statement st = connection.createStatement()){
             st.execute(query);
         }catch (SQLException e){

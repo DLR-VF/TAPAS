@@ -19,4 +19,6 @@ public interface SimulationsDao {
     void update(int simId, SimulationEntry simulation) throws DaoUpdateException;
 
     void remove(int simId) throws DaoDeleteException;
+
+    SimulationEntry requestSimulation(String serverIp);
 }

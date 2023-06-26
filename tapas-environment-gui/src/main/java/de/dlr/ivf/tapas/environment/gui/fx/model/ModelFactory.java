@@ -1,8 +1,6 @@
 package de.dlr.ivf.tapas.environment.gui.fx.model;
 
 import de.dlr.ivf.tapas.environment.TapasEnvironment;
-import de.dlr.ivf.tapas.environment.dao.ServersDao;
-import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.gui.fx.model.implementation.ServersModelManager;
 import de.dlr.ivf.tapas.environment.gui.fx.model.implementation.SimulationsModelManager;
 

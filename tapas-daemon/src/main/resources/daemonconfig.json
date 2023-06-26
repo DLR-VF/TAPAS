@@ -1,41 +1,22 @@
 {
   "tapasEnvironment" : {
-    "references" : {
-      "urlFile" : "D:\\TAPAS_modularity\\tapas_daemon\\src\\main\\resources\\urls.txt",
-      "loginFile" : "D:\\TAPAS_modularity\\tapas_daemon\\src\\main\\resources\\logins.txt"
+    "connectionDetails" : {
+      "url" : "jdbc:postgresql://localhost:5432/tapas_new",
+      "login" : {
+        "user" : "postgres",
+        "password" : "postgres"
+      }
     },
     "simulationsTable" : {
-      "type" : "reference",
-      "reference" : {
-        "urlReference" : "tapasdb",
-        "loginReference" : "postgres"
-      },
       "uri" : "public.simulations"
     },
     "serverTable" : {
-      "type" : "reference",
-      "reference" : {
-        "urlReference" : "tapasdb",
-        "loginReference" : "postgres"
-      },
       "uri" : "public.servers"
+    },
+    "parameterTable" : {
+      "uri" : "public.simulation_parameters"
     }
   },
-  "loggerConfiguration" : {
-    "hierarchyLogLevelMask": "ALL",
-    "severanceLogLevelMask": "INFO",
-    "logLevels": {
-      "LOG_LEVEL_ALL": "ALL",
-      "LOG_LEVEL_DEBUG": "DEBUG",
-      "LOG_LEVEL_ERROR": "ERROR",
-      "LOG_LEVEL_FATAL": "FATAL",
-      "LOG_LEVEL_FINE": "DEBUG",
-      "LOG_LEVEL_FINER": "DEBUG",
-      "LOG_LEVEL_FINEST": "DEBUG",
-      "LOG_LEVEL_INFO": "INFO",
-      "LOG_LEVEL_OFF": "OFF",
-      "LOG_LEVEL_SEVERE": "WARN",
-      "LOG_LEVEL_WARN": "WARN"
-    }
-  }
+  "simTablePollingRate" : 10,
+  "serverUpdateRate" : 10
 }

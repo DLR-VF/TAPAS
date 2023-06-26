@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas;
 
 import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.configuration.Filter;
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;
@@ -23,12 +24,9 @@ import de.dlr.ivf.tapas.persistence.io.DataStore.DataStoreBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.constants.PersonGroups.PersonGroupsBuilder;
 
-
-import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class TapasInitializer {
@@ -36,7 +34,7 @@ public class TapasInitializer {
     private final TPS_ParameterClass parameters;
     private final TPS_DB_IO dbIo;
 
-    public TapasInitializer(TPS_ParameterClass parameters, Supplier<Connection> connectionSupplier){
+    public TapasInitializer(TPS_ParameterClass parameters, ConnectionPool connectionSupplier){
         this.parameters = parameters;
         this.dbIo = new TPS_DB_IO(connectionSupplier, parameters);
     }

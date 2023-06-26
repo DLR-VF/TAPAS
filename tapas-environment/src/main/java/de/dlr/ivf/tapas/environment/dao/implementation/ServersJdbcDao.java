@@ -48,6 +48,8 @@ public class ServersJdbcDao implements ServersDao {
 
     @Override
     public void update(ServerEntry serverEntry) {
+        Collection<ServerEntry> serverEntries = this.load();
+
 
     }
 }

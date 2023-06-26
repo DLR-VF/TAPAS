@@ -8,6 +8,7 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
+import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
@@ -59,7 +60,7 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
      * @throws ClassNotFoundException
      * @throws IOException
      */
-    public TPS_DB_IOManager(TPS_ParameterClass parameterClass, Supplier<Connection> connectionSupplier) throws IOException, ClassNotFoundException {
+    public TPS_DB_IOManager(TPS_ParameterClass parameterClass, ConnectionPool connectionSupplier) throws IOException, ClassNotFoundException {
         this.dbConnector = new TPS_DB_Connector(parameterClass.getString(ParamString.DB_USER),
                 parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
         this.dbIO = new TPS_DB_IO(this,connectionSupplier);

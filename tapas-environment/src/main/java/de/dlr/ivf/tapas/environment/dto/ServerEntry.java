@@ -25,5 +25,6 @@ public class ServerEntry {
     private double serverUsage;
 
     @Column("server_state")
+    @Setter
     private ServerState serverState;
 }

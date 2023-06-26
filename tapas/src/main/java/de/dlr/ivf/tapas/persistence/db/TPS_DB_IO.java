@@ -63,7 +63,6 @@ import de.dlr.ivf.tapas.model.location.ScenarioTypeValues.ScenarioTypeValuesBuil
 
 import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
-import org.apache.commons.pool2.ObjectPool;
 
 import java.io.IOException;
 import java.net.InetAddress;

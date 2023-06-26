@@ -16,5 +16,4 @@ module de.dlr.ivf.tapas.environment {
     opens de.dlr.ivf.tapas.environment.configuration to com.fasterxml.jackson.databind;
     opens de.dlr.ivf.tapas.environment.dto to de.dlr.ivf.api.io;
     exports de.dlr.ivf.tapas.environment.dao;
-    exports de.dlr.ivf.tapas.environment.dao.implementation;
 }

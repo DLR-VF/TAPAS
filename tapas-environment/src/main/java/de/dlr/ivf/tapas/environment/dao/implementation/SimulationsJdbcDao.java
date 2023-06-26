@@ -14,10 +14,7 @@ import de.dlr.ivf.tapas.environment.dao.exception.DaoUpdateException;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import lombok.Builder;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -120,5 +117,37 @@ public class SimulationsJdbcDao implements SimulationsDao {
         }finally {
             connectionPool.returnObject(connection);
         }
+    }
+
+    /**
+     * As simulation requests happen in a concurrent environment from different servers, manual control is taken over
+     * the transaction.
+     * @param serverIp the server ip that this simulation will be registered to
+     * @return the simulation to process
+     */
+    @Override
+    public SimulationEntry requestSimulation(String serverIp) {
+
+        Connection connection = connectionPool.borrowObject();
+        try {
+            connection.setAutoCommit(false);
+
+            String sqlLock = "LOCK TABLE " + simulationsTable.getUri() + " IN ROW EXCLUSIVE MODE;";
+            Statement st = connection.createStatement();
+            if(st.execute(sqlLock)){
+
+            }
+                //PreparedStatement ps = connection.prepareStatement()
+
+
+
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+
+        return null;
     }
 }
