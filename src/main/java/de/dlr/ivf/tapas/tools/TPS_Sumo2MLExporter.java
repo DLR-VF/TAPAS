@@ -5,12 +5,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.XMLConstants;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.*;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,7 +17,7 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 /**
- * THis class provides all export fuctionality for the export to the "Mobilitätslabor"
+ * THis class provides all export functionality for the export to the "Mobilitätslabor"
  */
 public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
@@ -41,7 +40,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         if(output.endsWith(File.separator))
             output = output.substring(0, output.lastIndexOf(File.separatorChar));
 
-        //gett all the needed strings and files as automatic as possible!
+        //get all the needed strings and files as automatic as possible!
         TPS_Sumo2MLExporter worker = new TPS_Sumo2MLExporter();
         String coreSchema =  worker.dbCon.readSingleParameter(key,"DB_SCHEMA_CORE");
         String activityTableName = coreSchema+ worker.dbCon.readSingleParameter(key,"DB_TABLE_CONSTANT_ACTIVITY");
@@ -59,7 +58,9 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
         worker.readActivityMapping(activityTableName);
         worker.readModeCodes(modeTableName);
-        worker.processTAZList(tazName,tazTableName);
+        worker.processEdgeTypes(netName);
+        worker.loadEdgeAttribute(netName);
+        worker.processTAZList(tazName);
         worker.readTrips(tripTable);
         worker.loadRoutes(routeName);
 
@@ -75,23 +76,24 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
     final int TIME_BIN = 2*60*60; //two hours in seconds
     final double[] DIST_BINS ={500,1000,2500,5000,7500,10000,15000,20000,30000,9999999};
     Map<Integer,Integer> activityMap = new HashMap<>();
-    Set<Integer> possibleActivites = new HashSet<>();
+    Set<Integer> possibleActivities = new HashSet<>();
     Map<Integer,String> modeMap = new HashMap<>();
 
     public class EdgeAttribute{
         String id ="";
+        double length = -1;
         int lastTime, lastActivity, lastDist; //buffer these values in case this becomes the last entry of a trip
         int[] timeCounts = new int[(24*60*60)/TIME_BIN];
         int[] distCount = new int[DIST_BINS.length];
-        int[] activityCount = new int[possibleActivites.size()];
+        int[] activityCount = new int[possibleActivities.size()];
 
         int[] timeCountsStart = new int[(24*60*60)/TIME_BIN];
         int[] distCountStart = new int[DIST_BINS.length];
-        int[] activityCountStart = new int[possibleActivites.size()];
+        int[] activityCountStart = new int[possibleActivities.size()];
 
         int[] timeCountsEnd = new int[(24*60*60)/TIME_BIN];
         int[] distCountEnd = new int[DIST_BINS.length];
-        int[] activityCountEnd = new int[possibleActivites.size()];
+        int[] activityCountEnd = new int[possibleActivities.size()];
 
 
         public void addTrip(int time, int distIndex, int purposeIndex){
@@ -121,89 +123,89 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
 
         public String getCSVHeader(){
-            String s = "id";
+            StringBuilder s = new StringBuilder("id");
             for (int j =0; j<timeCounts.length; j++) {
-                s += "\t" + "t"+j;
+                s.append("\t" + "t").append(j);
             }
 
             for (int j =0; j<distCount.length; j++) {
-                s += "\t" + "d"+j;
+                s.append("\t" + "d").append(j);
             }
 
             for (int j =0; j<activityCount.length; j++) {
-                s += "\t" + "a"+j;
+                s.append("\t" + "a").append(j);
             }
 
             for (int j =0; j<timeCountsStart.length; j++) {
-                s += "\t" + "start_t"+j;
+                s.append("\t" + "start_t").append(j);
             }
 
             for (int j =0; j<distCountStart.length; j++) {
-                s += "\t" + "start_d"+j;
+                s.append("\t" + "start_d").append(j);
             }
 
             for (int j =0; j<activityCountStart.length; j++) {
-                s += "\t" + "start_a"+j;
+                s.append("\t" + "start_a").append(j);
             }
 
             for (int j =0; j<timeCountsEnd.length; j++) {
-                s += "\t" + "end_t"+j;
+                s.append("\t" + "end_t").append(j);
             }
 
             for (int j =0; j<distCountEnd.length; j++) {
-                s += "\t" + "end_d"+j;
+                s.append("\t" + "end_d").append(j);
             }
 
             for (int j =0; j<activityCountEnd.length; j++) {
-                s += "\t" + "end_a"+j;
+                s.append("\t" + "end_a").append(j);
             }
 
-            s+="\n";
-            return s;
+            s.append("\n");
+            return s.toString();
         }
 
 
         @Override
         public String toString() {
-            String s = this.id;
+            StringBuilder s = new StringBuilder(this.id);
             for (Integer i : timeCounts) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : distCount) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : activityCount) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : timeCountsStart) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : distCountStart) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : activityCountStart) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : timeCountsEnd) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : distCountEnd) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
             for (Integer i : activityCountEnd) {
-                s += "\t" + i.toString();
+                s.append("\t").append(i.toString());
             }
 
-            s+="\n";
-            return s;
+            s.append("\n");
+            return s.toString();
         }
     }
 
@@ -211,101 +213,152 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
     public class TAZAttribute{
         String id ="";
 
-        int[] timeCountsStart = new int[(24*60*60)/TIME_BIN];
-        int[][] distCountStart = new int[timeCountsStart.length][DIST_BINS.length];
-        int[][] activityCountStart = new int[timeCountsStart.length][possibleActivites.size()];
+        int[][] distCountStart = new int[(24*60*60)/TIME_BIN][DIST_BINS.length];
+        int[][] activityCountStart = new int[(24*60*60)/TIME_BIN][possibleActivities.size()];
 
-        int[] timeCountsEnd = new int[(24*60*60)/TIME_BIN];
-        int[][] distCountEnd = new int[timeCountsStart.length][DIST_BINS.length];
-        int[][] activityCountEnd = new int[timeCountsStart.length][possibleActivites.size()];
+        int[][] distCountEnd = new int[(24*60*60)/TIME_BIN][DIST_BINS.length];
+        int[][] activityCountEnd = new int[(24*60*60)/TIME_BIN][possibleActivities.size()];
+
+        double[] performanceStart = new double[(24*60*60)/TIME_BIN];
+        double[] performanceEnd = new double[(24*60*60)/TIME_BIN];
+        double[] performanceNet = new double[(24*60*60)/TIME_BIN];
+        int[][] personActivities= new int[(24*60*60)/TIME_BIN][possibleActivities.size()];
+        int[][] personDistances= new int[(24*60*60)/TIME_BIN][DIST_BINS.length];
 
 
-
-        public void addTripToStart(int time, int distIndex, int purposeIndex){
+        public void addTripToStart(int time, int distIndex, int purposeIndex, double distance){
             int tIndex = ((time + 24*60*60)%(24*60*60))/TIME_BIN;
-            timeCountsStart[tIndex]++;
+
             distCountStart[tIndex][distIndex]++;
             activityCountStart[tIndex][purposeIndex]++;
+            performanceStart[tIndex]+=distance;
         }
 
-        public void addTripToEnd(int time, int distIndex, int purposeIndex){
+        public void addTripToTrafficCount(int time, int distIndex, int purposeIndex){
             int tIndex = ((time + 24*60*60)%(24*60*60))/TIME_BIN;
-            timeCountsEnd[tIndex]++;
+            personActivities[tIndex][purposeIndex]++;
+            personDistances[tIndex][distIndex]++;
+        }
+
+        public void addTripToEnd(int time, int distIndex, int purposeIndex, double distance){
+            int tIndex = ((time + 24*60*60)%(24*60*60))/TIME_BIN;
             distCountEnd[tIndex][distIndex]++;
             activityCountEnd[tIndex][purposeIndex]++;
+            performanceEnd[tIndex]+=distance;
+        }
+
+        public void addNetPerformance(int time, double distance){
+            int tIndex = ((time + 24*60*60)%(24*60*60))/TIME_BIN;
+            performanceNet[tIndex]+=distance;
         }
 
         public String getCSVHeader(){
-            String s = "id";
-            for (int j =0; j<timeCountsStart.length; j++) {
-                s += "\t" + "t"+j;
+            StringBuilder s = new StringBuilder("id");
+
+            for (int i =0; i<performanceStart.length; i++) {
+                s.append("\ttp_start_t").append(i);
             }
 
-            for (int j =0; j<timeCountsStart.length; j++) {
+            for (int i =0; i<performanceEnd.length; i++) {
+                s.append("\ttp_end_t").append(i);
+            }
+
+            for (int i =0; i<performanceNet.length; i++) {
+                s.append("\ttp_local_t").append(i);
+            }
+
+            for (int j =0; j<personActivities.length; j++) {
+                for (int i =0; i<personActivities[j].length; i++) {
+                    s.append("\ttraffic_activities_t").append(j).append("_a").append(i);
+                }
+            }
+
+
+              for (int j =0; j<personDistances.length; j++) {
+                  for (int i =0; i<personDistances[j].length; i++) {
+                        s.append("\ttraffic_distances_t").append(j).append("_d").append(i);
+                  }
+            }
+
+            for (int j =0; j<distCountStart.length; j++) {
                 for (int i =0; i<distCountStart[j].length; i++) {
-                    s += "\tstart_t"+j+"_d"+i;
+                    s.append("\tstart_t").append(j).append("_d").append(i);
                 }
             }
-            for (int j =0; j<timeCountsStart.length; j++) {
+            for (int j =0; j<activityCountStart.length; j++) {
                 for (int i =0; i<activityCountStart[j].length; i++) {
-                    s += "\tstart_t"+j+"_a"+i;
+                    s.append("\tstart_t").append(j).append("_a").append(i);
                 }
             }
-            for (Integer i : timeCountsEnd) {
-                s += "\t" + i.toString();
-            }
 
-            for (int j =0; j<timeCountsEnd.length; j++) {
+            for (int j =0; j<distCountEnd.length; j++) {
                 for (int i =0; i<distCountEnd[j].length; i++) {
-                    s += "\tend_t"+j+"_d"+i;
+                    s.append("\tend_t").append(j).append("_d").append(i);
                 }
             }
 
-            for (int j =0; j<timeCountsEnd.length; j++) {
+            for (int j =0; j<activityCountEnd.length; j++) {
                 for (int i =0; i<activityCountEnd[j].length; i++) {
-                    s += "\tend_t"+j+"_a"+i;
+                    s.append("\tend_t").append(j).append("_a").append(i);
                 }
             }
-            s+="\n";
+            s.append("\n");
 
-            return s;
+            return s.toString();
         }
 
         @Override
         public String toString() {
-            String s = this.id;
+            StringBuilder s = new StringBuilder(this.id);
 
-            for (Integer i : timeCountsStart) {
-                s += "\t" + i.toString();
-            }
-
-            for (int j =0; j<timeCountsStart.length; j++) {
-                for (Integer i : distCountStart[j]) {
-                    s += "\t" + i.toString();
-                }
-            }
-            for (int j =0; j<timeCountsStart.length; j++) {
-                for (Integer i : activityCountStart[j]) {
-                    s += "\t" + i.toString();
-                }
-            }
-            for (Integer i : timeCountsEnd) {
-                s += "\t" + i.toString();
+            for (Double i : performanceStart) {
+                s.append("\t+").append((Integer.valueOf(i.intValue())).toString()); // this way the int gets nicely formated
             }
 
-            for (int j =0; j<timeCountsEnd.length; j++) {
-                for (Integer i : distCountEnd[j]) {
-                    s += "\t" + i.toString();
+            for (Double i: performanceEnd) {
+                s.append("\t+").append(Integer.valueOf((i.intValue())).toString());
+            }
+
+            for (Double i: performanceNet) {
+                s.append("\t+").append(Integer.valueOf((i.intValue())).toString());
+            }
+
+            for (int[] personActivity : personActivities) {
+                for (Integer i : personActivity) {
+                    s.append("\t+").append(i.toString());
                 }
             }
 
-            for (int j =0; j<timeCountsEnd.length; j++) {
-                for (Integer i : activityCountEnd[j]) {
-                    s += "\t" + i.toString();
+            for (int[] personDistance : personDistances) {
+                for (Integer i : personDistance) {
+                    s.append("\t+").append(i.toString());
                 }
             }
-            s+="\n";
-            return s;
+
+            for (int[] ints : distCountStart) {
+                for (Integer i : ints) {
+                    s.append("\t").append(i.toString());
+                }
+            }
+            for (int[] ints : activityCountStart) {
+                for (Integer i : ints) {
+                    s.append("\t").append(i.toString());
+                }
+            }
+
+            for (int[] ints : distCountEnd) {
+                for (Integer i : ints) {
+                    s.append("\t").append(i.toString());
+                }
+            }
+
+            for (int[] ints : activityCountEnd) {
+                for (Integer i : ints) {
+                    s.append("\t").append(i.toString());
+                }
+            }
+            s.append("\n");
+            return s.toString();
         }
     }
 
@@ -331,6 +384,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         String query = "";
         try {
             int activity, mode, p_id, hh_id, startTimeMin;
+            System.out.println("Loading TAPAS trips");
             String id;
             //load the mapping
             query = "SELECT p_id,hh_id,start_time_min, activity, mode "+
@@ -342,7 +396,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                 startTimeMin = rs.getInt("start_time_min");
                 activity = rs.getInt("activity");
                 mode = rs.getInt("mode");
-                id = Integer.toString(p_id)+"_"+ Integer.toString(hh_id)+"_"+ Integer.toString(startTimeMin);
+                id = p_id+"_"+ hh_id+"_"+ startTimeMin;
                 TripAttribute a = new  TripAttribute();
                 a.activity=activity;
                 a.mode = mode;
@@ -361,6 +415,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         try {
             int zbeCode, tapasCode;
             //load the mapping
+            System.out.println("Loading activity attributes");
             query = "SELECT code_zbe, code_tapas "+
                     "FROM "+activity_codes;
             ResultSet rs = this.dbCon.executeQuery(query, this);
@@ -369,7 +424,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                 tapasCode = rs.getInt("code_tapas");
                 if(tapasCode >=0) {
                     this.activityMap.put(zbeCode, tapasCode);
-                    possibleActivites.add(tapasCode);
+                    possibleActivities.add(tapasCode);
                 }
             }
             rs.close();
@@ -385,6 +440,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         try {
             String name;
             int code;
+            System.out.println("Loading modes");
             //load the mapping
             query = "SELECT name, code_mct "+
                     "FROM "+mode_codes;
@@ -402,77 +458,12 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         }
     }
 
-
-    public void exportNetAttribute(String net, String output){
+    public void loadEdgeAttribute(String net){
 
 
         try {
-
-
-            // parse net XML file
-            Document doc = openXMLDocument(net);
-
-            System.out.println("Root Element :" + doc.getDocumentElement().getNodeName());
-
-            Map<String,String> edgeTypes = processEdgeTypes(doc);
-
-            // get <edge>
-            NodeList list = doc.getElementsByTagName("edge");
-            System.out.println("Edges to process:" + list.getLength());
-            //prepare output
-            FileWriter fw = new FileWriter(output);
-            fw.write("id\tmotorway\ttrunk\tprimary\tsecondary\ttertiary\tminor\tpath\tcycleway\trailway\ttaz\n");
-            int count =0;
-            for (int temp = 0; temp < list.getLength() ; temp++) {
-                if(count %1000 ==0){
-                    System.out.println("Processed edges:"+count);
-                    fw.flush();
-                }
-                count++;
-                Node node = list.item(temp);
-
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-
-                    Element element = (Element) node;
-
-                    // get edge's attribute
-                    String id = element.getAttribute("id");
-                    // get type
-                    String type = element.getAttribute("type");
-                    String[] types = type.split("[|]");
-                    //tokenize types
-                    if(type.length()>0 && types.length>0) {
-                        for (int i = 0; i < types.length; i++) {
-                            types[i] = edgeTypes.get(types[i]);
-                            if (types[i] == null) {
-                                types[i] = "minor"; //unclassified
-                            }
-                        }
-                    }
-                    else{
-                        types = new String[1];
-                        types[0] = "minor"; //unclassified
-                    }
-                    String taz = edge2TAZ.get(id);
-                    if( taz ==null) taz = "-1";
-                    if(id!=null & types != null & types.length > 0){
-                        try {
-                            fw.write(writeOneCSVElement(id, types, taz));
-                        }catch(NullPointerException e){
-                            e.printStackTrace();
-                            //stupid null
-                        }
-                    }
-                    else{
-                        System.out.println("Error at edge: "+id+ "types: "+types+ " taz: "+taz);
-                    }
-                }
-            }
-            System.out.println("Processed edges:"+count);
-            fw.flush();
-            fw.close();
-
-            System.out.println("Processed edges:"+list.getLength());
+            System.out.println("Loading net attributes");
+            this.parseXMLSaxDocument(net,new NetLengthHandlerSax());
 
             System.out.println("Finished processing");
 
@@ -481,9 +472,256 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         }
     }
 
+
+
+    Map<String,String[]> edgeTypesMap = new HashMap<>();
+
+    public void exportNetAttribute(String net, String output){
+
+
+        try {
+
+
+            // parse net XML file
+            System.out.println("Exporting net attributes to "+output);
+
+            //prepare output
+            FileWriter fw = new FileWriter(output);
+            fw.write("id\tmotorway\ttrunk\tprimary\tsecondary\ttertiary\tminor\tpath\tcycleway\trailway\ttaz\n");
+
+            System.out.println("Loading net attributes");
+            this.parseXMLSaxDocument(net,new NetEdgeTypeHandlerSax());
+
+            for (Map.Entry<String,String[]> e: this.edgeTypesMap.entrySet()) {
+
+                    String taz = edge2TAZ.get(e.getKey());
+                    if( taz ==null) taz = "-1";
+                    try {
+                        fw.write(writeOneCSVElement(e.getKey(), e.getValue(), taz));
+                    }catch(NullPointerException ex){
+                        ex.printStackTrace();
+                        //stupid null
+                    }
+
+            }
+
+            fw.flush();
+            fw.close();
+
+
+            System.out.println("Finished processing");
+
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class NetEdgeTypeHandlerSax extends DefaultHandler {
+
+        private StringBuilder currentValue = new StringBuilder();
+
+        String currentID;
+        String types[];
+        int attributesFound=0;
+
+        @Override
+        public void startDocument() {
+            System.out.println("Start Document");
+        }
+
+        @Override
+        public void endDocument() {
+            System.out.println("End Document");
+            System.out.println("Processed attributes:"+attributesFound);
+
+        }
+
+        @Override
+        public void startElement(
+                String uri,
+                String localName,
+                String qName,
+                Attributes attributes) {
+
+            // reset the tag value
+            currentValue = new StringBuilder();
+
+            if (qName.equalsIgnoreCase("edge")) {
+                // get tag's attribute by name
+                currentID = attributes.getValue("id");
+                // get type
+                String type = attributes.getValue("type");
+                types = type.split("[|]");
+                //tokenize types
+                if(type.length()>0 && types.length>0) {
+                    for (int i = 0; i < types.length; i++) {
+                        types[i] = edgeTypes.get(types[i]);
+                        if (types[i] == null) {
+                            types[i] = "minor"; //unclassified
+                        }
+                    }
+                }
+                else{
+                    types = new String[1];
+                    types[0] = "minor"; //unclassified
+                }
+            }
+        }
+
+        @Override
+        public void endElement(String uri,
+                               String localName,
+                               String qName) {
+
+            if (qName.equalsIgnoreCase("edge")) {
+
+                edgeTypesMap.put(currentID,types);
+                if(attributesFound%1000==0) {
+                    System.out.println("processing edge:" + attributesFound);
+                }
+            }
+        }
+
+        // http://www.saxproject.org/apidoc/org/xml/sax/ContentHandler.html#characters%28char%5B%5D,%20int,%20int%29
+        // SAX parsers may return all contiguous character data in a single chunk,
+        // or they may split it into several chunks
+        @Override
+        public void characters(char ch[], int start, int length) {
+
+            // The characters() method can be called multiple times for a single text node.
+            // Some values may missing if assign to a new string
+
+            // avoid doing this
+            // value = new String(ch, start, length);
+
+            // better append it, works for single or multiple calls
+            currentValue.append(ch, start, length);
+
+        }
+
+    }
+
+    public class NetLengthHandlerSax extends DefaultHandler {
+
+        private StringBuilder currentValue = new StringBuilder();
+
+        String currentID;
+        double totalLengthOfLanes;
+        double totalLengthOfNet=0;
+        int numOfLanes,attributesFound=0;
+
+        @Override
+        public void startDocument() {
+            System.out.println("Start Document");
+        }
+
+        @Override
+        public void endDocument() {
+            System.out.println("End Document");
+
+            System.out.println("Processed attributes:"+attributesFound);
+
+            System.out.println("Total net length in km:"+ ((int)(totalLengthOfNet/1000)));
+        }
+
+        @Override
+        public void startElement(
+                String uri,
+                String localName,
+                String qName,
+                Attributes attributes) {
+
+            // reset the tag value
+            currentValue = new StringBuilder();
+
+            if (qName.equalsIgnoreCase("edge")) {
+                // get tag's attribute by name
+                currentID = attributes.getValue("id");
+                totalLengthOfLanes =0;
+                numOfLanes=0;
+            }
+            if (qName.equalsIgnoreCase("lane")) {
+                 String len = attributes.getValue("length");
+                 if(len!=null && len.length()>0) {
+                     totalLengthOfLanes += Double.parseDouble(len);
+                     numOfLanes++;
+                 }
+            }
+        }
+
+        @Override
+        public void endElement(String uri,
+                               String localName,
+                               String qName) {
+
+            if (qName.equalsIgnoreCase("edge")) {
+                if (numOfLanes > 0) {
+                    totalLengthOfLanes /= numOfLanes; // calc average
+                    totalLengthOfNet += totalLengthOfLanes;
+                }
+                else{
+                    totalLengthOfLanes =0; //unknown length
+                }
+                attributesFound++;
+                EdgeAttribute[] edge = edgelist.get(currentID);
+
+                if (edge == null) {
+                    edge = new EdgeAttribute[modeMap.size()];
+                    for (int k = 0; k < edge.length; k++) {
+                        edge[k] = new EdgeAttribute();
+                        edge[k].id = currentID;
+                    }
+                    edgelist.put(currentID, edge);
+                }
+                for (EdgeAttribute edgeAttribute : edge) {
+                    edgeAttribute.length = totalLengthOfLanes;
+                }
+                if(attributesFound%1000==0) {
+                    System.out.println("processing edge:" + attributesFound);
+                }
+            }
+        }
+
+        // http://www.saxproject.org/apidoc/org/xml/sax/ContentHandler.html#characters%28char%5B%5D,%20int,%20int%29
+        // SAX parsers may return all contiguous character data in a single chunk,
+        // or they may split it into several chunks
+        @Override
+        public void characters(char ch[], int start, int length) {
+
+            // The characters() method can be called multiple times for a single text node.
+            // Some values may missing if assign to a new string
+
+            // avoid doing this
+            // value = new String(ch, start, length);
+
+            // better append it, works for single or multiple calls
+            currentValue.append(ch, start, length);
+
+        }
+
+    }
+
+    public void parseXMLSaxDocument(String fileName, DefaultHandler handler) throws ParserConfigurationException , SAXException , IOException {
+
+        FileInputStream fs = new FileInputStream(fileName);
+        SAXParserFactory factory = SAXParserFactory.newInstance();
+        // XXE attack, see https://rules.sonarsource.com/java/RSPEC-2755
+        SAXParser saxParser = factory.newSAXParser();
+        if(fileName.endsWith(".gz")||fileName.endsWith(".zip")){
+
+            saxParser.parse(new GZIPInputStream(fs), handler);
+
+        }
+        else {
+            saxParser.parse(fs, handler);
+        }
+        fs.close();
+
+    }
+
     public Document openXMLDocument(String fileName) throws ParserConfigurationException , SAXException , IOException {
 
-        Document doc = null;
+        Document doc;
         FileInputStream fs = new FileInputStream(fileName);
         if(fileName.endsWith(".gz")||fileName.endsWith(".zip")){
             doc = openXMLDocument(new GZIPInputStream(fs));
@@ -503,9 +741,12 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         // Instantiate the Factory
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
+        dbf.setNamespaceAware(false);
+        dbf.setValidating(false);
+
         // optional, but recommended
         // process XML securely, avoid attacks like XML External Entities (XXE)
-        dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        //dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         DocumentBuilder db = dbf.newDocumentBuilder();
 
         // parse taz XML file
@@ -521,65 +762,138 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
 
 
-    Map<String, String> edge2TAZ = new HashMap<>();
+    public class TAZHandlerSax extends DefaultHandler {
 
-    public void processTAZList(String filename, String tableName)  {
-        try{
-            Document tazDoc = openXMLDocument(filename);
+        private StringBuilder currentValue = new StringBuilder();
 
-            System.out.println("Root Element :" + tazDoc.getDocumentElement().getNodeName());
-            // get <edge>
-            //prepare output
-            Map<String,String> edge2TAZ = new HashMap<>();
-            NodeList tazlist = tazDoc.getElementsByTagName("taz");
-            System.out.println("TAZ to process:" + tazlist.getLength());
+        int tazFound=0;
 
-            //prepare output
+        @Override
+        public void startDocument() {
+            System.out.println("Start Document");
+        }
 
-            for (int temp = 0; temp < tazlist.getLength() ; temp++) {
-                if(temp %1000 ==0)System.out.println("Processed taz:"+temp);
-                Node node = tazlist.item(temp);
+        @Override
+        public void endDocument() {
+            System.out.println("End Document");
 
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
+            System.out.println("Processed taz:"+tazFound);
 
-                    Element element = (Element) node;
+        }
 
-                    // get edge's attribute
-                    String id = element.getAttribute("id");
+        @Override
+        public void startElement(
+                String uri,
+                String localName,
+                String qName,
+                Attributes attributes) {
 
-                    // get type
-                    String edges = element.getAttribute("edges");
-                    //tokenize edges
-                    String[] edge = edges.split(" ");
-                    for(String t: edge) {
-                        edge2TAZ.put(t, id);
-                    }
+            // reset the tag value
+            currentValue = new StringBuilder();
+
+            if (qName.equalsIgnoreCase("taz")) {
+                // get tag's attribute by name
+                String id = attributes.getValue("id");
+                // get type
+                String edges = attributes.getValue("edges");
+                //tokenize edges
+                String[] edge = edges.split(" ");
+                for(String t: edge) {
+                    edge2TAZ.put(t, id);
+                }
+                tazFound++;
+
+                //Add the taz to the attribute map
+                TAZAttribute[] att = new TAZAttribute[TPS_Sumo2MLExporter.this.modeMap.size()];
+                for (int k = 0; k < att.length; k++) {
+                    att[k] = new TAZAttribute();
+                    att[k].id = id;
+                }
+                TPS_Sumo2MLExporter.this.tazlist.put(id, att);
+            }
+        }
+
+        @Override
+        public void endElement(String uri,
+                               String localName,
+                               String qName) {
+
+            if (qName.equalsIgnoreCase("edge")) {
+               if(tazFound%1000==0) {
+                    System.out.println("processing taz:" + tazFound);
                 }
             }
-            System.out.println("Processed taz:"+tazlist.getLength());
+        }
+
+        // http://www.saxproject.org/apidoc/org/xml/sax/ContentHandler.html#characters%28char%5B%5D,%20int,%20int%29
+        // SAX parsers may return all contiguous character data in a single chunk,
+        // or they may split it into several chunks
+        @Override
+        public void characters(char ch[], int start, int length) {
+
+            // The characters() method can be called multiple times for a single text node.
+            // Some values may missing if assign to a new string
+
+            // avoid doing this
+            // value = new String(ch, start, length);
+
+            // better append it, works for single or multiple calls
+            currentValue.append(ch, start, length);
+
+        }
+
+    }
+
+
+    Map<String, String> edge2TAZ = new HashMap<>();
+
+    public void processTAZList(String filename)  {
+        try{
+            System.out.println("Processing tazes");
+            this.parseXMLSaxDocument(filename,new TAZHandlerSax());
+
+            System.out.println("Finished processing");
+
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    public Map<String,String> processEdgeTypes(Document doc) throws ParserConfigurationException , SAXException , IOException {
-        Map<String,String> edgeTypes = new HashMap<>();
+    Map<String,String> edgeTypes = new HashMap<>();
 
-        NodeList list = doc.getElementsByTagName("type");
-        System.out.println("Types to process:" + list.getLength());
-        for (int temp = 0; temp < list.getLength() ; temp++) {
+    public class NetTypeHandlerSax extends DefaultHandler {
 
-            Node node = list.item(temp);
+        private StringBuilder currentValue = new StringBuilder();
 
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
+        int attributesFound=0;
 
-                Element element = (Element) node;
+        @Override
+        public void startDocument() {
+            System.out.println("Start Document");
+        }
 
-                // get edge's attribute
-                String id = element.getAttribute("id");
-                String types[] = id.split("[|]");
+        @Override
+        public void endDocument() {
+            System.out.println("End Document");
+            System.out.println("Processed attributes:"+attributesFound);
+
+        }
+
+        @Override
+        public void startElement(
+                String uri,
+                String localName,
+                String qName,
+                Attributes attributes) {
+
+            // reset the tag value
+            currentValue = new StringBuilder();
+
+            if (qName.equalsIgnoreCase("type")) {
+                attributesFound++;
+                String id = attributes.getValue("id");
+                String[] types = id.split("[|]");
                 // get type
-                String prio = element.getAttribute("priority");
                 for(String t: types){
                     if(t.startsWith("cycleway")){
                         edgeTypes.put(t,"cycleway");
@@ -590,14 +904,14 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                         continue;
                     }
                     if( t.startsWith("highway.raceway") |
-                        t.startsWith("highway.motorway") |
-                        t.startsWith("highway.motorway_link")
+                            t.startsWith("highway.motorway") |
+                            t.startsWith("highway.motorway_link")
                     ){
                         edgeTypes.put(t,"motorway");
                         continue;
                     }
                     if( t.startsWith("highway.trunk_link") |
-                        t.startsWith("highway.trunk")
+                            t.startsWith("highway.trunk")
                     ){
                         edgeTypes.put(t,"trunk");
                         continue;
@@ -633,36 +947,81 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                 }
             }
         }
-        return edgeTypes;
+
+        @Override
+        public void endElement(String uri,
+                               String localName,
+                               String qName) {
+
+            if (qName.equalsIgnoreCase("type")) {
+
+                if(attributesFound%1000==0) {
+                    System.out.println("processing type:" + attributesFound);
+                }
+            }
+        }
+
+        // http://www.saxproject.org/apidoc/org/xml/sax/ContentHandler.html#characters%28char%5B%5D,%20int,%20int%29
+        // SAX parsers may return all contiguous character data in a single chunk,
+        // or they may split it into several chunks
+        @Override
+        public void characters(char ch[], int start, int length) {
+
+            // The characters() method can be called multiple times for a single text node.
+            // Some values may missing if assign to a new string
+
+            // avoid doing this
+            // value = new String(ch, start, length);
+
+            // better append it, works for single or multiple calls
+            currentValue.append(ch, start, length);
+
+        }
+
+    }
+
+
+    public void processEdgeTypes(String net) {
+
+        try {
+
+
+            // parse net XML file
+            System.out.println("Processing edge types");
+
+            this.parseXMLSaxDocument(net,new NetTypeHandlerSax());
+            System.out.println("Finished processing");
+
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void loadRoutes(String routes){
         try {
 
 
-            Document doc =openXMLDocument(routes);
-
-            System.out.println("Root Element :" + doc.getDocumentElement().getNodeName());
-
-            //get pt vehicles
             System.out.println("Processing pt vehicles");
-            loadSumoPublicTransport(doc);
+            //loadSumoPublicTransport(doc);
+
+            // parse net XML file
+
+            this.parseXMLSaxDocument(routes,new PTLineTripLengthHandlerSax());
+            System.out.println("Finished processing pt");
+
             System.out.println("Finished processing pt vehicles");
 
-            // get vehicles
-            System.out.println("Processing vehicles");
-            processSumoType(doc,"vehicle",false);
-            System.out.println("Finished processing vehicle tours");
-            // get persons (walk/bike/bus)
-            System.out.println("Processing persons");
-            processSumoType(doc,"person", false);
-            System.out.println("Finished processing person tours");
+            System.out.println("Processing vehicles/persons");
+            this.parseXMLSaxDocument(routes,new VehiclePersonHandlerSax());
+
+            System.out.println("Finished processing vehicles person tours");
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }
     }
 
-    private boolean isPT(String type){
+    private static boolean isPT(String type){
         type = type.toLowerCase();
         if("bus".equals(type))
             return true;
@@ -678,216 +1037,428 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         return false;
     }
 
-    //public transport vehicels are "disguised" as normal vehicles
-    private void loadSumoPublicTransport(Document doc) {
-        NodeList list = doc.getElementsByTagName("vehicle");
-        System.out.println("Potential pt vehicles to process:" + list.getLength());
-        int ptFound = 0;
+    Map<String,Double> tripLengthMap = new HashMap<>();
 
-        for (int temp = 0; temp < list.getLength() ; temp++) {
-            if (temp % 1000 == 0) {
-                System.out.println("Processed pt vehicles:" + temp);
-            }
-            Node node = list.item(temp);
+    public class PTLineTripLengthHandlerSax extends DefaultHandler {
 
+        private StringBuilder currentValue = new StringBuilder();
 
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
+        int linesFound=0;
+        int tripsFound =0;
+        PTRoute pt = null;
+        String line = "", heading = "", id = "";
+        double length =0;
 
-                Element element = (Element) node;
+        @Override
+        public void startDocument() {
+            System.out.println("Start Document");
+        }
 
-                // get edge's attribute
-                String id = element.getAttribute("id");
-                String type = element.getAttribute("type");
-                if(this.isPT(type)){
-                    //now extract the route of this vehicle
-                    NodeList routesByThisTour = element.getElementsByTagName("route");
-                    PTRoute pt = new PTRoute();
+        @Override
+        public void endDocument() {
+            System.out.println("Processed lines:"+linesFound);
+            System.out.println("Processed trips lengths:"+tripsFound);
+            System.out.println("End Document");
+
+        }
+
+        @Override
+        public void startElement(
+                String uri,
+                String localName,
+                String qName,
+                Attributes attributes) {
+
+            // reset the tag value
+            currentValue = new StringBuilder();
+
+            if (qName.equalsIgnoreCase("vehicle")) {
+                // get trip attribute
+                id = attributes.getValue("id");
+                String type = attributes.getValue("type");
+                if(isPT(type)) {
+
+                    pt = new PTRoute();
                     pt.id= id;
-                    for (int route = 0; route < routesByThisTour.getLength(); route++) {
-                        Node routeNode = routesByThisTour.item(route);
-
-                        if (routeNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                            Element routeElement = (Element) routeNode;
-
-                            // get routes edgelist
-                            String edges = routeElement.getAttribute("edges");
-                            pt.stops = edges.split(" ");
-                            // get exit times
-                            String exitTimes = routeElement.getAttribute("exitTimes");
-                            String timeArray[] = exitTimes.split(" ");
-                            if (pt.stops.length != timeArray.length) {
-                                System.out.println("Wrong format! " + id + " " + edges + " " + exitTimes);
-                                System.exit(-1);
-                            }
-                            pt.times = new int[timeArray.length];
-                            for (int j = 0; j < timeArray.length; j++) {
-                                pt.times[j] =(int) (Double.parseDouble(timeArray[j]) + 0.5);
-                            }
-                            break;
-                        }
-                    }
-                    if(pt.times!=null && pt.stops!=null){
-                        //now extract the route of this vehicle
-                        String line ="Unknown line", heading = " Unknown heading";
-                        NodeList paramsByThisTour = element.getElementsByTagName("param");
-                        for (int param = 0; param < paramsByThisTour.getLength(); param++) {
-                            Node paramNode = paramsByThisTour.item(param);
-
-                            if (paramNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                                Element routeElement = (Element) paramNode;
-
-                                String key = routeElement.getAttribute("key");
-                                if (key.equals("gtfs.route_name")) {
-                                    line = routeElement.getAttribute("value");
-                                }
-                                if (key.equals("gtfs.trip_headsign")) {
-                                    heading = routeElement.getAttribute("value");
-                                }
-                            }
-                        }
-                        pt.name = line+ " - "+heading;
-                    }
-                    this.ptVehicle.put(id,pt);
                 }
-            }
-        }
-        System.out.println("Processed pt vehicles:" + this.ptVehicle.size());
-    }
-
-
-
-    private void processSumoType(Document doc, String elementName, boolean usePT) {
-        NodeList list = doc.getElementsByTagName(elementName);
-        System.out.println("Tours to process:" + list.getLength());
-        TripAttribute commuter = new TripAttribute();
-        commuter.mode=2; // CAR
-        commuter.activity = 211; //work, full time
-        TripAttribute ptVehicle = new TripAttribute();
-        ptVehicle.mode=5; // PT
-        ptVehicle.activity = 799; //any activity
-
-        for (int temp = 0; temp < list.getLength() ; temp++) {
-            if (temp % 1000 == 0) {
-                System.out.println("Processed tours:" + temp);
-            }
-            Node node = list.item(temp);
-
-
-            if (node.getNodeType() == Node.ELEMENT_NODE) {
-                String startTAZ = "", endTAZ = "";
-                int startTime=Integer.MIN_VALUE, endTime=Integer.MIN_VALUE;
-
-                Element element = (Element) node;
-
-                // get edge's attribute
-                String id = element.getAttribute("id");
-                String tmp = element.getAttribute("depart");
-                if(tmp.compareTo("")!=0)
-                    startTime =  (int) (Double.parseDouble(tmp) + 0.5);
-                tmp = element.getAttribute("arrival");
-                if(tmp.compareTo("")!=0)
-                    endTime =  (int) (Double.parseDouble(tmp) + 0.5);
-                String type = element.getAttribute("type");
-                TripAttribute attr =null;
-                if(!this.isPT(type)){
+                else{
                     id = id.substring(0, id.lastIndexOf("_") ); //cut off the clone number
-                    if(id.startsWith("-")){
-                        attr = commuter;
+                }
+                String routeLength = attributes.getValue("routeLength");
+                if (routeLength != null && routeLength.length() > 0) {
+                    length = Double.parseDouble(routeLength);
+                }
+            }
+
+            if (qName.equalsIgnoreCase("person")) {
+                // get trip attribute
+                id = attributes.getValue("id");
+                id = id.substring(0, id.lastIndexOf("_") ); //cut off the clone number
+                length = 0;
+            }
+
+            if (qName.equalsIgnoreCase("ride")||qName.equalsIgnoreCase("walk")
+
+                ) { //sum up thip length
+                String routeLength = attributes.getValue("routeLength");
+                if (routeLength != null && routeLength.length() > 0 && !routeLength.equals("-1.00")) {
+                    double legLength = Double.parseDouble(routeLength);
+                    length += Math.max(0, legLength); // teleports have a length of -1 m!
+                }
+            }
+
+            if (qName.equalsIgnoreCase("route") && pt !=null) {
+                String edges = attributes.getValue("edges");
+                pt.stops = edges.split(" ");
+                // get exit times
+                String exitTimes = attributes.getValue("exitTimes");
+                String[] timeArray = exitTimes.split(" ");
+                if (pt.stops.length != timeArray.length) {
+                    System.out.println("Wrong format! " + pt.id + " " + edges + " " + exitTimes);
+                    System.exit(-1);
+                }
+                pt.times = new int[timeArray.length];
+                for (int j = 0; j < timeArray.length; j++) {
+                    pt.times[j] =(int) (Double.parseDouble(timeArray[j]) + 0.5);
+                }
+            }
+            if (qName.equalsIgnoreCase("param") && pt !=null) {
+                if(pt.times!=null && pt.stops!=null){
+                    //now extract the route of this vehicle
+                    String key = attributes.getValue("key");
+                    if (key.equals("gtfs.route_name")) {
+                        line = attributes.getValue("value");
                     }
-                    else{
-                        attr = this.trips.get(id);
+                    if (key.equals("gtfs.trip_headsign")) {
+                        heading = attributes.getValue("value");
                     }
                 }
-                else{ //vehicle id is the pt-vehicle and does not correspond to a tapas trip
-                    if(usePT) {
-                        attr = ptVehicle;
-                    }
-                }
-                if(attr!=null) {
-                    int activity = 0;
-                    if (activityMap.containsKey(attr.activity)) {
-                        activity = activityMap.get(attr.activity);
-                    }
-                    int mode = attr.mode;
-                    NodeList routesByThisTour = element.getChildNodes();
-                    // get length
-                    String routeLength = element.getAttribute("routeLength");
-                    int distIndex = -1;
-                    if (routeLength != null && routeLength.length() > 0) {
-                        double length = Double.parseDouble(routeLength);
-                        distIndex = this.getLengthBin(length);
-                    } else {
-                        // we have to sum up all leg lengths
-                        double length = 0, legLength;
-                        for (int i = 0; i < routesByThisTour.getLength(); i++) {
-                            Node leg = routesByThisTour.item(i);
-                            legLength = 0;
-                            if (leg.getNodeType() == Node.ELEMENT_NODE) {
-                                Element routeElement = (Element) leg;
-                                //get length
-                                routeLength = routeElement.getAttribute("routeLength"); //
-                                if (routeLength != null && routeLength.length() > 0 && !routeLength.equals("-1.00")) {
-                                    legLength = Double.parseDouble(routeLength);
-                                    legLength = Math.max(0, legLength); // teleports have a length of -1m!
-                                }
-                            }
-                            length += legLength;
-                        }
-                        distIndex = this.getLengthBin(length);
-                    }
-
-                    //now process the edges
-                    boolean lookForBegin = true;
-                    EdgeAttribute[] last =null;
-                    for (int i = 0; i < routesByThisTour.getLength(); i++) {
-                        Node leg = routesByThisTour.item(i);
-                        String name = leg.getNodeName();
-
-                        if (name.equals("route")) {
-                            last = parseEdgeInfos(id, activity, mode, distIndex, leg, lookForBegin);
-                        } else if (name.equals("walk")) {
-                            last = parseEdgeInfos(id, activity, mode, distIndex, leg, lookForBegin);
-                        } else if (name.equals("ride")) {
-                            last = parsePTInfos(id, activity, mode, distIndex, leg, lookForBegin);
-                        } else if (name.equals("param")){ //determine start and end taz
-                            if (leg.getNodeType() == Node.ELEMENT_NODE) {
-                                Element paramElement = (Element) leg;
-                                // get start
-                                if (startTAZ.compareTo("")==0 &&
-                                    paramElement.getAttribute("key").compareTo("taz_id_start")==0)
-                                    startTAZ = paramElement.getAttribute("value"); //will return an empty sting if not present
-                                //get end
-                                if (endTAZ.compareTo("")==0 &&
-                                    paramElement.getAttribute("key").compareTo("taz_id_end")==0)
-                                    endTAZ = paramElement.getAttribute("value"); //will return an empty sting if not present
-                            }
-                        }
-                        if(lookForBegin && last != null){
-                            lookForBegin = false;
-                        }
-                    }
-                    last[mode].addLastEntryToEnd(); //make the internally buffered last entry the End entry
-
-                    if (startTAZ.compareTo("")!=0 && endTAZ.compareTo("")!=0 &&
-                            startTime!=Integer.MIN_VALUE && endTime != Integer.MIN_VALUE){
-                        //store taz values
-                        addTAZInfos(startTAZ,startTime, distIndex,activity,mode,true);
-                        addTAZInfos(endTAZ,endTime, distIndex,activity,mode,false);
-                    }
-                    else{
-                        System.err.println("Incomplete tripinfo! id: "+id+" startTAZ: "+startTAZ+" endTaz: "+endTAZ+ " start time: "+startTime+" end time: "+endTime);
-                    }
-                }
-
             }
         }
-        System.out.println("Processed tours: " + list.getLength());
+
+        @Override
+        public void endElement(String uri,
+                               String localName,
+                               String qName) {
+
+            if (qName.equalsIgnoreCase("vehicle")) {
+
+                if (pt != null) {
+                    linesFound++;
+                    if(linesFound%1000==0) {
+                        System.out.println("processing lines:" + linesFound);
+                    }
+                    if (line.compareTo("") == 0) {
+                        line = "Unknown line";
+                    }
+                    if (heading.compareTo("") == 0) {
+                        heading = " Unknown heading";
+                    }
+                    pt.name = line + " - " + heading;
+                    ptVehicle.put(pt.id, pt);
+                    //delete infos for next element
+                    pt = null;
+                    line = "";
+                    heading = "";
+                }
+                tripsFound++;
+                tripLengthMap.put(id,length);
+                id = "";
+                length =0;
+                if(tripsFound%1000==0) {
+                    System.out.println("processing trip lengths:" + tripsFound);
+                }
+            }
+            if (qName.equalsIgnoreCase("person")) {
+                tripsFound++;
+                tripLengthMap.put(id,length);
+                id = "";
+                length =0;
+                if(tripsFound%1000==0) {
+                    System.out.println("processing trip lengths:" + tripsFound);
+                }
+            }
+
+        }
+
+        @Override
+        public void characters(char ch[], int start, int length) {
+            currentValue.append(ch, start, length);
+        }
     }
 
-    private void addTAZInfos(String name, int time, int distIndex, int activity, int mode, boolean start){
-        TAZAttribute att[] = this.tazlist.get(name);
+
+    public class VehiclePersonHandlerSax extends DefaultHandler {
+
+        private StringBuilder currentValue = new StringBuilder();
+
+        int tripsFound =0,startTime =Integer.MIN_VALUE , endTime = Integer.MIN_VALUE;
+        String line = "", heading = "", id = "", startTAZ ="", endTAZ="";
+        double length =0;
+        int activity = 0, mode =0;
+        TripAttribute commuter = new TripAttribute();
+        TripAttribute ptVehicle = new TripAttribute();
+        TripAttribute attr;
+        boolean firstLeg =true;
+        Set<String> visitedTazes;
+        EdgeAttribute[] last = null;
+
+        @Override
+        public void startDocument() {
+            System.out.println("Start Document");
+            commuter.mode=2; // CAR
+            commuter.activity = 211; //work, full time
+            ptVehicle.mode=5; // PT
+            ptVehicle.activity = 799; //any activity
+        }
+
+        @Override
+        public void endDocument() {
+            System.out.println("Processed trips:"+tripsFound);
+            System.out.println("End Document");
+
+        }
+
+        @Override
+        public void startElement(
+                String uri,
+                String localName,
+                String qName,
+                Attributes attributes) {
+
+            // reset the tag value
+            currentValue = new StringBuilder();
+
+            if (qName.equalsIgnoreCase("vehicle") || qName.equalsIgnoreCase("person")
+            ) {
+                // get trip attribute
+                id = attributes.getValue("id");
+                String type = attributes.getValue("type");
+                if (type ==null || !isPT(type)) {
+                    id = id.substring(0, id.lastIndexOf("_")); //cut off the clone number
+                    if (id.startsWith("-")) {
+                        attr = commuter;
+                    } else {
+                        attr = trips.get(id);
+                    }
+                } else {
+                    attr = ptVehicle;
+                }
+                length = tripLengthMap.get(id);
+                if (activityMap.containsKey(attr.activity)) {
+                    activity = activityMap.get(attr.activity);
+                }
+                mode = attr.mode;
+                firstLeg = true;
+                visitedTazes = new HashSet<>();
+                startTAZ = "";
+                endTAZ = "";
+                startTime = Integer.MIN_VALUE;
+                endTime = Integer.MIN_VALUE;
+                last = null;
+            }
+
+            if (qName.equalsIgnoreCase("param")) {
+                String tazName = attributes.getValue("value"); //will return an empty sting if not present
+                // get start
+                if (startTAZ.compareTo("") == 0 &&
+                        attributes.getValue("key").compareTo("taz_id_start") == 0)
+                    startTAZ = tazName;
+                //get end
+                if (endTAZ.compareTo("") == 0 &&
+                        attributes.getValue("key").compareTo("taz_id_end") == 0)
+                    endTAZ = tazName;
+            }
+
+            if (qName.equalsIgnoreCase("route") || qName.equalsIgnoreCase("walk")) {
+                //walk, bike or car
+                String edges = attributes.getValue("edges");
+                String[] edgeArray = edges.split(" ");
+                int distIndex = TPS_Sumo2MLExporter.this.getLengthBin(length);
+
+
+                // get exit times
+                String exitTimes = attributes.getValue("exitTimes");
+                String[] timeArray = exitTimes.split(" ");
+                if (edgeArray.length != timeArray.length) {
+                    System.out.println("Wrong format! " + id + " " + edges + " " + exitTimes);
+                }
+                for (int j = 0; j < edgeArray.length; j++) {
+                    int time = (int) (Double.parseDouble(timeArray[j]) + 0.5);
+                    EdgeAttribute[] att = TPS_Sumo2MLExporter.this.edgelist.get(edgeArray[j]);
+                    //check if we know this edge and add it if necessary
+                    if (att == null) {
+                        att = new EdgeAttribute[TPS_Sumo2MLExporter.this.modeMap.size()];
+                        for (int k = 0; k < att.length; k++) {
+                            att[k] = new EdgeAttribute();
+                            att[k].id = edgeArray[j];
+                        }
+                        TPS_Sumo2MLExporter.this.edgelist.put(edgeArray[j], att);
+                    }
+                    att[mode].addTrip(time, distIndex, activity);
+                    String taz = edge2TAZ.get(edgeArray[j]);
+                    if (taz != null) {
+                        visitedTazes.add(taz); //set will keep them unique
+                        TAZAttribute[] attTaz = TPS_Sumo2MLExporter.this.tazlist.get(taz);
+                        if (attTaz != null) { //
+                            if (att[mode].length < 0) {
+                                System.out.println("Unknown net length for edge " + edgeArray[j]);
+                            } else {
+                                attTaz[mode].addNetPerformance(time, att[mode].length);
+                            }
+                        } else {
+                            System.out.println("Unknown taz: " + taz);
+                        }
+                    }
+
+                    if (firstLeg && j == 0) {
+                        att[mode].addTripToStart(time, distIndex, activity);
+                        startTime = time;
+                        firstLeg = false;
+                    }
+                    last = att; // will be overwritten next loop
+                    endTime = time;
+                }
+            }
+            if(qName.equalsIgnoreCase("ride")){
+                // get pt- route
+                String from = attributes.getValue("from");
+                String to = attributes.getValue("to");
+
+                //get length
+                int distIndex = TPS_Sumo2MLExporter.this.getLengthBin(length);
+
+                //get vehicle
+                String ptVehicle = attributes.getValue("intended");
+                PTRoute pt = TPS_Sumo2MLExporter.this.ptVehicle.get(ptVehicle);
+                if(pt==null || from.equalsIgnoreCase(to)) {
+                    if(pt == null)
+                        System.err.println("Line not found: "+ptVehicle);
+                    else{
+                        //System.err.println(String.format("Haltestellenklatscher: Same start %s / stop %s found on line %s, name %s.", from,to,ptVehicle, pt.name));
+                    }
+
+                }
+                else{
+
+                    //find start and stop index of the line
+                    int start=-1;
+                    int stop = -1;
+                    for(int i=0; i< pt.stops.length; i++){
+                        if(pt.stops[i].equals(from)){
+                            start = i;
+                        }
+                        if(pt.stops[i].equals(to)){
+                            stop = i;
+                        }
+                    }
+
+                    if(start == -1 || stop ==-1){
+                        System.err.println(String.format("Start %s (index: %d) or stop %s (index %d) not found on line %s, name %s.", from,start,to,stop,ptVehicle, pt.name));
+                    }
+                    else {
+                        if (start > stop) { //swap!!!
+                            int tmp = start;
+                            start = stop;
+                            stop = tmp;
+                        }
+
+                        // get the edges
+                        for (int j = start; j <= stop; j++) {
+                            int time = pt.times[j];
+                            EdgeAttribute[] att = TPS_Sumo2MLExporter.this.edgelist.get(pt.stops[j]);
+                            //check if we know this edge and add it if necessary
+                            if (att == null) {
+                                att = new EdgeAttribute[TPS_Sumo2MLExporter.this.modeMap.size()];
+                                for (int k = 0; k < att.length; k++) {
+                                    att[k] = new EdgeAttribute();
+                                    att[k].id = pt.stops[j];
+                                }
+                                TPS_Sumo2MLExporter.this.edgelist.put(pt.stops[j], att);
+                            }
+                            att[mode].addTrip(time, distIndex, activity);
+
+                            String taz = edge2TAZ.get(pt.stops[j]);
+                            if (taz != null) {
+                                visitedTazes.add(taz); //set will keep them unique
+                                TAZAttribute[] attTaz = TPS_Sumo2MLExporter.this.tazlist.get(taz);
+                                if (attTaz != null) { //
+                                    if (att[mode].length < 0) {
+                                        System.out.println("Unknown net length for edge " + pt.stops[j]);
+                                    } else {
+                                        attTaz[mode].addNetPerformance(time, att[mode].length);
+                                    }
+                                } else {
+                                    System.out.println("Unknown taz: " + taz);
+                                }
+                            }
+
+                            if (firstLeg && j == 0) {
+                                att[mode].addTripToStart(time, distIndex, activity);
+                                startTime = time;
+                                firstLeg = false;
+                            }
+                            last = att;
+                            endTime = time;
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void endElement(String uri,
+                               String localName,
+                               String qName) {
+
+            if (qName.equalsIgnoreCase("vehicle")|| qName.equalsIgnoreCase("person")) {
+                int distIndex = TPS_Sumo2MLExporter.this.getLengthBin(length);
+                if(last !=null)
+                    last[mode].addLastEntryToEnd(); //make the internally buffered last entry the End entry
+                if (startTAZ.compareTo("")!=0 && endTAZ.compareTo("")!=0 &&
+                        startTime!=Integer.MIN_VALUE && endTime != Integer.MIN_VALUE) {
+                    //store taz start/end values
+                    addTAZInfos(startTAZ, startTime, distIndex, activity, mode, true, length);
+                    addTAZInfos(endTAZ, endTime, distIndex, activity, mode, false, length);
+                    //now store the intermediate traffic infos:
+                    if (!visitedTazes.isEmpty()){
+                        for (String s : visitedTazes.toArray(new String[0])) {
+                            TAZAttribute[] att = tazlist.get(s);
+                            if (att != null) {
+                                att[mode].addTripToTrafficCount(startTime, distIndex, activity);
+                            }
+                        }
+                    }
+                }
+
+                tripsFound++;
+                if(tripsFound%1000==0) {
+                    System.out.println("processing trips:" + tripsFound);
+                }
+                //clear values
+                id = "";
+                length =0;
+                firstLeg = true;
+                visitedTazes = new HashSet<>();
+                startTAZ = "";
+                endTAZ = "";
+                startTime = Integer.MIN_VALUE;
+                endTime = Integer.MIN_VALUE;
+                last = null;
+
+            }
+
+        }
+
+        @Override
+        public void characters(char ch[], int start, int length) {
+            currentValue.append(ch, start, length);
+        }
+    }
+
+
+    private void addTAZInfos(String name, int time, int distIndex, int activity, int mode, boolean start, double dist){
+        TAZAttribute[] att = this.tazlist.get(name);
         //check if we know this edge and add it if necessary
         if (att == null) {
             att = new TAZAttribute[this.modeMap.size()];
@@ -898,9 +1469,9 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
             this.tazlist.put(name, att);
         }
         if(start)
-            att[mode].addTripToStart(time, distIndex, activity);
+            att[mode].addTripToStart(time, distIndex, activity,dist);
         else
-            att[mode].addTripToEnd(time, distIndex, activity);
+            att[mode].addTripToEnd(time, distIndex, activity,dist);
 
     }
 
@@ -916,136 +1487,10 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         }
         return distIndex;
     }
-    private EdgeAttribute[] parseEdgeInfos(String id, int activity, int mode, int distIndex, Node routeNode,boolean returnFirst) {
-            EdgeAttribute[] last = null;
-            if (routeNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                Element routeElement = (Element) routeNode;
-
-                // get routes edgelist
-                String edges = routeElement.getAttribute("edges");
-                String edgeArray[] = edges.split(" ");
-
-                //get length if not given globally
-                if(distIndex<0){
-                    String routeLength = routeElement.getAttribute("routeLength");
-                    if(routeLength!=null&& routeLength.length()>0 && !routeLength.equals("-1.00")) {
-                        double length = Double.parseDouble(routeLength);
-                        distIndex = this.getLengthBin(length);
-                    }
-                    else {
-                        System.out.println("Wrong distance! " + id + " " + edges + " " + routeLength);
-                        return null;
-                    }
-                }
-
-                // get exit times
-                String exitTimes = routeElement.getAttribute("exitTimes");
-                String timeArray[] = exitTimes.split(" ");
-                if (edgeArray.length != timeArray.length) {
-                    System.out.println("Wrong format! " + id + " " + edges + " " + exitTimes);
-                    return null;
-                }
-                for (int j = 0; j < edgeArray.length; j++) {
-                    int time = (int) (Double.parseDouble(timeArray[j]) + 0.5);
-                    EdgeAttribute att[] = this.edgelist.get(edgeArray[j]);
-                    //check if we know this edge and add it if necessary
-                    if (att == null) {
-                        att = new EdgeAttribute[this.modeMap.size()];
-                        for (int k = 0; k < att.length; k++) {
-                            att[k] = new EdgeAttribute();
-                            att[k].id = edgeArray[j];
-                        }
-                        this.edgelist.put(edgeArray[j], att);
-                    }
-                    att[mode].addTrip(time, distIndex, activity);
-                    if(returnFirst && j == 0){
-                        att[mode].addTripToStart(time, distIndex, activity);
-                    }
-                    last = att; // will be overwritten next loop
-                }
-            }
-            return last;
-    }
-
-    private EdgeAttribute[] parsePTInfos(String id, int activity, int mode, int distIndex, Node routeNode,boolean returnFirst) {
-        EdgeAttribute[] last = null;
-            if (routeNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                Element routeElement = (Element) routeNode;
-
-                // get route
-                String from = routeElement.getAttribute("from");
-                String to = routeElement.getAttribute("to");
-                //get length
-                String len = routeElement.getAttribute("routeLength");
-                if(len== null || len.length()==0 || len.equals("-1.00"))
-                    return null; //teleport
-
-                //get length if not given golbally
-                if(distIndex<0){
-                    double length = Double.parseDouble(len);
-                    distIndex = this.getLengthBin(length);
-                }
-
-                //get vehicle
-                String ptVehicle = routeElement.getAttribute("vehicle");
-                PTRoute pt = this.ptVehicle.get(ptVehicle);
-                if(pt==null) {
-                    System.err.println("Line not found: "+ptVehicle);
-                    return null;
-                }
-
-                //find start and stop index of the line
-                int start=-1;
-                int stop = -1;
-                for(int i=0; i< pt.stops.length; i++){
-                    if(pt.stops[i].equals(from)){
-                        start = i;
-                    }
-                    if(pt.stops[i].equals(to)){
-                        stop = i;
-                    }
-                }
-
-                if(start == -1 || stop ==-1){
-                    System.err.println(String.format("Start %s (index: %d) or stop %s (index %d) not found on line %s, name %s.", from,start,to,stop,ptVehicle, pt.name));
-                    return null;
-                }
-                if(start>stop){ //swap!!!
-                    int tmp = start;
-                    start = stop;
-                    stop = tmp;
-                }
-
-                // get the edges
-                for (int j = start; j <= stop; j++) {
-                    int time = pt.times[j];
-                    EdgeAttribute att[] = this.edgelist.get(pt.stops[j]);
-                    //check if we know this edge and add it if necessary
-                    if (att == null) {
-                        att = new EdgeAttribute[this.modeMap.size()];
-                        for (int k = 0; k < att.length; k++) {
-                            att[k] = new EdgeAttribute();
-                            att[k].id = pt.stops[j];
-                        }
-                        this.edgelist.put(pt.stops[j], att);
-                    }
-                    att[mode].addTrip(time, distIndex, activity);
-                    if(returnFirst && j == start){
-                        att[mode].addTripToStart(time, distIndex, activity);
-                    }
-                    else if(!returnFirst && j== stop){
-                        last = att;
-                    }
-                }
-            }
-        return last;
-    }
-
 
     public void writeEdgeAndTazAttributes(String output){
         try{
+            System.out.println("Writing results for edges and tazes.");
             for(Map.Entry<Integer,String> e: this.modeMap.entrySet()) {
                 FileWriter fw = new FileWriter(output+"_"+e.getValue()+".csv");
                 EdgeAttribute t = new EdgeAttribute();
@@ -1084,18 +1529,17 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
     public void exportNetGeoJSON(String net, String output){
         try {
 
-            double offX=0, offY=0, x=0,y=0;
+            double offX=0, offY=0, x, y;
 
 
             // parse net XML file
 
             Document doc =openXMLDocument(net);
+            System.out.println("Exporting net as geojson");
 
             System.out.println("Root Element :" + doc.getDocumentElement().getNodeName());
 
-            Map<String,String> edgeTypes = processEdgeTypes(doc);
-
-            Deg2UTM netBoundary[]=  new Deg2UTM[2];
+            Deg2UTM[] netBoundary=  new Deg2UTM[2];
             //get the net offset
             NodeList locationParams = doc.getElementsByTagName("location");
             if(locationParams.getLength()>0) {
@@ -1105,7 +1549,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                 // get offset's attribute
                 String offset = element.getAttribute("netOffset");
                 if(offset!= null) {
-                    String offsets[] = offset.split(",");
+                    String[] offsets = offset.split(",");
                     if (offsets.length == 2) {
                         offX = Double.parseDouble(offsets[0]);
                         offY = Double.parseDouble(offsets[1]);
@@ -1114,7 +1558,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                 // get original boundary attribute. We need this to determine the UTM-zone
                 offset = element.getAttribute("origBoundary");
                 if(offset!= null) {
-                    String offsets[] = offset.split(",");
+                    String[] offsets = offset.split(",");
                     if (offsets.length == 4) {
                         netBoundary[0]= new Deg2UTM( Double.parseDouble(offsets[1]), Double.parseDouble(offsets[0]));
                         netBoundary[1]= new Deg2UTM( Double.parseDouble(offsets[3]), Double.parseDouble(offsets[2]));
@@ -1158,7 +1602,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
                     }
                    //     if (t.startsWith("highway.")) {
-                            String preString="";
+                            String preString;
 
                             if(temp==0)
                                 preString=""; //first element has no prestring
@@ -1177,12 +1621,12 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
                             if(coords.length>1 ) {
                                 //add offset
                                 for(int i=0; i< coords.length; i++){
-                                    String cs[]= coords[i].split(",");
+                                    String[] cs= coords[i].split(",");
                                     if (cs.length == 2) {
                                         x = Double.parseDouble(cs[0])-offX;
                                         y = Double.parseDouble(cs[1])-offY;
-                                        UTM2Deg convert = new UTM2Deg(Integer.toString(netBoundary[0].Zone)+" "+netBoundary[0].Letter+" "+Double.toString(x)+" "+Double.toString(y));
-                                        coords[i]= Double.toString(convert.longitude)+"," + Double.toString(convert.latitude);
+                                        UTM2Deg convert = new UTM2Deg(netBoundary[0].Zone+" "+netBoundary[0].Letter+" "+x+" "+y);
+                                        coords[i]= convert.longitude+"," + convert.latitude;
                                     }
                                 }
 
@@ -1282,40 +1726,36 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
 
 
     static private String writeOneElement(String id, String[] types, String taz, String[] coords) {
-        String buffer =
-            "{\n"+
-            "\t\"type\": \"Feature\",\n"+
-            "\t\"properties\": { \"EdgeID\": \""+id+"\", \"StreetType\": [";
+        StringBuilder buffer =
+                new StringBuilder("{\n" +
+                        "\t\"type\": \"Feature\",\n" +
+                        "\t\"properties\": { \"EdgeID\": \"" + id + "\", \"StreetType\": [");
         for(int i =0; i< types.length; i++) {
-            buffer =buffer+"\""+types[i]+"\"";
+            buffer.append("\"").append(types[i]).append("\"");
             if(i< types.length-1){
-                buffer =buffer+",";
+                buffer.append(",");
             }
         }
 
-        buffer = buffer+"], \"TAZ\": \""+taz+"\"},\n"+
-            "\t\"geometry\": {\n"+
-            "\t\t\"type\": \"LineString\",\n"+
-            "\t\t\"coordinates\": [\n";
+        buffer.append("], \"TAZ\": \"").append(taz).append("\"},\n").append("\t\"geometry\": {\n").append("\t\t\"type\": \"LineString\",\n").append("\t\t\"coordinates\": [\n");
             for(int i =0; i< coords.length; i++){
-                buffer =buffer+"\t\t\t["+coords[i]+"]";
+                buffer.append("\t\t\t[").append(coords[i]).append("]");
                 if(i< coords.length-1){
-                    buffer =buffer+",\n";
+                    buffer.append(",\n");
                 }
                 else{ //last element has no comma
-                    buffer =buffer+"\n";
+                    buffer.append("\n");
                 }
             }
-        buffer =buffer+"\t\t]\n"+
-            "\t}\n}";
-        return buffer;
+        buffer.append("\t\t]\n").append("\t}\n}");
+        return buffer.toString();
     }
 
 
     /*
     from https://stackoverflow.com/questions/176137/java-convert-lat-lon-to-utm
      */
-    private class Deg2UTM
+    private static class Deg2UTM
     {
         double Easting;
         double Northing;
@@ -1373,7 +1813,7 @@ public class TPS_Sumo2MLExporter extends TPS_BasicConnectionClass {
         }
     }
 
-    private class UTM2Deg
+    private static class UTM2Deg
     {
         double latitude;
         double longitude;

@@ -14,7 +14,9 @@ import de.dlr.ivf.tapas.util.Matrix;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
 
@@ -30,10 +32,11 @@ public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
     double minAccess = Integer.MAX_VALUE;
 
     public static void main(String[] args) {
-        String key = "VMO4Orte_SZEN_1";
+        String key = "VMO4Orte_SZEN_SZ1";
+        String matrixNameSuffix = "VMO4Orte_SZ2";
         String hhKey= "UD_MID2017_Y2017_BASE";
-        String accessName = "MIT_ACCESS_1223_" + key;
-        String egressName = "MIT_EGRESS_1223_" + key;
+        String accessName = "MIT_ACCESS_1223_" + matrixNameSuffix;
+        String egressName = "MIT_EGRESS_1223_" + matrixNameSuffix;
         String region = "berlin";
         //lets boogie!
         TPS_ParkingSpaceAproximator worker = new TPS_ParkingSpaceAproximator();
@@ -57,21 +60,20 @@ public class TPS_ParkingSpaceAproximator extends TPS_BasicConnectionClass {
 
     void modifyCarsForVMo4Orte(){
 
-        List<Integer> regionToModify = new ArrayList<>();
-        double modificationFactor = 2;
+        Map<Integer,Double> regionToModify = new HashMap<>();
 
-        regionToModify.add(136);
-        regionToModify.add(137);
-        regionToModify.add(138);
-        regionToModify.add(139);
-        regionToModify.add(140);
+        //regionToModify.put(136,2.0);
+        regionToModify.put(137,(867.0/760.0));
+        regionToModify.put(138,(696.0/532.0));
+        //regionToModify.put(139,2.0);
+        //regionToModify.put(140,2.0);
 
 
-        for (Integer taz : regionToModify){
-            int carsPerTaz = this.carsPerTaz.get(taz);
-            System.out.println("Taz: "+taz+" cars (old): "+carsPerTaz);
-            carsPerTaz *= modificationFactor;
-            this.carsPerTaz.put(taz,carsPerTaz);
+        for (Map.Entry<Integer,Double> taz : regionToModify.entrySet()){
+            int carsPerTaz = this.carsPerTaz.get(taz.getKey());
+            carsPerTaz *= taz.getValue();
+            System.out.println("Taz: "+carsPerTaz+" cars (old): "+this.carsPerTaz.get(taz.getKey()));
+            this.carsPerTaz.put(taz.getKey(),carsPerTaz);
         }
 
     }
