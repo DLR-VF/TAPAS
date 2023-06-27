@@ -12,6 +12,7 @@ import de.dlr.ivf.tapas.environment.dao.exception.DaoInsertException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoReadException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoUpdateException;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
+import de.dlr.ivf.tapas.environment.model.SimulationState;
 import lombok.Builder;
 
 import java.sql.*;
@@ -128,26 +129,33 @@ public class SimulationsJdbcDao implements SimulationsDao {
     @Override
     public SimulationEntry requestSimulation(String serverIp) {
 
+        SimulationEntry simulationEntry = null;
         Connection connection = connectionPool.borrowObject();
         try {
-            connection.setAutoCommit(false);
 
-            String sqlLock = "LOCK TABLE " + simulationsTable.getUri() + " IN ROW EXCLUSIVE MODE;";
-            Statement st = connection.createStatement();
-            if(st.execute(sqlLock)){
+            String query = "UPDATE "+simulationsTable.getUri()+ " SET simulation_state = '"+ SimulationState.RUNNING.name() +
+                    "' WHERE id = (SELECT id FROM "+simulationsTable.getUri()+" WHERE simulation_state = '"+SimulationState.READY+
+                    "' LIMIT 1 FOR UPDATE SKIP LOCKED) RETURNING id";
 
+            try(connection;
+                PreparedStatement ps = connection.prepareStatement(query);
+                ResultSet rs = ps.executeQuery()){
+                if(rs.next()){
+                    int simId = rs.getInt("id");
+                    query = "SELECT * FROM "+ simulationsTable.getUri() + " WHERE id = "+simId;
+                    try(PreparedStatement simSelect = connection.prepareStatement(query);
+                        ResultSet simulation = simSelect.executeQuery()){
+                        if(simulation.next()){
+                            simulationEntry = inputConverter.convert(simulation);
+                        }
+                    }
+                }
             }
-                //PreparedStatement ps = connection.prepareStatement()
-
-
-
-
-
         } catch (SQLException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
 
-        return null;
+        return simulationEntry;
     }
 }

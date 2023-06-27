@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.daemon.task;
+package de.dlr.ivf.tapas.daemon.monitors;
 
 public class SimulationStateMonitor implements Runnable{
     @Override

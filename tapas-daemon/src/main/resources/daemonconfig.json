@@ -17,6 +17,6 @@
       "uri" : "public.simulation_parameters"
     }
   },
-  "simTablePollingRate" : 10,
+  "simTablePollingRate" : 30,
   "serverUpdateRate" : 10
 }

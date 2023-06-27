@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.daemon.task;
+package de.dlr.ivf.tapas.daemon.monitors;
 
 import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoReadException;
@@ -50,7 +50,8 @@ public class ServerStateMonitor implements Runnable{
         if(this.serverEntry.getServerState() != newServerEntry.getServerState()){
             try{
                 lock.lock();
-                logger.log(Level.INFO,"Server state has changed");
+                logger.log(Level.INFO,"Server state has changed from "+ serverEntry.getServerState() + " to "
+                +newServerEntry.getServerState());
                 serverEntry.setServerState(newServerEntry.getServerState());
 
             }finally {
