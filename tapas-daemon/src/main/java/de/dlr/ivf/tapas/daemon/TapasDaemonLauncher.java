@@ -5,14 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.daemon.configuration.DaemonConfiguration;
 import de.dlr.ivf.tapas.daemon.monitors.ServerStateMonitor;
-import de.dlr.ivf.tapas.daemon.monitors.SimulationRequestMonitor;
 import de.dlr.ivf.tapas.environment.TapasEnvironment;
 import de.dlr.ivf.tapas.environment.configuration.EnvironmentConfiguration;
 import de.dlr.ivf.tapas.environment.dao.DaoFactory;
 import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
-import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import de.dlr.ivf.tapas.environment.model.ServerState;
 import de.dlr.ivf.tapas.util.IPInfo;
 
@@ -75,26 +73,31 @@ public class TapasDaemonLauncher {
                     .serverCores(Runtime.getRuntime().availableProcessors())
                     .serverName(IPInfo.getHostname())
                     .serverUsage(0)
-                    .serverState(ServerState.SLEEPING)
+                    .serverState(ServerState.STOP)
                     .build();
 
             ServerStateMonitor serverStateMonitor = new ServerStateMonitor(serversDao, serverEntry);
+//
+//            final BlockingQueue<SimulationEntry> simulationsToRun = new ArrayBlockingQueue<>(1);
+//            SimulationRequestTask simulationRequest = SimulationRequestTask.builder()
+//                    .simulationsDao(simulationsDao)
+//                    .serverIp(serverEntry.getServerIp()).build();
+//            ScheduledExecutorService simulationRequestMonitorService = Executors.newSingleThreadScheduledExecutor();
+//
+//            simulationRequestMonitorService.submit(simulationRequest);
+//            simulationRequestMonitorService.scheduleAtFixedRate(simulationRequest,30,30,TimeUnit.SECONDS);
+//
+//            TapasManager serverManager = TapasManager.builder()
+//                    .serverEntry(serverEntry)
+//                    .serverStateMonitor(serverStateMonitor)
+//                    .simulationRequest(simulationRequest)
+//                    .build();
 
-            final BlockingQueue<SimulationEntry> simulationsToRun = new ArrayBlockingQueue<>(1);
-            SimulationRequestMonitor simulationRequestMonitor = new SimulationRequestMonitor(simulationsDao, serverEntry.getServerIp(), simulationsToRun);
-            ScheduledExecutorService simulationRequestMonitorService = Executors.newSingleThreadScheduledExecutor();
-
-            simulationRequestMonitorService.submit(simulationRequestMonitor);
-            simulationRequestMonitorService.scheduleAtFixedRate(simulationRequestMonitor,30,30,TimeUnit.SECONDS);
-
+            //initialize the daemon first and then start the server state monitor
             TapasDaemon tapasDaemon = TapasDaemon.builder()
                     .tapasEnvironment(tapasEnvironment)
                     .serverStateMonitor(serverStateMonitor)
                     .serverEntry(serverEntry)
-                    .serverUpdateRate(configDto.getServerUpdateRate())
-                    .simTablePollingRate(configDto.getSimTablePollingRate())
-                    .simulationRequestMonitor(simulationRequestMonitor)
-                    .simulationsToRun(simulationsToRun)
                     .build();
 
             ScheduledExecutorService serverStateMonitorService = Executors.newSingleThreadScheduledExecutor();

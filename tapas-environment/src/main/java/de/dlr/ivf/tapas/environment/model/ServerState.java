@@ -2,7 +2,6 @@ package de.dlr.ivf.tapas.environment.model;
 
 public enum ServerState {
 
-    WAITING,
-    SLEEPING,
-    RUNNING
+    STOP,
+    RUN
 }

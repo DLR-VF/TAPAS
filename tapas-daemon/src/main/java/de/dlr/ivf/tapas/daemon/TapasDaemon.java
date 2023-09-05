@@ -2,32 +2,30 @@ package de.dlr.ivf.tapas.daemon;
 
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.Lock;
 
+import de.dlr.ivf.tapas.daemon.managers.TapasManager;
 import de.dlr.ivf.tapas.daemon.monitors.ServerStateMonitor;
-import de.dlr.ivf.tapas.daemon.monitors.SimulationRequestMonitor;
-import de.dlr.ivf.tapas.environment.TapasEnvironment;
-import de.dlr.ivf.tapas.environment.dto.ServerEntry;
-import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
+import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.model.ServerState;
 import lombok.Builder;
 
+/**
+ * The TAPAS daemon is responsible for handling TAPAS server state changes. The daemon runs in an infinite loop and does
+ * not observe state of the server. Instead, the {@link ServerStateMonitor} exposes lock conditions that the daemon can await on.
+ * In its current form, a server can only have one of two states, 'run' or 'stop'.
+ * In 'stop' state the daemon will await a change to 'start' state.
+ * In 'start' state the daemon will start a {@link TapasManager} in a separate thread. Switching the daemon back to 'stop'
+ * state will stop the {@link TapasManager} and the daemon will await on a finished signal from the manager.
+ */
 @Builder
 public class TapasDaemon implements Runnable{
 
-    private final int serverUpdateRate;
-    private final int simTablePollingRate;
-
-    private final TapasEnvironment tapasEnvironment;
-
-    private final ServerEntry serverEntry;
-
     private final ServerStateMonitor serverStateMonitor;
 
-    private final SimulationRequestMonitor simulationRequestMonitor;
+    private final SimulationsDao simulationsDao;
 
-    private final BlockingQueue<SimulationEntry> simulationsToRun;
+    private final String serverIdentifier;
 
     private final Logger logger = System.getLogger(TapasDaemon.class.getName());
 
@@ -36,66 +34,61 @@ public class TapasDaemon implements Runnable{
 
         logger.log(Level.INFO,"Running");
 
+        TapasManager tapasManager = TapasManager.builder()
+                .simulationsDao(simulationsDao)
+                .serverIdentifier(serverIdentifier)
+                .build();
 
+        Lock serverStateLock = serverStateMonitor.getLock();
+        Lock tapasManagerLock = tapasManager.getLock();
+
+        //noinspection InfiniteLoopStatement
         while (true) {
 
-            Lock serverStateLock = serverStateMonitor.getLock();
             try {
                 serverStateLock.lock();
-                while (serverEntry.getServerState() == ServerState.SLEEPING) {
-                    logger.log(Level.INFO, "Daemon is in sleep mode.");
+                while (serverStateMonitor.getServerState() == ServerState.STOP) {
+                    logger.log(Level.INFO, "Waiting for server start signal...");
 
                     serverStateMonitor.getServerStartSignal().await();
                 }
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
             } finally {
-                serverStateMonitor.getServerSleepingSignal().signalAll();
                 serverStateLock.unlock();
             }
 
             try{
                 serverStateLock.lock();
-                while(serverEntry.getServerState() == ServerState.WAITING){
-                    logger.log(Level.INFO, "Daemon is waiting for new simulation");
-                    Lock simulationRequestLock = simulationRequestMonitor.getLock();
 
-                    try{
-                        simulationRequestLock.lock();
-                        while(simulationsToRun.isEmpty()){
+                //check if the run state still holds after acquiring the lock
+                if(serverStateMonitor.getServerState() == ServerState.RUN) {
+                    Thread t = new Thread(tapasManager);
+                    t.start();
+                }
 
-                            simulationRequestMonitor.getSimulationStartSignal().await();
-                        }
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    } finally {
-                        simulationRequestLock.unlock();
-                    }
+                while(serverStateMonitor.getServerState() == ServerState.RUN){
 
-                    SimulationEntry simulationEntry = simulationsToRun.take();
-                    //serverEntry.setServerState(ServerState.RUNNING);
-                    //todo update the environment with new server state
+                    //this will block the daemon until it receives a stop signal
+                    serverStateMonitor.getServerStopSignal().await();
+                }
 
-                    logger.log(Level.INFO, "Running simulation with id: "+simulationEntry.getId());
-                    try{
-                        simulationRequestLock.lock();
+                tapasManagerLock.lock();
+                if(tapasManager.getKeepRunning().get()) {
+                    tapasManager.stop();
+                }
 
-                        logger.log(Level.INFO, "Long running task.");
-                        Thread.sleep(30000);
-                    }finally {
-                        simulationRequestLock.unlock();
-                    }
-                    logger.log(Level.INFO, "Done running simulation with id: "+simulationEntry.getId());
+                while(tapasManager.getKeepRunning().get()){
+                    tapasManager.getTapasFinishedSignal().await();
                 }
             } catch (InterruptedException e) {
+                e.printStackTrace();
                 throw new RuntimeException(e);
             } finally {
                 serverStateLock.unlock();
+                tapasManagerLock.unlock();
             }
-
-
-
-
             logger.log(Level.INFO, "Done running");
         }
     }
