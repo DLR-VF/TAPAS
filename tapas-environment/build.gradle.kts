@@ -17,13 +17,13 @@ dependencies {
     implementation(project(":converter"))
 
     //lombok
-    implementation("org.projectlombok:lombok:1.18.24")
-    annotationProcessor ("org.projectlombok:lombok:1.18.24")
-    testCompileOnly ("org.projectlombok:lombok:1.18.24")
-    testAnnotationProcessor ("org.projectlombok:lombok:1.18.24")
+    implementation("org.projectlombok:lombok:1.18.30")
+    annotationProcessor ("org.projectlombok:lombok:1.18.30")
+    testCompileOnly ("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.30")
 
     //jackson
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("com.opencsv:opencsv:5.7.1")
 
 

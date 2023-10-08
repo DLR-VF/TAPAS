@@ -187,6 +187,14 @@ public class TPS_ParameterClass {
         }
     }
 
+    public void fromMap(Map<String,String> paramMap){
+        EnumSet<ParamFlag> flagSet = EnumSet.allOf(ParamFlag.class);
+        EnumSet<ParamString> stringSet = EnumSet.allOf(ParamString.class);
+        EnumSet<ParamValue> valueSet = EnumSet.allOf(ParamValue.class);
+
+        paramMap.forEach((k,v) ->  updateParameter(k, v, flagSet, stringSet, valueSet));
+    }
+
     /**
      * This method processes exactly one parameter and its given value. It
      * returns true if the parameter is successfully consumed

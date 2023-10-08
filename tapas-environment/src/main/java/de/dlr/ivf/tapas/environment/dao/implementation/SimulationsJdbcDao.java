@@ -18,6 +18,7 @@ import lombok.Builder;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 
 @Builder
 public class SimulationsJdbcDao implements SimulationsDao {
@@ -127,7 +128,7 @@ public class SimulationsJdbcDao implements SimulationsDao {
      * @return the simulation to process
      */
     @Override
-    public SimulationEntry requestSimulation(String serverIp) {
+    public Optional<SimulationEntry> requestSimulation(String serverIp) {
 
         SimulationEntry simulationEntry = null;
         Connection connection = connectionPool.borrowObject();
@@ -156,6 +157,6 @@ public class SimulationsJdbcDao implements SimulationsDao {
             throw new RuntimeException(e);
         }
 
-        return simulationEntry;
+        return Optional.ofNullable(simulationEntry);
     }
 }

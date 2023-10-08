@@ -13,10 +13,10 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation(platform("org.junit:junit-bom:5.9.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 
-    implementation("net.lingala.zip4j:zip4j:2.10.0")
+    implementation("net.lingala.zip4j:zip4j:2.11.4")
     implementation("commons-cli:commons-cli:1.5.0")
 }
 

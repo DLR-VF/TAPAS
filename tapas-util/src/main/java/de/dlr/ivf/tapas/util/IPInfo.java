@@ -36,13 +36,12 @@ public class IPInfo {
      * retrieves the HOSTNAME where the JVM is currently running using the 'hostname' runtime command
      *
      * @return HOSTNAME
-     * @throws IOException
      */
     public static String getHostname() throws IOException {
 
         String line;
         StringBuilder result = new StringBuilder();
-        Process p = Runtime.getRuntime().exec("hostname");
+        Process p = Runtime.getRuntime().exec(new String[]{"hostname"});
 
         BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 

@@ -189,7 +189,7 @@ public class TapasInitializer {
 
 
 
-        return new Tapas();
+        return Tapas.init(null, null);
     }
 
     private void setUpCodes(){

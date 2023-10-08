@@ -4,13 +4,15 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.daemon.configuration.DaemonConfiguration;
-import de.dlr.ivf.tapas.daemon.monitors.ServerStateMonitor;
+import de.dlr.ivf.tapas.daemon.services.StateRequestFactory;
+import de.dlr.ivf.tapas.daemon.services.implementation.ServerStateRequest;
+import de.dlr.ivf.tapas.daemon.services.implementation.SimulationRequestService;
+import de.dlr.ivf.tapas.daemon.services.StateMonitor;
 import de.dlr.ivf.tapas.environment.TapasEnvironment;
 import de.dlr.ivf.tapas.environment.configuration.EnvironmentConfiguration;
 import de.dlr.ivf.tapas.environment.dao.DaoFactory;
 import de.dlr.ivf.tapas.environment.dao.ServersDao;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
-import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 import de.dlr.ivf.tapas.environment.model.ServerState;
 import de.dlr.ivf.tapas.util.IPInfo;
 
@@ -18,15 +20,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.Arrays;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
-
 import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+
 
 public class TapasDaemonLauncher {
 
-    private static Logger logger = System.getLogger(ConnectionPool.class.getName());
+    private static final Logger logger = System.getLogger(TapasDaemonLauncher.class.getName());
 
     /**
      * Flow:
@@ -47,17 +50,17 @@ public class TapasDaemonLauncher {
             }
 
             Path configFile = Paths.get(args[0]);
-            if (!Files.isRegularFile(configFile))
-                throw new IllegalArgumentException("The provided argument is not a file. Provided arguments = "+ arguments);
+            if (!Files.isRegularFile(configFile)) {
+                throw new IllegalArgumentException("The provided argument is not a file. Provided arguments = " + arguments);
+            }
 
-
-            //read the configuration file with Jackson
+            logger.log(Level.INFO, "Reading configuration.");
             DaemonConfiguration configDto = new ObjectMapper().readValue(configFile.toFile(), DaemonConfiguration.class);
 
             EnvironmentConfiguration environment = configDto.getTapasEnvironment();
 
+            logger.log(Level.INFO, "Building TAPAS environment.");
             ConnectionPool connectionPool = new ConnectionPool(environment.getConnectionDetails());
-
 
             ServersDao serversDao = DaoFactory.newJdbcServersDao(connectionPool, environment.getServerTable());
             SimulationsDao simulationsDao = DaoFactory.newJdbcSimulationsDao(connectionPool, environment.getSimulationsTable());
@@ -68,41 +71,26 @@ public class TapasDaemonLauncher {
                     .simulationsDao(simulationsDao)
                     .build();
 
-            ServerEntry serverEntry = ServerEntry.builder()
-                    .serverIp(IPInfo.getEthernetInetAddress().getHostAddress())
-                    .serverCores(Runtime.getRuntime().availableProcessors())
-                    .serverName(IPInfo.getHostname())
-                    .serverUsage(0)
-                    .serverState(ServerState.STOP)
+            logger.log(Level.INFO, "Starting TAPAS daemon.");
+            String serverIdentifier = IPInfo.getHostname();
+
+            Duration pollingRate = Duration.ofSeconds(5);
+
+            StateMonitor<ServerState> serverStateMonitor = new StateMonitor<>(new ServerStateRequest(tapasEnvironment, serverIdentifier),"ServerStateMonitor", pollingRate, ServerState.RUN);
+
+            SimulationRequestService simulationRequestService =
+                    new SimulationRequestService(simulationsDao, serverIdentifier,pollingRate);
+
+            TapasServer tapasServer = TapasServer.builder()
+                    .stateRequestFactory(new StateRequestFactory(tapasEnvironment))
+                    .pollingRate(pollingRate)
+                    .simulationRequestService(simulationRequestService)
                     .build();
 
-            ServerStateMonitor serverStateMonitor = new ServerStateMonitor(serversDao, serverEntry);
-//
-//            final BlockingQueue<SimulationEntry> simulationsToRun = new ArrayBlockingQueue<>(1);
-//            SimulationRequestTask simulationRequest = SimulationRequestTask.builder()
-//                    .simulationsDao(simulationsDao)
-//                    .serverIp(serverEntry.getServerIp()).build();
-//            ScheduledExecutorService simulationRequestMonitorService = Executors.newSingleThreadScheduledExecutor();
-//
-//            simulationRequestMonitorService.submit(simulationRequest);
-//            simulationRequestMonitorService.scheduleAtFixedRate(simulationRequest,30,30,TimeUnit.SECONDS);
-//
-//            TapasManager serverManager = TapasManager.builder()
-//                    .serverEntry(serverEntry)
-//                    .serverStateMonitor(serverStateMonitor)
-//                    .simulationRequest(simulationRequest)
-//                    .build();
-
-            //initialize the daemon first and then start the server state monitor
             TapasDaemon tapasDaemon = TapasDaemon.builder()
-                    .tapasEnvironment(tapasEnvironment)
-                    .serverStateMonitor(serverStateMonitor)
-                    .serverEntry(serverEntry)
+                    .stateMonitor(serverStateMonitor)
+                    .tapasServer(tapasServer)
                     .build();
-
-            ScheduledExecutorService serverStateMonitorService = Executors.newSingleThreadScheduledExecutor();
-            serverStateMonitorService.submit(serverStateMonitor);
-            serverStateMonitorService.scheduleAtFixedRate(serverStateMonitor, 1, 5, TimeUnit.SECONDS);
 
             Thread daemonThread = new Thread(tapasDaemon);
             daemonThread.start();

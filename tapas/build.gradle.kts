@@ -43,21 +43,21 @@ repositories {
 
 dependencies {
 
-    implementation("org.postgresql:postgresql:42.2.27")
-    implementation("org.apache.commons:commons-lang3:3.9")
+    implementation("org.postgresql:postgresql:42.5.4")
+    implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("org.apache.commons:commons-collections4:4.4")
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("net.sourceforge.javacsv:javacsv:2.0")
     implementation("com.lmax:disruptor:3.4.2")
 
     //lombok
-    implementation("org.projectlombok:lombok:1.18.24")
-    annotationProcessor ("org.projectlombok:lombok:1.18.24")
-    testCompileOnly ("org.projectlombok:lombok:1.18.24")
-    testAnnotationProcessor ("org.projectlombok:lombok:1.18.24")
+    implementation("org.projectlombok:lombok:1.18.30")
+    annotationProcessor ("org.projectlombok:lombok:1.18.30")
+    testCompileOnly ("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.30")
 
     //jackson
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.14.0-rc1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
 
     //local dependency
     implementation(project(":tapas-logger"))

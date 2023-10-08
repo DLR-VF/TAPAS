@@ -15,6 +15,7 @@ import de.dlr.ivf.tapas.environment.dao.exception.DaoUpdateException;
 import de.dlr.ivf.tapas.environment.dto.ParameterEntry;
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
+import de.dlr.ivf.tapas.environment.model.ServerState;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
 import lombok.Builder;
 
@@ -144,6 +145,16 @@ public class TapasEnvironment {
             e.printStackTrace();
             throw new IOException(e);
         }
+    }
+
+    public Optional<SimulationState> simulationState(int simId) throws DaoReadException {
+
+            return simulationsDao.simulationState(simId);
+
+    }
+
+    public Optional<ServerState> serverState(String serverIdentifier) throws DaoReadException {
+        return serversDao.serverState(serverIdentifier);
     }
 
     public void addServer(ServerEntry serverEntry) throws IOException {
