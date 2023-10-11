@@ -169,7 +169,7 @@ public class TapasServer implements Service, Runnable {
             if(keepRunning.compareAndSet(true,false)){
                 logger.log(Level.INFO, "Shutting down...");
                 simulationRequestService.stop();
-                if(simulationStateMonitor != null) {
+                if(simulationStateMonitor != null && simulationStateMonitor.isRunning()) {
                     simulationStateMonitor.signalExternalStateChange(SimulationState.PAUSED);
                 }
 
@@ -184,6 +184,11 @@ public class TapasServer implements Service, Runnable {
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public boolean isRunning() {
+        return !serviceHasFinished.get();
     }
 
     private StateMonitor<SimulationState> startSimulationStateMonitor(int simulationId, SimulationState simulationState){
