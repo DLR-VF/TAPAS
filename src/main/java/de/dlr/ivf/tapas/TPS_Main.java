@@ -17,7 +17,10 @@ import de.dlr.ivf.tapas.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IOManager;
+import de.dlr.ivf.tapas.runtime.client.SimulationControl;
 import de.dlr.ivf.tapas.runtime.server.*;
+import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
+import de.dlr.ivf.tapas.runtime.util.IPInfo;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
@@ -26,6 +29,9 @@ import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 
 import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
@@ -50,11 +56,11 @@ public class TPS_Main {
     /**
      * persistence manager of the whole simulation run
      */
-    private final TPS_PersistenceManager PM;
+    private TPS_PersistenceManager PM = null;
     /**
      * container which holds all parameter values
      */
-    private final TPS_ParameterClass parameterClass;
+    private TPS_ParameterClass parameterClass = null;
     private TPS_DB_Connector dbConnector;
 
     private TPS_Simulator simulator;
@@ -65,29 +71,51 @@ public class TPS_Main {
      * This constructor reads all parameters and tries to initialise all data which is available via the
      * TPS_PersistenceManager . If any Exception is thrown it is logged and the application stops.
      *
-     * @param file   filename of the parameter file with all run information. This file leads to all other files with
+     * @param paramFile   filename of the parameter paramFile with all run information. This paramFile leads to all other files with
      *               e.g.
      *               logging, database, etc. information.
      * @param simKey key of the simulation
      */
-    public TPS_Main(File file, String simKey) {
+    public TPS_Main(File paramFile, File credentialsFile, String simKey) {
         this.parameterClass = new TPS_ParameterClass();
 
         if (simKey == null) simKey = TPS_Main.getDefaultSimKey();
         try {
             this.parameterClass.setString(ParamString.RUN_IDENTIFIER, simKey);
-            this.parameterClass.loadRuntimeParameters(file);
-            TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
+            this.parameterClass.loadSingleParameterFile(paramFile);
+            this.parameterClass.loadSingleParameterFile(credentialsFile);
 
-            File tmpFile = new File(file.getPath());
-            while (!tmpFile.getPath().endsWith(
-                    this.parameterClass.SIM_DIR.substring(0, this.parameterClass.SIM_DIR.length() - 1))) {
+            File tmpFile = new File(paramFile.getPath());
+            while (tmpFile.getParentFile()!=null){
                 tmpFile = tmpFile.getParentFile();
             }
-            this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getParent());
+            this.parameterClass.setString(ParamString.FILE_WORKING_DIRECTORY, tmpFile.getPath());
+            //fix the SUMO-dir by appending the simulation run!
+            String paramVal = this.parameterClass.paramStringClass.getString(ParamString.SUMO_DESTINATION_FOLDER);
+            paramVal += "_" + simKey;
+            this.parameterClass.paramStringClass.setString(ParamString.SUMO_DESTINATION_FOLDER, paramVal);
 
-            //try to load parameters from db
-            dbConnector.readRuntimeParametersFromDB(simKey);
+            Random generator;
+            if (this.parameterClass.paramValueClass.isDefined((ParamValue.RANDOM_SEED_NUMBER) ) &&
+                    this.parameterClass.paramFlagClass.isTrue(ParamFlag.FLAG_INFLUENCE_RANDOM_NUMBER)) {
+                generator = new Random(this.parameterClass.paramValueClass.getLongValue(ParamValue.RANDOM_SEED_NUMBER));
+            } else {
+                generator = new Random();
+            }
+            double randomSeed = generator.nextDouble(); // postgres needs a double
+            this.parameterClass.paramValueClass.setValue(ParamValue.RANDOM_SEED_NUMBER,randomSeed);
+            this.parameterClass.checkParameters();
+
+            try {
+                TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
+                parameterClass.writeAllToDB(dbConnector.getConnection(this), simKey);
+                dbConnector.closeConnection(this);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            //now that we stored everything in the DB, we discard a lot and read it back
+            this.readConfigFromDB(simKey, credentialsFile);
+
 //            this.parameterClass.setString(ParamString.DB_HOST,dbConnector.getParameters().getString(ParamString.DB_HOST));
 //
 //            String query = "SELECT * FROM " +
@@ -101,8 +129,45 @@ public class TPS_Main {
                     "Starting iteration: " + this.parameterClass.paramValueClass.getIntValue(ParamValue.ITERATION));
             //  this.parameterClass.checkParameters();
 
-            dbConnector.closeConnection(this);
             this.PM = initAndGetPersistenceManager(this.parameterClass);
+        } catch (Exception e) {
+            TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public void readConfigFromDB(String simKey, File credentialsFile){
+        try {
+            //now that we stored everything in the DB, we read it back
+            this.parameterClass = new TPS_ParameterClass();
+            this.parameterClass.loadSingleParameterFile(credentialsFile);
+            this.parameterClass.loadSingleParameterFile(credentialsFile);
+            TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
+            String login = null, password = null;
+            //read old login
+            if (parameterClass.isDefined(ParamString.DB_PASSWORD)) {
+                password = parameterClass.getString(ParamString.DB_PASSWORD);
+            }
+
+            if (parameterClass.isDefined(ParamString.DB_USER)) {
+                login = parameterClass.getString(ParamString.DB_USER);
+            }
+
+            String query = "SELECT * FROM " + this.parameterClass.getString(ParamString.DB_TABLE_SIMULATION_PARAMETERS) +
+                    " WHERE sim_key = '" + simKey + "'";
+            ResultSet rs = dbConnector.executeQuery(query, this);
+            this.parameterClass.readRuntimeParametersFromDB(rs);
+            rs.close();
+
+            //write old login
+            if (password != null) {
+                parameterClass.setString(ParamString.DB_PASSWORD, password);
+            }
+            if (login != null) {
+                parameterClass.setString(ParamString.DB_USER, login);
+            }
+            dbConnector.closeConnection(this);
         } catch (Exception e) {
             TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
@@ -120,11 +185,12 @@ public class TPS_Main {
     /**
      * The constructor builds a File from the given filename and calls TPS_Main(File, String).
      *
-     * @param filename filename of the run properties file
+     * @param parameterFilename filename of the run properties file
+     * @param credentialsFilename filename of the db credentials file
      * @param sim_key  key of the simulation
      */
-    public TPS_Main(String filename, String sim_key) {
-        this(new File(filename), sim_key);
+    public TPS_Main(String parameterFilename, String credentialsFilename, String sim_key) {
+        this(new File(parameterFilename), new File(credentialsFilename), sim_key);
     }
 
     /**
@@ -148,40 +214,49 @@ public class TPS_Main {
      * @param args Arguments with a R are necessary, these with an O are optional <br>
      *             R args[0] absolute filename of the run configuration file<br>
      *             O args[1] constant for run type [ALL, SIMULATE] <br>
-     *             O args[2] simulation key<br>
+     *             O args[2] simulation key or "new"<br>
      *             O args[3] amount of parallel threads<br>
      */
     public static void main(String[] args) {
         // List of parameters
-        List<TPS_ArgumentType<?>> list = new ArrayList<>(4);
+        List<TPS_ArgumentType<?>> list = new ArrayList<>(5);
         list.add(new TPS_ArgumentType<>("absolute run configuration filename", File.class));
-        list.add(new TPS_ArgumentType<>("constant for run type", RunType.class, RunType.ALL));
+        list.add(new TPS_ArgumentType<>("DB credentials filename", File.class));
         list.add(new TPS_ArgumentType<>("simulation key", String.class, getDefaultSimKey()));
         list.add(new TPS_ArgumentType<>("amount of parallel threads", Integer.class,
                 Runtime.getRuntime().availableProcessors()));
 
         // check parameters
         Object[] parameters = TPS_Argument.checkArguments(args, list);
-
-        // initialise and start
-        TPS_Main main = new TPS_Main((File) parameters[0], (String) parameters[2]);
+        File configParam = (File) parameters[0];
+        File loginParam = (File) parameters[1];
+        String sim_key = (String) parameters[2];
+        if(sim_key ==null || sim_key.equalsIgnoreCase("new"))
+            sim_key = getDefaultSimKey();
         int numOfThreads = (Integer) parameters[3];
 
-        switch ((RunType) parameters[1]) {
-            // REMOTE
-            case SIMULATE:
-                main.run(numOfThreads);
-                break;
-            // LOCAL
-            case ALL:
-                main.init();
-                main.run(numOfThreads);
-                main.finish();
-                break;
-        }
+        if(numOfThreads <=0) //if it is negative or zero assume, it i9t a modifier to the max core count
+            numOfThreads = Math.max(1,Runtime.getRuntime().availableProcessors()-numOfThreads);
+        // initialise and start
+        TPS_Main main = new TPS_Main(configParam, loginParam, sim_key);
+
+        main.init();
+        main.run(numOfThreads);
+        main.finish();
         main.PM.close();
 
         STATE.setFinished();
+    }
+
+    public void insertANewSimulation(String simFile){
+        File file = null;
+        File propFile = new File("client.properties");
+        ClientControlProperties prop = new ClientControlProperties(propFile);
+
+
+        file = (new File (simFile)).getParentFile();
+        // Constructs the client
+        SimulationControl control = new SimulationControl(file);
     }
 
     /**
@@ -228,7 +303,31 @@ public class TPS_Main {
     public void init() {
         if (PM instanceof TPS_DB_IOManager) {
             TPS_DB_IOManager dbManager = (TPS_DB_IOManager) PM;
-            dbManager.createTemporaryAndOutputTables();
+            String projectName = this.parameterClass.paramStringClass.getString(ParamString.PROJECT_NAME);
+            String sim_key = this.parameterClass.paramStringClass.getString(ParamString.RUN_IDENTIFIER);
+
+
+            String hostName = "local"; //default
+            try {
+                hostName = IPInfo.getHostname();
+            } catch (IOException e) {
+                e.printStackTrace(); //should never happen or computer has no network, which is BAD!
+            }
+            String query;
+
+            if(sim_key !=null && !sim_key.equals("")) {
+                query = String.format("INSERT INTO simulations (sim_key, sim_file, sim_description,simulation_Server) VALUES('%s', '%s', '%s', '%s')",
+                        sim_key, "direct", projectName, hostName);
+
+                dbManager.execute(query);
+
+                query = "SELECT core.prepare_simulation_for_start('" + sim_key + "')";
+                dbManager.execute(query);
+                query = "UPDATE simulations SET sim_ready = true where sim_key ='"+sim_key+"'";
+                dbManager.execute(query);
+                query = "UPDATE simulations SET sim_started = true where sim_key ='"+sim_key+"'";
+                dbManager.execute(query);
+            }
         }
     }
 
@@ -344,6 +443,7 @@ public class TPS_Main {
          * nothing else.
          */
         SIMULATE,
+        NEW_SIM
     }
 
     /**

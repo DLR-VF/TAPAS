@@ -378,7 +378,8 @@ public class TPS_ParameterClass {
                     case DB_TABLE_SUMO_STATUS:
                         break;
                     default:
-                        this.paramStringClass.add(param, ParamString.DB_SCHEMA_CORE, "");
+                        if(!this.paramStringClass.getString(param).startsWith(this.paramStringClass.getString(ParamString.DB_SCHEMA_CORE)))
+                            this.paramStringClass.add(param, ParamString.DB_SCHEMA_CORE, "");
                 }
             }
         }
@@ -981,6 +982,33 @@ public class TPS_ParameterClass {
      * Inserts the given params into the table "simulation_parameters". The
      * identifier for the simulation in this table will be the given sim_key.
      */
+    public void writeAllToDB(Connection con, String sim_key) throws SQLException {
+        Map <String,String> parameters = new HashMap<>();
+        for (ParamFlag pf : ParamFlag.values()) {
+            if (this.isDefined(pf)) {
+                parameters.put(pf.name(), ""+(this.paramFlagClass.getFlag(pf)));
+            }
+        }
+        for (ParamValue pv : ParamValue.values()) {
+            if (this.isDefined(pv) ) {
+                parameters.put(pv.name(), this.paramValueClass.getValue(pv).toString());
+            }
+        }
+        for (ParamString ps : ParamString.values()) {
+            if (this.isDefined(ps)) {
+                if(ps.equals(ParamString.DB_PASSWORD))
+                    continue;
+                parameters.put(ps.name(), this.paramStringClass.getString(ps));
+            }
+        }
+        this.writeToDB(con, sim_key, parameters);
+    }
+
+
+        /**
+         * Inserts the given params into the table "simulation_parameters". The
+         * identifier for the simulation in this table will be the given sim_key.
+         */
     public void writeToDB(Connection con, String sim_key, Map<String, String> params) throws SQLException {
         PreparedStatement prepareStatement = null;
         try {
