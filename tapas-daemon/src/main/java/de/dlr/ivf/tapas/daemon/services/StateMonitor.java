@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.daemon.services;
 
 import de.dlr.ivf.tapas.environment.dao.exception.DaoReadException;
 import de.dlr.ivf.tapas.util.VirtualThreadFactory;
+import de.dlr.ivf.api.service.Service;
 
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;

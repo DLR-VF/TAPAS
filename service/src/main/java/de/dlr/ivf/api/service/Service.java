@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.daemon.services;
+package de.dlr.ivf.api.service;
 
 public interface Service{
 

@@ -4,6 +4,7 @@ module de.dlr.ivf.tapas.daemon {
     requires com.fasterxml.jackson.databind;
     requires lombok;
     requires de.dlr.ivf.api.io;
+    requires de.dlr.ivf.api.service;
     requires de.dlr.ivf.tapas.environment;
     requires de.dlr.ivf.tapas.util;
     requires de.dlr.ivf.tapas.model;

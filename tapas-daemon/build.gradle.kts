@@ -16,6 +16,7 @@ dependencies {
 
     implementation(project(":tapas"))
     implementation(project(":io"))
+    implementation(project(":service"))
     implementation(project(":tapas-environment"))
     implementation(project(":tapas-util"))
     implementation(project(":tapas-model"))
