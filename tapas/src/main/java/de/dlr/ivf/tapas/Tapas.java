@@ -1,10 +1,14 @@
 package de.dlr.ivf.tapas;
 
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+
+import de.dlr.ivf.tapas.simulation.Simulator;
+import de.dlr.ivf.tapas.simulation.implementation.SimulationWorker;
 import lombok.Builder;
 
+import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -19,26 +23,17 @@ public class Tapas implements Runnable{
     private final Lock lock = new ReentrantLock(true);
     private final Condition tapasFinishedCondition = lock.newCondition();
 
-    private final TPS_ParameterClass parameterClass;
     private final Runnable onFinish;
-    private final AtomicBoolean keepRunning  = new AtomicBoolean();
     private final AtomicBoolean tapasFinished = new AtomicBoolean();
 
-    private Tapas(TPS_ParameterClass parameterClass, Runnable onFinish){
-        this.parameterClass = parameterClass;
-        this.onFinish = onFinish;
-    }
-
-    public static Tapas init(TPS_ParameterClass parameterClass, Runnable onFinish){
-
-        return new Tapas(parameterClass, onFinish);
-    }
+    private final Collection<SimulationWorker<?>> simulationWorkers;
+    private final Simulator<?,?> simulator;
+    private final CountDownLatch countDownLatch;
 
     public void stop(){
         try{
             logger.log(Level.INFO, "Shutting down...");
             lock.lock();
-            keepRunning.set(false);
             while (!tapasFinished.get()){
                 tapasFinishedCondition.await();
             }
@@ -51,13 +46,16 @@ public class Tapas implements Runnable{
 
     @Override
     public void run() {
-        keepRunning.set(true);
         tapasFinished.set(false);
-        Simulation simulation = new Simulation();
 
-        int cnt = 0;
-        while(keepRunning.get() && cnt++ <= 4){
-            simulation.step();
+        simulationWorkers.stream()
+                .map(Thread::new)
+                .forEach(Thread::start);
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         try{

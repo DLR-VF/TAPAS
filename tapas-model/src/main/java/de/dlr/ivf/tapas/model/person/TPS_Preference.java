@@ -11,6 +11,7 @@ package de.dlr.ivf.tapas.model.person;
 import de.dlr.ivf.tapas.model.constants.TPS_PersonType;
 import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.model.person.TPS_PreferenceParameters.ChoiceParams;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,12 +20,12 @@ import java.util.Map;
  * This class holds the specific preference parameters for this person.
  *
  */
+@Getter
 public class TPS_Preference {
 
 
-    Map<TPS_PreferenceParameters.ShoppingClass, Map<TPS_PreferenceParameters.ShoppingPreferenceSupply, PreferenceSet>> preferencesSupply = new HashMap<>();
-
-    Map<TPS_PreferenceParameters.ShoppingClass, Map<TPS_PreferenceParameters.ShoppingPreferenceAccessibility, PreferenceSet>> preferencesAccess = new HashMap<>();
+    private final Map<TPS_PreferenceParameters.ShoppingClass, Map<TPS_PreferenceParameters.ShoppingPreferenceSupply, PreferenceSet>> preferencesSupply = new HashMap<>();
+    private final Map<TPS_PreferenceParameters.ShoppingClass, Map<TPS_PreferenceParameters.ShoppingPreferenceAccessibility, PreferenceSet>> preferencesAccess = new HashMap<>();
 
     /**
      * standard constructor, which needs a reference to the person it is attached to
@@ -142,12 +143,12 @@ public class TPS_Preference {
     public void computePreferences(TPS_PreferenceParameters parameters, TPS_Person person) {
 
         PreferenceSet tmpSet;
-        for (TPS_PreferenceParameters.ShoppingClass s : TPS_PreferenceParameters.ShoppingClass.values()) {
+        for (TPS_PreferenceParameters.ShoppingClass shoppingClass : TPS_PreferenceParameters.ShoppingClass.values()) {
             //first the supply modell
-            for (TPS_PreferenceParameters.ShoppingPreferenceSupply e : TPS_PreferenceParameters.ShoppingPreferenceSupply
+            for (TPS_PreferenceParameters.ShoppingPreferenceSupply preferenceSupply : TPS_PreferenceParameters.ShoppingPreferenceSupply
                     .values()) {
-                ChoiceParams param = parameters.paramsSupply.get(s).get(e);
-                tmpSet = this.preferencesSupply.get(s).get(e);
+                ChoiceParams param = parameters.paramsSupply.get(shoppingClass).get(preferenceSupply);
+                tmpSet = this.preferencesSupply.get(shoppingClass).get(preferenceSupply);
                 tmpSet.isUsed = param.isUsed;
                 if (tmpSet.isUsed) {
                     //store the sigma
@@ -158,10 +159,10 @@ public class TPS_Preference {
                 }
             }
             //now the accessibility
-            for (TPS_PreferenceParameters.ShoppingPreferenceAccessibility e : TPS_PreferenceParameters.ShoppingPreferenceAccessibility
+            for (TPS_PreferenceParameters.ShoppingPreferenceAccessibility preferenceAccessibility : TPS_PreferenceParameters.ShoppingPreferenceAccessibility
                     .values()) {
-                ChoiceParams param = parameters.paramsAccess.get(s).get(e);
-                tmpSet = this.preferencesAccess.get(s).get(e);
+                ChoiceParams param = parameters.paramsAccess.get(shoppingClass).get(preferenceAccessibility);
+                tmpSet = this.preferencesAccess.get(shoppingClass).get(preferenceAccessibility);
                 tmpSet.isUsed = param.isUsed;
                 if (tmpSet.isUsed) {
                     //store the sigma

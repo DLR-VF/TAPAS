@@ -4,6 +4,7 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 
 import de.dlr.ivf.tapas.Tapas;
+import de.dlr.ivf.tapas.TapasInitializer;
 import de.dlr.ivf.tapas.daemon.services.Service;
 import de.dlr.ivf.tapas.daemon.services.StateRequestFactory;
 import de.dlr.ivf.tapas.daemon.services.implementation.SimulationRequestService;
@@ -196,7 +197,9 @@ public class TapasServer implements Service, Runnable {
     }
 
     private Tapas startTapas(Runnable runWhenDone){
-        Tapas tapas = Tapas.init(null, runWhenDone);
+        TapasInitializer tapasInitializer = TapasInitializer.with();
+
+        Tapas tapas = tapasInitializer.init();
 
         Thread t = new Thread(tapas);
         t.start();

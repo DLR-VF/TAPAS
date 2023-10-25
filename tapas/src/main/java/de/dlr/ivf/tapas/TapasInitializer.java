@@ -13,6 +13,8 @@ import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.model.person.PersonComparators;
+import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.vehicle.Cars;
 import de.dlr.ivf.tapas.model.vehicle.FuelType;
@@ -24,9 +26,8 @@ import de.dlr.ivf.tapas.persistence.io.DataStore.DataStoreBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.constants.PersonGroups.PersonGroupsBuilder;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
 
 public class TapasInitializer {
@@ -34,9 +35,16 @@ public class TapasInitializer {
     private final TPS_ParameterClass parameters;
     private final TPS_DB_IO dbIo;
 
-    public TapasInitializer(TPS_ParameterClass parameters, ConnectionPool connectionSupplier){
+    private TapasInitializer(TPS_ParameterClass parameters, ConnectionPool connectionSupplier){
         this.parameters = parameters;
         this.dbIo = new TPS_DB_IO(connectionSupplier, parameters);
+    }
+
+    public static TapasInitializer with(Map<String, String> parameters, ConnectionPool connectionSupplier){
+
+        TPS_ParameterClass parameterClass = new TPS_ParameterClass();
+        parameterClass.fromMap(parameters);
+        return new TapasInitializer(parameterClass, connectionSupplier);
     }
 
     /**
@@ -47,6 +55,16 @@ public class TapasInitializer {
 
         this.setUpCodes();
 
+        //read cars
+        DataSource cars = new DataSource(parameters.getString(ParamString.DB_TABLE_CARS));
+        Filter carFilter = new Filter("car_key", parameters.getString(ParamString.DB_CAR_FLEET_KEY));
+        //init FuelTypes
+        FuelTypes fuelTypes = initFuelTypes();
+        Cars carFleet = dbIo.loadCars(cars, carFilter, fuelTypes);
+
+        //setup households
+        List<TPS_Household> households = initHouseHolds(carFleet);
+
         //set up the data store
         DataStoreBuilder dataStoreBuilder = DataStore.builder();
 
@@ -54,11 +72,6 @@ public class TapasInitializer {
         DataSource activityConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY));
         Collection<TPS_ActivityConstant> activityConstants = dbIo.readActivityConstantCodes(activityConstantsDs);
         dataStoreBuilder.activityConstants(activityConstants);
-
-        //age classes
-        DataSource ageClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_AGE));
-        AgeClasses ageClasses = dbIo.readAgeClasses(ageClassesDs);
-        dataStoreBuilder.ageClasses(ageClasses);
 
         //distance classes
         DataSource distanceClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE));
@@ -137,40 +150,10 @@ public class TapasInitializer {
         var schemeSet = dbIo.readSchemeSet(schemeClassDtos,schemeDtos,episodeDtos,distributionDtos, activityConstants, personGroups);
         dataStoreBuilder.schemeSet(schemeSet);
 
-        //read households, persons and cars
 
-        //read cars
-        DataSource cars = new DataSource(parameters.getString(ParamString.DB_TABLE_CARS));
-        Filter carFilter = new Filter("car_key", parameters.getString(ParamString.DB_CAR_FLEET_KEY));
-        //init FuelTypes
-        FuelTypes fuelTypes = initFuelTypes();
-        Cars carFleet = dbIo.loadCars(cars, carFilter, fuelTypes);
 
-        //read households
-        DataSource households = new DataSource(parameters.getString(ParamString.DB_TABLE_HOUSEHOLD));
-        Filter hhFilter = new Filter("hh_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
-        Map<Integer, TPS_HouseholdBuilder> hhBuilders = dbIo.readHouseholds(households, hhFilter, carFleet);
 
-        //load persons
-        DataSource persons = new DataSource(parameters.getString(ParamString.DB_TABLE_PERSON));
-        Filter personFilter = new Filter("p_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
-
-        Map<Integer, Collection<TPS_Person>> personsByHhId = dbIo.loadPersons(persons, personFilter, new PersonDtoToPersonConverter(parameters, ageClasses));
-
-        //add persons to households
-        for(Map.Entry<Integer,TPS_HouseholdBuilder> hhBuilderEntry : hhBuilders.entrySet()){
-            TPS_HouseholdBuilder builder = hhBuilderEntry.getValue();
-            builder.members(personsByHhId.get(hhBuilderEntry.getKey()));
-        }
-
-        //now set the driver scores to each person
-        PrimaryDriverScoreFunction driverScoreFunction = new PrimaryDriverScoreFunction();
-        personsByHhId.values()
-                .forEach(hhMembers ->
-                        hhMembers.forEach(member ->
-                                member.setDriverScore(driverScoreFunction.apply(member,hhMembers,0))
-                        )
-                );
+        Queue<TPS_Household> householdsToProcess = new ConcurrentLinkedDeque<>(households);
 
         //read region
         Map<Integer, TPS_SettlementSystem> settlementSystemMap = settlementSystems.stream()
@@ -189,7 +172,55 @@ public class TapasInitializer {
 
 
 
-        return Tapas.init(null, null);
+        return new Tapas(null,);
+    }
+
+    private List<TPS_Household> initHouseHolds(Cars carFleet) {
+        //read households
+        DataSource householdsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_HOUSEHOLD));
+        Filter hhFilter = new Filter("hh_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
+        Map<Integer, TPS_HouseholdBuilder> hhBuilders = dbIo.readHouseholds(householdsDs, hhFilter, carFleet);
+
+        //age classes
+        DataSource ageClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_AGE));
+        AgeClasses ageClasses = dbIo.readAgeClasses(ageClassesDs);
+
+        //load persons
+        DataSource persons = new DataSource(parameters.getString(ParamString.DB_TABLE_PERSON));
+        Filter personFilter = new Filter("p_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
+
+        Map<Integer, Collection<TPS_Person>> personsByHhId = dbIo.loadPersons(persons, personFilter, new PersonDtoToPersonConverter(parameters, ageClasses));
+
+        //now set the driver scores to each person
+        PrimaryDriverScoreFunction driverScoreFunction = new PrimaryDriverScoreFunction();
+        personsByHhId.values()
+                .forEach(hhMembers ->
+                        hhMembers.forEach(member ->
+                                member.setDriverScore(driverScoreFunction.apply(member,hhMembers,0))
+                        )
+                );
+
+        //add persons to households in predefined order
+        TPS_Household.Sorting sortAlgo = parameters.isDefined(ParamString.HOUSEHOLD_MEMBERSORTING)
+                ? TPS_Household.Sorting.valueOf(parameters.getString(ParamString.HOUSEHOLD_MEMBERSORTING))
+                : TPS_Household.Sorting.AGE;
+
+        Comparator<TPS_Person> sortComparator = PersonComparators.ofSorting(sortAlgo);
+
+        List<TPS_Household> households = new ArrayList<>();
+
+        for(Map.Entry<Integer,TPS_HouseholdBuilder> hhBuilderEntry : hhBuilders.entrySet()){
+            TPS_HouseholdBuilder builder = hhBuilderEntry.getValue();
+            Collection<TPS_Person> householdMembers = personsByHhId.get(hhBuilderEntry.getKey())
+                    .stream()
+                    .filter(TPS_Person::isChild)
+                    .sorted(sortComparator)
+                    .toList();
+            builder.members(householdMembers);
+            households.add(builder.build());
+        }
+
+        return households;
     }
 
     private void setUpCodes(){

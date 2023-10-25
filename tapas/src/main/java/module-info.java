@@ -24,4 +24,6 @@ module de.dlr.ivf.tapas {
     opens de.dlr.ivf.tapas to com.fasterxml.jackson.databind;
     opens de.dlr.ivf.tapas.dto to de.dlr.ivf.api.io;
     exports de.dlr.ivf.tapas;
+    exports de.dlr.ivf.tapas.simulation;
+    opens de.dlr.ivf.tapas.simulation to com.fasterxml.jackson.databind;
 }

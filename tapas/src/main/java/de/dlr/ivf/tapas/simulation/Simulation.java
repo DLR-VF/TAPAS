@@ -1,7 +1,7 @@
-package de.dlr.ivf.tapas;
+package de.dlr.ivf.tapas.simulation;
 
 
-public class Simulation {
+public class Simulation implements Stepper{
 
     private final System.Logger logger = System.getLogger(Simulation.class.getName());
     public void step(){

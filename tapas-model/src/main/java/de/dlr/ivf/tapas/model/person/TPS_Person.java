@@ -356,7 +356,7 @@ public class TPS_Person implements ExtendedWritable {
         if (s.equals(ShoppingClass.UEL)) {
             index = 0;
         }
-        Map<ShoppingPreferenceAccessibility, PreferenceSet> accessForShoppingClass = preferenceValues.preferencesAccess
+        Map<ShoppingPreferenceAccessibility, PreferenceSet> accessForShoppingClass = preferenceValues.getPreferencesAccess()
                 .get(s);
         PreferenceSet prefSet;
         //calc utilities with a new random uncertantiy (normal distributed) for every choice
@@ -410,7 +410,7 @@ public class TPS_Person implements ExtendedWritable {
         int index = 0;
         double sum = 0;
         boolean oneIsSet = false;
-        Map<ShoppingPreferenceSupply, PreferenceSet> supplyForShoppingClass = preferenceValues.preferencesSupply
+        Map<ShoppingPreferenceSupply, PreferenceSet> supplyForShoppingClass = preferenceValues.getPreferencesSupply()
                 .get(s);
         PreferenceSet prefSet;
 
