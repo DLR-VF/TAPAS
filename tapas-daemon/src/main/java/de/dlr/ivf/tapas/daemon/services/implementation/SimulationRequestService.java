@@ -142,6 +142,11 @@ public class SimulationRequestService implements Service, Runnable {
         }
     }
 
+    @Override
+    public boolean isRunning() {
+        return !serviceHasFinished.get();
+    }
+
     public Object awaitNewSimulation() throws InterruptedException {
         return availableSimulation.take();
     }

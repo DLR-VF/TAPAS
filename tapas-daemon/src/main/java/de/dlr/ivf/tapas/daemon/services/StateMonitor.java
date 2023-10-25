@@ -79,6 +79,11 @@ public class StateMonitor<T> implements Service, Runnable {
     }
 
     @Override
+    public boolean isRunning() {
+        return !serviceFinished.get();
+    }
+
+    @Override
     public void run() {
 
         serviceFinished.set(false);
