@@ -21,31 +21,55 @@ import de.dlr.ivf.tapas.runtime.client.SimulationControl;
 import de.dlr.ivf.tapas.runtime.server.*;
 import de.dlr.ivf.tapas.runtime.util.ClientControlProperties;
 import de.dlr.ivf.tapas.runtime.util.IPInfo;
-import de.dlr.ivf.tapas.util.TPS_Argument;
-import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.*;
-
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Callable;
 /**
  * This class is the main entry point into a TAPAS simulation. It provides a main method which can start in different
  * modes indicated by the {@link RunType} of the simulation.
  *
  * @author mark_ma
  */
+@Command(name = "TPS_Main", mixinStandardHelpOptions = true, description = "Starts a specified TAPAS simulation.")
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
-public class TPS_Main {
+public class TPS_Main  implements Callable<Integer> {
 
-    public static Map<Integer, Integer[]> actStats = new HashMap<>();
+
+    @Option(names = { "-c", "--configuration" }, required = true, paramLabel = "<configuration file>", description = "Configuration file of the simulation.")
+    private String				configFile;
+
+    @Option(names = { "-d",
+            "--database-configuration-file" }, required = true, paramLabel = "<path-to-database-configuration-file>", description = "Loads the database connection parameters from configuration file.")
+    private String				dbConfFile;
+
+    @Option(names = { "-s", "--simulation-key" }, defaultValue = "NEW", paramLabel = "<sim key>", description = "Specifies a Simulation key to run")
+    private String				simKey;
+
+    @Option(names = { "-t", "--threads" }, defaultValue = "-1", paramLabel = "<threads>", description = "Number of threads to use, or -1 for all available CPUs.")
+    private Integer				threads;
+
+    @Option(names = { "-o", "--output" }, defaultValue = "", paramLabel = "<output file>", description = "File to write the trips to, or null if no export is whished.")
+    private String				outputFile;
+
+        public static Map<Integer, Integer[]> actStats = new HashMap<>();
     /**
      * state of the simulation
      */
@@ -68,15 +92,16 @@ public class TPS_Main {
     private boolean external_shutdown_received = false;
 
     /**
-     * This constructor reads all parameters and tries to initialise all data which is available via the
-     * TPS_PersistenceManager . If any Exception is thrown it is logged and the application stops.
-     *
-     * @param paramFile   filename of the parameter paramFile with all run information. This paramFile leads to all other files with
-     *               e.g.
-     *               logging, database, etc. information.
-     * @param simKey key of the simulation
+     * If you call TPS_Mail this way, yu have to call init(String parameterFilename, String credentialsFilename, String sim_key).
      */
-    public TPS_Main(File paramFile, File credentialsFile, String simKey) {
+    public TPS_Main(){
+    }
+
+    public void init(String parameterFilename, String credentialsFilename, String sim_key) {
+        this.init(new File(parameterFilename), new File(credentialsFilename), sim_key);
+    }
+
+    public void init(File paramFile, File credentialsFile, String simKey) {
         this.parameterClass = new TPS_ParameterClass();
 
         if (simKey == null) simKey = TPS_Main.getDefaultSimKey();
@@ -130,6 +155,7 @@ public class TPS_Main {
             //  this.parameterClass.checkParameters();
 
             this.PM = initAndGetPersistenceManager(this.parameterClass);
+            this.init();
         } catch (Exception e) {
             TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
@@ -182,16 +208,6 @@ public class TPS_Main {
         this.dbConnector = simulation.getDbConnector();
     }
 
-    /**
-     * The constructor builds a File from the given filename and calls TPS_Main(File, String).
-     *
-     * @param parameterFilename filename of the run properties file
-     * @param credentialsFilename filename of the db credentials file
-     * @param sim_key  key of the simulation
-     */
-    public TPS_Main(String parameterFilename, String credentialsFilename, String sim_key) {
-        this(new File(parameterFilename), new File(credentialsFilename), sim_key);
-    }
 
     /**
      * sim_key
@@ -210,42 +226,187 @@ public class TPS_Main {
 
     /**
      * Main method initialises a TPS_Main and starts the simulation via the run method.
-     *
-     * @param args Arguments with a R are necessary, these with an O are optional <br>
-     *             R args[0] absolute filename of the run configuration file<br>
-     *             O args[1] constant for run type [ALL, SIMULATE] <br>
-     *             O args[2] simulation key or "new"<br>
-     *             O args[3] amount of parallel threads<br>
+
      */
-    public static void main(String[] args) {
-        // List of parameters
-        List<TPS_ArgumentType<?>> list = new ArrayList<>(5);
-        list.add(new TPS_ArgumentType<>("absolute run configuration filename", File.class));
-        list.add(new TPS_ArgumentType<>("DB credentials filename", File.class));
-        list.add(new TPS_ArgumentType<>("simulation key", String.class, getDefaultSimKey()));
-        list.add(new TPS_ArgumentType<>("amount of parallel threads", Integer.class,
-                Runtime.getRuntime().availableProcessors()));
+    public static void main(String... args) {
+        System.exit(new CommandLine(new TPS_Main()).execute(args));
+    }
+    @Override
+    public Integer call() throws Exception {
+
 
         // check parameters
-        Object[] parameters = TPS_Argument.checkArguments(args, list);
-        File configParam = (File) parameters[0];
-        File loginParam = (File) parameters[1];
-        String sim_key = (String) parameters[2];
-        if(sim_key ==null || sim_key.equalsIgnoreCase("new"))
-            sim_key = getDefaultSimKey();
-        int numOfThreads = (Integer) parameters[3];
+        File configParam = new File(configFile) ;
+        File loginParam = new File(dbConfFile) ;
+        if(simKey ==null || simKey.equalsIgnoreCase("new"))
+            simKey = getDefaultSimKey();
 
-        if(numOfThreads <=0) //if it is negative or zero assume, it i9t a modifier to the max core count
-            numOfThreads = Math.max(1,Runtime.getRuntime().availableProcessors()-numOfThreads);
+        if(threads <=0) //if it is negative or zero assume, it i9t a modifier to the max core count
+            threads = Math.max(1,Runtime.getRuntime().availableProcessors()-threads);
         // initialise and start
-        TPS_Main main = new TPS_Main(configParam, loginParam, sim_key);
-
-        main.init();
-        main.run(numOfThreads);
-        main.finish();
-        main.PM.close();
+        this.init(configParam, loginParam, simKey);
+        this.run(threads);
+        this.finish();
+        this.PM.close();
 
         STATE.setFinished();
+        if(this.outputFile!=null && this.outputFile.length()>0){
+            try {
+                exportSimulationToFile();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        this.writeSimKeyToDisk("simkey.txt");
+        return 0;
+    }
+
+    private void writeSimKeyToDisk(String name)throws  IOException {
+        FileWriter fw = new FileWriter(new File(name));
+        fw.write(simKey+"\n");
+        fw.close();
+    }
+
+    private void exportSimulationToFile() throws SQLException, IOException, ClassNotFoundException {
+        TPS_DB_Connector dbConnector = new TPS_DB_Connector(parameterClass);
+        String schemaname = dbConnector.readParameter(simKey, "DB_SCHEMA_CORE",this);
+        String region = dbConnector.readParameter(simKey, "DB_REGION",this);
+        String tablename = dbConnector.readParameter(simKey, "DB_TABLE_TRIPS",this);
+        tablename = tablename+"_"+simKey;
+        String table_household = dbConnector.readParameter(simKey, "DB_TABLE_HOUSEHOLD",this);
+        table_household = schemaname+table_household;
+        String table_locations = dbConnector.readParameter(simKey, "DB_TABLE_LOCATION",this);
+        table_locations = schemaname+table_locations;
+        String table_persons = dbConnector.readParameter(simKey, "DB_TABLE_PERSON",this);
+        table_persons = schemaname+table_persons;
+        String p_hh_key = dbConnector.readParameter(simKey, "DB_HOUSEHOLD_AND_PERSON_KEY",this);
+        String loc_key = dbConnector.readParameter(simKey, "DB_LOCATION_KEY",this);
+        String table_taz = dbConnector.readParameter(simKey, "DB_TABLE_TAZ",this);
+        table_taz = schemaname+table_taz;
+
+        String command;
+
+        command =
+        "SELECT "+
+                // Person attributes from $region_persons ps
+        "ps.p_id,"+
+        "ps.group as p_group,"+
+        "ps.age as p_age,"+
+        "ps.sex as p_sex,"+
+        "(ps.pt_abo = 1)::text as p_has_season_ticket,"+
+        "(ps.driver_license = 1)::text as p_has_licence, "+
+        // Household attributes from $region_households hs
+        "hs.hh_id,"+
+        "hs.hh_persons as hh_members,"+
+        "(hs.hh_has_child)::text as hh_has_child,"+
+        "hs.hh_cars,"+
+        "hs.hh_income,"+
+                // Plan attributes from trip table $tablename ts
+        "ts.scheme_id,"+
+        "ts.score_combined,"+
+        "ts.score_finance,"+
+        "ts.score_time, "+
+        // Location attributes for departure
+        "ts.taz_id_start,"+
+        "ts.block_id_start,"+
+        "ts.loc_id_start,"+
+        "ST_X(COALESCE(lss.loc_coordinate, hs.hh_coordinate)) as loc_coord_x_start,"+
+        "ST_Y(COALESCE(lss.loc_coordinate, hs.hh_coordinate)) as loc_coord_y_start,"+
+        "tss.taz_bbr_type as taz_bbr_type_start,"+
+        "(ts.taz_has_toll_start)::text as taz_has_toll_start, "+
+                // Location attributes for arrival
+        "ts.taz_id_end,"+
+        "ts.block_id_end,"+
+        "ts.loc_id_end,"+
+        "ST_X(COALESCE(lse.loc_coordinate, hs.hh_coordinate)) as loc_coord_x_end,"+
+        "ST_Y(COALESCE(lse.loc_coordinate, hs.hh_coordinate)) as loc_coord_y_end,"+
+        "tse.taz_bbr_type as taz_bbr_type_end,"+
+        "(ts.taz_has_toll_end)::text as taz_has_toll_end,  "+
+                // Additional trip attributes
+        "ts.start_time_min,"+
+        "ts.travel_time_sec,"+
+        "ts.mode,"+
+        "-1 as car_type,"+
+        "ts.distance_bl_m,"+
+        "ts.distance_real_m,"+
+        "ts.activity,"+
+        "(ts.is_home)::text as is_home,"+
+        "ts.activity_start_min,"+
+        "ts.activity_duration_min,"+
+        "ts.car_index as car_id,"+
+        "(ts.is_restricted)::text as is_restricted "+
+                // FROM CLAUSE WITH JOINS
+        "FROM "+ tablename +" ts "+
+                // inner joins for person and household tables: notice the ON clause with the p_hh_key because of the compound primary keys and the additional where clause
+        "INNER      JOIN " + table_persons +" ps    ON ts.p_id  = ps.p_id  AND '"+ p_hh_key +"' = ps.key "+
+        "INNER      JOIN " + table_household + " hs ON ts.hh_id = hs.hh_id AND '" + p_hh_key +"' = hs.hh_key "+
+                // left outer joins for the location tables: this joins is needed, because the households don't have a location in the location table
+                // Therefore the coordinate is null in lines where the trip starts or ends at home. Normally these lines are deleted, but with a left outer join
+                // they are just filled with null values. These values leads to the CASE clause for the coordinates above
+        "LEFT OUTER JOIN " + table_locations + " lss ON ts.loc_id_start = lss.loc_id AND '"+loc_key+"' = lss.key "+
+        "LEFT OUTER JOIN " + table_locations + " lse ON ts.loc_id_end   = lse.loc_id AND '"+loc_key+"' = lse.key "+
+                // inner joins for the taz attributes
+        "INNER      JOIN " + table_taz + " tss       ON ts.taz_id_start = tss.taz_id "+
+        "INNER      JOIN " + table_taz + " tse       ON ts.taz_id_end   = tse.taz_id "+
+                // WHERE CLAUSE
+                // This clause is needed because the primary key of a person consits of three parts. Two of them are already checked in the inner join's on clause and here the last
+        "WHERE hs.hh_id = ps.hh_id "+
+                // ORDER CLAUSE
+        "ORDER BY hs.hh_id, ps.p_id, ts.start_time_min";
+
+        Connection connection =dbConnector.getConnection(this);
+        FileWriter fw = new FileWriter(new File(outputFile));
+        //header
+        fw.write("p_id\tp_group\tp_age\tp_sex\tp_has_season_ticket\tp_has_licence\thh_id\thh_members\thh_has_child\thh_cars\thh_income\tscheme_id\tscore_combined\tscore_finance\tscore_time\ttaz_id_start\tblock_id_start\tloc_id_start\tloc_coord_x_start\tloc_coord_y_start\ttaz_bbr_type_start\ttaz_has_toll_start\ttaz_id_end\tblock_id_end\tloc_id_end\tloc_coord_x_end\tloc_coord_y_end\ttaz_bbr_type_end\ttaz_has_toll_end\tstart_time_min\ttravel_time_sec\tmode\tcar_type\tdistance_bl_m\tdistance_real_m\tactivity\tis_home\tactivity_start_min\tactivity_duration_min\tcar_id\tis_restricted\n");
+        ResultSet rs = dbConnector.executeQuery(command, this);
+        while(rs.next()){
+            fw.write(rs.getInt("p_id") + "\t");
+            fw.write(rs.getInt("p_group") + "\t");
+            fw.write(rs.getInt("p_age") + "\t");
+            fw.write(rs.getInt("p_sex") + "\t");
+            fw.write(rs.getString("p_has_season_ticket") + "\t");
+            fw.write(rs.getString("p_has_licence") + "\t");
+            fw.write(rs.getInt("hh_id") + "\t");
+            fw.write(rs.getInt("hh_members") + "\t");
+            fw.write(rs.getString("hh_has_child") + "\t");
+            fw.write(rs.getInt("hh_cars") + "\t");
+            fw.write(rs.getInt("hh_income") + "\t");
+            fw.write(rs.getInt("scheme_id") + "\t");
+            fw.write(rs.getDouble("score_combined") + "\t");
+            fw.write(rs.getDouble("score_finance") + "\t");
+            fw.write(rs.getDouble("score_time") + "\t");
+            fw.write(rs.getInt("taz_id_start") + "\t");
+            fw.write(rs.getInt("block_id_start") + "\t");
+            fw.write(rs.getInt("loc_id_start") + "\t");
+            fw.write(rs.getDouble("loc_coord_x_start") + "\t");
+            fw.write(rs.getDouble("loc_coord_y_start") + "\t");
+            fw.write(rs.getInt("taz_bbr_type_start") + "\t");
+            fw.write(rs.getString("taz_has_toll_start") + "\t");
+            fw.write(rs.getInt("taz_id_end") + "\t");
+            fw.write(rs.getInt("block_id_end") + "\t");
+            fw.write(rs.getInt("loc_id_end") + "\t");
+            fw.write(rs.getDouble("loc_coord_x_end") + "\t");
+            fw.write(rs.getDouble("loc_coord_y_end") + "\t");
+            fw.write(rs.getInt("taz_bbr_type_end") + "\t");
+            fw.write(rs.getString("taz_has_toll_end") + "\t");
+            fw.write(rs.getInt("start_time_min") + "\t");
+            fw.write(rs.getInt("travel_time_sec") + "\t");
+            fw.write(rs.getInt("mode") + "\t");
+            fw.write(rs.getInt("car_type") + "\t");
+            fw.write(rs.getDouble("distance_bl_m") + "\t");
+            fw.write(rs.getDouble("distance_real_m") + "\t");
+            fw.write(rs.getInt("activity") + "\t");
+            fw.write(rs.getString("is_home") + "\t");
+            fw.write(rs.getInt("activity_start_min") + "\t");
+            fw.write(rs.getInt("activity_duration_min") + "\t");
+            fw.write(rs.getInt("car_id") + "\t");
+            fw.write(rs.getString("is_restricted") + "\n");
+        }
+        //and finally close everything
+        fw.close();
+        rs.close();
+        dbConnector.closeConnection(this);
+
     }
 
     public void insertANewSimulation(String simFile){

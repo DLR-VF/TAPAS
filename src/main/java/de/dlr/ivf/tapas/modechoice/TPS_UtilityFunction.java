@@ -25,9 +25,9 @@ import de.dlr.ivf.tapas.plan.TPS_Plan;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.EPISODE)
 public interface TPS_UtilityFunction {
 
-    double walkDistanceBarrier = 3000;
+    double walkDistanceBarrier = 4000;
     double walkDistanceShareAfterBarrier = 0.02;
-    double walkDistanceBarrierStrong = 5000;
+    double walkDistanceBarrierStrong = 7000;
     double walkDistanceShareAfterBarrierStrong = 0.00;
     double minModeProbability = 0; // this is the remaining probability to fetch a "forbidden" mode, e.g. lending a friends car/bike
 

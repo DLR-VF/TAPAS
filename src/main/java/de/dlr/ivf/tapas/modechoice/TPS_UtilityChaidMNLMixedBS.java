@@ -58,8 +58,8 @@ public class TPS_UtilityChaidMNLMixedBS extends TPS_UtilityMNLFullComplex {
 
         TPS_DiscreteDistribution<TPS_Mode> dist = null;
         do {
-            if (plan.getPerson().getHousehold().getLocation().getTrafficAnalysisZone().getBbrType().getCode(
-                    TPS_SettlementSystemType.TAPAS) == 2) {
+            int regionCode = plan.getPerson().getHousehold().getLocation().getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystemType.TAPAS);
+            if (regionCode == 2 || regionCode == 72 || regionCode == 73) {
                 dist = new TPS_DiscreteDistribution<>(TPS_Mode.getConstants());
                 dist.setValues(origDist.getValues());
             } else {
@@ -85,16 +85,16 @@ public class TPS_UtilityChaidMNLMixedBS extends TPS_UtilityMNLFullComplex {
             }
         }
         //TODO: hack for reducing WALK
-//		do{
-//			if(dist.getIndexedValue(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrier && distanceNet>TPS_UtilityFunction.walkDistanceBarrier){
-//				dist.setIndexedValue(TPS_Mode.get(ModeType.WALK), TPS_UtilityFunction.walkDistanceShareAfterBarrier/2.0); // this might get larger due to normalization
-//			}
-//			if(dist.getIndexedValue(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrierStrong && distanceNet>TPS_UtilityFunction.walkDistanceBarrierStrong){
-//				dist.setIndexedValue(TPS_Mode.get(ModeType.WALK), TPS_UtilityFunction.walkDistanceShareAfterBarrierStrong/2.0); // this might get larger due to normalization
-//			}
-//			dist.normalize();
-//		}while(	dist.getIndexedValue(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrier && distanceNet>TPS_UtilityFunction.walkDistanceBarrier ||
-//				dist.getIndexedValue(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrierStrong && distanceNet>TPS_UtilityFunction.walkDistanceBarrierStrong); //battle down giant mode shares for walk
+		do{
+			if(dist.getValueByKey(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrier && distanceNet>TPS_UtilityFunction.walkDistanceBarrier){
+				dist.setValueByKey(TPS_Mode.get(ModeType.WALK), TPS_UtilityFunction.walkDistanceShareAfterBarrier/2.0); // this might get larger due to normalization
+			}
+			if(dist.getValueByKey(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrierStrong && distanceNet>TPS_UtilityFunction.walkDistanceBarrierStrong){
+				dist.setValueByKey(TPS_Mode.get(ModeType.WALK), TPS_UtilityFunction.walkDistanceShareAfterBarrierStrong/2.0); // this might get larger due to normalization
+			}
+			dist.normalize();
+		}while(	dist.getValueByKey(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrier && distanceNet>TPS_UtilityFunction.walkDistanceBarrier ||
+				dist.getValueByKey(TPS_Mode.get(ModeType.WALK))>TPS_UtilityFunction.walkDistanceShareAfterBarrierStrong && distanceNet>TPS_UtilityFunction.walkDistanceBarrierStrong); //battle down giant mode shares for walk
 
         return dist;
     }

@@ -926,12 +926,11 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
 
             for (Object[] row : rows) {
 
-                String params = ((String[]) row[SIM_INDEX.PARAMS.ordinal()])[0];
                 final String key = (String) row[SIM_INDEX.KEY.ordinal()];
 
                 if ((Boolean) row[SIM_INDEX.FINISHED.ordinal()]) {
                     export.add(key);
-                    futures.add(threadPool.submit(new ExportThread(connection, params, key)));
+                    futures.add(threadPool.submit(new ExportThread(connection, key)));
                 }
             }
 
@@ -1612,21 +1611,20 @@ public class SimulationMonitor implements TableModelListener, ITumInterface {
     private final class ExportThread implements Runnable {
 
         private final String key;
-        private final String params;
 
         private final TPS_DB_Connector connection;
 
-        private ExportThread(TPS_DB_Connector connection, String params, String key) {
+        private ExportThread(TPS_DB_Connector connection, String key) {
 
             this.key = key;
-            this.params = params;
+
             this.connection = connection;
         }
 
         public void run() {
             try {
                 ResultSet rs = connection.executeQuery(
-                        "SELECT core.simple_export_trip_table('" + params + "_trips_" + key + "')",
+                        "SELECT core.simple_export_trip_table('" + key + "')",
                         SimulationMonitor.this.control);
                 rs.close();
             } catch (SQLException e) {
