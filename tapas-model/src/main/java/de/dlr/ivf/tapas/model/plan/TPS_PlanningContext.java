@@ -8,12 +8,20 @@
 
 package de.dlr.ivf.tapas.model.plan;
 
+import de.dlr.ivf.tapas.model.TPS_AttributeReader;
+import de.dlr.ivf.tapas.model.person.TPS_Household;
+import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.vehicle.CarController;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TPS_PlanningContext {
+    private final TPS_Household household;
     // environment
     public TPS_PlanEnvironment pe;
 
@@ -31,22 +39,42 @@ public class TPS_PlanningContext {
     public TPS_Trip previousTrip = null;
     public boolean fixLocationAtBase = false;
 
+    private final Map<TPS_AttributeReader.TPS_Attribute, Integer> planningAttributes;
+    @Getter
+    private final TPS_Person person;
+
     public CarController getHhCar(){
         return this.hhCar;
     }
 
 
     //
-    public TPS_PlanningContext(TPS_PlanEnvironment _pe, TPS_Car _car, boolean _isBikeAvailable) {
+    public TPS_PlanningContext(TPS_PlanEnvironment _pe, TPS_Car _car, boolean _isBikeAvailable, TPS_Person person, TPS_Household household) {
         pe = _pe;
         carForThisPlan = _car;
         influenceCarUsageInPlan = _car != null;
         influenceBikeUsageInPlan = false;
         isBikeAvailable = _isBikeAvailable;
+        planningAttributes = new HashMap<>();
+        this.person = person;
+        this.household = household;
+    }
+
+    public void addAttribute(TPS_AttributeReader.TPS_Attribute attribute, int value){
+        planningAttributes.put(attribute, value);
+    }
+
+    public int numHouseholdCars(){
+        return household.getNumberOfCars();
+    }
+
+    public void addAttributes(Map<TPS_AttributeReader.TPS_Attribute, Integer> attributes){
+        planningAttributes.putAll(attributes);
     }
 
 
     public boolean needsOtherModeAlternatives(TPS_Plan plan) {
+
         if (plan.usesCar()) {            //check if we need to rerun this plan with no car
             influenceCarUsageInPlan = true;
             carForThisPlan = null; //forbid car for next run

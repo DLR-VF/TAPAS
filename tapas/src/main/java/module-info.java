@@ -19,6 +19,7 @@ module de.dlr.ivf.tapas {
     requires de.dlr.ivf.tapas.model;
     requires de.dlr.ivf.api.io;
     requires de.dlr.ivf.api.converter;
+    requires de.dlr.ivf.api.service;
     requires javacsv;
 
     opens de.dlr.ivf.tapas to com.fasterxml.jackson.databind;

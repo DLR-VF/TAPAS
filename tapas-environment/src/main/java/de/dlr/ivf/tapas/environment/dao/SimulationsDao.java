@@ -22,7 +22,7 @@ public interface SimulationsDao {
 
     void remove(int simId) throws DaoDeleteException;
 
-    Optional<SimulationEntry> requestSimulation(String serverIp);
+    Optional<SimulationEntry> requestNewSimulationEntry(String serverIp);
 
     default Optional<SimulationEntry> simulationById(int id) throws DaoReadException{
         Collection<SimulationEntry> simulationEntries = this.load();

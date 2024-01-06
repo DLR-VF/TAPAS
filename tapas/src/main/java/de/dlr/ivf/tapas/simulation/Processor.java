@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.simulation;
 
-public interface Simulator<S,T> {
+public interface Processor<S,T> {
 
     T process(S entity);
 }

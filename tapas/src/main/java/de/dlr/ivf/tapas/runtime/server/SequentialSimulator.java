@@ -116,7 +116,7 @@ public class SequentialSimulator implements TPS_Simulator {
 //
 //            int simulation_end_time = pm.getParameters().getIntValue(ParamValue.SIMULATION_END_TIME);
 //
-//            TPS_SequentialSimulator simulator = new TPS_SequentialSimulator(statemachine_controllers,
+//            TPS_SequentialSimulator processor = new TPS_SequentialSimulator(statemachine_controllers,
 //                    Math.max(1, num_threads / 2 - 3), (TPS_DB_IOManager) this.pm,
 //                    writer,  1 << 19,
 //                    first_simulation_event, simulation_end_time);
@@ -124,16 +124,16 @@ public class SequentialSimulator implements TPS_Simulator {
 //            TPS_ParameterClass sim_parameters = pm.getParameters();
 //            int car_sharing_checkout_delay = sim_parameters.isDefined(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) ? sim_parameters.getIntValue(ParamValue.CAR_SHARING_CHECKOUT_PENALTY) : 0;
 //
-//            Predicate<TPS_Car> car_sharing_filter = car -> car.getEntryTime() + FuncUtils.secondsToRoundedMinutes.apply(car_sharing_checkout_delay) <= simulator.getSimTime();
+//            Predicate<TPS_Car> car_sharing_filter = car -> car.getEntryTime() + FuncUtils.secondsToRoundedMinutes.apply(car_sharing_checkout_delay) <= processor.getSimTime();
 //            transition_actions_provider.setCarFilter(car_sharing_filter);
-//            transition_actions_provider.setSimTimeProvider(simulator);
+//            transition_actions_provider.setSimTimeProvider(processor);
 //
 //            car_sharing_operators.values()
 //                    .stream()
 //                    .map(SimpleCarSharingOperator.class::cast)
-//                    .forEach(operator -> operator.setSimTimeProvider(simulator));
+//                    .forEach(operator -> operator.setSimTimeProvider(processor));
 //
-//            Thread simulation_thread = new Thread(simulator);
+//            Thread simulation_thread = new Thread(processor);
 //            simulation_thread.start();
 //
 //            //block this thread until the writer is shut down

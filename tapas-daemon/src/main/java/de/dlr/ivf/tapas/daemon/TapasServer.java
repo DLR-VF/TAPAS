@@ -3,15 +3,16 @@ package de.dlr.ivf.tapas.daemon;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 
+import de.dlr.ivf.api.io.connection.ConnectionPool;
+import de.dlr.ivf.api.service.Service;
 import de.dlr.ivf.tapas.Tapas;
 import de.dlr.ivf.tapas.TapasInitializer;
-import de.dlr.ivf.tapas.daemon.services.Service;
 import de.dlr.ivf.tapas.daemon.services.StateRequestFactory;
 import de.dlr.ivf.tapas.daemon.services.implementation.SimulationRequestService;
 import de.dlr.ivf.tapas.daemon.services.implementation.SimulationStateRequest;
 import de.dlr.ivf.tapas.daemon.services.StateMonitor;
-import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 
+import de.dlr.ivf.tapas.environment.model.Simulation;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
 import de.dlr.ivf.tapas.util.VirtualThreadFactory;
 import lombok.Builder;
@@ -33,6 +34,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @Builder
 public class TapasServer implements Service, Runnable {
     private final Logger logger = System.getLogger(TapasServer.class.getName());
+
+    private final ConnectionPool connectionPool;
 
     /**
      * background service that provides simulations to process
@@ -87,46 +90,39 @@ public class TapasServer implements Service, Runnable {
         while(keepRunning.get()) {
 
             try {
+                Simulation simulation = simulationRequestService.awaitNewSimulation(); //blocking call
 
-                Object queuedObject = simulationRequestService.awaitNewSimulation(); //blocking call
-
-                //no nee
-                if(queuedObject == simulationRequestService.getEndOfServiceObject()) {
+                if(simulation == simulationRequestService.getEndOfServiceObject()) {
                     keepRunning.set(false);
                     continue;
                 }
 
-                if (queuedObject instanceof SimulationEntry simulationEntry) {
+                this.simulationStateMonitor = startSimulationStateMonitor(simulation.getId(), simulation.getSimulationState());
 
-                    SimulationState simulationState = simulationEntry.getSimState();
-                    this.simulationStateMonitor = startSimulationStateMonitor(simulationEntry.getId(), simulationState);
+                Runnable runWhenTapasFinished = () -> simulationStateMonitor.signalExternalStateChange(SimulationState.FINISHED);
+                logger.log(Level.INFO, "Running simulation: {0}, awaiting state change...",simulation.getIdentifier());
+                this.tapas = startTapas(runWhenTapasFinished, simulation);
 
-                    Runnable runWhenTapasFinished = () -> simulationStateMonitor.signalExternalStateChange(SimulationState.FINISHED);
-                    logger.log(Level.INFO, "Running simulation: {0}, awaiting state change...",simulationEntry.getSimKey());
-                    this.tapas = startTapas(runWhenTapasFinished);
+                while (simulation.getSimulationState() == SimulationState.RUNNING){
 
-                    while (simulationState == SimulationState.RUNNING){
+                    SimulationState simulationState = simulationStateMonitor.awaitStateChange(); //blocking call
 
-                        simulationState = simulationStateMonitor.awaitStateChange(); //blocking call
-
-                        switch(simulationState){
-                            case PAUSED -> {
-                                simulationStateMonitor.stop();
-                                tapas.stop();
-                                logger.log(Level.INFO, "Simulation: {0} aborted.", simulationEntry.getSimKey());
-                                if(keepRunning.get()) simulationRequestService.start();
-                            }
-                            case FINISHED -> {
-                                simulationStateMonitor.stop();
-                                logger.log(Level.INFO, "Simulation: {0} finished.", simulationEntry.getSimKey());
-                                if (keepRunning.get()) simulationRequestService.start();
-                            }
+                    switch(simulationState){
+                        case PAUSED -> {
+                            simulationStateMonitor.stop();
+                            tapas.stop();
+                            logger.log(Level.INFO, "Simulation: {0} aborted.", simulation.getIdentifier());
+                            if(keepRunning.get()) simulationRequestService.start();
+                        }
+                        case FINISHED -> {
+                            simulationStateMonitor.stop();
+                            logger.log(Level.INFO, "Simulation: {0} finished.", simulation.getIdentifier());
+                            if (keepRunning.get()) simulationRequestService.start();
                         }
                     }
-
-                }else{
-                    logger.log(Level.WARNING, "Received unidentifiable object: " + queuedObject);
                 }
+
+
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -195,18 +191,20 @@ public class TapasServer implements Service, Runnable {
     private StateMonitor<SimulationState> startSimulationStateMonitor(int simulationId, SimulationState simulationState){
 
         SimulationStateRequest stateRequest = stateRequestFactory.newSimulationStateRequest(simulationId);
-        StateMonitor<SimulationState> simulationStateMonitor = new StateMonitor<>(stateRequest, "SimulationStateMonitor",pollingRate, simulationState);
+        StateMonitor<SimulationState> simulationStateMonitor =
+                new StateMonitor<>(stateRequest, "SimulationStateMonitor",pollingRate, simulationState);
 
         simulationStateMonitor.start();
         return simulationStateMonitor;
     }
 
-    private Tapas startTapas(Runnable runWhenDone){
-        TapasInitializer tapasInitializer = TapasInitializer.with();
+    private Tapas startTapas(Runnable runWhenDone, Simulation simulation){
+        TapasInitializer tapasInitializer = new TapasInitializer(simulation.getParameters(), connectionPool, runWhenDone);
 
         Tapas tapas = tapasInitializer.init();
 
         Thread t = new Thread(tapas);
+
         t.start();
         return tapas;
     }

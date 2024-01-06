@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.simulation.implementation;
 
-import de.dlr.ivf.tapas.simulation.Simulator;
+import de.dlr.ivf.tapas.simulation.Processor;
 import lombok.Builder;
 
 import java.util.Queue;
@@ -11,7 +11,7 @@ public class SimulationWorker<S> implements Runnable{
 
     private final Queue<S> householdsToProcess;
     private boolean keepRunning = true;
-    private final Simulator<S,?> simulator;
+    private final Processor<S,?> processor;
     private final CountDownLatch countDownLatch;
     @Override
     public void run() {
@@ -21,7 +21,7 @@ public class SimulationWorker<S> implements Runnable{
             if(hh == null){
                 keepRunning = false;
             } else {
-                var result = simulator.process(hh);
+                var result = processor.process(hh);
             }
 
         }

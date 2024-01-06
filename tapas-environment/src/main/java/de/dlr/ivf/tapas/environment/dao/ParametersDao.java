@@ -8,7 +8,7 @@ import java.util.Collection;
 
 public interface ParametersDao {
 
-    Collection<ParameterEntry> load(int id);
+    Collection<ParameterEntry> readSimulationParameters(int id);
 
     void insert(Collection<ParameterEntry> parameters) throws DaoInsertException;
 

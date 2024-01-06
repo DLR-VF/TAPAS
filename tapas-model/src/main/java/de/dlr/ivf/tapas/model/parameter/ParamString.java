@@ -753,6 +753,8 @@ public enum ParamString {
      */
     LOCATION_CHOICE_SET_CLASS,
 
-    DB_TABLE_EKT, DB_NAME_EKT
+    DB_TABLE_EKT, DB_NAME_EKT,
+
+    SIMULATOR
 }
 

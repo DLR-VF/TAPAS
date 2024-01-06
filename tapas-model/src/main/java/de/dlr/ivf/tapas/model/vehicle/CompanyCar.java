@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas.model.vehicle;
 /**
  * This is a decorator for a {@link Vehicle} that implements a different cost strategy.
  */
-public class CompanyCar implements Vehicle {
+public class CompanyCar extends TPS_Car {
 
     private final Vehicle car;
 

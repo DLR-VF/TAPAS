@@ -196,7 +196,7 @@ public class TPS_Worker implements Callable<Exception> {
             // select a scheme randomly
             TPS_Scheme scheme = PM.getSchemesSet().findScheme(person);
             // use the scheme to build a plan and adapt the plan if needed
-            TPS_Plan masterplan = new TPS_Plan(person, pe, scheme);
+            TPS_Plan masterplan = null;//new TPS_Plan(person, pe, scheme);
             /* @see Manits entry 0002615
              *
              * This hack is necessary, because the current schemes have no university code (411). The hack method
@@ -212,14 +212,14 @@ public class TPS_Worker implements Callable<Exception> {
             // check different modes for the chosen locations
             boolean finishedPlanSearch = false;
             while (!finishedPlanSearch) {
-                TPS_Plan modedPlan = new TPS_Plan(masterplan); // build a copy of the master plan
-                TPS_PlanningContext pc = new TPS_PlanningContext(pe, carDummy, isBikeAvailable);
-                locationAndModeChooser.selectLocationsAndModesAndTravelTimes(pc,modedPlan); // mode choice for all trips and location choice for not fixed locations
+                TPS_Plan modedPlan = null;//new TPS_Plan(masterplan); // build a copy of the master plan
+                TPS_PlanningContext pc = null;//new TPS_PlanningContext(pe, carDummy, isBikeAvailable);
+                //locationAndModeChooser.selectLocationsAndModesAndTravelTimes(pc,modedPlan); // mode choice for all trips and location choice for not fixed locations
                 modedPlan.setTravelTimes();
                 modedPlan.balanceStarts(); // the sum of travel times and its discrepancy from the travel times reported
 
                 pe.addPlan(modedPlan);
-                if (feasibilityCalculator.calcPlanFeasibility(modedPlan) && modedPlan.isPlanAccepted()) {
+                if (feasibilityCalculator.isPlanFeasible(modedPlan) && modedPlan.isPlanAccepted()) {
                     finished = true; //we found a good plan!
                 }
                 if (!pc.needsOtherModeAlternatives(modedPlan)) {
@@ -300,7 +300,7 @@ public class TPS_Worker implements Callable<Exception> {
                     continue;
                 }
 
-                TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, getParameters());
+                TPS_PlanEnvironment pe = null; //new TPS_PlanEnvironment(person, getParameters());
                 createPersonPlans(pe, null);
                 TPS_Plan plan = pe.getBestPlan();
                 PM.writePlan(plan);
@@ -359,7 +359,7 @@ public class TPS_Worker implements Callable<Exception> {
                 }
 
                 // build plan environment for the person
-                TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, PM.getParameters());
+                TPS_PlanEnvironment pe = null;//new TPS_PlanEnvironment(person, PM.getParameters());
                 createPersonPlans(pe, carDummy);
                 TPS_Plan bestPlan = pe.getBestPlan();
                 if (!carAssignmentNecessary || !competingCarDrivers.contains(person) || !bestPlan.usesCar()) {

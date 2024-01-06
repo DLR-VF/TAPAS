@@ -4,7 +4,6 @@ import de.dlr.ivf.tapas.model.Timeline;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
@@ -30,7 +29,7 @@ public class FeasibilityCalculator {
 
     }
 
-    public boolean calcPlanFeasibility(TPS_Plan plan){
+    public boolean isPlanFeasible(TPS_Plan plan){
         boolean feasible = true;
         Timeline tl = new Timeline();
         int start = 0, end = 0;

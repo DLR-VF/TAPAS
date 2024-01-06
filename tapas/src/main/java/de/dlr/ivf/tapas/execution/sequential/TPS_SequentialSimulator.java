@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 /**
- * This should run inside its own thread. Upon construction the simulator will set up a {@link TPS_StateMachine}
+ * This should run inside its own thread. Upon construction the processor will set up a {@link TPS_StateMachine}
  * for each plan passed to the constructor and determines the first {@link TPS_Event}.
  *
  * When the {@link TPS_SequentialSimulator} is started, a single producer of {@link TPS_StateMachineEvent}s

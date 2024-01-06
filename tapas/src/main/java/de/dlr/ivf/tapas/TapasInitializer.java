@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas;
 import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.configuration.Filter;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
+import de.dlr.ivf.tapas.choice.*;
 import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;
@@ -16,6 +17,8 @@ import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.person.PersonComparators;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
+import de.dlr.ivf.tapas.model.plan.TPS_PlanEnvironment;
+import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
 import de.dlr.ivf.tapas.model.vehicle.Cars;
 import de.dlr.ivf.tapas.model.vehicle.FuelType;
 import de.dlr.ivf.tapas.model.vehicle.FuelTypeName;
@@ -25,26 +28,35 @@ import de.dlr.ivf.tapas.persistence.io.DataStore;
 import de.dlr.ivf.tapas.persistence.io.DataStore.DataStoreBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.constants.PersonGroups.PersonGroupsBuilder;
+import de.dlr.ivf.tapas.simulation.Processor;
+import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
+import de.dlr.ivf.tapas.simulation.implementation.SimulationWorker;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class TapasInitializer {
 
     private final TPS_ParameterClass parameters;
     private final TPS_DB_IO dbIo;
+    private final Runnable runWhenDone;
 
-    private TapasInitializer(TPS_ParameterClass parameters, ConnectionPool connectionSupplier){
+    public TapasInitializer(TPS_ParameterClass parameters, ConnectionPool connectionSupplier, Runnable runWhenDone){
         this.parameters = parameters;
         this.dbIo = new TPS_DB_IO(connectionSupplier, parameters);
+        this.runWhenDone = runWhenDone;
     }
 
-    public static TapasInitializer with(Map<String, String> parameters, ConnectionPool connectionSupplier){
+    public TapasInitializer(Map<String, String> parameters, ConnectionPool connectionSupplier, Runnable runWhenDone){
 
         TPS_ParameterClass parameterClass = new TPS_ParameterClass();
         parameterClass.fromMap(parameters);
-        return new TapasInitializer(parameterClass, connectionSupplier);
+        this.parameters = parameterClass;
+        this.dbIo = new TPS_DB_IO(connectionSupplier, parameterClass);
+        this.runWhenDone = runWhenDone;
     }
 
     /**
@@ -151,10 +163,6 @@ public class TapasInitializer {
         dataStoreBuilder.schemeSet(schemeSet);
 
 
-
-
-        Queue<TPS_Household> householdsToProcess = new ConcurrentLinkedDeque<>(households);
-
         //read region
         Map<Integer, TPS_SettlementSystem> settlementSystemMap = settlementSystems.stream()
                 .collect(Collectors.toMap(
@@ -162,17 +170,40 @@ public class TapasInitializer {
                         system -> system
                 ));
 
-       // TPS_Region region = dbIo.readRegion();
+        TPS_Region region = dbIo.readRegion();
 
 
+        int numWorkers = parameters.getIntValue(ParamValue.NUM_WORKERS);
+        CountDownLatch countDownLatch = new CountDownLatch(numWorkers);
+
+        SchemeSelector schemeSelector = new SchemeSelector(schemeSet);
+        TravelDistanceCalculator travelDistanceCalculator = new TravelDistanceCalculator(parameters);
+        LocationSelector locationSelector = new LocationSelector(region, travelDistanceCalculator);
+        FeasibilityCalculator feasibilityCalculator = new FeasibilityCalculator(parameters);
+
+        ModeSelector modeSelector = new ModeSelector(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree,parameters,modes,modeDistributionCalculator),parameters);
+        LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(parameters, locationSelector, modeSelector);
+        TPS_PlanEVA1Acceptance acceptance = new TPS_PlanEVA1Acceptance(parameters);
+        Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> hhProcessor = HouseholdProcessor.builder()
+                .schemeSelector(schemeSelector)
+                .locationAndModeChooser(locationAndModeChooser)
+                .maxTriesScheme(parameters.getIntValue(ParamValue.MAX_TRIES_SCHEME))
+                .planEVA1Acceptance(acceptance)
+                .feasibilityCalculator(feasibilityCalculator)
+                .build();
+
+        Queue<TPS_Household> householdsToProcess = new ConcurrentLinkedDeque<>(households);
+
+        Collection<SimulationWorker<?>> workers = IntStream.range(0,numWorkers)
+                .mapToObj(i -> SimulationWorker.<TPS_Household>builder()
+                        .countDownLatch(countDownLatch)
+                        .processor(hhProcessor)
+                        .householdsToProcess(householdsToProcess)
+                        .build())
+                .collect(Collectors.toCollection(ArrayList::new));
 
 
-
-
-
-
-
-        return new Tapas(null,);
+        return new Tapas(runWhenDone,workers,hhProcessor, countDownLatch);
     }
 
     private List<TPS_Household> initHouseHolds(Cars carFleet) {

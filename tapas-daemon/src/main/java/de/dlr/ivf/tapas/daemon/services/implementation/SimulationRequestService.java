@@ -1,8 +1,9 @@
 package de.dlr.ivf.tapas.daemon.services.implementation;
 
-import de.dlr.ivf.tapas.daemon.services.Service;
-import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
+import de.dlr.ivf.api.service.Service;
+import de.dlr.ivf.tapas.environment.TapasEnvironment;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
+import de.dlr.ivf.tapas.environment.model.Simulation;
 import de.dlr.ivf.tapas.util.VirtualThreadFactory;
 import lombok.Getter;
 
@@ -11,6 +12,7 @@ import java.lang.System.Logger.Level;
 
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -36,20 +38,20 @@ public class SimulationRequestService implements Service, Runnable {
     private final Condition serviceFinishedCondition = lock.newCondition();
     private final AtomicBoolean serviceHasFinished = new AtomicBoolean(false);
     private final AtomicBoolean keepRunning = new AtomicBoolean(false);
-    private final BlockingQueue<Object> availableSimulation = new ArrayBlockingQueue<>(1);
+    private final BlockingQueue<Simulation> availableSimulation = new ArrayBlockingQueue<>(1);
 
     //todo use a virtual thread with java 21
     private Thread requestThread;
 
-    private final SimulationsDao simulationsDao;
+    private final TapasEnvironment tapasEnvironment;
     private final String serverIdentifier;
     private final Duration pollingRate;
 
     @Getter
-    private final Object endOfServiceObject = new Object();
+    private final Simulation endOfServiceObject = new Simulation(SimulationEntry.builder().build(), Map.of());
 
-    public SimulationRequestService(SimulationsDao simulationsDao, String serverIdentifier, Duration pollingRate){
-        this.simulationsDao = simulationsDao;
+    public SimulationRequestService(TapasEnvironment tapasEnvironment, String serverIdentifier, Duration pollingRate){
+        this.tapasEnvironment = tapasEnvironment;
         this.serverIdentifier = serverIdentifier;
         this.pollingRate = pollingRate;
     }
@@ -64,12 +66,12 @@ public class SimulationRequestService implements Service, Runnable {
         logger.log(Level.INFO, "Waiting for new simulation...");
 
         while(keepRunning.get()) {
-           Optional<SimulationEntry> potentialSimulation = simulationsDao.requestSimulation(serverIdentifier);
+           Optional<Simulation> potentialSimulation = tapasEnvironment.requestSimulation(serverIdentifier);
 
             if (potentialSimulation.isPresent()) {
                 var simulation = potentialSimulation.get();
                 if(this.availableSimulation.offer(simulation)){
-                    logger.log(Level.INFO,"Simulation: {0} available.",simulation.getSimKey());
+                    logger.log(Level.INFO,"Simulation: {0} available.",simulation.getIdentifier());
                 }else{
                     logger.log(Level.WARNING, "Simulation request retrieved an available simulation even though a" +
                             " simulation was still in queue.");
@@ -147,7 +149,7 @@ public class SimulationRequestService implements Service, Runnable {
         return !serviceHasFinished.get();
     }
 
-    public Object awaitNewSimulation() throws InterruptedException {
+    public Simulation awaitNewSimulation() throws InterruptedException {
         return availableSimulation.take();
     }
 }

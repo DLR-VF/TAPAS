@@ -16,6 +16,7 @@ import de.dlr.ivf.tapas.environment.dto.ParameterEntry;
 import de.dlr.ivf.tapas.environment.dto.ServerEntry;
 import de.dlr.ivf.tapas.environment.dto.SimulationEntry;
 import de.dlr.ivf.tapas.environment.model.ServerState;
+import de.dlr.ivf.tapas.environment.model.Simulation;
 import de.dlr.ivf.tapas.environment.model.SimulationState;
 import lombok.Builder;
 
@@ -252,6 +253,25 @@ public class TapasEnvironment {
         parameters.put("SUMO_DESTINATION_FOLDER", paramVal);
 
         return parameters;
+    }
+
+    public Optional<Simulation> requestSimulation(String serverIdentifier) {
+        Optional<SimulationEntry> optionalSimulationEntry = simulationsDao.requestNewSimulationEntry(serverIdentifier);
+
+        if(optionalSimulationEntry.isPresent()){
+            SimulationEntry simulationEntry = optionalSimulationEntry.get();
+
+            Map<String, String> simulationParameters = parametersDao.readSimulationParameters(simulationEntry.getId())
+                    .stream()
+                    .collect(Collectors.toMap(
+                            ParameterEntry::getParamKey,
+                            ParameterEntry::getParamValue
+            ));
+
+            return Optional.of(new Simulation(simulationEntry, simulationParameters));
+        }else{
+            return Optional.empty();
+        }
     }
 }
 

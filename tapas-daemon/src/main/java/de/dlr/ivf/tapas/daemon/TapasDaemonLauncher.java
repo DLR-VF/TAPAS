@@ -76,12 +76,18 @@ public class TapasDaemonLauncher {
 
             Duration pollingRate = Duration.ofSeconds(5);
 
-            StateMonitor<ServerState> serverStateMonitor = new StateMonitor<>(new ServerStateRequest(tapasEnvironment, serverIdentifier),"ServerStateMonitor", pollingRate, ServerState.RUN);
+            StateMonitor<ServerState> serverStateMonitor =
+                    new StateMonitor<>(
+                            new ServerStateRequest(tapasEnvironment, serverIdentifier),
+                            "ServerStateMonitor",
+                            pollingRate,
+                            ServerState.RUN);
 
             SimulationRequestService simulationRequestService =
-                    new SimulationRequestService(simulationsDao, serverIdentifier,pollingRate);
+                    new SimulationRequestService(tapasEnvironment, serverIdentifier,pollingRate);
 
             TapasServer tapasServer = TapasServer.builder()
+                    .connectionPool(connectionPool)
                     .stateRequestFactory(new StateRequestFactory(tapasEnvironment))
                     .pollingRate(pollingRate)
                     .simulationRequestService(simulationRequestService)

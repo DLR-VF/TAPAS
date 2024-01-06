@@ -203,7 +203,7 @@ public class TPS_Main {
 
     public void initShutdown(){
         this.external_shutdown_received = true;
-        TPS_Logger.log(getClass(),SeverityLogLevel.INFO,"Server shutdown initiated, shutting down simulator...");
+        TPS_Logger.log(getClass(),SeverityLogLevel.INFO,"Server shutdown initiated, shutting down processor...");
         this.simulator.shutdown();
         while(simulator.isRunningSimulation()){
             TPS_Logger.log(getClass(),SeverityLogLevel.INFO,"Waiting for workers to finish remaining work...");
@@ -253,9 +253,9 @@ public class TPS_Main {
 
 //
 //        if(this.parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) && this.parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
-//            this.simulator = new SequentialSimulator(this.PM, this.dbConnector);
+//            this.processor = new SequentialSimulator(this.PM, this.dbConnector);
 //        }else{
-//            this.simulator = new HierarchicalSimulator(this.PM,locationAndModeChooser);
+//            this.processor = new HouseholdProcessor(this.PM,locationAndModeChooser);
 //        }
 
         this.simulator.run(threads); //this will block

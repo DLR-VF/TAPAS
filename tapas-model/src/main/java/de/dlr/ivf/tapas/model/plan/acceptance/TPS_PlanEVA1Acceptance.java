@@ -28,10 +28,39 @@ import de.dlr.ivf.tapas.model.parameter.ParamValue;
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
 
-    private final TPS_ParameterClass parameterClass;
+    private final double eBottomFinance;
+    private final double fTopFinance;
+    private final double turningPointFinance;
+
+    private final double eBottomTime;
+    private final double fTopTime;
+
+    private final boolean checkBudgetConstraints;
+    private final double eBottomOverallTime;
+    private final double fTopOverallTime;
+    private final double turningPointMaxTime;
 
     public TPS_PlanEVA1Acceptance(TPS_ParameterClass parameterClass){
-        this.parameterClass = parameterClass;
+
+        // Anschmiegeparameter der EVA1-Funktion
+        this.eBottomFinance = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_E);
+
+        // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
+        this.fTopFinance = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_F);
+
+        // Wendepunkt der Funktion; ein Wendepunkt von 0.5 besagt, dass es bei einer Überschreitung der Budget-
+        // vorgaben um 50 % zu einem starken Abfall der Akzeptanz des Plans kommt
+        this.turningPointFinance = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_WP);
+
+        this.eBottomTime = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_E);
+        this.fTopTime = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_F);
+
+        this.eBottomOverallTime = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_E);
+        // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
+        this.fTopOverallTime = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_F);
+        this.turningPointMaxTime = parameterClass.getDoubleValue(ParamValue.MAX_TIME_DIFFERENCE);
+
+        this.checkBudgetConstraints = parameterClass.isTrue(ParamFlag.FLAG_CHECK_BUDGET_CONSTRAINTS);
     }
 
     /**
@@ -56,13 +85,6 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
         if (myFinancialBudgetVariable == 2 * 99999 / 30) { // TODO integer compared to float?
             budgetAcceptanceProbability = 1;
         } else {
-            // Anschmiegeparameter der EVA1-Funktion
-            double EBottom = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_E);
-            // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
-            double FTop = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_F);
-            // Wendepunkt der Funktion; ein Wendepunkt von 0.5 besagt, dass es bei einer Überschreitung der Budget-
-            // vorgaben um 50 % zu einem starken Abfall der Akzeptanz des Plans kommt
-            double TurningPoint = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_WP);
             // Verhältnis des Ausgaben zum Budget; nur bei Überschreitung (>1) wird auf Akzeptanz getestet, sonst
             // immer 1
             double ratio = plan.getTravelCosts() / myFinancialBudgetVariable;
@@ -73,7 +95,7 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
                 // akzeptiert
             } else {
                 ratio = ratio - 1; // Basis ist immer 0, Abweichung darauf basierend
-                budgetAcceptanceProbability = TPS_GX.calculateEVA1Acceptance(ratio, EBottom, FTop, TurningPoint);
+                budgetAcceptanceProbability = TPS_GX.calculateEVA1Acceptance(ratio, eBottomFinance, fTopFinance, turningPointFinance);
             }
             if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
                 TPS_Logger.log(SeverityLogLevel.DEBUG,
@@ -99,15 +121,9 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
      */
     private double calculateAcceptanceProbTimeConstraints(TPS_Plan plan) {
         double timeAcceptanceProbability = 0.0;
-        // Anschmiegeparameter der EVA1-Funktion
-        double EBottom = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_E);
-        // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflusst
-        double FTop = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_F);
-        // stattdessen Infos aus Tagebuchklasse!
-        // double TurningPoint = myTurningPointTime;
 
         double myTimeBudget = 1.0 / plan.getScheme().getTimeUsageAVG();
-        double TurningPoint = plan.getScheme().getTimeUsageSTD() * myTimeBudget;
+        double turningPoint = plan.getScheme().getTimeUsageSTD() * myTimeBudget;
 
         // prozentuale Abweichungen müssen normiert werden, um die EVA1-Funktion verwenden zu können (berücksichtigt nur
         // positive Aufwände)
@@ -120,7 +136,7 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
             // direkt akzeptieren
         } else {
             ratio = Math.abs(ratio - 1.0);
-            timeAcceptanceProbability = TPS_GX.calculateEVA1Acceptance(ratio, EBottom, FTop, TurningPoint);
+            timeAcceptanceProbability = TPS_GX.calculateEVA1Acceptance(ratio, eBottomTime, fTopTime, turningPoint);
         }
         if (TPS_Logger.isLogging(SeverityLogLevel.DEBUG)) {
             TPS_Logger.log(SeverityLogLevel.DEBUG,
@@ -141,7 +157,7 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
     public boolean isPlanAccepted(TPS_Plan plan) {
         boolean accepted = this.isPlanAcceptedByOverallTravelTime(plan);
         // Check additional constraints (average travel time of scheme class and budget) if plan is accepted in general
-        if (accepted && parameterClass.isTrue(ParamFlag.FLAG_CHECK_BUDGET_CONSTRAINTS)) {
+        if (accepted && checkBudgetConstraints) {
             accepted = this.isPlanAcceptedByAdditionalConstraints(plan);
         }
         return accepted;
@@ -187,12 +203,6 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
             plan.setAcceptanceProbability(1);
 
         } else {
-            // Anschmiegeparameter der EVA1-Funktion
-            double EBottom = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_E);
-            // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
-            double FTop = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_F);
-            double TurningPoint = parameterClass.getDoubleValue(ParamValue.MAX_TIME_DIFFERENCE);
-
             ratio = realDuration / originalDuration;
             ratio = Math.abs(ratio -
                     1.0);  //even shorter plans should be rejected due to the magic "84min travel time"-postulation
@@ -200,7 +210,7 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
 //				ratio /=2; //shorter durations are only "halve bad"
 //			}
 
-            acceptance = TPS_GX.calculateEVA1Acceptance(ratio, EBottom, FTop, TurningPoint);
+            acceptance = TPS_GX.calculateEVA1Acceptance(ratio, eBottomOverallTime, fTopOverallTime, turningPointMaxTime);
             if (Double.isNaN(acceptance) || Double.isInfinite(acceptance)) {
                 TPS_Logger.log(SeverityLogLevel.FATAL, "Plan has NaN acceptance!");
                 plan.setPlanFeasible(false);

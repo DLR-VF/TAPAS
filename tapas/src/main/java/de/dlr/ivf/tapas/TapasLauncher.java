@@ -37,7 +37,7 @@ public class TapasLauncher{
             parameterClass.loadRuntimeParameters(Paths.get(configDto.getRunTimeFile()).toFile());
 
             TapasInitializer initializer = new TapasInitializer(parameterClass,
-                    new ConnectionPool(configDto.getConnectionDetails()));
+                    new ConnectionPool(configDto.getConnectionDetails()), null);
 
             Tapas tapas = initializer.init();
 

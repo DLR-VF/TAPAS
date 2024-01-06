@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":tapas-model"))
     implementation(project(":converter"))
     implementation(project(":io"))
+    implementation(project(":service"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
@@ -105,22 +106,22 @@ application {
 }
 
 
-task("TapasLauncherTest", JavaExec::class) {
-
-    mainModule.set("de.dlr.ivf.tapas")
-    mainClass.set("de.dlr.ivf.tapas.TapasLauncher")
-    //classpath = sourceSets.main.1runtimeClasspath
-    group = "runnables"
-//    description = "Starts Tapas"
-//    // Define the main class for the application
+//task("TapasLauncherTest", JavaExec::class) {
+//
 //    mainModule.set("de.dlr.ivf.tapas")
 //    mainClass.set("de.dlr.ivf.tapas.TapasLauncher")
-//   // modularity.inferModulePath.set(false)
-//    classpath = sourceSets["main"].runtimeClasspath
-//    args = listOf("D:/TAPAS_modularity/tapas/src/main/resources/tapasconfig.json")
-//    jvmArgs = listOf("-Xmx8g")
-    //jvmArgs = listOf("-Ddebug=true", "-Xmx8g")
-}
+//    //classpath = sourceSets.main.1runtimeClasspath
+//    group = "runnables"
+////    description = "Starts Tapas"
+////    // Define the main class for the application
+////    mainModule.set("de.dlr.ivf.tapas")
+////    mainClass.set("de.dlr.ivf.tapas.TapasLauncher")
+////   // modularity.inferModulePath.set(false)
+////    classpath = sourceSets["main"].runtimeClasspath
+////    args = listOf("D:/TAPAS_modularity/tapas/src/main/resources/tapasconfig.json")
+////    jvmArgs = listOf("-Xmx8g")
+//    //jvmArgs = listOf("-Ddebug=true", "-Xmx8g")
+//}
 idea {
     module {
         inheritOutputDirs = true

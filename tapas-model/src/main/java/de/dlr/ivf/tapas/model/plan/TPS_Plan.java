@@ -48,7 +48,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
     public List<Vehicle> usedCars = new LinkedList<>();
     public boolean usesBike = false;
     public boolean mustPayToll = false;
-    HashMap<TPS_Attribute, Integer> myAttributes = new HashMap<>();
+    private final Map<TPS_Attribute, Integer> myAttributes;
     /// Fix (reused) locations
     Map<TPS_ActivityConstant, TPS_Location> fixLocations = new HashMap<>();
     /// The reference to the persistence manager
@@ -73,91 +73,31 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
     /**
      * Constructor for this class
      *
-     * @param person   the person the scheme was selected for
-     * @param pe
-     * @param schemeIn the scheme selected for the person
+     * @param scheme the scheme selected for the person
      */
-    public TPS_Plan(TPS_Person person, TPS_PlanEnvironment pe, TPS_Scheme schemeIn) {
+    public TPS_Plan(TPS_Location homeLocation, TPS_PlanEnvironment pe, TPS_Scheme scheme, Map<TPS_Attribute, Integer> planAttributes) {
         this.pe = pe;
 
-        this.locatedStays = new HashMap<>();
-        this.plannedTrips = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
-
-        //no need to clone, each scheme will be completely immutable and only contexts will hold derivations of the original scheme
-//        this.scheme = schemeIn.clone();
-//
-        myAttributes.put(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE,
-                TPS_Income.getCode(person.getHousehold().getIncome()));
-        myAttributes.put(TPS_Attribute.PERSON_AGE, person.getAge());
-        myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_PERSON_GROUP, person.getPersonGroup().getCode());
-        myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_STBA, person.getAgeClass().getCode(TPS_AgeCodeType.STBA));
-        int code;
-        if (person.hasDrivingLicenseInformation()) {
-            code = person.getDrivingLicenseInformation().getCode();
-        } else {
-            if (person.getAge() >= 18) {
-                code = TPS_DrivingLicenseInformation.CAR.getCode();
-            } else {
-                code = TPS_DrivingLicenseInformation.NO_DRIVING_LICENSE.getCode();
-            }
-        }
-        if (code == 0) { //BUGFIX: no driving license is coded in MID2008 as 2!
-            code = 2;
-        }
-        myAttributes.put(TPS_Attribute.PERSON_DRIVING_LICENSE_CODE, code);
-        myAttributes.put(TPS_Attribute.CURRENT_TAZ_SETTLEMENT_CODE_TAPAS,
-                person.getHousehold().getLocation().getTrafficAnalysisZone().getBbrType()
-                      .getCode(TPS_SettlementSystemType.TAPAS));
-        myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_STBA, person.getAgeClass().getCode(TPS_AgeCodeType.STBA));
-        myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, person.hasBike() ? 1 : 0);
-        myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, person.getHousehold()
-                                                             .getNumberOfCars()); // TODO: note that this is set once again in selectLocationsAndModesAndTravelTimes
-        myAttributes.put(TPS_Attribute.PERSON_SEX_CLASS_CODE, person.getSex().getCode());
-
-        if (this.scheme != null) {
-            for (TPS_Episode e : this.scheme.getEpisodeIterator()) {
-                if (e.isStay()) {
-                    TPS_Stay stay = (TPS_Stay) e;
-                    TPS_LocatedStay locatedStay = new TPS_LocatedStay(this, stay);
-                    if (stay.isAtHome()) {
-                        locatedStay.setLocation(person.getHousehold().getLocation());
-                    }
-                    this.locatedStays.put(stay, locatedStay);
-                } else {
-                    TPS_Trip trip = (TPS_Trip) e;
-                    this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip));
-                }
-            }
-        }
-    }
-
-
-    public TPS_Plan(TPS_Plan src) {
-        this.pe = src.pe;
-        src.usedCars.addAll(this.usedCars);
+        this.scheme = scheme;
+        this.myAttributes = planAttributes;
 
         this.locatedStays = new HashMap<>();
         this.plannedTrips = new TreeMap<>(Comparator.comparingInt(TPS_Episode::getOriginalStart));
-        // same as(trip1, trip2) -> trip1.getOriginalStart() - trip2.getOriginalStart()
 
-        this.scheme = src.scheme; // TODO: clarify: scheme is not changed after being adapted to the person (student hack or whatever) once
-        for (TPS_Attribute attr : src.myAttributes.keySet()) {
-            this.myAttributes.put(attr, src.myAttributes.get(attr));
-        }
-        for (TPS_Stay stay : src.locatedStays.keySet()) {
-            TPS_LocatedStay locStay = new TPS_LocatedStay(this, stay);
-            this.locatedStays.put(stay, locStay);
-            if (src.isLocated(stay)) {
-                locStay.setLocation(src.locatedStays.get(stay).getLocation());
-            }
-        }
-        for (TPS_Episode e : this.scheme.getEpisodeIterator()) {
+        for (TPS_Episode e : scheme.getEpisodeIterator()) {
             if (e.isStay()) {
-                continue;
+                TPS_Stay stay = (TPS_Stay) e;
+                TPS_LocatedStay locatedStay = new TPS_LocatedStay(this, stay);
+                if (stay.isAtHome()) {
+                    locatedStay.setLocation(homeLocation);
+                }
+                this.locatedStays.put(stay, locatedStay);
+            } else {
+                TPS_Trip trip = (TPS_Trip) e;
+                this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip));
             }
-            TPS_Trip trip = (TPS_Trip) e;
-            this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip));
         }
+
     }
 
     /**
@@ -250,149 +190,6 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
      */
     public int compareTo(TPS_Plan o) {
         return this.getAcceptanceProbability() > o.getAcceptanceProbability() ? 1 : -1;
-    }
-
-    /**
-     * Method to create the output for log-file
-     *
-     * @return
-     */
-    public List<List<String>> createOutput() {
-        List<List<String>> outList = new ArrayList<>();
-
-        TPS_Stay nextStay, prevStay;
-        TPS_PlannedTrip plannedTrip;
-
-        int personID = pe.getPerson().getId();
-        int schemeID = scheme.getId();
-        int sex = pe.getPerson().getSex().ordinal();
-        int mainActivity;
-        double hHIncome = pe.getPerson().getHousehold().getIncome();
-        int numberOfPersonsHH = pe.getPerson().getHousehold().getNumberOfMembers();
-
-        for (TPS_TourPart tour : this.scheme.getTourPartIterator()) {
-            //get highest priority trip
-            if (tour.getPriorisedStayIterable().iterator().hasNext())
-                mainActivity = tour.getPriorisedStayIterable().iterator().next().getActCode().getCode(
-                        TPS_ActivityCodeType.ZBE);
-            else mainActivity = -999;
-            for (TPS_Trip trip : tour.getTripIterator()) {
-
-                List<String> out = new ArrayList<>();
-
-                plannedTrip = this.getPlannedTrip(trip);
-
-                nextStay = plannedTrip.getTrip().getSchemePart().getNextStay(trip);
-                prevStay = plannedTrip.getTrip().getSchemePart().getPreviousStay(trip);
-
-                out.add(Integer.toString(personID)); // PersonID
-
-                out.add(Integer.toString(schemeID)); // SchemeID
-
-                out.add(Integer.toString(pe.getPerson().getPersonGroup().getCode())); // job
-                out.add(Integer.toString(mainActivity)); // actCode
-
-                // fahrten haben keine Aktivitätencodes! daher: Aktivitätencode der nächsten location
-                int actCode = nextStay.getActCode().getCode(TPS_ActivityCodeType.ZBE);
-                // TODO  Mantis 0002615
-                if (actCode == 410 && pe.getPerson().isStudent()) actCode = 411;
-                out.add(Integer.toString(actCode)); // actCode
-
-                out.add(Integer.toString(pe.getPerson().getAgeClass().getCode(TPS_AgeCodeType.STBA))); // ageCat
-
-                out.add(Integer.toString(sex)); // sex
-
-                // TAZ departure
-                out.add(Integer.toString(this.getLocatedStay(prevStay).getLocation().getTrafficAnalysisZone()
-                                             .getTAZId()));
-
-                // TAZ arrival
-                out.add(Integer.toString(this.getLocatedStay(nextStay).getLocation().getTrafficAnalysisZone()
-                                             .getTAZId()));
-
-                // is next stay AtHome
-                out.add(Integer.toString(nextStay.isAtHome() ? 1 : 0));
-
-                // id of Mode of Trip
-                out.add(Integer.toString(plannedTrip.getMode().getMCTCode()));
-
-                // bee line Distance
-                out.add(Integer.toString((int) plannedTrip.getDistanceBeeline()));
-
-                // Distance
-                out.add(Double.toString(Math.round(plannedTrip.getDistance())));
-
-                // netDistance
-                out.add(Double.toString(Math.round(plannedTrip.getDistanceEmptyNet())));
-
-                // travel time
-                out.add(Integer.toString(plannedTrip.getDuration()));
-
-                // HouseHold Income
-                out.add(Integer.toString(TPS_Income.getCode(hHIncome)));
-
-                // Number of Persons Household
-                out.add(Integer.toString(numberOfPersonsHH));
-
-                // Coming Block ID
-
-                if (this.getLocatedStay(prevStay).getLocation().hasBlock()) {
-                    out.add(Integer.toString(this.getLocatedStay(prevStay).getLocation().getBlock().getId()));
-                } else {
-                    out.add("0");
-                }
-
-                // going Block ID
-                if (this.getLocatedStay(nextStay).getLocation().hasBlock()) {
-                    out.add(Integer.toString(this.getLocatedStay(nextStay).getLocation().getBlock().getId()));
-                } else {
-                    out.add("0");
-                }
-
-                // coming X Coordinate
-                out.add(Double.toString(this.getLocatedStay(prevStay).getLocation().getCoordinate().getValue(0)));
-
-                // coming Y Coordinate
-                out.add(Double.toString(this.getLocatedStay(prevStay).getLocation().getCoordinate().getValue(1)));
-
-                // going X Coordinate
-                out.add(Double.toString(this.getLocatedStay(nextStay).getLocation().getCoordinate().getValue(0)));
-
-                // going Y Coordinate
-                out.add(Double.toString(this.getLocatedStay(nextStay).getLocation().getCoordinate().getValue(1)));
-
-                // startTime
-                // Die in myStart abgelegte Zeit ist in Sekunden nach mitternacht abgelegt;übersetzten in Minuten nach
-                // Mitternacht
-
-                int time = (int) (plannedTrip.getStart() * 1.66666666e-2);
-                out.add(Double.toString(time));
-
-                // FOBIRD departure
-                out.add(Integer.toString(this.getLocatedStay(prevStay).getLocation().getTrafficAnalysisZone()
-                                             .getBbrType().getCode(TPS_SettlementSystemType.FORDCP)));
-
-                // FOBIRD going
-                out.add(Integer.toString(this.getLocatedStay(nextStay).getLocation().getTrafficAnalysisZone()
-                                             .getBbrType().getCode(TPS_SettlementSystemType.FORDCP)));
-
-                // coming Has Toll
-                out.add(Boolean.toString(this.getLocatedStay(prevStay).getLocation().getTrafficAnalysisZone()
-                                             .hasToll(SimulationType.SCENARIO)));
-
-                // going Has Toll
-                out.add(Boolean.toString(this.getLocatedStay(nextStay).getLocation().getTrafficAnalysisZone()
-                                             .hasToll(SimulationType.SCENARIO)));
-
-                // locId
-                int locId = Math.max(-1, this.getLocatedStay(nextStay).getLocation().getId());
-                out.add(Integer.toString(locId));
-
-                outList.add(out);
-            }
-        }
-
-        return outList;
     }
 
     /**
@@ -855,178 +652,6 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
      */
     public boolean usesCar() {
         return this.usedCars.size() > 0;
-    }
-
-    /**
-     * Method to write this trip to an output-stream
-     *
-     * @param out
-     * @throws IOException
-     */
-    public void writeOutputStream(Writer out) throws IOException {
-
-        TPS_Stay nextStay, prevStay;
-        TPS_PlannedTrip plannedTrip;
-
-        int personID = pe.getPerson().getId();
-        int schemeID = scheme.getId();
-        int sex = pe.getPerson().getSex().ordinal();
-        //int mainActivity;
-
-        double hHIncome = pe.getPerson().getHousehold().getIncome();
-        int numberOfPersonsHH = pe.getPerson().getHousehold().getNumberOfMembers();
-
-        for (TPS_TourPart tour : this.scheme.getTourPartIterator()) {
-            //get highest priority trip
-            //if(tour.getPriorisedStayIterable().iterator().hasNext())
-            //	mainActivity = tour.getPriorisedStayIterable().iterator().next().getActCode().getCode(TPS_ActivityCodeType.ZBE);
-            //else
-            //	mainActivity = -999;
-            for (TPS_Trip trip : tour.getTripIterator()) {
-                plannedTrip = this.getPlannedTrip(trip);
-
-                nextStay = plannedTrip.getTrip().getSchemePart().getNextStay(trip);
-                prevStay = plannedTrip.getTrip().getSchemePart().getPreviousStay(trip);
-
-                out.write(Integer.toString(personID)); // PersonID
-                out.write(", ");
-
-                out.write(Integer.toString(schemeID)); // SchemeID
-                out.write(", ");
-
-                out.write(Integer.toString(pe.getPerson().getPersonGroup().getCode())); // job
-                out.write(", ");
-
-                //hauptaktivität
-                //out.write(Integer.toString(mainActivity)); // actCode
-                //out.write(", ");
-                // aktuelle Priorität
-                int actCode = nextStay.getActCode().getCode(TPS_ActivityCodeType.ZBE);
-                // TODO  Mantis 0002615
-                if (actCode == 410 && pe.getPerson().isStudent()) {
-                    actCode = 411;
-                }
-                out.write(Integer.toString(actCode)); // actCode
-                out.write(", ");
-
-                out.write(Integer.toString(pe.getPerson().getAgeClass().getCode(TPS_AgeCodeType.STBA))); // ageCat
-                out.write(", ");
-
-                out.write(Integer.toString(sex)); // sex
-                out.write(", ");
-
-                // TAZ departure
-                out.write(Integer.toString(this.getLocatedStay(prevStay).getLocation().getTrafficAnalysisZone()
-                                               .getTAZId()));
-                out.write(", ");
-
-                // TAZ arrival
-                out.write(Integer.toString(this.getLocatedStay(nextStay).getLocation().getTrafficAnalysisZone()
-                                               .getTAZId()));
-                out.write(", ");
-
-                // is next stay AtHome
-                out.write(Integer.toString(nextStay.isAtHome() ? 1 : 0));
-                out.write(", ");
-
-                // id of Mode of Trip
-                out.write(Integer.toString(plannedTrip.getMode().getMCTCode()));
-                out.write(", ");
-
-                // bee line Distance
-                out.write(Integer.toString((int) plannedTrip.getDistanceBeeline()));
-                out.write(", ");
-
-
-                out.write(Double.toString(Math.round(plannedTrip.getDistance())));
-                out.write(", ");
-
-                // netDistance
-
-                out.write(Double.toString(Math.round(plannedTrip.getDistanceEmptyNet())));
-                out.write(", ");
-
-                // travel time
-                out.write(Integer.toString(plannedTrip.getDuration()));
-                out.write(", ");
-
-                // HouseHold Income
-                out.write(Integer.toString(TPS_Income.getCode(hHIncome)));
-                out.write(", ");
-
-                // Number of Persons Household
-                out.write(Integer.toString(numberOfPersonsHH));
-                out.write(", ");
-
-                // Coming Block ID
-
-                if (this.getLocatedStay(prevStay).getLocation().hasBlock()) {
-                    out.write(Integer.toString(this.getLocatedStay(prevStay).getLocation().getBlock().getId()));
-                } else {
-                    out.write("0");
-                }
-                out.write(", ");
-
-                // going Block ID
-                if (this.getLocatedStay(nextStay).getLocation().hasBlock()) {
-                    out.write(Integer.toString(this.getLocatedStay(nextStay).getLocation().getBlock().getId()));
-                } else {
-                    out.write("0");
-                }
-                out.write(", ");
-
-                // coming X Coordinate
-                out.write(Double.toString(this.getLocatedStay(prevStay).getLocation().getCoordinate().getValue(0)));
-                out.write(", ");
-
-                // coming Y Coordinate
-                out.write(Double.toString(this.getLocatedStay(prevStay).getLocation().getCoordinate().getValue(1)));
-                out.write(", ");
-
-                // going X Coordinate
-                out.write(Double.toString(this.getLocatedStay(nextStay).getLocation().getCoordinate().getValue(0)));
-                out.write(", ");
-
-                // going Y Coordinate
-                out.write(Double.toString(this.getLocatedStay(nextStay).getLocation().getCoordinate().getValue(1)));
-                out.write(", ");
-
-                // startTime
-                // Die in myStart abgelegte Zeit ist in Sekunden seit mitternacht abgelegt;übersetzten in Minuten nach
-                // Mitternacht
-
-                int time = (int) (plannedTrip.getStart() * 1.66666666e-2);
-                out.write(Double.toString(time));
-                out.write(", ");
-
-                // FOBIRD departure
-                out.write(Integer.toString(this.getLocatedStay(prevStay).getLocation().getTrafficAnalysisZone()
-                                               .getBbrType().getCode(TPS_SettlementSystemType.FORDCP)));
-                out.write(", ");
-
-                // FOBIRD going
-                out.write(Integer.toString(this.getLocatedStay(nextStay).getLocation().getTrafficAnalysisZone()
-                                               .getBbrType().getCode(TPS_SettlementSystemType.FORDCP)));
-                out.write(", ");
-
-                // coming Has Toll
-                out.write(Boolean.toString(this.getLocatedStay(prevStay).getLocation().getTrafficAnalysisZone()
-                                               .hasToll(SimulationType.SCENARIO)));
-                out.write(", ");
-
-                // going Has Toll
-                out.write(Boolean.toString(this.getLocatedStay(nextStay).getLocation().getTrafficAnalysisZone()
-                                               .hasToll(SimulationType.SCENARIO)));
-                out.write(", ");
-
-                // locId
-                int locId = Math.max(-1, this.getLocatedStay(nextStay).getLocation().getId());
-                out.write(Integer.toString(locId));
-
-                out.write("\n");
-            }
-        }
-        out.flush();
     }
 
     public void setPlanningContext(TPS_PlanningContext pc){

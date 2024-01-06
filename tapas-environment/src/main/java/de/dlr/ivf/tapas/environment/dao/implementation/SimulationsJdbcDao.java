@@ -6,6 +6,7 @@ import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.util.PreparedStatementContext;
 import de.dlr.ivf.api.io.util.PreparedStatementParameterSetter;
 import de.dlr.ivf.api.io.util.QueryFactory;
+import de.dlr.ivf.tapas.environment.dao.ParametersDao;
 import de.dlr.ivf.tapas.environment.dao.SimulationsDao;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoDeleteException;
 import de.dlr.ivf.tapas.environment.dao.exception.DaoInsertException;
@@ -23,6 +24,7 @@ import java.util.Optional;
 @Builder
 public class SimulationsJdbcDao implements SimulationsDao {
 
+    private final ParametersDao parametersDao;
     private final DataSource simulationsTable;
     private final Converter<ResultSet, SimulationEntry> inputConverter;
     private final ConnectionPool connectionPool;
@@ -128,7 +130,7 @@ public class SimulationsJdbcDao implements SimulationsDao {
      * @return the simulation to process
      */
     @Override
-    public Optional<SimulationEntry> requestSimulation(String serverIp) {
+    public Optional<SimulationEntry> requestNewSimulationEntry(String serverIp) {
 
         SimulationEntry simulationEntry = null;
         Connection connection = connectionPool.borrowObject();

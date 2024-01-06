@@ -145,7 +145,7 @@ public class TPS_DB_IO {
                     .build();
 
             //decorate car
-            Vehicle decoratedCar = carDto.isCompanyCar() ? new CompanyCar(car) : new HouseholdCar(car);
+            TPS_Car decoratedCar = carDto.isCompanyCar() ? new CompanyCar(car) : new HouseholdCar(car);
 
             cars.car(decoratedCar.id(), decoratedCar);
         }

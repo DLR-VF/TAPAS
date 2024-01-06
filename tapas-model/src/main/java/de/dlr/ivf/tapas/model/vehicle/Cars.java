@@ -10,13 +10,13 @@ import java.util.Map;
 public class Cars {
 
     @Singular
-    private final Map<Integer, Vehicle> cars;
+    private final Map<Integer, TPS_Car> cars;
 
-    public Collection<Vehicle> getCars(){
+    public Collection<TPS_Car> getCars(){
         return cars.values();
     }
 
-    public Vehicle getCar(int carId){
+    public TPS_Car getCar(int carId){
         return this.cars.get(carId);
     }
 }

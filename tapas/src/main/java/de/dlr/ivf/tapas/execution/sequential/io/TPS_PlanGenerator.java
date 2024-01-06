@@ -90,10 +90,10 @@ public class TPS_PlanGenerator{
                     continue;
                 }
 
-                TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, pm.getParameters());
+                TPS_PlanEnvironment pe = null;//new TPS_PlanEnvironment(person, pm.getParameters());
                 TPS_Scheme scheme = pm.getSchemesSet().findScheme(person);
-                TPS_Plan the_plan = new TPS_Plan(person,pe,scheme);
-                TPS_PlanningContext pc = new TPS_PlanningContext(pe, null, person.hasBike());
+                TPS_Plan the_plan = null;//new TPS_Plan(person,pe,scheme);
+                TPS_PlanningContext pc = null;//new TPS_PlanningContext(pe, null, person.hasBike());
                 the_plan.setPlanningContext(pc);
                 //we only take plans into account that have at least one trip //todo fixme?
                 if(the_plan.getScheme().getSchemeParts().size() > 1)

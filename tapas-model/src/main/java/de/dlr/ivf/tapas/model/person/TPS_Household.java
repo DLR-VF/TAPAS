@@ -52,7 +52,7 @@ public class TPS_Household implements ExtendedWritable {
 
     private boolean leastRestrictedCarInitialized;
 
-    private Vehicle leastRestrictedCar;
+    private TPS_Car leastRestrictedCar;
 
 
     private final CarFleetManager carFleetManager ;
@@ -62,7 +62,7 @@ public class TPS_Household implements ExtendedWritable {
      *
      * @return an array of cars, null if no cars are present
      */
-    public Collection<Vehicle> getAllCars() {
+    public Collection<TPS_Car> getAllCars() {
         return this.cars.getCars();
     }
 
@@ -110,7 +110,7 @@ public class TPS_Household implements ExtendedWritable {
      *
      * @return the car
      */
-    public Vehicle getLeastRestrictedCar() {
+    public TPS_Car getLeastRestrictedCar() {
         //initialize on the first call
         if (!this.leastRestrictedCarInitialized) {
             this.leastRestrictedCarInitialized = true;

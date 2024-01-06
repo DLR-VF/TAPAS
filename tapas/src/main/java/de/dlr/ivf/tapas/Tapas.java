@@ -3,7 +3,7 @@ package de.dlr.ivf.tapas;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 
-import de.dlr.ivf.tapas.simulation.Simulator;
+import de.dlr.ivf.tapas.simulation.Processor;
 import de.dlr.ivf.tapas.simulation.implementation.SimulationWorker;
 import lombok.Builder;
 
@@ -27,7 +27,7 @@ public class Tapas implements Runnable{
     private final AtomicBoolean tapasFinished = new AtomicBoolean();
 
     private final Collection<SimulationWorker<?>> simulationWorkers;
-    private final Simulator<?,?> simulator;
+    private final Processor<?,?> processor;
     private final CountDownLatch countDownLatch;
 
     public void stop(){
@@ -53,7 +53,7 @@ public class Tapas implements Runnable{
                 .forEach(Thread::start);
 
         try {
-            countDownLatch.await();
+            countDownLatch.await(); //blocking call
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

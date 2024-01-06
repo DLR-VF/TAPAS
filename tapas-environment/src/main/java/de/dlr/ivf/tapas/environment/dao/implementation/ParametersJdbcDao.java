@@ -31,7 +31,7 @@ public class ParametersJdbcDao implements ParametersDao {
     }
 
     @Override
-    public Collection<ParameterEntry> load(int id) {
+    public Collection<ParameterEntry> readSimulationParameters(int id) {
 
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);

@@ -44,8 +44,8 @@ public class TPS_PlanEnvironment {
      *
      * @param person The person that gets this plan environment
      */
-    public TPS_PlanEnvironment(TPS_Person person, TPS_ParameterClass parameterClass) {
-        this.acceptance = new TPS_PlanEVA1Acceptance(parameterClass);
+    public TPS_PlanEnvironment(TPS_Person person, TPS_PlanEVA1Acceptance  acceptance) {
+        this.acceptance = acceptance;
         this.plans = new ArrayList<>();
         this.person = person;
     }
