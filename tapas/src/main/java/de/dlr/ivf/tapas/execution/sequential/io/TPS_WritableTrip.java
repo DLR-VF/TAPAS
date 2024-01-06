@@ -8,7 +8,7 @@ import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
@@ -28,7 +28,7 @@ public class TPS_WritableTrip {
     private TourContext tour_context;
     private TPS_Plan plan;
     private TPS_Trip trip;
-    private Vehicle used_car;
+    private TPS_Car used_car;
     private TPS_Stay nextStay;
     private TPS_Location prevLoc;
     private TPS_LocatedStay nextStayLocated;
@@ -48,7 +48,7 @@ public class TPS_WritableTrip {
         this.trip = tour_context.getNextTrip();
     }
 
-    private Vehicle getUsedCar(TPS_Plan plan) {
+    private TPS_Car getUsedCar(TPS_Plan plan) {
         TPS_PlanningContext pc = plan.getPlanningContext();
         return pc.getHouseHoldCar() == null ? pc.getCarSharingCar() : pc.getHouseHoldCar();
     }

@@ -20,7 +20,7 @@ import de.dlr.ivf.tapas.model.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.parameter.*;
 
 
@@ -142,7 +142,7 @@ public class TPS_PlannedTrip extends TPS_AdaptedEpisode {
         TPS_TrafficAnalysisZone comingFromTVZ = pLocComingFrom.getTrafficAnalysisZone();
         double tt = -1;
 
-        Vehicle carForTrip = null;
+        TPS_Car carForTrip = null;
         //pick cars used for this plan
         for (TPS_SchemePart schemePart : this.plan.getScheme()) {
             if (!schemePart.isHomePart()) {

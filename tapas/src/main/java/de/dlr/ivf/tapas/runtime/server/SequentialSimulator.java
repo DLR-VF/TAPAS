@@ -8,7 +8,7 @@ import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachine;
 import de.dlr.ivf.tapas.execution.sequential.statemachine.TPS_StateMachineFactory;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.model.person.*;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
@@ -200,7 +200,7 @@ public class SequentialSimulator implements TPS_Simulator {
     }
 
 
-    private Map<Integer, SharingMediator<Vehicle>> initCS(){
+    private Map<Integer, SharingMediator<TPS_Car>> initCS(){
 
         AtomicInteger id = new AtomicInteger(0);
         IntSupplier id_provider = id::incrementAndGet;

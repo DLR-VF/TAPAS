@@ -16,7 +16,7 @@ import de.dlr.ivf.tapas.model.plan.TPS_AdaptedEpisode;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
 import java.util.*;
 
@@ -50,7 +50,7 @@ public class TPS_TourPart extends TPS_SchemePart {
     /**
      * The car used with this plan
      */
-    private Vehicle car = null;
+    private TPS_Car car = null;
     // local variable to store the last used mode
     private TPS_ExtMode lastMode = null;
     /*
@@ -171,7 +171,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      *
      * @return the car
      */
-    public Vehicle getCar() {
+    public TPS_Car getCar() {
         return this.car;
     }
 
@@ -180,7 +180,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      *
      * @param car the reference to an car of this household
      */
-    public void setCar(Vehicle car) {
+    public void setCar(TPS_Car car) {
         this.car = car;
         //todo implement a work around
 //        lastMode = TPS_ExtMode.simpleMIT;
@@ -434,7 +434,7 @@ public class TPS_TourPart extends TPS_SchemePart {
      * @param car  A car, if available.
      *             If the mode is not, "MIT" this information is discarded and the internal reference is still a null pointer.
      */
-    public void setUsedMode(TPS_ExtMode mode, Vehicle car) {
+    public void setUsedMode(TPS_ExtMode mode, TPS_Car car) {
         if (mode == null) {
             this.lastMode = null;
             this.car = null;

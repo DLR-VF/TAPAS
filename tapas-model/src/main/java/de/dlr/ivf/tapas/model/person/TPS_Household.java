@@ -15,7 +15,6 @@ import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
 import de.dlr.ivf.tapas.model.vehicle.Cars;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import lombok.Builder;
 import lombok.Singular;
@@ -115,7 +114,7 @@ public class TPS_Household implements ExtendedWritable {
         if (!this.leastRestrictedCarInitialized) {
             this.leastRestrictedCarInitialized = true;
             this.leastRestrictedCar = this.cars.getCars().stream()
-                    .min(Comparator.comparing(Vehicle::isRestricted))
+                    .min(Comparator.comparing(TPS_Car::isRestricted))
                     .orElse(null);
         }
 

@@ -16,7 +16,7 @@ import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
@@ -325,7 +325,7 @@ public class TPS_Person implements ExtendedWritable {
      *
      * @return true if the person may drive a car; false else
      */
-    public boolean mayDriveACar(Vehicle car, int automaticVehicleMinDriverAge, int automaticVehicleLevel) {
+    public boolean mayDriveACar(TPS_Car car, int automaticVehicleMinDriverAge, int automaticVehicleLevel) {
         boolean mayDriveCar = false;
 
 

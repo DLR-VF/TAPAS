@@ -12,14 +12,12 @@ import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
-import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.model.vehicle.CarController;
-import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -192,7 +190,7 @@ public class LocationAndModeChooser {
                             currentLocatedStay.setModeDep(tourpart.getUsedMode());
                         } else {
                             TPS_Location pLocGoingTo = plan.getLocatedStay(goingTo).getLocation();
-                            Vehicle tmpCar = pc.carForThisPlan;
+                            TPS_Car tmpCar = pc.carForThisPlan;
                             if (tmpCar != null && tmpCar.isRestricted() &&
                                     (currentLocatedStay.getLocation().getTrafficAnalysisZone().isRestricted() ||
                                             pLocGoingTo.getTrafficAnalysisZone().isRestricted())) {

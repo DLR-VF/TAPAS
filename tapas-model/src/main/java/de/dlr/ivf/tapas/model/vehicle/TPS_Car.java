@@ -10,102 +10,17 @@ package de.dlr.ivf.tapas.model.vehicle;
 
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
-import de.dlr.ivf.tapas.model.mode.ModeUtils;
-import lombok.Builder;
 
-
-/**
- * Class for different car types#
- * Size Attributes: Large, Medium, Small, Transporter
- * Fuel Attributes: Benzine, Diesel, Plugin (hybrid), EMobil (Range limited)
- * Internal attributes: available, costPerKilometer, variableCostsPerKilometer, range
- *
- * @author hein_mh
- */
-@Builder
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.THREAD)
-public class TPS_Car implements Vehicle {
+public interface TPS_Car{
 
-    /**N
-     * this fuel type
-     */
-    private FuelTypeName type;
-    /**
-     * this car size
-     */
-    private final int kbaNo;
-
-    private long entry_time = 0;
-    /**
-     * this car id
-     */
-    private int id;
-    /**
-     * Enum for the engine emissions class
-     */
-    private EmissionClass emissionClass;
-    /**
-     * Flag if this car is restricted in access of certain areas
-     */
-
-    private final boolean restricted;
-    /**
-     * Level of automation for this car
-     */
-    private final int automationLevel;
-
-    /**
-     * fix costs, eg. insurance, tax, parking-zone in Euro
-     */
-    private double fixCosts = 0.0;
-    private double cost_per_kilometer;
-
-    private final FuelType fuelType;
-    private double rangeLeft;
-
-
-//    /**
-//     * Method to select a car from the household for the tourpart
-//     *
-//     * @param plan     The plan which is processed.
-//     * @param tourpart The tourpart for this query
-//     * @return null if no car is a available, otherwise a car, which can be used.
-//     */
-//    public static TPS_Car selectCar(TPS_Plan plan, TPS_TourPart tourpart) {
-//
-//        //check if a car is already attached to this tourpart
-//        if (tourpart.isCarUsed()) {
-//            return tourpart.getCar();
-//        }
-//
-//        //check for available cars
-//        List<TPS_Car> availableCars = plan.getPerson().getHousehold().getAvailableCars(
-//                tourpart.getOriginalSchemePartStart(), tourpart.getOriginalSchemePartEnd());
-//
-//        //select a car if available
-//        if (availableCars.size() > 0) {
-//            //TODO: make a choice here!
-//            for (TPS_Car availableCar : availableCars) {
-//                if (!availableCar.isRestricted()) // first take unrestricted cars
-//                    return availableCar;
-//            }
-//            return availableCars.get(0);
-//        } else {
-//            return null;
-//        }
-//    }
 
     /**
      * @return the automation
      */
-    public int getAutomationLevel() {
-        return automationLevel;
-    }
+    int getAutomationLevel();
 
-    @Override
-    public double getRangeLeft() {
-        return this.rangeLeft;
-    }
+    double getRangeLeft();
 
 
     /**
@@ -113,88 +28,60 @@ public class TPS_Car implements Vehicle {
      *
      * @return the car size
      */
-    public CarSize getCarSize() {
-        return ModeUtils.getCarSize(this.kbaNo);
-    }
+    CarSize getCarSize();
 
     /**
      * Method to get the cost per kilometre, depending on fueltype
      */
-    @Override
-    public double costPerKilometer() {
-
-        return fuelType.getFuelCostPerKm() * fixCosts;
-    }
+    double costPerKilometer();
 
     /**
      * @return the engineClass
      */
-    public EmissionClass getEmissionClass() {
-        return emissionClass;
-    }
+    EmissionClass getEmissionClass();
 
     /**
      * Method to get the fixed costs of this car
      *
      * @return the actual fix costs
      */
-    public double getFixCosts() {
-        return fixCosts;
-    }
+    double getFixCosts();
 
     /**
      * Method to get the fuel type of this car
      *
      * @return the reference of the fueltype, which is a singelton
      */
-    public FuelType getFuelType() {
-        return this.fuelType;
-    }
+    FuelType getFuelType();
 
     /**
      * GEts the id of this car
      *
      * @return the car id
      */
-    public int getId() {
-        return id;
-    }
+    int getId();
 
-    public FuelTypeName getFuelTypeName(){
-        return this.fuelType.getFuelType();
-    }
+    FuelTypeName getFuelTypeName();
 
     /**
      * Method to get the kba-number of this car
      *
      * @return the kba number
      */
-    public int getKBANumber() {
-        return this.kbaNo;
-    }
+    int getKBANumber();
 
     /**
      * Method to get the cost per kilometre, depending on fueltype
      */
-    @Override
-    public double variableCostPerKilometer() {
-        return this.fuelType.getVariableCostPerKm() * ModeUtils.getKBAVariableCostPerKilometerFactor(this.kbaNo);
-    }
 
-    @Override
-    public int id() {
-        return this.id;
-    }
+    double variableCostPerKilometer();
 
-    @Override
-    public FuelType fuelType() {
-        return this.fuelType;
-    }
+    int id();
+
+    FuelType fuelType();
 
     /**
      * @return the restricted
      */
-    public boolean isRestricted() {
-        return restricted;
-    }
+    boolean isRestricted();
 }

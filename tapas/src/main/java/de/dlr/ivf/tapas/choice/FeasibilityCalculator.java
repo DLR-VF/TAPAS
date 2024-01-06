@@ -10,7 +10,7 @@ import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.TPS_Episode;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -72,10 +72,10 @@ public class FeasibilityCalculator {
 
         //now we check if the cars are used and if they have enough range to fullfill the plan
         if (bookCar) {
-            Map<Vehicle, Double> cars = new HashMap<>();
+            Map<TPS_Car, Double> cars = new HashMap<>();
             for (TPS_SchemePart schemePart : plan.getScheme()) { //collect car specific distances
                 if (schemePart.isTourPart()) {
-                    Vehicle car = ((TPS_TourPart) schemePart).getCar();
+                    TPS_Car car = ((TPS_TourPart) schemePart).getCar();
                     if (car != null) { //trip with car
                         dist = 0;
                         if (cars.containsKey(car)) {
@@ -86,7 +86,7 @@ public class FeasibilityCalculator {
                 }
             }
             //now check every used car, if it has enough range left
-            for (Map.Entry<Vehicle, Double> e : cars.entrySet()) {
+            for (Map.Entry<TPS_Car, Double> e : cars.entrySet()) {
                 if (e.getKey().getRangeLeft() < e.getValue()) { // not enough?
                     feasible = false;
                     break;

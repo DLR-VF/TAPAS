@@ -462,7 +462,7 @@ public class TPS_Worker implements Callable<Exception> {
 
                         //count number of restricted cars
                         int numRestrictedCars = 0;
-                        for (Vehicle car : hh.getAllCars()) {
+                        for (TPS_Car car : hh.getAllCars()) {
                             if (car.isRestricted()) {
                                 numRestrictedCars++;
                             }
@@ -480,7 +480,7 @@ public class TPS_Worker implements Callable<Exception> {
                         }
                         //ok : set the cars
                         //first copy a list of cars so that we can safetly remove them when they are "used up"
-                        List<Vehicle> localCarList = new ArrayList<>(hh.getAllCars());
+                        List<TPS_Car> localCarList = new ArrayList<>(hh.getAllCars());
                         //now put all the plans (with cars) to work on in a 2nd list
                         List<TPS_Plan> localPlanList = new ArrayList<>();
                         for (Entry<Integer, TPS_Person> entry : scoreIndexMap.entrySet()) {
@@ -500,7 +500,7 @@ public class TPS_Worker implements Callable<Exception> {
 
                         //now assign the cars
                         for (TPS_Plan actPlan : localPlanList) {
-                            Vehicle tmpCar = null;
+                            TPS_Car tmpCar = null;
                             int indexOfCar = 0;
                             //find an unrestricted car for a restrited plan. restricted plans come first!
                             if (actPlan.entersRestrictedAreas()) {

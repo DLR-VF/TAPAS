@@ -21,6 +21,7 @@ import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
 import de.dlr.ivf.tapas.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.ModeParameters;
+import de.dlr.ivf.tapas.model.mode.ModeUtils;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeBuilder;
@@ -133,21 +134,22 @@ public class TPS_DB_IO {
         
         for(CarDto carDto :carDtos){
 
+            FuelType fuelType = fuelTypes.getFuelType(FuelTypeName.getById(carDto.getEngineType()));
+            boolean isCompanyCar = carDto.isCompanyCar();
             //build the car first
-            TPS_Car car = TPS_Car.builder()
+            TPS_Car car = CarImpl.builder()
                     .id(carDto.getId())
                     .kbaNo(carDto.getKbaNo())
-                    .fuelType(fuelTypes.getFuelType(FuelTypeName.getById(carDto.getEngineType())))
+                    .fuelType(fuelType)
                     .emissionClass(EmissionClass.getById(carDto.getEmissionType()))
                     .restricted(carDto.isRestriction())
                     .fixCosts(carDto.getFixCosts())
                     .automationLevel(carDto.getAutomationLevel())
+                    .costPerKilometer(isCompanyCar ? 0 : fuelType.getFuelCostPerKm() * carDto.getFixCosts())
+                    .variableCostPerKilometer(isCompanyCar ? 0 : fuelType.getVariableCostPerKm()  * ModeUtils.getKBAVariableCostPerKilometerFactor(carDto.getKbaNo()))
                     .build();
 
-            //decorate car
-            TPS_Car decoratedCar = carDto.isCompanyCar() ? new CompanyCar(car) : new HouseholdCar(car);
-
-            cars.car(decoratedCar.id(), decoratedCar);
+            cars.car(car.id(), car);
         }
 
         return cars.build();

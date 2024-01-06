@@ -14,7 +14,6 @@ import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.vehicle.CarController;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.scheme.TPS_Trip;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -27,7 +26,7 @@ public class TPS_PlanningContext {
 
     // plan
     public boolean influenceCarUsageInPlan;
-    public Vehicle carForThisPlan;
+    public TPS_Car carForThisPlan;
 
     public CarController hhCar;
     public boolean influenceBikeUsageInPlan;
@@ -91,7 +90,7 @@ public class TPS_PlanningContext {
         this.hhCar = car;
     }
 
-    public Vehicle getHouseHoldCar() {
+    public TPS_Car getHouseHoldCar() {
         return this.carForThisPlan;
     }
 

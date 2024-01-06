@@ -23,7 +23,6 @@ import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_FastMath;
 
@@ -106,7 +105,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
             boolean carIsRestricted = true;
 
             if (Randomizer.random() < passProbHouseHoldCar) {
-                Vehicle coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
+                TPS_Car coDriver = plan.getPerson().getHousehold().getLeastRestrictedCar();
                 if (coDriver != null) { //does the household have a car???
                     carIsRestricted = plan.getPerson().getHousehold().getLeastRestrictedCar().isRestricted();
                 } else {

@@ -6,7 +6,8 @@ import lombok.Getter;
 @Getter
 public class CarController {
 
-    private final Vehicle car;
+    @Getter
+    private final TPS_Car car;
 
     private final Timeline timeline;
 
@@ -14,7 +15,7 @@ public class CarController {
     private double remainingRange;
     private boolean tollPaid;
 
-    public CarController(Vehicle car){
+    public CarController(TPS_Car car){
         this.car = car;
         this.maxRange = car.fuelType().getRange();
         this.remainingRange = maxRange;
@@ -53,7 +54,4 @@ public class CarController {
         return car.getAutomationLevel();
     }
 
-    public Vehicle getCar(){
-        return this.car;
-    }
 }

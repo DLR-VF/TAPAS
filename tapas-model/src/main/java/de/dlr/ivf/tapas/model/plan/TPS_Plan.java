@@ -11,25 +11,18 @@ package de.dlr.ivf.tapas.model.plan;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
-import de.dlr.ivf.tapas.model.constants.TPS_AgeClass.TPS_AgeCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
-import de.dlr.ivf.tapas.model.constants.TPS_Income;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.scheme.*;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
+import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.parameter.CURRENCY;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -45,7 +38,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
     private static final boolean DEBUG = false;
     /// The environment for this plan
     public TPS_PlanEnvironment pe;
-    public List<Vehicle> usedCars = new LinkedList<>();
+    public List<TPS_Car> usedCars = new LinkedList<>();
     public boolean usesBike = false;
     public boolean mustPayToll = false;
     private final Map<TPS_Attribute, Integer> myAttributes;
