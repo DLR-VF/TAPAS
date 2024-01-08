@@ -304,9 +304,8 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
             double rand = Randomizer.random(); //uniform distribution from 0 to 1
             double posMicro = rand;
 
-            if (this.gammaLocationWeightDefined) {
-                posMicro = Math.pow(posMicro, this.gammaLocationWeight);
-            }
+            posMicro = Math.pow(posMicro, this.gammaLocationWeight);
+
 
             posMicro *= sumWeight; // norm to max weight
             posMicro *= cnfX; //apply region-specific restiction factor

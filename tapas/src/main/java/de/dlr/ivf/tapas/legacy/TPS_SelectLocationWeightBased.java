@@ -34,13 +34,10 @@ import java.util.function.Supplier;
 
 public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectModel {
     final double gammaLocationWeight;
-    final boolean gammaLocationWeightDefined;
-
 
     public TPS_SelectLocationWeightBased(TPS_ParameterClass parameterClass) {
         super(parameterClass);
-        this.gammaLocationWeight = parameterClass.getDoubleValue(ParamValue.GAMMA_LOCATION_WEIGHT);
-        this.gammaLocationWeightDefined = parameterClass.isDefined(ParamValue.GAMMA_LOCATION_WEIGHT);
+        this.gammaLocationWeight = parameterClass.isDefined(ParamValue.GAMMA_LOCATION_WEIGHT) ? parameterClass.getDoubleValue(ParamValue.GAMMA_LOCATION_WEIGHT) : 1;
     }
 
     abstract public WeightedResult createLocationOption(Result result, double travelTime, double parameter);
@@ -133,9 +130,8 @@ public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectMo
 //			}
 
             //double posMicro = ( Math.log(1.0 - rand) / Math.log(1.0 - cfn4));
-            if (gammaLocationWeightDefined) {
-                posMicro = Math.pow(posMicro, this.gammaLocationWeight);
-            }
+            posMicro = Math.pow(posMicro, this.gammaLocationWeight);
+
             //double posMicro = 1.0 - rand;
             posMicro *= sumWeight; // norm to max weight
             posMicro *= cnfX; //apply region-specific restiction factor

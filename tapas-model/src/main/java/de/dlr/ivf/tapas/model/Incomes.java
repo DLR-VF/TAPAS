@@ -18,10 +18,9 @@ public class Incomes {
      * INCOME_MAP maps id to income objects
      */
     @Singular
-    private final Map<Integer, TPS_Income> incomeMappings;
-    /**
-     * MAX_VALUES maps max values of income to ids (=keys in INCOME_MAP)
-     */
-    @Singular
-    private final NavigableMap<Integer, Integer> maxValuesMappings;
+    private final NavigableMap<Integer, TPS_Income> incomeMappings;
+
+    public TPS_Income getIncomeClass(int income){
+        return incomeMappings.ceilingEntry(income).getValue();
+    }
 }

@@ -22,10 +22,15 @@ public class SimulationWorker<S> implements Runnable{
                 keepRunning = false;
             } else {
                 var result = processor.process(hh);
+                System.out.println("tschaka");
             }
 
         }
-
+//        try {
+//            Thread.sleep(10000);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         countDownLatch.countDown();
     }
 }

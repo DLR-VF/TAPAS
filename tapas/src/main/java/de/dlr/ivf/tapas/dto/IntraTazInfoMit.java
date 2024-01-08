@@ -20,6 +20,6 @@ public class IntraTazInfoMit {
     @Column("info_name")
     private String name;
 
-    @Column("has intra_traffic_mit")
+    @Column("has_intra_traffic_mit")
     private boolean hasIntraTrafficMit;
 }

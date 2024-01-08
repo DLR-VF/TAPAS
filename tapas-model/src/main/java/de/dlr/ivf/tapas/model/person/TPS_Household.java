@@ -8,6 +8,7 @@
 
 package de.dlr.ivf.tapas.model.person;
 
+import de.dlr.ivf.tapas.model.constants.TPS_Income;
 import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
@@ -34,7 +35,9 @@ public class TPS_Household implements ExtendedWritable {
     private final int id;
 
     /// household income
-    private double income;
+    private double realIncome;
+
+    private final TPS_Income income;
 
     /// household type
     private int type;
@@ -100,7 +103,11 @@ public class TPS_Household implements ExtendedWritable {
      *
      * @return household income
      */
-    public double getIncome() {
+    public double getRealIncome() {
+        return realIncome;
+    }
+
+    public TPS_Income getIncomeClass(){
         return income;
     }
 
@@ -231,7 +238,7 @@ public class TPS_Household implements ExtendedWritable {
         // remember the first adult has weight 1, each additional adult (>=14) has weight 0.5
         double personWeightSum = 1 + (this.members.stream().filter(p -> p.getAge() >= 14).count() - 1) * 0.5;
         personWeightSum += 0.3 * this.members.stream().filter(p -> p.getAge() < 14).count();
-        return this.getIncome() / personWeightSum;
+        return this.realIncome / personWeightSum;
     }
 
     /**
@@ -280,7 +287,7 @@ public class TPS_Household implements ExtendedWritable {
     public String toString(String prefix) {
         return prefix + this.getClass().getSimpleName() + "[id=" + this.getId() + ", type=" + this.getType() +
                 ", members=" + this.members.size() + ", cars=" + this.getNumberOfCars() + ", income=" +
-                this.getIncome() + "]";
+                this.realIncome + "]";
     }
 
 

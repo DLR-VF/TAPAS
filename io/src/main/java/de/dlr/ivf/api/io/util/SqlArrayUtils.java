@@ -75,13 +75,11 @@ public class SqlArrayUtils {
     /**
      * Helper function to extract an sql-array to a Java String array
      *
-     * @param rs    The ResultSet containing a sql-Array
-     * @param index The index position of the SQL-Array
      * @return A String array
      * @throws SQLException
      */
-    public static String[] extractStringArray(ResultSet rs, String index) throws SQLException {
-        Object array = rs.getArray(index).getArray();
+    public static String[] extractStringArray(Array sqlArray) throws SQLException {
+        Object array = sqlArray.getArray();
         if (array instanceof String[]) {
             return (String[]) array;
         } else {

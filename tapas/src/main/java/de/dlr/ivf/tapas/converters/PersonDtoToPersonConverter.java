@@ -2,10 +2,7 @@ package de.dlr.ivf.tapas.converters;
 
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.tapas.dto.PersonDto;
-import de.dlr.ivf.tapas.model.constants.AgeClasses;
-import de.dlr.ivf.tapas.model.constants.TPS_AgeClass;
-import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
-import de.dlr.ivf.tapas.model.constants.TPS_Sex;
+import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
@@ -18,21 +15,27 @@ public class PersonDtoToPersonConverter implements Converter<PersonDto, TPS_Pers
 
     private final TPS_ParameterClass parameters;
     private final AgeClasses ageClasses;
+    private final PersonGroups personGroups;
 
 
-    public PersonDtoToPersonConverter(TPS_ParameterClass parameters, AgeClasses ageClasses){
+    public PersonDtoToPersonConverter(TPS_ParameterClass parameters, AgeClasses ageClasses, PersonGroups personGroups){
         this.parameters = parameters;
         this.ageClasses = ageClasses;
+        this.personGroups = personGroups;
     }
 
     @Override
     public TPS_Person convert(@NonNull PersonDto dto) {
+
+        TPS_PersonGroup personGroup = personGroups.getPersonGroupByCode(dto.getPersonGroup());
         TPS_PersonBuilder personBuilder = TPS_Person.builder()
                 .hasBike(dto.isHasBike() && Randomizer.random() < parameters.getDoubleValue(ParamValue.AVAILABILITY_FACTOR_BIKE)) // TODO: make a better model
                 .working(dto.getWorkingAmount())
                 .budget((dto.getBudgetIt() + dto.getBudgetPt()) / 100.0)
                 .id(dto.getPersonId())
-                .group(dto.getPersonGroup())
+                .personGroup(personGroups.getPersonGroupByCode(dto.getPersonGroup()))
+                .isChild(personGroup.isChild())
+                .isPupil(personGroup.isPupil())
                 //todo check what status is in new db structure
                 .status(1)
                 .sex(TPS_Sex.getEnum(dto.getSex()))

@@ -75,6 +75,12 @@ public class TPS_Person implements ExtendedWritable {
     private final int workLocationID;
     private final int educationLevel;
 
+    private final TPS_PersonGroup personGroup;
+
+    private final boolean isChild;
+
+    private final boolean isPupil;
+
     //todo this does not belong here since this depends on the household context and should be handled outside
     //todo remove in the future
     @Setter
@@ -199,7 +205,7 @@ public class TPS_Person implements ExtendedWritable {
      * @return the person group
      */
     public TPS_PersonGroup getPersonGroup() {
-        return TPS_PersonGroup.getPersonGroupOfPerson(this);
+        return this.personGroup;
     }
 
     /**
@@ -288,7 +294,7 @@ public class TPS_Person implements ExtendedWritable {
      * @return true if child; false else
      */
     public boolean isChild() {
-        return this.getPersonGroup().isChild();
+        return this.isChild;
     }
 
     /**
@@ -297,7 +303,7 @@ public class TPS_Person implements ExtendedWritable {
      * @return true if child; false else
      */
     public boolean isPupil() {
-        return this.getPersonGroup().isPupil();
+        return this.isPupil;
     }
 
     /**
@@ -479,8 +485,7 @@ public class TPS_Person implements ExtendedWritable {
      */
     public String toString(String prefix) {
         return prefix + this.getClass().getSimpleName() + " [id=" + id + ", age=" + age + " in class=" +
-                this.getAgeClass().getCode(TPS_AgeCodeType.STBA) + ", sex=" + sex.name() + ", status=" + status +
-                ", cars=" + getHousehold().getNumberOfCars() + "]";
+                this.getAgeClass().getCode(TPS_AgeCodeType.STBA) + ", sex=" + sex.name() + ", status=" + status +"]";
     }
 
 }

@@ -13,7 +13,7 @@ import lombok.Getter;
 import lombok.Singular;
 
 import java.util.Collection;
-import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * This class represents the age classes constants. There exist two layers of distributions. The first layer should include a
@@ -41,7 +41,8 @@ public class TPS_AgeClass {
     /**
      * mapping of the {@link TPS_AgeCodeType} to the internal representation
      */
-    private final EnumMap<TPS_AgeCodeType, TPS_InternalConstant<TPS_AgeCodeType>> internalAgeConstants;
+    @Singular
+    private final Map<TPS_AgeCodeType, TPS_InternalConstant<TPS_AgeCodeType>> internalAgeConstants;
 
     @Singular
     private final Collection<TPS_InternalConstant<TPS_AgeCodeType>> attributes;

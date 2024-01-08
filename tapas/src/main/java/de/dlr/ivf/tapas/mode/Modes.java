@@ -3,12 +3,14 @@ package de.dlr.ivf.tapas.mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Singular;
 
 import java.util.Collection;
 import java.util.Map;
 
 @Builder
+@Getter
 public class Modes {
 
     @Singular("addMode")

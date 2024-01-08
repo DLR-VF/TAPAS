@@ -37,10 +37,11 @@ public class TapasLauncher{
             parameterClass.loadRuntimeParameters(Paths.get(configDto.getRunTimeFile()).toFile());
 
             TapasInitializer initializer = new TapasInitializer(parameterClass,
-                    new ConnectionPool(configDto.getConnectionDetails()), null);
+                    new ConnectionPool(configDto.getConnectionDetails()), () -> System.out.println("TAPAS finished."));
 
             Tapas tapas = initializer.init();
-
+            Thread t = new Thread(tapas);
+            t.start();
         } catch (DatabindException e) {
             throw new IllegalArgumentException("The supplied file does not map to TapasConfig.", e);
         } catch (IOException e) {

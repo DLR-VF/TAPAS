@@ -21,7 +21,8 @@ public class SchoolBusTravelTimeFunction implements MatrixMapFunction {
     private final Matrix blDistMatrix;
 
     public SchoolBusTravelTimeFunction(TPS_ParameterClass parameterClass){
-        this.avgSpeedSchoolBusMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.AVERAGE_SPEED_SCHOOLBUS, parameterClass.getSimulationType());
+        //todo fix school bus matrix
+        this.avgSpeedSchoolBusMatrixMap = null; //parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.AVERAGE_SPEED_SCHOOLBUS, parameterClass.getSimulationType());
         this.defaultSchoolBusAccess = parameterClass.getDoubleValue(ParamValue.DEFAULT_SCHOOL_BUS_ACCESS);
         this.defaultSchoolBusEgress = parameterClass.getDoubleValue(ParamValue.DEFAULT_SCHOOL_BUS_EGRESS);
         this.defaultSchoolBusWait = parameterClass.getDoubleValue(ParamValue.DEFAULT_SCHOOL_BUS_WAIT);

@@ -10,7 +10,10 @@ import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.misc.PrimaryDriverScoreFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.ActivityAndLocationCodeMapping;
+import de.dlr.ivf.tapas.model.Incomes;
 import de.dlr.ivf.tapas.model.constants.*;
+import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
@@ -24,22 +27,24 @@ import de.dlr.ivf.tapas.model.vehicle.FuelType;
 import de.dlr.ivf.tapas.model.vehicle.FuelTypeName;
 import de.dlr.ivf.tapas.model.vehicle.FuelTypes;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.persistence.io.DataStore;
-import de.dlr.ivf.tapas.persistence.io.DataStore.DataStoreBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.constants.PersonGroups.PersonGroupsBuilder;
 import de.dlr.ivf.tapas.simulation.Processor;
 import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
 import de.dlr.ivf.tapas.simulation.implementation.SimulationWorker;
 
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 
 public class TapasInitializer {
 
+    private final Logger logger = System.getLogger(TPS_DB_IO.class.getName());
     private final TPS_ParameterClass parameters;
     private final TPS_DB_IO dbIo;
     private final Runnable runWhenDone;
@@ -71,36 +76,57 @@ public class TapasInitializer {
         DataSource cars = new DataSource(parameters.getString(ParamString.DB_TABLE_CARS));
         Filter carFilter = new Filter("car_key", parameters.getString(ParamString.DB_CAR_FLEET_KEY));
         //init FuelTypes
+        logger.log(Level.INFO, "Initializing cars...");
+        logger.log(Level.INFO, "Reading fuel types.");
         FuelTypes fuelTypes = initFuelTypes();
+        logger.log(Level.INFO, "Reading cars.");
         Cars carFleet = dbIo.loadCars(cars, carFilter, fuelTypes);
 
-        //setup households
-        List<TPS_Household> households = initHouseHolds(carFleet);
+        //person groups
+        logger.log(Level.INFO, "Reading person groups.");
+        DataSource personGroupsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON));
+        Filter personGroupFilter = new Filter("key", parameters.getString(ParamString.DB_PERSON_GROUP_KEY));
+        Collection<TPS_PersonGroup> personGroupCollection = dbIo.readPersonGroupCodes(personGroupsDs, personGroupFilter);
+        PersonGroupsBuilder personGroupsWrapper = PersonGroups.builder();
+        personGroupCollection.forEach(group -> personGroupsWrapper.personGroup(group.getCode(), group));
+        PersonGroups personGroups = personGroupsWrapper.build();
 
-        //set up the data store
-        DataStoreBuilder dataStoreBuilder = DataStore.builder();
+        //setup households
+        logger.log(Level.INFO, "Initializing households...");
+
+        //income classes
+        DataSource incomeClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_INCOME));
+        Incomes incomeClasses = dbIo.readIncomeCodes(incomeClassesDs);
+
+        //read region
+        //settlement systems
+        DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT));
+        Collection<TPS_SettlementSystem> settlementSystems = dbIo.readSettlementSystemCodes(settlementSystemsDs);
+        Map<Integer, TPS_SettlementSystem> settlementSystemMap = settlementSystems.stream()
+                .collect(Collectors.toMap(
+                        TPS_SettlementSystem::getId,
+                        system -> system
+                ));
+
+        TPS_Region region = dbIo.readRegion(settlementSystemMap);
+
+        List<TPS_Household> households = initHouseHolds(carFleet, personGroups, incomeClasses, region.getTrafficAnalysisZones());
 
         //activities
         DataSource activityConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY));
         Collection<TPS_ActivityConstant> activityConstants = dbIo.readActivityConstantCodes(activityConstantsDs);
-        dataStoreBuilder.activityConstants(activityConstants);
 
         //distance classes
-        DataSource distanceClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE));
-        dataStoreBuilder.distanceClasses(dbIo.readDistanceCodes(distanceClasses));
-
-        //income classes
-        DataSource incomeClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_INCOME));
-        dataStoreBuilder.incomes(dbIo.readIncomeCodes(incomeClasses));
+        DataSource distanceClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE));
+        Collection<TPS_Distance> distanceClasses = dbIo.readDistanceCodes(distanceClassesDs);
 
         //location constants
-        DataSource locationConstants = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_LOCATION));
-        dataStoreBuilder.locationConstants(dbIo.readLocationConstantCodes(locationConstants));
+        DataSource locationConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_LOCATION));
+        Collection<TPS_LocationConstant> locationConstants = dbIo.readLocationConstantCodes(locationConstantsDs);
 
         //init modes and mode set
         DataSource modeDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_MODE));
         Modes modes = dbIo.readModes(modeDataSource);
-        dataStoreBuilder.modes(modes);
 
         DataSource mctDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MCT));
         Filter modeFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_MCT));
@@ -110,36 +136,17 @@ public class TapasInitializer {
         Filter ektFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_EKT));
         TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,ektFilter, modes.getModes());
 
-        //todo init utility function
-        TPS_UtilityFunction utilityFunction = null;
-        ModeDistributionCalculator modeDistributionCalculator = new ModeDistributionCalculator(modes, utilityFunction);
-        dataStoreBuilder.modeSet(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator));
-
-        //person groups
-        DataSource personGroupsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON));
-        Filter personGroupFilter = new Filter("key", parameters.getString(ParamString.DB_PERSON_GROUP_KEY));
-        Collection<TPS_PersonGroup> personGroupCollection = dbIo.readPersonGroupCodes(personGroupsDs, personGroupFilter);
-        PersonGroupsBuilder personGroupsWrapper = PersonGroups.builder();
-        personGroupCollection.forEach(group -> personGroupsWrapper.personGroup(group.getCode(), group));
-        PersonGroups personGroups = personGroupsWrapper.build();
-        dataStoreBuilder.personGroups(personGroups);
-
-        //settlement systems
-        DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT));
-        Collection<TPS_SettlementSystem> settlementSystems = dbIo.readSettlementSystemCodes(settlementSystemsDs);
-        dataStoreBuilder.settlementSystems(settlementSystems);
-
         //activity to location mappings
         DataSource activityToLocationMappings = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION));
         Filter actToLocFilter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY));
-        dataStoreBuilder.activityAndLocationCodeMapping(dbIo.readActivity2LocationCodes(activityToLocationMappings, actToLocFilter));
+        ActivityAndLocationCodeMapping activityAndLocationCodeMapping = dbIo.readActivity2LocationCodes(activityToLocationMappings, actToLocFilter);
 
         //read utility function data
         DataSource utilityFunctionData = new DataSource(parameters.getString(ParamString.DB_NAME_MODEL_PARAMETERS));
         Collection<Filter> utilityFunctionFilters = List.of(new Filter("key", parameters.getString(ParamString.UTILITY_FUNCTION_KEY)),
                 new Filter("utility_function_class", parameters.getString(ParamString.UTILITY_FUNCTION_NAME)));
 
-        dataStoreBuilder.utilityFunctionData(dbIo.readUtilityFunction(utilityFunctionData, utilityFunctionFilters));
+        Collection<UtilityFunctionDto> utilityFunctionDtos = dbIo.readUtilityFunction(utilityFunctionData, utilityFunctionFilters);
 
 
         //read SchemeSet
@@ -160,24 +167,49 @@ public class TapasInitializer {
         Collection<SchemeClassDistributionDto> distributionDtos = dbIo.readSchemeClassDistributions(schemeClassDistributions, schemeClassDistributionFilter);
 
         var schemeSet = dbIo.readSchemeSet(schemeClassDtos,schemeDtos,episodeDtos,distributionDtos, activityConstants, personGroups);
-        dataStoreBuilder.schemeSet(schemeSet);
 
 
-        //read region
-        Map<Integer, TPS_SettlementSystem> settlementSystemMap = settlementSystems.stream()
-                .collect(Collectors.toMap(
-                        TPS_SettlementSystem::getId,
-                        system -> system
-                ));
+        //init choice models, choice sets, travel time/distance calculators
+        try {
+            dbIo.readMatrices(region.getTrafficAnalysisZones());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
 
-        TPS_Region region = dbIo.readRegion();
+        LocationChoiceSetFactory locationChoiceSetFactory = new LocationChoiceSetFactory();
+        TPS_LocationChoiceSet locationChoiceSet = locationChoiceSetFactory.newLocationChoiceSetModel(
+                        parameters.getString(ParamString.LOCATION_CHOICE_SET_CLASS),
+                        parameters);
 
+        TravelDistanceCalculator travelDistanceCalculator = new TravelDistanceCalculator(parameters);
+        TravelTimeCalculator travelTimeCalculator = new TravelTimeCalculator(parameters, modes.getModeMap());
+        TPS_UtilityFunction utilityFunction = locationChoiceSetFactory.newUtilityFunctionInstance(
+                parameters.getString(ParamString.UTILITY_FUNCTION_NAME),
+                travelDistanceCalculator,
+                travelTimeCalculator,
+                parameters,
+                modes
+        );
+        ModeDistributionCalculator modeDistributionCalculator = new ModeDistributionCalculator(modes, utilityFunction);
+        utilityFunction.setDistributionCalculator(modeDistributionCalculator);
+
+        TPS_LocationSelectModel locationSelectModel = locationChoiceSetFactory.newLocationSelectionModel(
+                parameters.getString(ParamString.LOCATION_SELECT_MODEL_CLASS),
+                parameters,
+                utilityFunction,
+                travelDistanceCalculator,
+                new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator),
+                travelTimeCalculator
+        );
+
+        region.initLocationSelectModel(locationSelectModel);
+        region.initLocationChoiceSet(locationChoiceSet);
 
         int numWorkers = parameters.getIntValue(ParamValue.NUM_WORKERS);
         CountDownLatch countDownLatch = new CountDownLatch(numWorkers);
 
         SchemeSelector schemeSelector = new SchemeSelector(schemeSet);
-        TravelDistanceCalculator travelDistanceCalculator = new TravelDistanceCalculator(parameters);
         LocationSelector locationSelector = new LocationSelector(region, travelDistanceCalculator);
         FeasibilityCalculator feasibilityCalculator = new FeasibilityCalculator(parameters);
 
@@ -192,12 +224,13 @@ public class TapasInitializer {
                 .feasibilityCalculator(feasibilityCalculator)
                 .build();
 
-        Queue<TPS_Household> householdsToProcess = new ConcurrentLinkedDeque<>(households);
+        Queue<TPS_Household> householdsToProcess = new ConcurrentLinkedDeque<>(List.of(households.get(0)));
 
         Collection<SimulationWorker<?>> workers = IntStream.range(0,numWorkers)
                 .mapToObj(i -> SimulationWorker.<TPS_Household>builder()
                         .countDownLatch(countDownLatch)
                         .processor(hhProcessor)
+                        .keepRunning(true)
                         .householdsToProcess(householdsToProcess)
                         .build())
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -206,23 +239,33 @@ public class TapasInitializer {
         return new Tapas(runWhenDone,workers,hhProcessor, countDownLatch);
     }
 
-    private List<TPS_Household> initHouseHolds(Cars carFleet) {
+    private List<TPS_Household> initHouseHolds(Cars carFleet, PersonGroups personGroups, Incomes incomes, Collection<TPS_TrafficAnalysisZone> trafficAnalysisZones) {
         //read households
+        logger.log(Level.INFO, "Reading households.");
         DataSource householdsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_HOUSEHOLD));
         Filter hhFilter = new Filter("hh_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
-        Map<Integer, TPS_HouseholdBuilder> hhBuilders = dbIo.readHouseholds(householdsDs, hhFilter, carFleet);
+
+        var tazMap = trafficAnalysisZones.stream()
+                .collect(Collectors.toMap(
+                        TPS_TrafficAnalysisZone::getTAZId,
+                        taz -> taz
+                ));
+        Map<Integer, TPS_HouseholdBuilder> hhBuilders = dbIo.readHouseholds(householdsDs, hhFilter, carFleet, incomes, tazMap);
 
         //age classes
+        logger.log(Level.INFO, "Reading age classes.");
         DataSource ageClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_AGE));
         AgeClasses ageClasses = dbIo.readAgeClasses(ageClassesDs);
 
         //load persons
+        logger.log(Level.INFO, "Reading persons.");
         DataSource persons = new DataSource(parameters.getString(ParamString.DB_TABLE_PERSON));
         Filter personFilter = new Filter("p_key", parameters.getString(ParamString.DB_HOUSEHOLD_AND_PERSON_KEY));
 
-        Map<Integer, Collection<TPS_Person>> personsByHhId = dbIo.loadPersons(persons, personFilter, new PersonDtoToPersonConverter(parameters, ageClasses));
+        Map<Integer, Collection<TPS_Person>> personsByHhId = dbIo.loadPersons(persons, personFilter, new PersonDtoToPersonConverter(parameters, ageClasses, personGroups));
 
         //now set the driver scores to each person
+        logger.log(Level.INFO, "Computing primary driver scores.");
         PrimaryDriverScoreFunction driverScoreFunction = new PrimaryDriverScoreFunction();
         personsByHhId.values()
                 .forEach(hhMembers ->
@@ -244,25 +287,29 @@ public class TapasInitializer {
             TPS_HouseholdBuilder builder = hhBuilderEntry.getValue();
             Collection<TPS_Person> householdMembers = personsByHhId.get(hhBuilderEntry.getKey())
                     .stream()
-                    .filter(TPS_Person::isChild)
                     .sorted(sortComparator)
                     .toList();
             builder.members(householdMembers);
+
+            TPS_Household hh = builder.build();
+            householdMembers.forEach(member -> member.setHousehold(hh));
             households.add(builder.build());
         }
 
+        logger.log(Level.INFO, "Finished initializing {0} households with {1} total persons",households.size(), personsByHhId.values().stream().mapToInt(Collection::size).sum());
         return households;
     }
 
     private void setUpCodes(){
-
+        logger.log(Level.INFO, "Reading car codes.");
         dbIo.readCarCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_CARS)));
+        logger.log(Level.INFO, "Reading Driving licence information.");
         dbIo.readDrivingLicenseCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DRIVING_LICENSE_INFORMATION)));
+        logger.log(Level.INFO, "Reading gender codes.");
         dbIo.readSexCodes(new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SEX)));
     }
 
     public FuelTypes initFuelTypes(){
-
         return switch (parameters.getSimulationType()){
             case BASE -> initFuelTypeDataBase();
             case SCENARIO -> initFuelTypeDataScenario();

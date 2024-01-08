@@ -18,7 +18,7 @@ import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.configuration.Filter;
 import de.dlr.ivf.api.io.conversion.ResultSetConverter;
 import de.dlr.ivf.tapas.dto.*;
-import de.dlr.ivf.tapas.legacy.TPS_Region;
+import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.ModeParameters;
 import de.dlr.ivf.tapas.model.mode.ModeUtils;
@@ -31,10 +31,6 @@ import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_AgeClass.TPS_AgeCodeType;
 import de.dlr.ivf.tapas.model.constants.AgeClasses.AgeClassesBuilder;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
-import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeNode;
-import de.dlr.ivf.tapas.legacy.TPS_ExpertKnowledgeTree;
-import de.dlr.ivf.tapas.legacy.TPS_ModeChoiceTree;
-import de.dlr.ivf.tapas.legacy.TPS_Node;
 import de.dlr.ivf.tapas.model.location.*;
 import de.dlr.ivf.tapas.model.location.TPS_Block.TPS_BlockBuilder;
 import de.dlr.ivf.tapas.model.location.TPS_Location.TPS_LocationBuilder;
@@ -48,10 +44,8 @@ import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstan
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
-import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
-import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
-import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
-import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.model.vehicle.*;
@@ -74,10 +68,8 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
 
-
-@LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.CLIENT)
 public class TPS_DB_IO {
-
+    private final Logger logger = System.getLogger(TPS_DB_IO.class.getName());
     /// The ip address of this machine
     private InetAddress ADDRESS = null;
     private final ConnectionPool connectionSupplier;
@@ -155,7 +147,7 @@ public class TPS_DB_IO {
         return cars.build();
     }
 
-    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Filter hhFilter, Cars cars){
+    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Filter hhFilter, Cars cars, Incomes incomes, Map<Integer, TPS_TrafficAnalysisZone> tazMap){
 
         Connection connection = connectionSupplier.borrowObject();
         
@@ -171,10 +163,21 @@ public class TPS_DB_IO {
         Map<Integer, TPS_HouseholdBuilder> householdBuilders = new HashMap<>(householdDtos.size());
 
         for(HouseholdDto householdDto : householdDtos) {
+            TPS_Location homeLocation = TPS_Location.builder()
+                    .id(-1 * householdDto.getHhId())
+                    .groupId(-1)
+                    .locType(TPS_LocationConstant.HOME)
+                    .coordinate(new TPS_Coordinate(householdDto.getXCoordinate(), householdDto.getYCoordinate()))
+                    .block(null)
+                    .taz(tazMap.get(householdDto.getTazId()))
+                    .build();
+
             TPS_HouseholdBuilder householdBuilder = TPS_Household.builder()
                     .id(householdDto.getHhId())
                     .type(householdDto.getHhType())
-                    .income(householdDto.getHhIncome());
+                    .realIncome(householdDto.getHhIncome())
+                    .location(homeLocation)
+                    .income(incomes.getIncomeClass((int)householdDto.getHhIncome()));
 
             //init the fleet manager
             CarFleetManagerBuilder fleetManager = CarFleetManager.builder();
@@ -297,14 +300,20 @@ public class TPS_DB_IO {
         AgeClassesBuilder ageClasses = AgeClasses.builder();
 
         for(AgeClassDto ageClassDto : ageClassDtos){
+
+            TPS_InternalConstant<TPS_AgeCodeType> stbaCode = new TPS_InternalConstant<>(ageClassDto.getNameStba(),ageClassDto.getCodeStba(),
+                    TPS_AgeCodeType.valueOf(ageClassDto.getTypeStba()));
+            TPS_InternalConstant<TPS_AgeCodeType> persCode = new TPS_InternalConstant<>(ageClassDto.getNamePersgroup(), ageClassDto.getCodePersgroup(),
+                    TPS_AgeCodeType.valueOf(ageClassDto.getTypePersGroup()));
+
             TPS_AgeClass ageClass = TPS_AgeClass.builder()
                     .id(ageClassDto.getId())
                     .max(ageClassDto.getMax())
                     .min(ageClassDto.getMin())
-                    .attribute(new TPS_InternalConstant<>(ageClassDto.getNameStba(),ageClassDto.getCodeStba(),
-                            TPS_AgeCodeType.valueOf(ageClassDto.getTypeStba())))
-                    .attribute(new TPS_InternalConstant<>(ageClassDto.getNamePersgroup(), ageClassDto.getCodePersgroup(),
-                            TPS_AgeCodeType.valueOf(ageClassDto.getTypePersGroup())))
+                    .attribute(stbaCode)
+                    .attribute(persCode)
+                    .internalAgeConstant(stbaCode.getType(),stbaCode)
+                    .internalAgeConstant(persCode.getType(), persCode)
                     .build();
             ageClasses.ageClass(ageClassDto.getId(), ageClass);
         }
@@ -331,7 +340,7 @@ public class TPS_DB_IO {
                 TPS_CarCode s = TPS_CarCode.valueOf(carCodeDto.getNameCars());
                 s.code = carCodeDto.getCodeCars();
             } catch (IllegalArgumentException e) {
-                TPS_Logger.log(SeverityLogLevel.WARN,
+                logger.log(Level.WARNING,
                         "Read invalid car information from DB:" + carCodeDto.getNameCars());
             }
 
@@ -392,7 +401,7 @@ public class TPS_DB_IO {
                 TPS_DrivingLicenseInformation s = TPS_DrivingLicenseInformation.valueOf(drivingLicenseInformationDto.getName());
                 //s.setCode(drivingLicenseInformationDto.getDrivingLicenseInfoCode());
             } catch (IllegalArgumentException e) {
-                TPS_Logger.log(SeverityLogLevel.WARN, "Invalid driving license code: " + drivingLicenseInformationDto.getDrivingLicenseInfoName());
+                logger.log(Level.WARNING, "Invalid driving license code: " + drivingLicenseInformationDto.getDrivingLicenseInfoName());
             }
 
         }
@@ -410,7 +419,7 @@ public class TPS_DB_IO {
 
         Collection<ExpertKnowledgeTreeDto> expertKnowledgeTreeDtos =
                 reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ExpertKnowledgeTreeDto.class),
-                ExpertKnowledgeTreeDto::new), dataSource);
+                ExpertKnowledgeTreeDto::new), dataSource, ektFilter);
         connectionSupplier.returnObject(connection);
 
         Collection<ExpertKnowledgeTreeDto> sortedNodes = expertKnowledgeTreeDtos.stream()
@@ -500,8 +509,7 @@ public class TPS_DB_IO {
                     .max(incomeDto.getMax())
                     .build();
 
-            incomeMappings.incomeMapping(incomeDto.getId(), income);
-            incomeMappings.maxValuesMapping(incomeDto.getMax(), incomeDto.getId());
+            incomeMappings.incomeMapping(income.getMax(), income);
         }
 
         return incomeMappings.build();
@@ -541,11 +549,10 @@ public class TPS_DB_IO {
     /**
      * Method to read all matrices for the given region (travel times, distances etc.)
      *
-     * @param region The region to look for.
      * @throws SQLException
      */
-    public void readMatrices(TPS_Region region) throws SQLException {
-        final int sIndex = region.getSmallestId(); // this is the offset between the TAZ_ids and the matrix index
+    public void readMatrices(Collection<TPS_TrafficAnalysisZone> trafficAnalysisZones) throws SQLException {
+        final int sIndex = trafficAnalysisZones.stream().mapToInt(TPS_TrafficAnalysisZone::getTAZId).min().getAsInt(); // this is the offset between the TAZ_ids and the matrix index
 
         String matrixUri = parameters.getString(ParamString.DB_TABLE_MATRICES);
         String matrixMapUri = parameters.getString(ParamString.DB_TABLE_MATRIXMAPS);
@@ -560,7 +567,7 @@ public class TPS_DB_IO {
             DataSource walkDistances = new DataSource(matrixUri);
             this.readMatrix(walkDistances, walkDistFilter, ParamMatrix.DISTANCES_WALK, null, sIndex);
         } else {
-            TPS_Logger.log(SeverityLogLevel.INFO, "Setting walk distances equal to street distances.");
+            logger.log(Level.INFO, "Setting walk distances equal to street distances.");
             this.parameters.setMatrix(ParamMatrix.DISTANCES_WALK,
                     this.parameters.getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
@@ -571,7 +578,7 @@ public class TPS_DB_IO {
             Filter bikeDistFilter = new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_BIKE));
             this.readMatrix(bikeDistances, bikeDistFilter, ParamMatrix.DISTANCES_BIKE, null, sIndex);
         } else {
-            TPS_Logger.log(SeverityLogLevel.INFO, "Setting bike distances equal to street distances.");
+            logger.log(Level.INFO, "Setting bike distances equal to street distances.");
             this.parameters.setMatrix(ParamMatrix.DISTANCES_BIKE,
                     this.parameters.getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
@@ -582,17 +589,18 @@ public class TPS_DB_IO {
             Filter ptDistFilter = new Filter("matrix_name",parameters.getString(ParamString.DB_NAME_MATRIX_DISTANCES_PT));
             this.readMatrix(ptDistances, ptDistFilter, ParamMatrix.DISTANCES_PT, null, sIndex);
         } else {
-            TPS_Logger.log(SeverityLogLevel.INFO, "Setting public transport distances equal to street distances.");
+            logger.log(Level.INFO, "Setting public transport distances equal to street distances.");
             this.parameters.setMatrix(ParamMatrix.DISTANCES_PT,
                     this.parameters.getMatrix(ParamMatrix.DISTANCES_STREET)); //reference the MIV-matrix
         }
 
         //beeline dist
-        TPS_Logger.log(SeverityLogLevel.INFO, "Calculate beeline distances distances.");
-        Matrix bl = new Matrix(region.getTrafficAnalysisZones().size(), region.getTrafficAnalysisZones().size(),
+        logger.log(Level.INFO, "Calculate beeline distances distances.");
+        Matrix bl = new Matrix(trafficAnalysisZones.size(), trafficAnalysisZones.size(),
                 sIndex);
-        for (TPS_TrafficAnalysisZone tazfrom : region.getTrafficAnalysisZones()) {
-            for (TPS_TrafficAnalysisZone tazto : region.getTrafficAnalysisZones()) {
+        Collection<TPS_TrafficAnalysisZone> sortedTaz = trafficAnalysisZones.stream().sorted(Comparator.comparing(TPS_TrafficAnalysisZone::getTAZId)).toList();
+        for (TPS_TrafficAnalysisZone tazfrom : sortedTaz) {
+            for (TPS_TrafficAnalysisZone tazto : sortedTaz) {
                 double dist = TPS_Geometrics.getDistance(tazfrom.getTrafficAnalysisZone().getCenter(),
                         tazto.getTrafficAnalysisZone().getCenter(),
                         this.parameters.getDoubleValue(ParamValue.MIN_DIST));
@@ -600,12 +608,14 @@ public class TPS_DB_IO {
             }
         }
         this.parameters.setMatrix(ParamMatrix.DISTANCES_BL, bl);
-        TPS_Logger.log(SeverityLogLevel.INFO, "Beeline average value: " +
+        logger.log(Level.INFO, "Beeline average value: " +
                 this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getAverageValue(false, true) +
                 " Size (Elements, Rows, Columns): " + this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfElements() + ", "
                 + this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfRows() + ", "
                 + this.parameters.getMatrix(ParamMatrix.DISTANCES_BL).getNumberOfColums());
 
+
+        SimulationType simulationType = parameters.getSimulationType();
         //walk
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK)) {
             DataSource walkTt = new DataSource(matrixMapUri);
@@ -623,8 +633,26 @@ public class TPS_DB_IO {
                 this.readMatrixMap(walkEgress, walkEgressFilter, ParamMatrixMap.EGRESS_WALK, SimulationType.SCENARIO, sIndex);
             }
         }
+        //base values
+        if(parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE)){
+            DataSource walkTtBase = new DataSource(matrixMapUri);
+            Filter walkTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK_BASE));
+            this.readMatrixMap(walkTtBase, walkTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_WALK,
+                    simulationType, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE)) {
+                DataSource walkAccessBase = new DataSource(matrixMapUri);
+                Filter walkAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE));
+                this.readMatrixMap(walkAccessBase, walkAccessBaseFilter, ParamMatrixMap.ARRIVAL_WALK, SimulationType.BASE, sIndex);
+            }
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE)) {
+                DataSource walkEgressBase = new DataSource(matrixMapUri);
+                Filter walkEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE));
+                this.readMatrixMap(walkEgressBase, walkEgressBaseFilter, ParamMatrixMap.EGRESS_WALK, SimulationType.BASE, sIndex);
+            }
+        }
 
         //bike
+        //scenario values
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE)) {
             DataSource bikeTt = new DataSource(matrixMapUri);
             Filter bikeTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE));
@@ -641,7 +669,24 @@ public class TPS_DB_IO {
             }
         }
 
+        //base values
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE)) {
+            DataSource bikeTtBase = new DataSource(matrixMapUri);
+            Filter bikeTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE));
+            this.readMatrixMap(bikeTtBase,bikeTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.BASE, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE)) {
+                DataSource bikeAccessBase = new DataSource(matrixMapUri);
+                Filter bikeAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE));
+                this.readMatrixMap(bikeAccessBase, bikeAccessBaseFilter, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.BASE, sIndex);
+            }
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE)) {
+                DataSource bikeEgressBase = new DataSource(matrixMapUri);
+                Filter bikeEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE));
+                this.readMatrixMap(bikeEgressBase,bikeEgressBaseFilter, ParamMatrixMap.EGRESS_BIKE, SimulationType.BASE, sIndex);
+            }
+        }
         //MIT, MIT passenger, Taxi
+        //scenario values
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT)) {
             DataSource mitTt = new DataSource(matrixMapUri);
             Filter mitTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT));
@@ -658,7 +703,25 @@ public class TPS_DB_IO {
             }
         }
 
+        //Base values
+        if(this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE)){
+            DataSource mitTtBase = new DataSource(matrixMapUri);
+            Filter mitTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT_BASE));
+            this.readMatrixMap(mitTtBase, mitTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.BASE, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE)) {
+                DataSource mitAccessBase = new DataSource(matrixMapUri);
+                Filter mitAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE));
+                this.readMatrixMap(mitAccessBase, mitAccessBaseFilter, ParamMatrixMap.ARRIVAL_MIT, SimulationType.BASE, sIndex);
+            }
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE)) {
+                DataSource mitEgressBase = new DataSource(matrixMapUri);
+                Filter mitEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE));
+                this.readMatrixMap(mitEgressBase, mitEgressBaseFilter, ParamMatrixMap.EGRESS_MIT, SimulationType.BASE, sIndex);
+            }
+        }
+
         //pt, train
+        //scenario values
         if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT)) {
             DataSource ptTt = new DataSource(matrixMapUri);
             Filter ptTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT));
@@ -679,6 +742,29 @@ public class TPS_DB_IO {
                 this.readMatrixMap(ptInterchange, ptInterFilter, ParamMatrixMap.INTERCHANGES_PT, SimulationType.SCENARIO, sIndex);
             }
         }
+
+        //base values
+        if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE)) {
+            DataSource ptTt = new DataSource(matrixMapUri);
+            Filter ptTtFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT_BASE));
+            this.readMatrixMap(ptTt, ptTtFilter, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.BASE, sIndex);
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE)) {
+                DataSource ptAccess = new DataSource(matrixMapUri);
+                Filter ptAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE));
+                this.readMatrixMap(ptAccess, ptAccessFilter, ParamMatrixMap.ARRIVAL_PT, SimulationType.BASE, sIndex);
+            }
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE)) {
+                DataSource ptEgress = new DataSource(matrixMapUri);
+                Filter ptEgressFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE));
+                this.readMatrixMap(ptEgress, ptEgressFilter, ParamMatrixMap.EGRESS_PT, SimulationType.BASE, sIndex);
+            }
+            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE)) {
+                DataSource ptInterchange = new DataSource(matrixMapUri);
+                Filter ptInterFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE));
+                this.readMatrixMap(ptInterchange, ptInterFilter, ParamMatrixMap.INTERCHANGES_PT, SimulationType.BASE, sIndex);
+            }
+        }
+
         if (this.parameters.isDefined(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ)) {
             DataSource ptBikeAccess = new DataSource(matrixMapUri);
             Filter ptBikeAccessFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ));
@@ -704,84 +790,6 @@ public class TPS_DB_IO {
             Filter ptCarInterFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_PTCAR_INTERCHANGES));
             this.readMatrixMap(ptCarInterchange, ptCarInterFilter, ParamMatrixMap.PTCAR_INTERCHANGES, SimulationType.SCENARIO, sIndex);
         }
-
-        // providing base case travel times in case they are needed
-        if (this.parameters.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
-            // travel times for the base case
-            //walk
-            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_WALK_BASE)) {
-                DataSource walkTtBase = new DataSource(matrixMapUri);
-                Filter walkTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_WALK_BASE));
-                this.readMatrixMap(walkTtBase, walkTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_WALK, SimulationType.BASE, sIndex);
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE)) {
-                    DataSource walkAccessBase = new DataSource(matrixMapUri);
-                    Filter walkAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_WALK_BASE));
-                    this.readMatrixMap(walkAccessBase, walkAccessBaseFilter, ParamMatrixMap.ARRIVAL_WALK, SimulationType.BASE, sIndex);
-                }
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE)) {
-                    DataSource walkEgressBase = new DataSource(matrixMapUri);
-                    Filter walkEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_WALK_BASE));
-                    this.readMatrixMap(walkEgressBase, walkEgressBaseFilter, ParamMatrixMap.EGRESS_WALK, SimulationType.BASE, sIndex);
-                }
-            }
-
-            //bike
-            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE)) {
-                DataSource bikeTtBase = new DataSource(matrixMapUri);
-                Filter bikeTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_BIKE_BASE));
-                this.readMatrixMap(bikeTtBase, bikeTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_BIKE, SimulationType.BASE, sIndex);
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE)) {
-                    DataSource bikeAccessBase = new DataSource(matrixMapUri);
-                    Filter bikeAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_BIKE_BASE));
-                    this.readMatrixMap(bikeAccessBase, bikeAccessBaseFilter, ParamMatrixMap.ARRIVAL_BIKE, SimulationType.BASE, sIndex);
-                }
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE)) {
-                    DataSource bikeEgressBase = new DataSource(matrixMapUri);
-                    Filter bikeEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_BIKE_BASE));
-                    this.readMatrixMap(bikeEgressBase, bikeEgressBaseFilter, ParamMatrixMap.EGRESS_BIKE, SimulationType.BASE, sIndex);
-                }
-            }
-
-            //MIT, MIT passenger, Taxi,
-            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE)) {
-                // car
-                DataSource carTtBase = new DataSource(matrixMapUri);
-                Filter carTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_MIT_BASE));
-                this.readMatrixMap(carTtBase, carTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.BASE, sIndex);
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE)) {
-                    DataSource carAccessBase = new DataSource(matrixMapUri);
-                    Filter carAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_MIT_BASE));
-                    this.readMatrixMap(carAccessBase, carAccessBaseFilter, ParamMatrixMap.ARRIVAL_MIT, SimulationType.BASE, sIndex);
-                }
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE)) {
-                    DataSource carEgressBase = new DataSource(matrixMapUri);
-                    Filter carEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_MIT_BASE));
-                    this.readMatrixMap(carEgressBase, carEgressBaseFilter, ParamMatrixMap.EGRESS_MIT, SimulationType.BASE, sIndex);
-                }
-            }
-
-            if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_TT_PT_BASE)) {
-                // public transport
-                DataSource ptTtBase = new DataSource(matrixMapUri);
-                Filter ptTtBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_TT_PT_BASE));
-                this.readMatrixMap(ptTtBase, ptTtBaseFilter, ParamMatrixMap.TRAVEL_TIME_PT, SimulationType.BASE, sIndex);
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE)) {
-                    DataSource ptAccessBase = new DataSource(matrixMapUri);
-                    Filter ptAccessBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_ACCESS_PT_BASE));
-                    this.readMatrixMap(ptAccessBase, ptAccessBaseFilter, ParamMatrixMap.ARRIVAL_PT, SimulationType.BASE, sIndex);
-                }
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE)) {
-                    DataSource ptEgressBase = new DataSource(matrixMapUri);
-                    Filter ptEgressBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_EGRESS_PT_BASE));
-                    this.readMatrixMap(ptEgressBase, ptEgressBaseFilter, ParamMatrixMap.EGRESS_PT, SimulationType.BASE, sIndex);
-                }
-                if (this.parameters.isDefined(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE)) {
-                    DataSource ptInterchangeBase = new DataSource(matrixMapUri);
-                    Filter ptInterChangeBaseFilter = new Filter("matrixMap_name",parameters.getString(ParamString.DB_NAME_MATRIX_INTERCHANGE_PT_BASE));
-                    this.readMatrixMap(ptInterchangeBase, ptInterChangeBaseFilter, ParamMatrixMap.INTERCHANGES_PT, SimulationType.BASE, sIndex);
-                }
-            }
-        }
     }
 
     /**
@@ -795,7 +803,7 @@ public class TPS_DB_IO {
      */
     private void readMatrix(DataSource matrixDs, Filter filter, ParamMatrix matrix, SimulationType simType, int sIndex){
 
-        TPS_Logger.log(SeverityLogLevel.INFO, "Loading " + matrix);
+        logger.log(Level.INFO, "Loading " + matrix);
         Matrix m = readMatrix(matrixDs, filter, sIndex);
 
         if (simType != null)
@@ -803,7 +811,7 @@ public class TPS_DB_IO {
         else
             this.parameters.setMatrix(matrix, m);
 
-        TPS_Logger.log(SeverityLogLevel.INFO, "Loaded matrix from DB: " +matrix.name() + " Average value: " +
+        logger.log(Level.INFO, "Loaded matrix from DB: " +matrix.name() + " Average value: " +
                 this.parameters.getMatrix(matrix).getAverageValue(false, true) +
                 " Size (Elements, Rows, Columns): " + this.parameters.getMatrix(matrix).getNumberOfElements() + ", "
                 + this.parameters.getMatrix(matrix).getNumberOfRows() + ", "
@@ -814,8 +822,8 @@ public class TPS_DB_IO {
 
         MatrixMap m = readMatrixMap(matrixMapDs, filter, sIndex);
 
-        if (simType != null) this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrixMap, m, simType);
-        else this.PM.getParameters().paramMatrixMapClass.setMatrixMap(matrixMap, m);
+        if (simType != null) parameters.paramMatrixMapClass.setMatrixMap(matrixMap, m, simType);
+        else parameters.paramMatrixMapClass.setMatrixMap(matrixMap, m);
     }
 
 
@@ -868,7 +876,7 @@ public class TPS_DB_IO {
             matrices[i] = this.readMatrix(dataSource, matrixFilter, sIndex);
 
             if(matrices[i] != null){
-                TPS_Logger.log(SeverityLogLevel.INFO,
+                logger.log(Level.INFO,
                         "Loaded matrix from DB: " + matrixNames[i] + " End time: " + matrixDistributions[i] +
                                 " Average value: " + matrices[i].getAverageValue(false, true)+
                                 " Size (Elements, Rows, Columns): " + matrices[i].getNumberOfElements() + ", "
@@ -1173,10 +1181,8 @@ public class TPS_DB_IO {
      * @throws SQLException Error during SQL-processing
      */
     //todo fix reaading region
-    public TPS_Region readRegion() {
-        TPS_Region region = new TPS_Region(null, null);
-        TPS_Block blk;
-        String query;
+    public TPS_Region readRegion(Map<Integer, TPS_SettlementSystem> settlementSystemMap) {
+        TPS_Region region = new TPS_Region();
 
         // read values of time
         DataSource votDs = new DataSource(parameters.getString(ParamString.DB_TABLE_VOT));
@@ -1222,7 +1228,7 @@ public class TPS_DB_IO {
         region.setPotential(potential);
 
         //read taz and add to region
-        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones();
+        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones(settlementSystemMap);
         trafficAnalysisZones.values().forEach(region::addTrafficAnalysisZone);
 
 
@@ -1230,7 +1236,7 @@ public class TPS_DB_IO {
         return region;
     }
 
-    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones() {
+    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones(Map<Integer, TPS_SettlementSystem> settlementSystemMap) {
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
@@ -1249,7 +1255,7 @@ public class TPS_DB_IO {
 
             TPS_TrafficAnalysisZoneBuilder builder = TPS_TrafficAnalysisZone.builder()
                     .id(dto.getTazId())
-                    .bbrType(TPS_SettlementSystem.getSettlementSystem(TPS_SettlementSystemType.FORDCP,dto.getBbrType()))
+                    .bbrType(settlementSystemMap.get(dto.getBbrType()))
                     .center(new TPS_Coordinate(dto.getX(), dto.getY()))
                     .externalId(dto.getNumId() != 0 ? dto.getNumId() : -1);
 
@@ -1397,8 +1403,9 @@ public class TPS_DB_IO {
             TPS_TrafficAnalysisZoneBuilder builder = builderEntry.getValue();
             int tazId = builderEntry.getKey();
 
-            blocksByTazId.get(tazId).forEach(block -> builder.block(block.getId(), block));
-
+            if(blocksByTazId.containsKey(tazId)) {
+                blocksByTazId.get(tazId).forEach(block -> builder.block(block.getId(), block));
+            }
             tazMap.put(tazId, builder.build());
         }
 
@@ -1435,7 +1442,6 @@ public class TPS_DB_IO {
 
             //now add to TAZ and block
             tazMap.get(location.getTAZId()).addLocation(location);
-            blockMap.get(location.getBlockId()).addLocation(location);
         }
         
         connectionSupplier.returnObject(connection);
@@ -1776,7 +1782,7 @@ public class TPS_DB_IO {
                 TPS_Sex s = TPS_Sex.valueOf(sexDto.getNameSex());
                 s.code = sexDto.getCodeSex();
             } catch (IllegalArgumentException e) {
-                TPS_Logger.log(SeverityLogLevel.WARN,
+                logger.log(Level.WARNING,
                         "Read invalid sex type name from DB:" + sexDto.getNameSex());
             }
 
@@ -1842,7 +1848,7 @@ public class TPS_DB_IO {
             try {
                 attributes.add(TPS_Attribute.valueOf(set.getMetaData().getColumnName(i)));
             } catch (IllegalArgumentException e) {
-                TPS_Logger.log(SeverityLogLevel.FATAL, "Unknown attribute: " + set.getMetaData().getColumnName(i), e);
+                logger.log(Level.ERROR, "Unknown attribute: " + set.getMetaData().getColumnName(i), e);
             }
         }
         TPS_VariableMap varMap = new TPS_VariableMap(attributes, defaultValue);

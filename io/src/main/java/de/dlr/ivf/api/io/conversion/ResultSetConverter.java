@@ -62,6 +62,9 @@ public class ResultSetConverter<T> implements Converter<ResultSet, T> {
                             var doubleArray = SqlArrayUtils.extractDoubleArray(array);
                             if(doubleArray != null){
                                 field.set(convertedObject, doubleArray);
+                            }else{
+                                var stringArray = SqlArrayUtils.extractStringArray(array);
+                                field.set(convertedObject, stringArray);
                             }
                         }
                     }

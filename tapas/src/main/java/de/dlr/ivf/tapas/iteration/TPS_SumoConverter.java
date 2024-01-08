@@ -573,18 +573,18 @@ public class TPS_SumoConverter {
         String query = "";
         ResultSet rs = null;
         try {
-            query = "SELECT \"matrixMap_num\", \"matrixMap_matrixNames\",  \"matrixMap_distribution\"  FROM " +
+            query = "SELECT \"matrixmap_num\", \"matrixmap_matrixnames\",  \"matrixmap_distribution\"  FROM " +
                     this.dbManager.getParameters().getString(ParamString.DB_TABLE_MATRIXMAPS) +
-                    " WHERE \"matrixMap_name\"='" + this.dbManager.getParameters().getString(matrixName) + "'";
+                    " WHERE \"matrixmap_name\"='" + this.dbManager.getParameters().getString(matrixName) + "'";
             rs = this.dbManager.executeQuery(query, this);
 
             if (rs.next()) {
                 // get number of matrices to load
-                int numOfMatrices = rs.getInt("matrixMap_num");
+                int numOfMatrices = rs.getInt("matrixmap_num");
                 // get matrix names
-                String[] matrix_names = SqlArrayUtils.extractStringArray(rs, "matrixMap_matrixNames");
+                String[] matrix_names = SqlArrayUtils.extractStringArray(rs.getArray("matrixmap_matrixnames"));
                 // get distribution
-                double[] thisDistribution = SqlArrayUtils.extractDoubleArray(rs, "matrixMap_distribution");
+                double[] thisDistribution = SqlArrayUtils.extractDoubleArray(rs, "matrixmap_distribution");
                 rs.close();
                 // check sizes
                 if (numOfMatrices != matrix_names.length) {

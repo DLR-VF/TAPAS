@@ -23,7 +23,7 @@ import de.dlr.ivf.tapas.model.parameter.SimulationType;
 public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
 
     public TPS_UtilityMNLAutomover(TravelDistanceCalculator travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes) {
-        super(travelDistanceCalculator, travelTimeCalculator, distributionCalculator, parameterClass, modes);
+        super(travelDistanceCalculator, travelTimeCalculator, parameterClass, modes);
     }
 
     @Override

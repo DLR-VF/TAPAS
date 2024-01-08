@@ -66,10 +66,8 @@ public class TPS_Region implements Iterable<TPS_TrafficAnalysisZone> {
     /**
      * Initialises the map for the traffic analysis zones
      */
-    public TPS_Region(TPS_LocationChoiceSet locationChoiceSet, TPS_LocationSelectModel locationSelectModel) {
+    public TPS_Region() {
         this.TAZ_Map = new TreeMap<>();
-        initLocationSelectModel(locationSelectModel);
-        initLocationChoiceSet(locationChoiceSet);
     }
 
     public void addTrafficAnalysisZone(TPS_TrafficAnalysisZone taz){

@@ -34,7 +34,7 @@ public class TravelTimeCalculator {
     private final double minDist;
 
     private final boolean useSchoolBus;
-    private final EnumMap<ModeType, TPS_Mode> modeMap;
+    private final Map<ModeType, TPS_Mode> modeMap;
     private final MatrixMapFunction schoolBusTravelTimeFunction;
     private final int automaticVehicleLevel;
     private final double automaticVehicleRampUp;
@@ -47,7 +47,7 @@ public class TravelTimeCalculator {
     private final AvTravelTimeAdjustment avAccessEgressAdjustment;
 
 
-    public TravelTimeCalculator(TPS_ParameterClass parameterClass, EnumMap<ModeType, TPS_Mode> modeMap){
+    public TravelTimeCalculator(TPS_ParameterClass parameterClass, Map<ModeType, TPS_Mode> modeMap){
 
         this.modeTravelTimeFunctions = new HashMap<>();
         this.altModeTravelTimeFunctions = new EnumMap<>(ModeType.class);

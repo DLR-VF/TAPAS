@@ -95,7 +95,7 @@ public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Pers
         Map<TPS_Attribute, Integer> myAttributes = new HashMap<>();
 
         myAttributes.put(TPS_Attribute.HOUSEHOLD_INCOME_CLASS_CODE,
-                TPS_Income.getCode(household.getIncome()));
+                household.getIncomeClass().getCode());
         myAttributes.put(TPS_Attribute.PERSON_AGE, person.getAge());
         myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_PERSON_GROUP, person.getPersonGroup().getCode());
         int code;

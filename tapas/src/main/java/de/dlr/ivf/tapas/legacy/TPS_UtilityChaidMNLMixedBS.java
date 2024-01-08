@@ -29,8 +29,8 @@ import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 public class TPS_UtilityChaidMNLMixedBS extends TPS_UtilityMNLFullComplex {
 
 
-    public TPS_UtilityChaidMNLMixedBS(TravelDistanceCalculator travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes) {
-        super(travelDistanceCalculator, travelTimeCalculator, distributionCalculator, parameterClass, modes);
+    public TPS_UtilityChaidMNLMixedBS(TravelDistanceCalculator travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes) {
+        super(travelDistanceCalculator, travelTimeCalculator, parameterClass, modes);
     }
 
     /**

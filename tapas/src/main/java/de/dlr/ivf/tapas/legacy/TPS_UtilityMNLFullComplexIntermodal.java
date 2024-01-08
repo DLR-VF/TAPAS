@@ -31,7 +31,7 @@ public class TPS_UtilityMNLFullComplexIntermodal extends TPS_UtilityMNL {
     private double interchangeFactor = 0.01;
 
     public TPS_UtilityMNLFullComplexIntermodal(TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes) {
-        super(travelTimeCalculator, distributionCalculator, parameterClass, modes);
+        super(travelTimeCalculator, parameterClass, modes);
     }
 
     @Override

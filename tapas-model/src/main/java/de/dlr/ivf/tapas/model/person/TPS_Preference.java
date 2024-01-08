@@ -119,15 +119,15 @@ public class TPS_Preference {
         utility += cars > 0 ? param.hasCars : 0;
         utility += bikes * param.numBikes;
 
-        if (myHH.getIncome() > 4000.0) {
+        if (myHH.getRealIncome() > 4000.0) {
             utility += param.income4000;
-        } else if (myHH.getIncome() > 3200.0) {
+        } else if (myHH.getRealIncome() > 3200.0) {
             utility += param.income3200;
-        } else if (myHH.getIncome() > 2000.0) {
+        } else if (myHH.getRealIncome() > 2000.0) {
             utility += param.income2000;
-        } else if (myHH.getIncome() > 1100.0) {
+        } else if (myHH.getRealIncome() > 1100.0) {
             utility += param.income1100;
-        } else if (myHH.getIncome() > 500.0) {
+        } else if (myHH.getRealIncome() > 500.0) {
             utility += param.income1100;
         } else {
             utility += param.income500;

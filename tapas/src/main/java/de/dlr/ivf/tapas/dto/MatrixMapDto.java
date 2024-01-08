@@ -8,15 +8,15 @@ import lombok.NoArgsConstructor;
 @Getter
 public class MatrixMapDto {
 
-    @Column("matrixMap_name")
+    @Column("matrixmap_name")
     private String matrixMapName;
 
-    @Column("matrixMap_num")
+    @Column("matrixmap_num")
     private int matrixMapNum;
 
-    @Column("matrixMap_matrixNames")
+    @Column("matrixmap_matrixnames")
     private String[] matrixNames;
 
-    @Column("matrixMap_distribtuion")
+    @Column("matrixmap_distribution")
     private double[] matrixMapDistribution;
 }

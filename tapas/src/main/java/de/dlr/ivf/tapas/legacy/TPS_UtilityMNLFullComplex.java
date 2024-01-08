@@ -51,8 +51,8 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
     private final double carSharingAccessAddon;
     private final int avMinDriverAge;
 
-    public TPS_UtilityMNLFullComplex(TravelDistanceCalculator travelDistanceCalculator,TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes){
-        super(travelTimeCalculator,distributionCalculator,parameterClass, modes);
+    public TPS_UtilityMNLFullComplex(TravelDistanceCalculator travelDistanceCalculator,TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
+        super(travelTimeCalculator,parameterClass, modes);
         this.automaticVehicleLevel = parameterClass.getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL);
         this.simType = parameterClass.getSimulationType();
         this.rampUp = parameterClass.getDoubleValue(ParamValue.AUTOMATIC_VEHICLE_RAMP_UP_TIME);
@@ -274,5 +274,10 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                 (shopping ? parameters[11] : 0) + //tourpart mit Einkauf
                 (errant ? parameters[12] : 0) + //tourpart mit Erledigung
                 (leisure ? parameters[13] : 0);
+    }
+
+    @Override
+    public void setDistributionCalculator(ModeDistributionCalculator modeDistributionCalculator) {
+        super.setDistributionCalculator(modeDistributionCalculator);
     }
 }

@@ -53,6 +53,10 @@ public class TPS_Income {
         MAX_VALUES.clear();
     }
 
+    public int getMax(){
+        return this.max;
+    }
+
     /**
      * This method searches the income value which is the next greater (or equal) than the given value. To this
      * constant the code is returned.

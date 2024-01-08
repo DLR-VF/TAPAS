@@ -47,7 +47,7 @@ public class TazFeesAndTollsDto {
     @Column("is_restricted")
     private boolean isRestricted;
 
-    @Column("is_park_ride")
+    @Column("is_park_and_ride")
     private boolean isParkAndRide;
 
     @Column("car_sharing_capacity")

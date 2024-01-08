@@ -36,11 +36,6 @@ public class SumoTripVisualization {
 
     }
 
-    protected void finalize() {
-        //this.st.close();
-        //this.con.close();
-    }
-
     public void readFile(String fileName) {
 
         FileReader in;

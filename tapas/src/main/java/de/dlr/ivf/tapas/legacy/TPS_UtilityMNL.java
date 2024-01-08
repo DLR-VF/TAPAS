@@ -34,7 +34,7 @@ import java.util.HashMap;
  */
 public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
 
-    private final ModeDistributionCalculator distributionCalculator;
+    private ModeDistributionCalculator distributionCalculator;
     private final boolean useTaxi;
     final Modes modes;
     /**
@@ -44,9 +44,8 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
 
     final TravelTimeCalculator travelTimeCalculator;
 
-    public TPS_UtilityMNL(TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes){
+    public TPS_UtilityMNL(TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
         this.travelTimeCalculator = travelTimeCalculator;
-        this.distributionCalculator = distributionCalculator;
         this.useTaxi = parameterClass.isTrue(ParamFlag.FLAG_USE_TAXI);
         this.modes = modes;
     }
@@ -156,4 +155,10 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
         return dist;
     }
 
+    //todo there is a circular dependency between utility function and ModeDistributionCalculator
+
+    @Override
+    public void setDistributionCalculator(ModeDistributionCalculator modeDistributionCalculator) {
+        this.distributionCalculator = modeDistributionCalculator;
+    }
 }
