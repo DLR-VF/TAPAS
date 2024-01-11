@@ -70,35 +70,8 @@ public class TapasInitializer {
      */
     public Tapas init(){
 
-        this.setUpCodes();
-
-        //read cars
-        DataSource cars = new DataSource(parameters.getString(ParamString.DB_TABLE_CARS));
-        Filter carFilter = new Filter("car_key", parameters.getString(ParamString.DB_CAR_FLEET_KEY));
-        //init FuelTypes
-        logger.log(Level.INFO, "Initializing cars...");
-        logger.log(Level.INFO, "Reading fuel types.");
-        FuelTypes fuelTypes = initFuelTypes();
-        logger.log(Level.INFO, "Reading cars.");
-        Cars carFleet = dbIo.loadCars(cars, carFilter, fuelTypes);
-
-        //person groups
-        logger.log(Level.INFO, "Reading person groups.");
-        DataSource personGroupsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON));
-        Filter personGroupFilter = new Filter("key", parameters.getString(ParamString.DB_PERSON_GROUP_KEY));
-        Collection<TPS_PersonGroup> personGroupCollection = dbIo.readPersonGroupCodes(personGroupsDs, personGroupFilter);
-        PersonGroupsBuilder personGroupsWrapper = PersonGroups.builder();
-        personGroupCollection.forEach(group -> personGroupsWrapper.personGroup(group.getCode(), group));
-        PersonGroups personGroups = personGroupsWrapper.build();
-
-        //setup households
-        logger.log(Level.INFO, "Initializing households...");
-
-        //income classes
-        DataSource incomeClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_INCOME));
-        Incomes incomeClasses = dbIo.readIncomeCodes(incomeClassesDs);
-
         //read region
+        logger.log(Level.INFO,"Initializing region...");
         //settlement systems
         DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT));
         Collection<TPS_SettlementSystem> settlementSystems = dbIo.readSettlementSystemCodes(settlementSystemsDs);
@@ -107,8 +80,38 @@ public class TapasInitializer {
                         TPS_SettlementSystem::getId,
                         system -> system
                 ));
-
         TPS_Region region = dbIo.readRegion(settlementSystemMap);
+
+        this.setUpCodes();
+
+        //read cars
+        DataSource cars = new DataSource(parameters.getString(ParamString.DB_TABLE_CARS));
+        Filter carFilter = new Filter("car_key", parameters.getString(ParamString.DB_CAR_FLEET_KEY));
+        //init FuelTypes
+        logger.log(Level.INFO, "Initializing cars...");
+        logger.log(Level.INFO, "Reading fuel types...");
+        FuelTypes fuelTypes = initFuelTypes();
+        logger.log(Level.INFO, "Reading cars...");
+        Cars carFleet = dbIo.loadCars(cars, carFilter, fuelTypes);
+        logger.log(Level.INFO,"Finished initializing cars.");
+
+        //setup households
+        //person groups
+        logger.log(Level.INFO, "Initializing households...");
+        logger.log(Level.INFO, "Reading person groups...");
+        DataSource personGroupsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_PERSON));
+        Filter personGroupFilter = new Filter("key", parameters.getString(ParamString.DB_PERSON_GROUP_KEY));
+        Collection<TPS_PersonGroup> personGroupCollection = dbIo.readPersonGroupCodes(personGroupsDs, personGroupFilter);
+        PersonGroupsBuilder personGroupsWrapper = PersonGroups.builder();
+        personGroupCollection.forEach(group -> personGroupsWrapper.personGroup(group.getCode(), group));
+        PersonGroups personGroups = personGroupsWrapper.build();
+
+        logger.log(Level.INFO,"Reading income classes...");
+        //income classes
+        DataSource incomeClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_INCOME));
+        Incomes incomeClasses = dbIo.readIncomeCodes(incomeClassesDs);
+
+
 
         List<TPS_Household> households = initHouseHolds(carFleet, personGroups, incomeClasses, region.getTrafficAnalysisZones());
 
