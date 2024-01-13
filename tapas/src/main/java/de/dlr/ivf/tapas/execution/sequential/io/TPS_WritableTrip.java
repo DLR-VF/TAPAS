@@ -1,7 +1,6 @@
 package de.dlr.ivf.tapas.execution.sequential.io;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.execution.sequential.context.PlanContext;
 import de.dlr.ivf.tapas.execution.sequential.context.TourContext;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
@@ -214,12 +213,11 @@ public class TPS_WritableTrip {
     }
 
     public int getTazBbrTypeStart(){
-        return prevLoc.getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystem.TPS_SettlementSystemType.FORDCP);
+        return prevLoc.getTrafficAnalysisZone().getBbrType();
     }
 
     public int getBbrTypeHome(){
-        return plan.getPerson().getHousehold().getLocation().getTrafficAnalysisZone().getBbrType()
-                .getCode(TPS_SettlementSystem.TPS_SettlementSystemType.FORDCP);
+        return plan.getPerson().getHousehold().getLocation().getTrafficAnalysisZone().getBbrType();
     }
 
     public int getLocSelectionMotive(){

@@ -6,7 +6,6 @@ import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.model.parameter.ParamFlag;
@@ -258,8 +257,7 @@ public class LocationAndModeChooser {
                     //update the travel durations for this plan
                     tourpart.updateActualTravelDurations(plan);
                     plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.CURRENT_TAZ_SETTLEMENT_CODE_TAPAS,
-                            currentLocatedStay.getLocation().getTrafficAnalysisZone().getBbrType()
-                                    .getCode(TPS_SettlementSystem.TPS_SettlementSystemType.TAPAS));
+                            currentLocatedStay.getLocation().getTrafficAnalysisZone().getBbrType());
                 }//end for tourpart
             }
         }

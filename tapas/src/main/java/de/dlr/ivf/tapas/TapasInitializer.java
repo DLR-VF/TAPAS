@@ -72,15 +72,7 @@ public class TapasInitializer {
 
         //read region
         logger.log(Level.INFO,"Initializing region...");
-        //settlement systems
-        DataSource settlementSystemsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_SETTLEMENT));
-        Collection<TPS_SettlementSystem> settlementSystems = dbIo.readSettlementSystemCodes(settlementSystemsDs);
-        Map<Integer, TPS_SettlementSystem> settlementSystemMap = settlementSystems.stream()
-                .collect(Collectors.toMap(
-                        TPS_SettlementSystem::getId,
-                        system -> system
-                ));
-        TPS_Region region = dbIo.readRegion(settlementSystemMap);
+        TPS_Region region = dbIo.readRegion();
 
         this.setUpCodes();
 

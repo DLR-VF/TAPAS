@@ -10,7 +10,6 @@ package de.dlr.ivf.tapas.persistence.db;
 
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
@@ -219,9 +218,8 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
                         }
                         pS.setInt(index++, p.getPersonGroup().getCode());
                         pS.setInt(index++,
-                                prevLoc.getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystemType.FORDCP));
-                        pS.setInt(index++, hh.getLocation().getTrafficAnalysisZone().getBbrType()
-                                             .getCode(TPS_SettlementSystemType.FORDCP));
+                                prevLoc.getTrafficAnalysisZone().getBbrType());
+                        pS.setInt(index++, hh.getLocation().getTrafficAnalysisZone().getBbrType());
                         pS.setInt(index++, nextStay.locationChoiceMotive.code);// the location_selection_motive
                         pS.setInt(index++, nextStay.locationChoiceMotiveSupply.code);// the location_selection_motive
                         pS.addBatch();

@@ -13,7 +13,6 @@ import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_Distance;
 import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
@@ -209,7 +208,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
         TPS_Stay goingTo = going_to.get();
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
-        TPS_SettlementSystem regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();
+        int regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();
 
         double calibFactor = 1;
         switch (actCode.getCode(TPS_ActivityCodeType.TAPAS)) {

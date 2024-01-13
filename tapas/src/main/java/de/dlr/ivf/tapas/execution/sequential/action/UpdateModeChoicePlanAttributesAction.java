@@ -1,6 +1,5 @@
 package de.dlr.ivf.tapas.execution.sequential.action;
 
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader;
@@ -19,8 +18,7 @@ public class UpdateModeChoicePlanAttributesAction implements TPS_PlanStateAction
     public void run() {
 
         plan.getAttributes().put(TPS_AttributeReader.TPS_Attribute.CURRENT_TAZ_SETTLEMENT_CODE_TAPAS,
-                next_located_stay.getLocation().getTrafficAnalysisZone().getBbrType()
-                        .getCode(TPS_SettlementSystem.TPS_SettlementSystemType.TAPAS));
+                next_located_stay.getLocation().getTrafficAnalysisZone().getBbrType());
 
         //todo distance category from actual loc to dest location
 

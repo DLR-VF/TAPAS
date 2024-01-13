@@ -10,7 +10,6 @@ package de.dlr.ivf.tapas.model.location;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
@@ -34,7 +33,7 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     // locations storage
     private HashMap<TPS_ActivityConstant, TypedWeightedLocationDistribution> locationsByActivity = new HashMap<>();
     /// community type, used during choice of locations
-    private TPS_SettlementSystem bbrType;
+    private int bbrType;
 
     private final Map<TPS_LocationConstant, Collection<TPS_ActivityConstant>> locationToActivityMap = new HashMap<>();
     /// Collection with all blocks of this traffic analysis zone
@@ -134,19 +133,9 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
      *
      * @return The BBR (community) type
      */
-    public TPS_SettlementSystem getBbrType() {
+    public int getBbrType() {
         return bbrType;
     }
-
-    /**
-     * Sets community / region type according to the BBR
-     *
-     * @param bbrType
-     */
-    public void setBbrType(TPS_SettlementSystem bbrType) {
-        this.bbrType = bbrType;
-    }
-
 
     /**
      * TODO check
@@ -508,7 +497,7 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
      * @see Object#toString()
      */
     public String toString() {
-        return "traffic analysis zone [id=" + this.getTAZId() + ", bbrType=" + this.bbrType.getId() + ", basis=" +
+        return "traffic analysis zone [id=" + this.getTAZId() + ", bbrType=" + this.bbrType + ", basis=" +
                 this.getSimulationTypeValues(SimulationType.BASE).toString() + ", scenario=" +
                 this.getSimulationTypeValues(SimulationType.SCENARIO).toString() + "]\n";
     }

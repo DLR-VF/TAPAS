@@ -9,8 +9,6 @@ import de.dlr.ivf.tapas.choice.SchemeSelector;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.constants.TPS_AgeClass;
 import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
-import de.dlr.ivf.tapas.model.constants.TPS_Income;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
@@ -113,8 +111,7 @@ public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Pers
         }
         myAttributes.put(TPS_Attribute.PERSON_DRIVING_LICENSE_CODE, code);
         myAttributes.put(TPS_Attribute.CURRENT_TAZ_SETTLEMENT_CODE_TAPAS,
-                household.getLocation().getTrafficAnalysisZone().getBbrType()
-                        .getCode(TPS_SettlementSystem.TPS_SettlementSystemType.TAPAS));
+                household.getLocation().getTrafficAnalysisZone().getBbrType());
         myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_STBA, person.getAgeClass().getCode(TPS_AgeClass.TPS_AgeCodeType.STBA));
         myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, person.hasBike() ? 1 : 0);
         myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, person.getHousehold()

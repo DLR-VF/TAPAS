@@ -43,7 +43,6 @@ import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.TPS_TrafficAnalys
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import de.dlr.ivf.tapas.model.parameter.*;
@@ -1181,7 +1180,7 @@ public class TPS_DB_IO {
      * @throws SQLException Error during SQL-processing
      */
     //todo fix reaading region
-    public TPS_Region readRegion(Map<Integer, TPS_SettlementSystem> settlementSystemMap) {
+    public TPS_Region readRegion() {
         TPS_Region region = new TPS_Region();
 
         // read values of time
@@ -1201,7 +1200,7 @@ public class TPS_DB_IO {
         Collection<CfnxDto> cfnxDtos = reader.read(
                 new ResultSetConverter<>(new ColumnToFieldMapping<>(CfnxDto.class), CfnxDto::new),cfnxDs, cfnxFilter);
     
-        TPS_CFN cfn = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
+        TPS_CFN cfn = new TPS_CFN(TPS_ActivityCodeType.TAPAS);
 
         cfnxDtos.forEach(cfnx -> cfn.addToCFNXMap(cfnx.getCurrentTazSettlementCodeTapas(),cfnx.getValue()));
 
@@ -1215,7 +1214,7 @@ public class TPS_DB_IO {
         region.setCfn(cfn);
 
         //optional potential parameter, might return no result!
-        TPS_CFN potential = new TPS_CFN(TPS_SettlementSystemType.TAPAS, TPS_ActivityCodeType.TAPAS);
+        TPS_CFN potential = new TPS_CFN(TPS_ActivityCodeType.TAPAS);
         DataSource cfnPotentialDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CFN4));
         Filter cfnPotentialFilter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_POTENTIAL_KEY));
         Collection<CfnFourDto> cfn4PotentialDtos = reader.read(
@@ -1228,7 +1227,7 @@ public class TPS_DB_IO {
         region.setPotential(potential);
 
         //read taz and add to region
-        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones(settlementSystemMap);
+        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones();
         trafficAnalysisZones.values().forEach(region::addTrafficAnalysisZone);
 
 
@@ -1236,7 +1235,7 @@ public class TPS_DB_IO {
         return region;
     }
 
-    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones(Map<Integer, TPS_SettlementSystem> settlementSystemMap) {
+    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones() {
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
@@ -1255,7 +1254,7 @@ public class TPS_DB_IO {
 
             TPS_TrafficAnalysisZoneBuilder builder = TPS_TrafficAnalysisZone.builder()
                     .id(dto.getTazId())
-                    .bbrType(settlementSystemMap.get(dto.getBbrType()))
+                    .bbrType(dto.getBbrType())
                     .center(new TPS_Coordinate(dto.getX(), dto.getY()))
                     .externalId(dto.getNumId() != 0 ? dto.getNumId() : -1);
 
@@ -1733,36 +1732,6 @@ public class TPS_DB_IO {
         schemeSet.init();
 
         return schemeSet;
-    }
-
-    /**
-     * Reads all settlement system codes from the database and stores them in to a global static map
-     * A SettlementSystem has the form (id, 3-tuples of (name, code, type))
-     * Example: (7, ("R1, K1, Kernstadt > 500000", "1", "FORDCP"))
-     */
-    public Collection<TPS_SettlementSystem> readSettlementSystemCodes(DataSource dataSource) {
-
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-
-        Collection<SettlementSystemDto> settlementSystemDtos = reader.read(
-                new ResultSetConverter<>(new ColumnToFieldMapping<>(SettlementSystemDto.class),SettlementSystemDto::new), dataSource);
-        connectionSupplier.returnObject(connection);
-        
-        Collection<TPS_SettlementSystem> settlementSystems = new ArrayList<>();
-
-        for(SettlementSystemDto settlementSystemDto : settlementSystemDtos){
-            TPS_SettlementSystem settlementSystem = TPS_SettlementSystem.builder()
-                    .id(settlementSystemDto.getId())
-                    .internalConstant(new TPS_InternalConstant<>(settlementSystemDto.getNameFordcp(), settlementSystemDto.getCodeFordcp(),
-                            TPS_SettlementSystemType.valueOf(settlementSystemDto.getTypeFordcp())))
-                    .internalConstant(new TPS_InternalConstant<>(settlementSystemDto.getNameTapas(), settlementSystemDto.getCodeTapas(),
-                            TPS_SettlementSystemType.valueOf(settlementSystemDto.getTypeTapas())))
-                    .build();
-
-            settlementSystems.add(settlementSystem);
-        }
-        return settlementSystems;
     }
 
     /**

@@ -4,10 +4,8 @@ import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.parameter.ParamMatrix;
-import de.dlr.ivf.tapas.model.parameter.ParamMatrixMap;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
@@ -45,8 +43,8 @@ public class SchoolBusTravelTimeFunction implements MatrixMapFunction {
 
         double beelineFaktor = beelineDistanceLoc / beelineDistanceTAZ;
 
-        int fromBBR = start.getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystemType.FORDCP);
-        int toBBR = end.getTrafficAnalysisZone().getBbrType().getCode(TPS_SettlementSystemType.FORDCP);
+        int fromBBR = start.getTrafficAnalysisZone().getBbrType();
+        int toBBR = end.getTrafficAnalysisZone().getBbrType();
         double schoolBusSpeed = avgSpeedSchoolBusMatrixMap.getMatrix(time).getValue(fromBBR, toBBR);
 
         // Assumtion: traveltime plus time for access and egress and waiting

@@ -11,7 +11,6 @@ package de.dlr.ivf.tapas.legacy;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.location.TPS_CFN;
@@ -69,7 +68,7 @@ public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectMo
         TPS_Stay goingTo = going_to.get();//tourpart.getStayHierarchy(stay).getNextStay();
         TPS_Location locComingFrom = plan.getLocatedStay(comingFrom).getLocation();
         TPS_Location locGoingTo = plan.getLocatedStay(goingTo).getLocation();
-        TPS_SettlementSystem regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();
+        int regionType = locComingFrom.getTrafficAnalysisZone().getBbrType();
 
         // different cnf4-params according to the type of trip
         double cfn4 = region.getCfn().getCFN4Value(regionType, actCode);

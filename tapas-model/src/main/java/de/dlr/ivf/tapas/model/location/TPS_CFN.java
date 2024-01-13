@@ -10,8 +10,6 @@ package de.dlr.ivf.tapas.model.location;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem;
-import de.dlr.ivf.tapas.model.constants.TPS_SettlementSystem.TPS_SettlementSystemType;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
@@ -30,15 +28,15 @@ import java.util.Map;
 public class TPS_CFN {
 
     /**
-     * cfn4 values depending on settlement system and activity code
+     * cfn4 values depending on settlement system id and activity code
      */
-    private final Map<TPS_SettlementSystem, Map<TPS_ActivityConstant, Double>> cfn4Map = new HashMap<>();
+    private final Map<Integer, Map<TPS_ActivityConstant, Double>> cfn4Map = new HashMap<>();
 
 
     /**
      * cfnX values depending on settlement system
      */
-    private final Map<TPS_SettlementSystem, Double> defaultCFNXMap = new HashMap<>();
+    private final Map<Integer, Double> defaultCFNXMap = new HashMap<>();
 
 
     /**
@@ -47,30 +45,23 @@ public class TPS_CFN {
     private TPS_VariableMap specialCFN4Map;
 
     /**
-     * Settlement type
-     */
-    private final TPS_SettlementSystemType regType;
-
-    /**
      * Activity type
      */
     private final TPS_ActivityCodeType actType;
 
-    public TPS_CFN(TPS_SettlementSystemType regType, TPS_ActivityCodeType actType) {
-        this.regType = regType;
+    public TPS_CFN(TPS_ActivityCodeType actType) {
         this.actType = actType;
     }
 
     /**
      * Adds a value for the regional and activity based cnf-map
      *
-     * @param regionNumber the number of the region
+     * @param settlementSystemId id of the settlement system
      * @param activity     the activity number
      * @param value        the value for this set
      */
-    public void addToCFN4Map(int regionNumber, int activity, double value) {
-        TPS_SettlementSystem ref = TPS_SettlementSystem.getSettlementSystem(this.regType, regionNumber);
-        Map<TPS_ActivityConstant, Double> actMap = this.cfn4Map.computeIfAbsent(ref, k -> new HashMap<>());
+    public void addToCFN4Map(int settlementSystemId, int activity, double value) {
+        Map<TPS_ActivityConstant, Double> actMap = this.cfn4Map.computeIfAbsent(settlementSystemId, k -> new HashMap<>());
         TPS_ActivityConstant tmp = TPS_ActivityConstant.getActivityCodeByTypeAndCode(this.actType, activity);
         actMap.put(tmp, value);
     }
@@ -78,27 +69,24 @@ public class TPS_CFN {
     /**
      * Adds a value for the (general) region based cnf-map
      *
-     * @param regionNumber the number of the region
+     * @param settlementSystemId if od settlement system
      * @param value        the value for this set
      */
-    public void addToCFNXMap(int regionNumber, double value) {
-        TPS_SettlementSystem ref = TPS_SettlementSystem.getSettlementSystem(this.regType, regionNumber);
-        this.defaultCFNXMap.put(ref, value);
+    public void addToCFNXMap(int settlementSystemId, double value) {
+        this.defaultCFNXMap.put(settlementSystemId, value);
     }
 
     /**
      * @return default current cfn value
      */
-    public double getCFN4Value(TPS_SettlementSystem regionType, TPS_ActivityConstant act) {
-        TPS_SettlementSystem regRef = TPS_SettlementSystem.getSettlementSystem(this.regType,
-                regionType.getCode(this.regType));
+    public double getCFN4Value(int settlementSystemId, TPS_ActivityConstant act) {
         TPS_ActivityConstant actRef = TPS_ActivityConstant.getActivityCodeByTypeAndCode(this.actType,
                 act.getCode(this.actType));
-        Map<TPS_ActivityConstant, Double> actMap = this.cfn4Map.get(regRef);
+        Map<TPS_ActivityConstant, Double> actMap = this.cfn4Map.get(settlementSystemId);
         if (actMap != null && actMap.containsKey(actRef)) return actMap.get(actRef);
         else {
             TPS_Logger.log(SeverityLogLevel.WARN,
-                    "No CNF4-value found for activity " + act.getCode(TPS_ActivityCodeType.ZBE)+" in region "+regionType.toString());
+                    "No CNF4-value found for activity " + act.getCode(TPS_ActivityCodeType.ZBE)+" in region "+settlementSystemId);
             return 0.5;
         }
     }
@@ -106,12 +94,10 @@ public class TPS_CFN {
     /**
      * @return default current cfn value
      */
-    public double getParamValue(TPS_SettlementSystem regionType, TPS_ActivityConstant act) {
-        TPS_SettlementSystem regRef = TPS_SettlementSystem.getSettlementSystem(this.regType,
-                regionType.getCode(this.regType));
+    public double getParamValue(int settlementSystemId, TPS_ActivityConstant act) {
         TPS_ActivityConstant actRef = TPS_ActivityConstant.getActivityCodeByTypeAndCode(this.actType,
                 act.getCode(this.actType));
-        Map<TPS_ActivityConstant, Double> actMap = this.cfn4Map.get(regRef);
+        Map<TPS_ActivityConstant, Double> actMap = this.cfn4Map.get(settlementSystemId);
         if (actMap != null && actMap.containsKey(actRef)) return actMap.get(actRef);
         else {
 
@@ -122,10 +108,8 @@ public class TPS_CFN {
     /**
      * @return current cfnx value
      */
-    public double getCFNXValue(TPS_SettlementSystem regionType) {
-        TPS_SettlementSystem ref = TPS_SettlementSystem.getSettlementSystem(this.regType,
-                regionType.getCode(this.regType));
-        return defaultCFNXMap.get(ref);
+    public double getCFNXValue(int settlementSystemId) {
+        return defaultCFNXMap.get(settlementSystemId);
     }
 
     /*
