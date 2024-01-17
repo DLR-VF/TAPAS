@@ -32,8 +32,15 @@ public abstract class TPS_LocationSelectModel {
     TPS_Region region = null;
     protected final TPS_ParameterClass parameterClass;
 
-    public TPS_LocationSelectModel(TPS_ParameterClass parameterClass) {
+    public TPS_LocationSelectModel(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator,
+                                   ModeDistributionCalculator distributionCalculator,
+                                   TPS_ModeSet modeSet,
+                                   TravelTimeCalculator travelTimeCalculator) {
         this.parameterClass = parameterClass;
+        this.distanceCalculator = distanceCalculator;
+        this.distributionCalculator = distributionCalculator;
+        this.modeSet = modeSet;
+        this.travelTimeCalculator = travelTimeCalculator;
     }
 
 

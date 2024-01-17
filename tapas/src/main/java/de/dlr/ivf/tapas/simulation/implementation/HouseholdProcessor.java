@@ -120,5 +120,4 @@ public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Pers
 
         return myAttributes;
     }
-
 }

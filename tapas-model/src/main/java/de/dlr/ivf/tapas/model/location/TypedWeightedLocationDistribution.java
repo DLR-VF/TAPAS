@@ -1,17 +1,17 @@
 package de.dlr.ivf.tapas.model.location;
 
+import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.util.Randomizer;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
  * A container for locations of the same activity type that are located in this TAZ
  */
 public class TypedWeightedLocationDistribution {
     /// The list of locations with the same activity
-    public Vector<TPS_Location> locations = new Vector<>();
+    public List<TPS_Location> locations = new ArrayList<>();
     /// The sum of all the weights of all locations that are within this TAZ and allow the according activity
     private double freeWeightSum = 0;
 
@@ -20,6 +20,9 @@ public class TypedWeightedLocationDistribution {
      * Constructor
      */
     public TypedWeightedLocationDistribution() {
+    }
+
+    public TypedWeightedLocationDistribution(TPS_ActivityConstant tpsActivityConstant) {
     }
 
     /**
@@ -101,7 +104,7 @@ public class TypedWeightedLocationDistribution {
             ret.addAll(locations);
         } else {
             double cCapacitySum = freeWeightSum;
-            Vector<TPS_Location> cLocations = new Vector<>(locations);
+            List<TPS_Location> cLocations = new ArrayList<>(locations);
             for (int i = 0; i < number; ++i) {
                 TPS_Location selected = select(cCapacitySum, cLocations);
                 if (selected == null) {

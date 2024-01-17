@@ -11,6 +11,7 @@ import de.dlr.ivf.tapas.misc.PrimaryDriverScoreFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.Modes;
 import de.dlr.ivf.tapas.model.ActivityAndLocationCodeMapping;
+import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.Incomes;
 import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
@@ -72,7 +73,16 @@ public class TapasInitializer {
 
         //read region
         logger.log(Level.INFO,"Initializing region...");
-        TPS_Region region = dbIo.readRegion();
+        //activity to location mappings
+        //activities
+        DataSource activityConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY));
+        Collection<TPS_ActivityConstant> activityConstants = dbIo.readActivityConstantCodes(activityConstantsDs);
+        Activities activities = new Activities(activityConstants);
+
+        DataSource activityToLocationMappings = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION));
+        Filter actToLocFilter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY));
+        ActivityAndLocationCodeMapping activityToLocationCodeMapping = dbIo.readActivity2LocationCodes(activityToLocationMappings, actToLocFilter,activities);
+        TPS_Region region = dbIo.readRegion(activityToLocationCodeMapping);
 
         this.setUpCodes();
 
@@ -107,17 +117,14 @@ public class TapasInitializer {
 
         List<TPS_Household> households = initHouseHolds(carFleet, personGroups, incomeClasses, region.getTrafficAnalysisZones());
 
-        //activities
-        DataSource activityConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY));
-        Collection<TPS_ActivityConstant> activityConstants = dbIo.readActivityConstantCodes(activityConstantsDs);
-
         //distance classes
         DataSource distanceClassesDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_DISTANCE));
-        Collection<TPS_Distance> distanceClasses = dbIo.readDistanceCodes(distanceClassesDs);
+        DistanceClasses distanceClasses = dbIo.readDistanceCodes(distanceClassesDs);
+
 
         //location constants
         DataSource locationConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_LOCATION));
-        Collection<TPS_LocationConstant> locationConstants = dbIo.readLocationConstantCodes(locationConstantsDs);
+        Collection<Integer> locationConstants = dbIo.readLocationConstantCodes(locationConstantsDs);
 
         //init modes and mode set
         DataSource modeDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_MODE));
@@ -130,11 +137,6 @@ public class TapasInitializer {
         DataSource ektDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_EKT));
         Filter ektFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_EKT));
         TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,ektFilter, modes.getModes());
-
-        //activity to location mappings
-        DataSource activityToLocationMappings = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_ACTIVITY_2_LOCATION));
-        Filter actToLocFilter = new Filter("key", parameters.getString(ParamString.DB_ACTIVITY_2_LOCATION_KEY));
-        ActivityAndLocationCodeMapping activityAndLocationCodeMapping = dbIo.readActivity2LocationCodes(activityToLocationMappings, actToLocFilter);
 
         //read utility function data
         DataSource utilityFunctionData = new DataSource(parameters.getString(ParamString.DB_NAME_MODEL_PARAMETERS));
@@ -194,8 +196,10 @@ public class TapasInitializer {
                 parameters,
                 utilityFunction,
                 travelDistanceCalculator,
-                new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator),
-                travelTimeCalculator
+                modeDistributionCalculator,
+                new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator, distanceClasses),
+                travelTimeCalculator,
+                distanceClasses
         );
 
         region.initLocationSelectModel(locationSelectModel);
@@ -208,7 +212,7 @@ public class TapasInitializer {
         LocationSelector locationSelector = new LocationSelector(region, travelDistanceCalculator);
         FeasibilityCalculator feasibilityCalculator = new FeasibilityCalculator(parameters);
 
-        ModeSelector modeSelector = new ModeSelector(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree,parameters,modes,modeDistributionCalculator),parameters);
+        ModeSelector modeSelector = new ModeSelector(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree,parameters,modes,modeDistributionCalculator, distanceClasses),parameters);
         LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(parameters, locationSelector, modeSelector);
         TPS_PlanEVA1Acceptance acceptance = new TPS_PlanEVA1Acceptance(parameters);
         Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> hhProcessor = HouseholdProcessor.builder()

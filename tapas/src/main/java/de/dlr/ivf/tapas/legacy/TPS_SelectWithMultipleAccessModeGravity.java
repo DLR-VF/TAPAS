@@ -8,12 +8,18 @@
 
 package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 public class TPS_SelectWithMultipleAccessModeGravity extends TPS_SelectWithMultipleAccessMode {
-    public TPS_SelectWithMultipleAccessModeGravity(TPS_ParameterClass parameterClass) {
-        super(parameterClass);
+    public TPS_SelectWithMultipleAccessModeGravity(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator,
+                                                   ModeDistributionCalculator distributionCalculator,
+                                                   TPS_ModeSet modeSet,
+                                                   TravelTimeCalculator travelTimeCalculator) {
+        super(parameterClass, distanceCalculator, distributionCalculator, modeSet, travelTimeCalculator);
     }
 
     @Override

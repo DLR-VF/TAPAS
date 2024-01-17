@@ -1,23 +1,28 @@
 package de.dlr.ivf.tapas.model;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
-import lombok.Getter;
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 
-@Getter
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ActivityAndLocationCodeMapping {
 
-    private final ArrayListValuedHashMap<TPS_ActivityConstant, TPS_LocationConstant> activityToLocationTypes = new ArrayListValuedHashMap<>();
+    private final Map<TPS_ActivityConstant, Integer> activityToLocationTypes = new HashMap<>();
 
-    private final ArrayListValuedHashMap<TPS_LocationConstant, TPS_ActivityConstant> locationToActivityTypes = new ArrayListValuedHashMap<>();
+    private final Map<Integer, Collection<TPS_ActivityConstant>> locationToActivityTypes = new HashMap<>();
 
-    public void addActivityToLocationMapping(TPS_ActivityConstant actCode, TPS_LocationConstant locCode) {
+    public void addActivityToLocationMapping(TPS_ActivityConstant actCode, int locCode) {
         this.activityToLocationTypes.put(actCode, locCode);
     }
 
-    public void addLocationToActivityMapping(TPS_LocationConstant locCode, TPS_ActivityConstant actCode) {
-        this.locationToActivityTypes.put(locCode, actCode);
+    public void addLocationCodeToActivityMapping(int locCode, TPS_ActivityConstant actCode) {
+        this.locationToActivityTypes.computeIfAbsent(locCode, code -> new ArrayList<>()).add(actCode);
+    }
+
+    public Collection<TPS_ActivityConstant> getActivitiesByLocationCode(int locationCode){
+        return locationToActivityTypes.get(locationCode);
     }
 }
 

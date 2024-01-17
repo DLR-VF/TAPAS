@@ -110,10 +110,6 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
             regionRS.clear();
 
             for (TPS_TrafficAnalysisZone taz : region) {
-                if (taz.getData() == null) {
-                    // empty taz data
-                    continue;
-                }
                 if (!taz.allowsActivity(activityCode)) {
                     // no activities of this type
                     continue;

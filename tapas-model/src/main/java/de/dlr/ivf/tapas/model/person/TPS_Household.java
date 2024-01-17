@@ -13,8 +13,8 @@ import de.dlr.ivf.tapas.model.constants.TPS_Sex;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.vehicle.CarController;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
-import de.dlr.ivf.tapas.model.vehicle.Cars;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import lombok.Builder;
@@ -50,7 +50,7 @@ public class TPS_Household implements ExtendedWritable {
     private final Collection<TPS_Person> members;
 
     /// number of cars in household
-    private final Cars cars;
+    //private final Cars cars;
 
     private boolean leastRestrictedCarInitialized;
 
@@ -60,25 +60,11 @@ public class TPS_Household implements ExtendedWritable {
     private final CarFleetManager carFleetManager ;
 
     /**
-     * Returns all cars in the household
-     *
-     * @return an array of cars, null if no cars are present
+     * @return all cars in the household
      */
     public Collection<TPS_Car> getAllCars() {
-        return this.cars.getCars();
+        return carFleetManager.getCars().stream().map(CarController::getCar).collect(Collectors.toList());
     }
-
-    /**
-     * Returns the number of cars available in the household for the time period specified
-     *
-     * @param start time period start
-     * @param end   time period end
-     * @return an array of available cars, null if no cars are available
-     */
-    public List<TPS_Car> getAvailableCars(double start, double end) {
-        return this.getAvailableCars((int) (start + 0.5), (int) (end + 0.5)); //incl. rounding
-    }
-
 
     /**
      * Returns the number of cars in the household
@@ -86,7 +72,7 @@ public class TPS_Household implements ExtendedWritable {
      * @return number of cars
      */
     public int getNumberOfCars() {
-        return cars.getCars().size();
+        return carFleetManager.getCars().size();
     }
 
     /**
@@ -120,7 +106,8 @@ public class TPS_Household implements ExtendedWritable {
         //initialize on the first call
         if (!this.leastRestrictedCarInitialized) {
             this.leastRestrictedCarInitialized = true;
-            this.leastRestrictedCar = this.cars.getCars().stream()
+            this.leastRestrictedCar = this.carFleetManager.getCars().stream()
+                    .map(CarController::getCar)
                     .min(Comparator.comparing(TPS_Car::isRestricted))
                     .orElse(null);
         }

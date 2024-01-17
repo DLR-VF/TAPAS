@@ -8,6 +8,9 @@
 
 package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
@@ -34,8 +37,11 @@ import java.util.function.Supplier;
 public abstract class TPS_SelectLocationWeightBased extends TPS_LocationSelectModel {
     final double gammaLocationWeight;
 
-    public TPS_SelectLocationWeightBased(TPS_ParameterClass parameterClass) {
-        super(parameterClass);
+    public TPS_SelectLocationWeightBased(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator,
+                                         ModeDistributionCalculator distributionCalculator,
+                                         TPS_ModeSet modeSet,
+                                         TravelTimeCalculator travelTimeCalculator) {
+        super(parameterClass, distanceCalculator, distributionCalculator, modeSet, travelTimeCalculator);
         this.gammaLocationWeight = parameterClass.isDefined(ParamValue.GAMMA_LOCATION_WEIGHT) ? parameterClass.getDoubleValue(ParamValue.GAMMA_LOCATION_WEIGHT) : 1;
     }
 

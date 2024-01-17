@@ -5,17 +5,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.NavigableMap;
-import java.util.TreeMap;
 
 @Builder
 @Getter
 public class Incomes {
 
     /**
-     * INCOME_MAP maps id to income objects
+     * INCOME_MAP maps income thresholds to income objects
      */
     @Singular
     private final NavigableMap<Integer, TPS_Income> incomeMappings;

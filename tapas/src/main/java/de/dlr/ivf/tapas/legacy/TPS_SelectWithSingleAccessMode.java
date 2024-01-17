@@ -10,6 +10,7 @@ package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
 import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
@@ -26,12 +27,11 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBase
 
     private final int maxWalkDistance;
 
-    public TPS_SelectWithSingleAccessMode(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator, TPS_ModeSet modeSet, TravelTimeCalculator travelTimeCalculator) {
-        super(parameterClass);
-        this.distanceCalculator = distanceCalculator;
-        this.modeSet = modeSet;
+    public TPS_SelectWithSingleAccessMode(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator,
+                                          ModeDistributionCalculator distributionCalculator,TPS_ModeSet modeSet,
+                                          TravelTimeCalculator travelTimeCalculator) {
+        super(parameterClass, distanceCalculator, distributionCalculator, modeSet, travelTimeCalculator);
         this.maxWalkDistance = parameterClass.getIntValue(ParamValue.MAX_WALK_DIST);
-        this.travelTimeCalculator = travelTimeCalculator;
     }
 
     public WeightedResult createLocationOption(Result result, double travelTime, double parameter) {

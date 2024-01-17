@@ -9,8 +9,6 @@
 package de.dlr.ivf.tapas.model.location;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import lombok.Builder;
@@ -34,7 +32,7 @@ public class TPS_Location implements Locatable {
     /// Coordinate of the location
     private final TPS_Coordinate coordinate;
     /// The location code of the location
-    private final TPS_LocationConstant locType;
+    private final int locType;
     /// The list of possible activities (determined from the location code at initialisation)
     @Singular
     private Set<TPS_ActivityConstant> activities ;
@@ -109,7 +107,7 @@ public class TPS_Location implements Locatable {
      *
      * @return The type of this location
      */
-    public TPS_LocationConstant getLocType() {
+    public int getLocType() {
         return this.locType;
     }
 
@@ -169,7 +167,7 @@ public class TPS_Location implements Locatable {
     @Override
     public String toString() {
         return "Location [id=" + this.getId() + ", groupId=" + this.getGroupId() + ", locType=" +
-                this.getLocType().getCode(TPS_LocationCodeType.TAPAS) + ", coord=" + this.getCoordinate() + ", data=" +
+                this.locType + ", coord=" + this.getCoordinate() + ", data=" +
                 (this.data != null ? data.toString() : "null") + "]";
     }
 

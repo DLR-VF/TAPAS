@@ -10,10 +10,9 @@ package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_Distance;
-import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
@@ -49,6 +48,7 @@ public class TPS_ModeSet {
     final double obscureDistanceCorrectionNumber = 500;
     private final Modes modes;
     private final ModeDistributionCalculator distributionCalculator;
+    private final DistanceClasses distanceClasses;
     /**
      * Mode Choice Tree for this mode set
      */
@@ -68,12 +68,15 @@ public class TPS_ModeSet {
      * @param expertKnowledgeTree
      * @param parameterClass      parameter class reference
      */
-    public TPS_ModeSet(TPS_ModeChoiceTree modeChoiceTree, TPS_ExpertKnowledgeTree expertKnowledgeTree, TPS_ParameterClass parameterClass, Modes modes, ModeDistributionCalculator distributionCalculator) {
+    public TPS_ModeSet(TPS_ModeChoiceTree modeChoiceTree, TPS_ExpertKnowledgeTree expertKnowledgeTree,
+                       TPS_ParameterClass parameterClass, Modes modes, ModeDistributionCalculator distributionCalculator,
+                       DistanceClasses distanceClasses) {
         this.modeChoiceTree = modeChoiceTree;
         this.expertKnowledgeTree = expertKnowledgeTree;
         this.parameterClass = parameterClass;
         this.modes = modes;
         this.distributionCalculator = distributionCalculator;
+        this.distanceClasses = distanceClasses;
     }
 
     /**
@@ -117,7 +120,7 @@ public class TPS_ModeSet {
     public TPS_DiscreteDistribution<TPS_Mode> getModeDistribution(TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
         // getting the distribution of modes from the mode choice tree according to the attributes of the plan
         plan.setAttributeValue(TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_MCT,
-                TPS_Distance.getCode(TPS_DistanceCodeType.MCT, distanceNet));
+                distanceClasses.getDistanceMctClass((int) distanceNet).getCode());
         //these attributes need to be set here again, because it is not guarantied, that they are set elsewhere
         TPS_ActivityConstant currentActCode = mcc.toStay.getActCode();
         plan.setAttributeValue(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_MCT,

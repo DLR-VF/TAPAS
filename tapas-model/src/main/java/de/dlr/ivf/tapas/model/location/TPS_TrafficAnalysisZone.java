@@ -9,7 +9,6 @@
 package de.dlr.ivf.tapas.model.location;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
-import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
@@ -31,15 +30,13 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
 //    public static MultiMap<TPS_LocationConstant, TPS_ActivityConstant, List<TPS_ActivityConstant>> LOCATION2ACTIVITIES_MAP = new MultiMap<>(new ArrayList<>());
 
     // locations storage
-    private HashMap<TPS_ActivityConstant, TypedWeightedLocationDistribution> locationsByActivity = new HashMap<>();
+    private final HashMap<TPS_ActivityConstant, TypedWeightedLocationDistribution> locationsByActivity = new HashMap<>();
     /// community type, used during choice of locations
     private int bbrType;
 
-    private final Map<TPS_LocationConstant, Collection<TPS_ActivityConstant>> locationToActivityMap = new HashMap<>();
+    private final Map<Integer, Collection<TPS_ActivityConstant>> locationToActivityMap = new HashMap<>();
     /// Collection with all blocks of this traffic analysis zone
 
-    @Singular
-    private final SortedMap<Integer, TPS_Block> blocks;
     /// Coordinate of the center point of this traffic analysis zone
     private TPS_Coordinate center;
     /// id of the traffic analysis zone
@@ -53,8 +50,8 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     /// Map which stores the values for the corresponding SimulationType
     @Singular
     private final Map<SimulationType, ScenarioTypeValues> simulationTypeValues;
-    /// Local variable for the TAZData (locations etc.)
-    private TPS_TAZData data;
+
+
     private boolean isRestricted = false; // restricted zone, e.g. only for electric vehicles etc.
     private boolean isPNR = false; //is Park and Ride
 
@@ -64,29 +61,13 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
      *
      * @param loc The location to add
      */
-    public void addLocation(TPS_Location loc) {
-        TPS_LocationConstant locType = loc.getLocType();
-        // TODO: necessary?
-        // check data
-        if (loc.hasData() && !this.hasData()) {
-            this.data = new TPS_TAZData();
-        } else if (!loc.hasData() && this.hasData()) {
-            throw new RuntimeException(
-                    "You want to add a location without additional data to a taz with additional data");
-        }
-        // TODO: necessary? end
+    public void addLocation(TPS_Location loc, Collection<TPS_ActivityConstant> activities) {
 
-        // add to the activity storages
-        Collection<TPS_ActivityConstant> actCodes = locationToActivityMap.get(locType);
-        //TPS_AbstractConstant.getConnectedConstants(locType,TPS_ActivityCode.class);
-        if (actCodes != null) {
-            for (TPS_ActivityConstant actCode : actCodes) {
-                if (!this.locationsByActivity.containsKey(actCode)) {
-                    this.locationsByActivity.put(actCode, new TypedWeightedLocationDistribution());
-                }
-                this.locationsByActivity.get(actCode).addLocation(loc);
-            }
-        }
+       activities.forEach(activity -> addLocation(loc, activity));
+    }
+
+    public void addLocation(TPS_Location location, TPS_ActivityConstant activity){
+        this.locationsByActivity.computeIfAbsent(activity, k -> new TypedWeightedLocationDistribution()).addLocation(location);
     }
 
     /**
@@ -103,16 +84,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     @Override
     public int compareTo(TPS_TrafficAnalysisZone o) {
         return Integer.compare(this.id, o.id);
-    }
-
-    /**
-     * Returns whether the named block is contained
-     *
-     * @param blockId The id of the block
-     * @return true if the block is contained, false otherwise
-     */
-    public boolean containsBlock(int blockId) {
-        return this.blocks.containsKey(blockId);
     }
 
     /**
@@ -162,15 +133,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
      */
     public TPS_Coordinate getCoordinate() {
         return this.getCenter();
-    }
-
-    /**
-     * Returns the data attached to this zone.
-     *
-     * @return This TAZ's data
-     */
-    public TPS_TAZData getData() {
-        return data;
     }
 
     /**
@@ -289,15 +251,6 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
     @Override
     public boolean hasBlock() {
         return false;
-    }
-
-    /**
-     * Returns whether this TAZ has data
-     *
-     * @return Whether this TAZ has data
-     */
-    public boolean hasData() {
-        return this.getData() != null;
     }
 
     /**
@@ -515,32 +468,4 @@ public class TPS_TrafficAnalysisZone implements Comparable<TPS_TrafficAnalysisZo
         }
         this.locationsByActivity.get(actCode).updateOccupancy(oldWeight, weight);
     }
-
-    public class TPS_TAZData {
-        /**
-         * Chooses for the type of activity to be performed one of the
-         * appropriate locations within the traffic analysis zone. This location
-         * represents all possible locations within the traffic analysis zone
-         * for this round of the location choice. The probability of a specific
-         * location to be chosen depends on the weight of the location in
-         * comparison to the sum of weights of the locations in the traffic
-         * analysis zone. Method is accounting for different location types
-         * being applicable for the same activity type (e.g. leisure in parks
-         * and bars)
-         *
-         * @param actCode activity type to be performed
-         * @return representative of this traffic analysis zone
-         */
-        public TPS_Location generateLocationRepr(TPS_ActivityConstant actCode) {
-            // return null if there is no location with the wanted activity
-            if (!TPS_TrafficAnalysisZone.this.locationsByActivity.containsKey(actCode)) {
-                return null;
-            }
-            return TPS_TrafficAnalysisZone.this.locationsByActivity.get(actCode).select();
-        }
-    }
-
-
-
-
 }

@@ -8,11 +8,13 @@
 
 package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -20,7 +22,6 @@ import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.person.TPS_PreferenceParameters.ShoppingPreferenceAccessibility;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
 
@@ -29,8 +30,11 @@ public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBa
     final double minDist;
     private final int walkMaxDist;
 
-    public TPS_SelectWithMultipleAccessMode(TPS_ParameterClass parameterClass) {
-        super(parameterClass);
+    public TPS_SelectWithMultipleAccessMode(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator,
+                                            ModeDistributionCalculator distributionCalculator,
+                                            TPS_ModeSet modeSet,
+                                            TravelTimeCalculator travelTimeCalculator) {
+        super(parameterClass, distanceCalculator, distributionCalculator, modeSet, travelTimeCalculator);
         this.minDist = parameterClass.getDoubleValue(ParamValue.MIN_DIST);
         this.walkMaxDist = parameterClass.getIntValue(ParamValue.MAX_WALK_DIST);
     }

@@ -8,7 +8,7 @@ public class LocationData {
     private final boolean updateLocationWeights;
     private final double weightOccupancy;
     /// Capacity of the location
-    private final int capacity = 0;
+    private final int capacity;
 
     /**
      * This flag indicates if the location has a fixed capacity, i.e.

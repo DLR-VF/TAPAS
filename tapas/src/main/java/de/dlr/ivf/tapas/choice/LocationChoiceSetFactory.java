@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.choice;
 import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 public class LocationChoiceSetFactory {
@@ -27,14 +28,21 @@ public class LocationChoiceSetFactory {
         };
     }
 
-    public TPS_LocationSelectModel newLocationSelectionModel(String locationSelectionModelName, TPS_ParameterClass parameters, TPS_UtilityFunction utilityFunction, TravelDistanceCalculator distanceCalculator, TPS_ModeSet modeSet, TravelTimeCalculator travelTimeCalculator){
+    public TPS_LocationSelectModel newLocationSelectionModel(String locationSelectionModelName,
+                                                             TPS_ParameterClass parameters,
+                                                             TPS_UtilityFunction utilityFunction,
+                                                             TravelDistanceCalculator distanceCalculator,
+                                                             ModeDistributionCalculator distributionCalculator,
+                                                             TPS_ModeSet modeSet,
+                                                             TravelTimeCalculator travelTimeCalculator,
+                                                             DistanceClasses distanceClasses){
 
         return switch (locationSelectionModelName){
-            case "TPS_SelectWithMultipleAccessModeGravity" -> new TPS_SelectWithMultipleAccessModeGravity(parameters);
-            case "TPS_SelectWithMultipleAccessMode" -> new TPS_SelectWithMultipleAccessMode(parameters);
-            case "TPS_SelectWithMultipleAccessModeGravityPow2" -> new TPS_SelectWithMultipleAccessModeGravityPow2(parameters);
-            case "TPS_SelectWithMultipleAccessModeLogSum" -> new TPS_SelectWithMultipleAccessModeLogSum(parameters, utilityFunction);
-            case "TPS_SelectWithSingleAccessMode" -> new TPS_SelectWithSingleAccessMode(parameters, distanceCalculator, modeSet, travelTimeCalculator);
+            case "TPS_SelectWithMultipleAccessModeGravity" -> new TPS_SelectWithMultipleAccessModeGravity(parameters,distanceCalculator,distributionCalculator,modeSet,travelTimeCalculator);
+            case "TPS_SelectWithMultipleAccessMode" -> new TPS_SelectWithMultipleAccessMode(parameters,distanceCalculator,distributionCalculator,modeSet,travelTimeCalculator);
+            case "TPS_SelectWithMultipleAccessModeGravityPow2" -> new TPS_SelectWithMultipleAccessModeGravityPow2(parameters,distanceCalculator,distributionCalculator,modeSet,travelTimeCalculator);
+            case "TPS_SelectWithMultipleAccessModeLogSum" -> new TPS_SelectWithMultipleAccessModeLogSum(parameters, utilityFunction,distanceCalculator,distributionCalculator,modeSet,travelTimeCalculator, distanceClasses);
+            case "TPS_SelectWithSingleAccessMode" -> new TPS_SelectWithSingleAccessMode(parameters, distanceCalculator, distributionCalculator, modeSet, travelTimeCalculator);
 
             default -> throw new IllegalStateException("Unexpected location selection model name: " + locationSelectionModelName);
         };

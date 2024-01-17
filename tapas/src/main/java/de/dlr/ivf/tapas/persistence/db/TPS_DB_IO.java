@@ -26,13 +26,12 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeBuilder;
 import de.dlr.ivf.tapas.model.*;
+import de.dlr.ivf.tapas.model.DistanceClasses.DistanceClassesBuilder;
 import de.dlr.ivf.tapas.model.constants.*;
-import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.model.constants.TPS_AgeClass.TPS_AgeCodeType;
 import de.dlr.ivf.tapas.model.constants.AgeClasses.AgeClassesBuilder;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.*;
-import de.dlr.ivf.tapas.model.location.TPS_Block.TPS_BlockBuilder;
 import de.dlr.ivf.tapas.model.location.TPS_Location.TPS_LocationBuilder;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.mode.Modes.ModesBuilder;
@@ -42,7 +41,6 @@ import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.TPS_TrafficAnalys
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_LocationConstant.TPS_LocationCodeType;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import de.dlr.ivf.tapas.model.parameter.*;
@@ -165,9 +163,10 @@ public class TPS_DB_IO {
             TPS_Location homeLocation = TPS_Location.builder()
                     .id(-1 * householdDto.getHhId())
                     .groupId(-1)
-                    .locType(TPS_LocationConstant.HOME)
+                    .locType(-1)
                     .coordinate(new TPS_Coordinate(householdDto.getXCoordinate(), householdDto.getYCoordinate()))
                     .block(null)
+                    .tazId(householdDto.getTazId())
                     .taz(tazMap.get(householdDto.getTazId()))
                     .build();
 
@@ -200,7 +199,7 @@ public class TPS_DB_IO {
      * Note: First the activity and locations must be read,
      * i.e. readActivityConstantCodes and readLocationConstantCodes must be called beforehand
      */
-    public ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource, Filter actToLocFilter) {
+    public ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource, Filter actToLocFilter, Activities activities) {
 
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
@@ -216,11 +215,10 @@ public class TPS_DB_IO {
 
         for(ActivityToLocationDto activityToLocationDto : activityToLocationDtos){
 
-            TPS_ActivityConstant actCode = TPS_ActivityConstant.getActivityCodeByTypeAndCode(TPS_ActivityCodeType.ZBE, activityToLocationDto.getActCode());
-            TPS_LocationConstant locCode = TPS_LocationConstant.getLocationCodeByTypeAndCode(TPS_LocationCodeType.TAPAS, activityToLocationDto.getLocCode());
+            TPS_ActivityConstant actCode = activities.getActivity(TPS_ActivityCodeType.ZBE, activityToLocationDto.getActCode());
 
-            mapping.addActivityToLocationMapping(actCode, locCode);
-            mapping.addLocationToActivityMapping(locCode, actCode);
+            mapping.addActivityToLocationMapping(actCode, activityToLocationDto.getLocCode());
+            mapping.addLocationCodeToActivityMapping(activityToLocationDto.getLocCode(), actCode);
         }
 
         return mapping;
@@ -351,32 +349,27 @@ public class TPS_DB_IO {
      * A Distance has the form (id, 3-tuples of (name, code, type), max)
      * Example: (5, (under 5k, 1, VOT),	(under 2k, 2000, MCT), 2000)
      */
-    public Collection<TPS_Distance> readDistanceCodes(DataSource dataSource) {
+    public DistanceClasses readDistanceCodes(DataSource dataSource) {
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<DistanceCodeDto> distanceCodeDtos =
                 reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(DistanceCodeDto.class),DistanceCodeDto::new), dataSource);
         connectionSupplier.returnObject(connection);
-        
-        Collection<TPS_Distance> distanceCodes = new ArrayList<>();
 
-        for(DistanceCodeDto distanceCodeDto : distanceCodeDtos){
 
-            TPS_Distance distanceCode = TPS_Distance.builder()
-                    .id(distanceCodeDto.getId())
-                    .max(distanceCodeDto.getMax())
-                    .internalDistanceCode(new TPS_InternalConstant<>(distanceCodeDto.getNameVot(), distanceCodeDto.getCodeVot(),
-                            TPS_DistanceCodeType.valueOf(distanceCodeDto.getTypeVot())))
-                    .internalDistanceCode(new TPS_InternalConstant<>(distanceCodeDto.getNameMct(), distanceCodeDto.getCodeMct(),
-                            TPS_DistanceCodeType.valueOf(distanceCodeDto.getTypeMct())))
-                    .build();
+        DistanceClassesBuilder distanceClassesBuilder = DistanceClasses.builder();
 
-            distanceCodes.add(distanceCode);
+        for(DistanceCodeDto dto : distanceCodeDtos){
+
+            distanceClassesBuilder
+                    .distanceMctMapping(dto.getMax(), new TPS_Distance(dto.getId(), dto.getMax(),dto.getCodeMct()))
+                    .distanceVotMapping(dto.getMax(), new TPS_Distance(dto.getId(), dto.getMax(), dto.getCodeVot()));
         }
 
-        return distanceCodes;
+        return distanceClassesBuilder.build();
     }
+
 
     /**
      * Reads all driving license codes from the database and stores them through enums
@@ -519,30 +512,15 @@ public class TPS_DB_IO {
      * A LocationConstant has the form (id, 3-tuples of (name, code, type))
      * Example: (5, (club, 7, GENERAL), (club, 7, TAPAS))
      */
-    public Collection<TPS_LocationConstant> readLocationConstantCodes(DataSource dataSource) {
+    public Collection<Integer> readLocationConstantCodes(DataSource dataSource) {
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<LocationCodeDto> locationCodeDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(LocationCodeDto.class),LocationCodeDto::new), dataSource);
 
         connectionSupplier.returnObject(connection);
-        
-        Collection<TPS_LocationConstant> locationConstants = new ArrayList<>();
 
-        for(LocationCodeDto locationCodeDto : locationCodeDtos) {
-
-            TPS_LocationConstant locationConstant = TPS_LocationConstant.builder()
-                    .id(locationCodeDto.getId())
-                    .internalConstant(new TPS_InternalConstant<>(locationCodeDto.getNameGeneral(),
-                            locationCodeDto.getCodeGeneral(), TPS_LocationCodeType.valueOf(locationCodeDto.getTypeGeneral())))
-                    .internalConstant(new TPS_InternalConstant<>(locationCodeDto.getNameTapas(),
-                            locationCodeDto.getCodeTapas(), TPS_LocationCodeType.valueOf(locationCodeDto.getTypeTapas())))
-                    .build();
-
-            locationConstants.add(locationConstant);
-        }
-
-        return locationConstants;
+        return locationCodeDtos.stream().map(LocationCodeDto::getCodeTapas).collect(toList());
     }
 
     /**
@@ -1180,7 +1158,7 @@ public class TPS_DB_IO {
      * @throws SQLException Error during SQL-processing
      */
     //todo fix reaading region
-    public TPS_Region readRegion() {
+    public TPS_Region readRegion(ActivityAndLocationCodeMapping activityToLocationCodeMapping) {
         TPS_Region region = new TPS_Region();
 
         // read values of time
@@ -1227,7 +1205,7 @@ public class TPS_DB_IO {
         region.setPotential(potential);
 
         //read taz and add to region
-        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones();
+        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones(activityToLocationCodeMapping);
         trafficAnalysisZones.values().forEach(region::addTrafficAnalysisZone);
 
 
@@ -1235,7 +1213,7 @@ public class TPS_DB_IO {
         return region;
     }
 
-    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones() {
+    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones(ActivityAndLocationCodeMapping activityToLocationCodeMapping) {
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
@@ -1259,7 +1237,6 @@ public class TPS_DB_IO {
                     .externalId(dto.getNumId() != 0 ? dto.getNumId() : -1);
 
             tazBuilders.put(dto.getTazId(), builder);
-
         }
 
 
@@ -1344,67 +1321,13 @@ public class TPS_DB_IO {
                     .simulationTypeValue(SimulationType.BASE, stvBaseBuilders.get(tazId).build());
         }
 
-        //read blocks
-        Map<Integer, TPS_Block> blockMap = new HashMap<>();
-
-        if(parameters.isDefined(ParamString.DB_TABLE_BLOCK)){
-            DataSource blocksDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK));
-            Collection<BlockDto> blockDtos = reader.read(
-                    new ResultSetConverter<>(new ColumnToFieldMapping<>(BlockDto.class), BlockDto::new), blocksDs);
-
-            DataSource blockScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_SCORES));
-            Filter blockScoreFilter = new Filter("score_name", parameters.getString(ParamString.DB_NAME_BLOCK_SCORES));
-            Collection<BlockScoreDto> blockScoreDtos = reader.read(
-                    new ResultSetConverter<>(new ColumnToFieldMapping<>(BlockScoreDto.class), BlockScoreDto::new),
-                    blockScoresDs, blockScoreFilter);
-            Map<Integer, BlockScoreDto> blockScoreDtoMap = collectionToMap(BlockScoreDto::getBlockId, blockScoreDtos);
-
-            DataSource blockNextPtStopDs = new DataSource(parameters.getString(ParamString.DB_TABLE_BLOCK_NEXT_PT_STOP));
-            Filter nextPtStopFilter = new Filter("next_pt_stop_name", parameters.getString(ParamString.DB_NAME_BLOCK_NEXT_PT_STOP));
-
-            Collection<BlockNextPtStopDto> nextPtStopDtos = reader.read(
-                    new ResultSetConverter<>(new ColumnToFieldMapping<>(BlockNextPtStopDto.class), BlockNextPtStopDto::new),
-                    blockNextPtStopDs, nextPtStopFilter);
-            Map<Integer, BlockNextPtStopDto> blockNextPtStopDtoMap = collectionToMap(BlockNextPtStopDto::getNextPtStopBlockId, nextPtStopDtos);
-
-            for(BlockDto blockDto : blockDtos){
-
-                int blockId = blockDto.getBlockId();
-                BlockScoreDto scoreDto = blockScoreDtoMap.get(blockId);
-                BlockNextPtStopDto nextPtStopDto = blockNextPtStopDtoMap.get(blockId);
-                TPS_BlockBuilder blockBuilder = TPS_Block.builder()
-                        .id(blockId)
-                        .tazId(blockDto.getTazId())
-                        .score(scoreDto.getScore())
-                        .scoreCat(scoreDto.getScoreCat())
-                        .nearestPubTransStop(nextPtStopDto.getNextPtStopDistance())
-                        .center(new TPS_Coordinate(blockDto.getX(), blockDto.getY()));
-                blockMap.put(blockId,blockBuilder.build());
-            }
-
-            double avgNextPtStop = nextPtStopDtos.stream()
-                    .mapToDouble(BlockNextPtStopDto::getNextPtStopDistance)
-                    .average()
-                    .orElseThrow(() -> new IllegalArgumentException("Couldn't select average distance pt stop from database"));
-
-            this.parameters.setValue(ParamValue.AVERAGE_DISTANCE_PT_STOP, avgNextPtStop);
-        }
-
-        //add blocks to taz and finalize
         Map<Integer, TPS_TrafficAnalysisZone> tazMap = new HashMap<>();
-        Map<Integer, List<TPS_Block>> blocksByTazId = blockMap.values()
-                .stream()
-                .collect(groupingBy(
-                        TPS_Block::getTazId,
-                        toCollection(ArrayList::new)));
+
 
         for(Map.Entry<Integer, TPS_TrafficAnalysisZoneBuilder> builderEntry : tazBuilders.entrySet()){
             TPS_TrafficAnalysisZoneBuilder builder = builderEntry.getValue();
             int tazId = builderEntry.getKey();
 
-            if(blocksByTazId.containsKey(tazId)) {
-                blocksByTazId.get(tazId).forEach(block -> builder.block(block.getId(), block));
-            }
             tazMap.put(tazId, builder.build());
         }
 
@@ -1420,27 +1343,26 @@ public class TPS_DB_IO {
             TPS_LocationBuilder locationBuilder = TPS_Location.builder()
                     .id(dto.getLocId())
                     .groupId(parameters.isTrue(ParamFlag.FLAG_USE_LOCATION_GROUPS) ? dto.getLocGroupId() : -1)
-                    .locType(TPS_LocationConstant.getLocationCodeByTypeAndCode(TPS_LocationCodeType.TAPAS,dto.getLocCode()))
+                    .locType(dto.getLocCode())
                     .coordinate(new TPS_Coordinate(dto.getX(), dto.getY()))
                     .tazId(dto.getTazId())
-                    .blockId(dto.getBlockId())
-                    //todo this creates a cyclic dependency between location and taz/block
-                    .block(blockMap.get(dto.getBlockId()))
                     .taz(tazMap.get(dto.getTazId()));
 
             //init LocationData
             LocationData locationData = LocationData.builder()
                     .updateLocationWeights(parameters.isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS))
                     .weightOccupancy(parameters.getDoubleValue(ParamValue.WEIGHT_OCCUPANCY))
+                    .capacity(dto.getLocCapacity())
                     .fixCapacity(dto.isHasFixCapacity())
                     .occupancy(0)
                     .build();
+
             locationData.init();
             locationBuilder.data(locationData);
             TPS_Location location = locationBuilder.build();
 
             //now add to TAZ and block
-            tazMap.get(location.getTAZId()).addLocation(location);
+            tazMap.get(location.getTAZId()).addLocation(location, activityToLocationCodeMapping.getActivitiesByLocationCode(location.getLocType()));
         }
         
         connectionSupplier.returnObject(connection);

@@ -8,6 +8,10 @@
 
 package de.dlr.ivf.tapas.legacy;
 
+import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
+import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
@@ -56,9 +60,17 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
     private final double calibMisc;
     private final double calibUniversity;
     private final TPS_UtilityFunction utilityFunction;
+    private final DistanceClasses distanceClasses;
 
-    public TPS_SelectWithMultipleAccessModeLogSum(TPS_ParameterClass parameterClass, TPS_UtilityFunction utilityFunction) {
-        super(parameterClass);
+    public TPS_SelectWithMultipleAccessModeLogSum(TPS_ParameterClass parameterClass, TPS_UtilityFunction utilityFunction,
+                                                  TravelDistanceCalculator distanceCalculator,
+                                                  ModeDistributionCalculator distributionCalculator,
+                                                  TPS_ModeSet modeSet,
+                                                  TravelTimeCalculator travelTimeCalculator,
+                                                  DistanceClasses distanceClasses) {
+        super(parameterClass, distanceCalculator, distributionCalculator, modeSet, travelTimeCalculator);
+
+        this.distanceClasses = distanceClasses;
 
         this.utilityFunction = utilityFunction;
         this.useTaxi = parameterClass.isFalse(ParamFlag.FLAG_USE_TAXI);
@@ -119,7 +131,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
     public double getModeLogSum(TPS_Plan plan, TPS_PlanningContext pc, TPS_TrafficAnalysisZone taz, double distanceNet, double distanceNetInclReturn, TPS_ModeChoiceContext mcc, TPS_ParameterClass parameterClass, double mu) {
         // getting the distribution of modes from the mode choice tree according to the attributes of the plan
         plan.setAttributeValue(TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_MCT,
-                TPS_Distance.getCode(TPS_DistanceCodeType.MCT, distanceNet));
+                distanceClasses.getDistanceMctClass((int)distanceNet).getCode());
         //these attributes need to be set here again, because it is not guarantied, that they are set elsewhere
         TPS_ActivityConstant currentActCode = mcc.toStay.getActCode();
         plan.setAttributeValue(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_MCT,
