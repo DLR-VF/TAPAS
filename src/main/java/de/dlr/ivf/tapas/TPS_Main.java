@@ -155,7 +155,7 @@ public class TPS_Main  implements Callable<Integer> {
             //  this.parameterClass.checkParameters();
 
             this.PM = initAndGetPersistenceManager(this.parameterClass);
-            this.init();
+
         } catch (Exception e) {
             TPS_Logger.log(SeverenceLogLevel.FATAL, "Application shutdown: unhandable exception", e);
             throw new RuntimeException(e);
@@ -234,17 +234,23 @@ public class TPS_Main  implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
 
-
+        boolean createNewSim = false;
         // check parameters
         File configParam = new File(configFile) ;
         File loginParam = new File(dbConfFile) ;
-        if(simKey ==null || simKey.equalsIgnoreCase("new"))
+        if(simKey ==null || simKey.equalsIgnoreCase("new")) {
             simKey = getDefaultSimKey();
+            createNewSim = true;
+        }
 
         if(threads <=0) //if it is negative or zero assume, it i9t a modifier to the max core count
             threads = Math.max(1,Runtime.getRuntime().availableProcessors()-threads);
-        // initialise and start
+        // initialise parameters
         this.init(configParam, loginParam, simKey);
+        if(createNewSim){
+            this.prepareNewSimForStart();
+        }
+        this.startSim();
         this.run(threads);
         this.finish();
         this.PM.close();
@@ -458,10 +464,31 @@ public class TPS_Main  implements Callable<Integer> {
     }
 
     /**
+     * This method starts the simulation
+     */
+    public void startSim() {
+        if (PM instanceof TPS_DB_IOManager) {
+            TPS_DB_IOManager dbManager = (TPS_DB_IOManager) PM;
+            String sim_key = this.parameterClass.paramStringClass.getString(ParamString.RUN_IDENTIFIER);
+
+
+            String query;
+
+            if(sim_key !=null && !sim_key.equals("")) {
+                query = "UPDATE simulations SET sim_ready = true where sim_key ='"+sim_key+"'";
+                dbManager.execute(query);
+                query = "UPDATE simulations SET sim_started = true where sim_key ='"+sim_key+"'";
+                dbManager.execute(query);
+            }
+        }
+    }
+
+
+    /**
      * This method initialises all temporary tables in the database if necessary.
      * This method sets the
      */
-    public void init() {
+    public void prepareNewSimForStart() {
         if (PM instanceof TPS_DB_IOManager) {
             TPS_DB_IOManager dbManager = (TPS_DB_IOManager) PM;
             String projectName = this.parameterClass.paramStringClass.getString(ParamString.PROJECT_NAME);
@@ -484,10 +511,7 @@ public class TPS_Main  implements Callable<Integer> {
 
                 query = "SELECT core.prepare_simulation_for_start('" + sim_key + "')";
                 dbManager.execute(query);
-                query = "UPDATE simulations SET sim_ready = true where sim_key ='"+sim_key+"'";
-                dbManager.execute(query);
-                query = "UPDATE simulations SET sim_started = true where sim_key ='"+sim_key+"'";
-                dbManager.execute(query);
+
             }
         }
     }

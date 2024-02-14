@@ -16,13 +16,13 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
 import de.dlr.ivf.tapas.util.Matrix;
 import de.dlr.ivf.tapas.util.MatrixMap;
-import de.dlr.ivf.tapas.util.TPS_Argument;
-import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.CURRENCY;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
+import picocli.CommandLine;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -33,13 +33,18 @@ import java.util.Map.Entry;
 public class SumoDaemon extends Thread {
 
 
+    @CommandLine.Option(names = { "-p",
+            "--path" }, required = true, paramLabel = "<path-to-configuration-files>", description = "Loads the configuration file and sets the relative path.")
+    private String				workingDir;
+
+    @CommandLine.Option(names = { "-s", "--simulation-key" }, paramLabel = "<sim key>", description = "Specifies a Simulation key to run")
+    private String				simKey;
+
+    @CommandLine.Option(names = { "-o", "--output" }, paramLabel = "<output file>", description = "File to write the status to, or null if no export is whished.")
+    private String				outputFile;
     static final int SumoPollingInterval = 10; //seconds
-    /**
-     * Parameter array with all parameters for this main method.<br>
-     * PARAMETERS[0] = tapas network directory path
-     */
-    private static final TPS_ArgumentType<?>[] PARAMETERS = {new TPS_ArgumentType<>("tapas network directory path",
-            File.class)};
+
+    boolean needsInitialization = true;
     boolean keepOnRunning = true;
     boolean keepPreviousIteratioData = true;
     private final HashMap<String, Integer> simKeysTriggerIteration = new HashMap<>();
@@ -50,16 +55,16 @@ public class SumoDaemon extends Thread {
     /**
      * Path of the TAPAS network directory
      */
-    private final File tapasNetworkDirectory;
+    private File tapasNetworkDirectory;
     /**
      * TPS_ParameterClass parameter container
      */
-    private final TPS_ParameterClass parameterClass;
+    private TPS_ParameterClass parameterClass;
     private String actualKey = "";
     private int actualIter = 0;
 
-    public SumoDaemon(File tapasNetworkDirectory) {
-        this.tapasNetworkDirectory = tapasNetworkDirectory;
+    public void init() {
+        this.tapasNetworkDirectory = (new File(this.workingDir)).getParentFile();;
         File propFile = new File("daemon.properties");
         DaemonControlProperties prop = new DaemonControlProperties(propFile);
 
@@ -75,6 +80,57 @@ public class SumoDaemon extends Thread {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+        this.needsInitialization = false;
+
+        if(this.simKey != null && this.simKey.length()>0){
+            String sMaxIter = this.manager.readSingleParameter(this.simKey, "MAX_SUMO_ITERATION");
+            String sIter = this.manager.readSingleParameter(this.simKey, "ITERATION");
+            if(!(sMaxIter == null || sIter == null)) {
+                int maxIter = (int) (Double.parseDouble(sMaxIter) + 0.5);
+                if (maxIter > 0) {
+                    int actTapasIter = (int) (Double.parseDouble(sIter) + 0.5);
+                    int actSumoIteration = this.readSumoIteration(this.simKey);
+                    //now store the actual simKEy and iter into the stubs for processing
+                    this.actualKey = this.simKey;
+                    this.actualIter = actTapasIter;
+                    boolean finished = true;
+                    if (actTapasIter <= actSumoIteration && actSumoIteration < maxIter && 0 <= actSumoIteration) {
+                        finished = false;
+                        prepareNextIterationForSim();
+                    }
+                    //now look if we have an output file and store the result of this iteratrion in the output file
+                    if (this.outputFile != null && this.outputFile.length() > 0) {
+                        writeResultToDisk(this.outputFile, finished);
+                    }
+                }
+            }
+            this.keepOnRunning = false; //tell the daemon loop to stop
+        }
+        else {
+            System.out.println("Starting Tapas-Sumo-Connector. Press Control-c to finish it.");
+            //simServer.initRMIService();
+            this.start();
+            try {
+                this.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void writeResultToDisk(String file, boolean finished) {
+        try {
+            FileWriter fw = new FileWriter(file);
+            if(finished) {
+                fw.write(this.actualKey + "\t" + this.actualIter + "\tfinished\n");
+            }
+            else {
+                fw.write(this.actualKey + "\t" + this.actualIter + "\tprepared\n");
+            }
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -82,13 +138,8 @@ public class SumoDaemon extends Thread {
      * @throws InterruptedException
      */
     public static void main(String[] args) throws InterruptedException {
-        System.out.println("Starting Tapas-Sumo-Connector. Press Control-c to finish it.");
-        Object[] parameters = TPS_Argument.checkArguments(args, PARAMETERS);
-        File tapasNetworkDirectory = ((File) parameters[0]).getParentFile();
-        SumoDaemon sumoServer = new SumoDaemon(tapasNetworkDirectory);
-        //simServer.initRMIService();
-        sumoServer.start();
-        sumoServer.join();
+        System.exit(new CommandLine(new SumoDaemon()).execute(args));
+
 
     }
 
@@ -393,7 +444,10 @@ public class SumoDaemon extends Thread {
         }
     }
 
+    @Override
     public void run() {
+        if(this.needsInitialization)
+            this.init();
         Runtime.getRuntime().addShutdownHook(new RunWhenShuttingDownSumo());
 
         while (keepOnRunning) {
@@ -402,22 +456,7 @@ public class SumoDaemon extends Thread {
                 this.actualKey = entries.getKey();
                 this.actualIter = entries.getValue();
                 if (this.actualKey.length() > 0) {
-                    System.out.println(
-                            "Processing simulation: " + this.actualKey + " in iteration: " + this.actualIter);
-
-                    this.readParameter();
-
-                    String mapName = this.parameterClass.getString(ParamString.DB_NAME_MATRIX_TT_MIT);
-                    String newName = this.updateStringIter(mapName);
-
-                    MatrixMap mivTT = this.loadSumoValues(mapName, 0.75);
-                    List<String> matrixNames = this.createNewMatrixMap(mapName, newName);
-                    this.saveMatrices(mivTT, matrixNames);
-                    this.manager.updateSingleParameter(this.actualKey, "DB_NAME_MATRIX_TT_MIT", newName);
-                    this.manager.updateSingleParameter(this.actualKey, "ITERATION",
-                            Integer.toString((this.actualIter + 1)));
-                    this.resetSimulation(this.actualKey);
-                    System.out.println("Finished simulation: " + this.actualKey + " in iteration: " + this.actualIter);
+                    prepareNextIterationForSim();
                 }
             }
             simKeysTriggerIteration.clear(); // everything done (for now)!
@@ -428,6 +467,25 @@ public class SumoDaemon extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void prepareNextIterationForSim() {
+        System.out.println(
+                "Processing simulation: " + this.actualKey + " in iteration: " + this.actualIter);
+
+        this.readParameter();
+
+        String mapName = this.parameterClass.getString(ParamString.DB_NAME_MATRIX_TT_MIT);
+        String newName = this.updateStringIter(mapName);
+
+        MatrixMap mivTT = this.loadSumoValues(mapName, 0.75);
+        List<String> matrixNames = this.createNewMatrixMap(mapName, newName);
+        this.saveMatrices(mivTT, matrixNames);
+        this.manager.updateSingleParameter(this.actualKey, "DB_NAME_MATRIX_TT_MIT", newName);
+        this.manager.updateSingleParameter(this.actualKey, "ITERATION",
+                Integer.toString((this.actualIter + 1)));
+        this.resetSimulation(this.actualKey);
+        System.out.println("Finished simulation: " + this.actualKey + " in iteration: " + this.actualIter);
     }
 
     private void saveMatrices(MatrixMap map, List<String> newNames) {

@@ -29,8 +29,6 @@ plugins {
 }
 
 
-
-
 repositories {
     // You can declare any Maven/Ivy/file repository here.
     //use mavenCentral repository
@@ -56,6 +54,9 @@ dependencies {
     implementation("net.sourceforge.jexcelapi:jxl:2.6.12")
     implementation("net.lingala.zip4j:zip4j:2.5.1")
     implementation("com.lmax:disruptor:3.4.2")
+    // add CLI support
+    implementation("info.picocli:picocli:4.7.1")
+    annotationProcessor  ("info.picocli:picocli-codegen:4.7.5")
 
     //local dependency
     implementation("simon_w:simon_w:")
