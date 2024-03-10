@@ -1,18 +1,18 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.location.Locatable;
 
-public class SimpleMatrixMapFunction implements MatrixMapFunction {
+public class SimpleTravelTimeFunction implements TravelTimeFunction {
     private final MatrixMap matrixMap;
 
-    public SimpleMatrixMapFunction(MatrixMap matrixMap) {
+    public SimpleTravelTimeFunction(MatrixMap matrixMap) {
         this.matrixMap = matrixMap;
     }
 
     @Override
-    public double apply(Locatable start, Locatable end, int time) {
+    public double calculateTravelTime(Locatable start, Locatable end, int time) {
         return matrixMap.getMatrix(time).getValue(start.getTAZId(), end.getTAZId());
     }
 }

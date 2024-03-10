@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.mode;
 
 import de.dlr.ivf.tapas.legacy.TPS_UtilityFunction;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
@@ -32,10 +33,10 @@ public class ModeDistributionCalculator {
         TPS_DiscreteDistribution<TPS_Mode> dstDis = getDistribution(srcDis);
         dstDis.setValues(srcDis.getValues());
         if (!mcc.isBikeAvailable) {
-            dstDis.setValueByKey(modes.getMode(ModeType.BIKE), TPS_UtilityFunction.minModeProbability);
+            dstDis.setValueByKey(modes.getModeByName(ModeType.BIKE.name()), TPS_UtilityFunction.minModeProbability);
         }
         if (mcc.carForThisPlan == null) {
-            dstDis.setValueByKey(modes.getMode(ModeType.MIT), TPS_UtilityFunction.minModeProbability);
+            dstDis.setValueByKey(modes.getModeByName(ModeType.MIT.name()), TPS_UtilityFunction.minModeProbability);
         }
 
         if (!dstDis.normalize()) {
@@ -89,18 +90,21 @@ public class ModeDistributionCalculator {
      */
     public TPS_DiscreteDistribution<TPS_Mode> getDistribution(TPS_DiscreteDistribution<TPS_Mode> srcDis) {
         TPS_DiscreteDistribution<TPS_Mode> dis = threadDiscreteDistributionsMap.get(Thread.currentThread());
-        if (dis == null) {
-            if (srcDis != null) {
-                dis = new TPS_DiscreteDistribution<>(srcDis.getSingletons());
-            } else {
-                //init a zero array: if this array is not filled it will throw an exception during normalize
-                dis = new TPS_DiscreteDistribution<>(modes.getModes());
-                for (int i = 0; i < TPS_Mode.MODE_TYPE_ARRAY.length; i++) {
-                    dis.setValueByPosition(i, 0);
-                }
-            }
-            threadDiscreteDistributionsMap.put(Thread.currentThread(), dis);
+
+        if(dis != null){
+            return dis;
         }
+
+        if (srcDis != null) {
+            dis = new TPS_DiscreteDistribution<>(srcDis.getSingletons());
+        } else {
+            //init a zero array: if this array is not filled it will throw an exception during normalize
+            dis = new TPS_DiscreteDistribution<>(modes.getModes());
+            for (int i = 0; i < TPS_Mode.MODE_TYPE_ARRAY.length; i++) {
+                dis.setValueByPosition(i, 0);
+            }
+        }
+        threadDiscreteDistributionsMap.put(Thread.currentThread(), dis);
         return dis;
     }
 }

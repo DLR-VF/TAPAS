@@ -41,6 +41,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
     public List<TPS_Car> usedCars = new LinkedList<>();
     public boolean usesBike = false;
     public boolean mustPayToll = false;
+
     private final Map<TPS_Attribute, Integer> myAttributes;
     /// Fix (reused) locations
     Map<TPS_ActivityConstant, TPS_Location> fixLocations = new HashMap<>();
@@ -431,7 +432,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
     public double getTravelCosts() {
         double sumFinancialCosts = 0.0;
         for (TPS_PlannedTrip pt : this.plannedTrips.values()) {
-            sumFinancialCosts += pt.getCosts(CURRENCY.EUR);
+            sumFinancialCosts += pt.getCosts();
         }
         return sumFinancialCosts;
     }

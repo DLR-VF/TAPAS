@@ -11,6 +11,7 @@ import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
+import lombok.Getter;
 
 import java.util.function.Supplier;
 
@@ -22,6 +23,7 @@ public class LocationSelector {
 
 
     private final TPS_Region region;
+    @Getter
     private final TravelDistanceCalculator distanceCalculator;
 
     public LocationSelector(TPS_Region region, TravelDistanceCalculator distanceCalculator){
@@ -63,7 +65,7 @@ public class LocationSelector {
         TPS_Stay comingFrom = coming_from.get();
         TPS_Stay goingTo = going_to.get();
 
-        TPS_LocatedStay locatedStay = new TPS_LocatedStay(plan,currentStay);
+        TPS_LocatedStay locatedStay = plan.getLocatedStay(currentStay);
 
         if (!plan.isLocated(comingFrom) || !plan.isLocated(goingTo)) {
             // this case should be impossible because we now iterate over the priorised stays,

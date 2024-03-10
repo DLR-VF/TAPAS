@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -9,7 +9,7 @@ import de.dlr.ivf.tapas.model.parameter.ParamMatrix;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
-public class SchoolBusTravelTimeFunction implements MatrixMapFunction {
+public class SchoolBusTravelTimeFunction implements TravelTimeFunction {
 
     private final MatrixMap avgSpeedSchoolBusMatrixMap;
     private final double defaultSchoolBusAccess;
@@ -29,7 +29,7 @@ public class SchoolBusTravelTimeFunction implements MatrixMapFunction {
 
     }
     @Override
-    public double apply(Locatable start, Locatable end, int time) {
+    public double calculateTravelTime(Locatable start, Locatable end, int time) {
 
 
         int startTazId = start.getTrafficAnalysisZone().getTAZId();

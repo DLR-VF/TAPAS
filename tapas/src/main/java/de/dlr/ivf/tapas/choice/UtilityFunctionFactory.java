@@ -4,8 +4,7 @@ import de.dlr.ivf.tapas.legacy.TPS_UtilityChaidMNLMixed;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityChaidMNLMixedBS;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityFunction;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityMNLFullComplex;
-import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 public class UtilityFunctionFactory {

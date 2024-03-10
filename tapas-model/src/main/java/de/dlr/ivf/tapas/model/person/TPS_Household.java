@@ -18,6 +18,7 @@ import de.dlr.ivf.tapas.model.vehicle.CarFleetManager;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Singular;
 
 import java.util.*;
@@ -34,9 +35,11 @@ public class TPS_Household implements ExtendedWritable {
     /// household id
     private final int id;
 
-    /// household income
-    private double realIncome;
 
+    /// household income
+    private final double realIncome;
+
+    @Getter
     private final TPS_Income income;
 
     /// household type

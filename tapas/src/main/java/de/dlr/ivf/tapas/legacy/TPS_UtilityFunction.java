@@ -55,4 +55,6 @@ public interface TPS_UtilityFunction {
     TPS_DiscreteDistribution<TPS_Mode> getDistributionSet(TPS_ModeSet modeSet, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc);//TPS_Location locComingFrom, TPS_Location locGoingTo, double startTime, double durationStay, TPS_Car car, boolean fBike, TPS_Stay stay);
 
     void setDistributionCalculator(ModeDistributionCalculator modeDistributionCalculator);
+
+    void setParameterSet(TPS_Mode mode, double[] parameters);
 }

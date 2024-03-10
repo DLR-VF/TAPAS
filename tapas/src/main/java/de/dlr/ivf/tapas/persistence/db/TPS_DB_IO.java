@@ -19,7 +19,7 @@ import de.dlr.ivf.api.io.configuration.Filter;
 import de.dlr.ivf.api.io.conversion.ResultSetConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.ModeParameters;
 import de.dlr.ivf.tapas.model.mode.ModeUtils;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
@@ -34,7 +34,7 @@ import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.*;
 import de.dlr.ivf.tapas.model.location.TPS_Location.TPS_LocationBuilder;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
-import de.dlr.ivf.tapas.mode.Modes.ModesBuilder;
+import de.dlr.ivf.tapas.model.mode.Modes.ModesBuilder;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager.CarFleetManagerBuilder;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.TPS_TrafficAnalysisZoneBuilder;
 
@@ -440,10 +440,10 @@ public class TPS_DB_IO {
             }
 
             if (root == null) {
-                root = new TPS_ExpertKnowledgeNode(ekNode.getNodeId(), sv, c, summand, factor, null);
+                root = new TPS_ExpertKnowledgeNode(ekNode.getNodeId(), sv, c, summand, factor, null, modes);
             } else {
                 TPS_ExpertKnowledgeNode parent = (TPS_ExpertKnowledgeNode) root.getChild(ekNode.getParentNodeId());
-                TPS_ExpertKnowledgeNode child = new TPS_ExpertKnowledgeNode(ekNode.getNodeId(), sv, c, summand, factor, parent);
+                TPS_ExpertKnowledgeNode child = new TPS_ExpertKnowledgeNode(ekNode.getNodeId(), sv, c, summand, factor, parent, modes);
 
                 // if (parent.getId() != idParent) {
                 // log.error("\t\t\t\t '--> ModeChoiceTree.readTable: Parent not found -> Id: " + idParent);
@@ -471,7 +471,7 @@ public class TPS_DB_IO {
         for (int i = 0; i < factor.size(); i++) {
             factor.setValueByPosition(i, 1);
         }
-        TPS_ExpertKnowledgeNode root = new TPS_ExpertKnowledgeNode(0, null, c, summand, factor, null);
+        TPS_ExpertKnowledgeNode root = new TPS_ExpertKnowledgeNode(0, null, c, summand, factor, null, modes);
 
         return new TPS_ExpertKnowledgeTree(root);
     }
@@ -974,6 +974,7 @@ public class TPS_DB_IO {
             //initialize with data from database
             TPS_ModeBuilder modeBuilder = TPS_Mode.builder()
                     .name(modeDto.getName())
+                    .id(modeDto.getCodeMct())
                     .isFix(modeDto.isFix())
                     .modeType(modeType)
                     .internalConstant(new TPS_InternalConstant<>(modeDto.getNameMct(), modeDto.getCodeMct(),
@@ -992,7 +993,8 @@ public class TPS_DB_IO {
                     .costPerKmBase(modeParameters.getCostPerKmBase())
                     .useBase(modeParameters.isUseBase())
                     .build();
-            modesBuilder.addMode(modeType, mode);
+            modesBuilder.addModeById(mode.getId(), mode);
+            modesBuilder.addModeByName(mode.getName(), mode);
         }
         return modesBuilder.build();
     }
@@ -1715,7 +1717,9 @@ public class TPS_DB_IO {
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<UtilityFunctionDto> utilityFunctionDtos = reader.read(
-                new ResultSetConverter<>(new ColumnToFieldMapping<>(UtilityFunctionDto.class), UtilityFunctionDto::new), dataSource);
+                new ResultSetConverter<>(new ColumnToFieldMapping<>(UtilityFunctionDto.class), UtilityFunctionDto::new),
+                dataSource,
+                utilityFunctionFilters);
         connectionSupplier.returnObject(connection);
         
         return utilityFunctionDtos;

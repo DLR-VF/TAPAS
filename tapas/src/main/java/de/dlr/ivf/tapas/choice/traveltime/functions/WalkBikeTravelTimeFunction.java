@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -11,7 +11,7 @@ import de.dlr.ivf.tapas.model.parameter.ParamMatrix;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
-public class WalkBikeTravelTimeFunction implements MatrixMapFunction {
+public class WalkBikeTravelTimeFunction implements TravelTimeFunction {
 
     private final MatrixMap ttMatrixMap;
     private final MatrixMap accessMatrixMap;
@@ -32,7 +32,7 @@ public class WalkBikeTravelTimeFunction implements MatrixMapFunction {
         this.beelineMatrix = parameterClass.getMatrix(ParamMatrix.DISTANCES_BL);
     }
     @Override
-    public double apply(Locatable start, Locatable end, int time) {
+    public double calculateTravelTime(Locatable start, Locatable end, int time) {
 
         double beelineDistance = TPS_Geometrics.getDistance(start, end, minDist);
         double tt = beelineDistance * mode.getBeelineFactor() / mode.getVelocity();

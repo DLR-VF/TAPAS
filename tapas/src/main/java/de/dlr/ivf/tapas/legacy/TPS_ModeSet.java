@@ -9,7 +9,7 @@
 package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
@@ -32,6 +32,7 @@ import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
+import lombok.Getter;
 
 import java.util.Collection;
 import java.util.function.Supplier;
@@ -46,6 +47,7 @@ import java.util.function.Supplier;
 public class TPS_ModeSet {
 
     final double obscureDistanceCorrectionNumber = 500;
+
     private final Modes modes;
     private final ModeDistributionCalculator distributionCalculator;
     private final DistanceClasses distanceClasses;
@@ -61,6 +63,8 @@ public class TPS_ModeSet {
 
     private final TPS_ParameterClass parameterClass;
 
+    private final TPS_UtilityFunction utilityFunction;
+
     /**
      * Standard constructor for a mode set
      *
@@ -70,13 +74,14 @@ public class TPS_ModeSet {
      */
     public TPS_ModeSet(TPS_ModeChoiceTree modeChoiceTree, TPS_ExpertKnowledgeTree expertKnowledgeTree,
                        TPS_ParameterClass parameterClass, Modes modes, ModeDistributionCalculator distributionCalculator,
-                       DistanceClasses distanceClasses) {
+                       DistanceClasses distanceClasses, TPS_UtilityFunction utilityFunction) {
         this.modeChoiceTree = modeChoiceTree;
         this.expertKnowledgeTree = expertKnowledgeTree;
         this.parameterClass = parameterClass;
         this.modes = modes;
         this.distributionCalculator = distributionCalculator;
         this.distanceClasses = distanceClasses;
+        this.utilityFunction = utilityFunction;
     }
 
     /**
@@ -98,7 +103,7 @@ public class TPS_ModeSet {
     }
 
     public TPS_Mode getMode(ModeType modeType){
-        return this.modes.getMode(modeType);
+        return this.modes.getModeById(modeType.ordinal());
     }
     /**
      * Sets the initial mode choice tree.
@@ -130,10 +135,9 @@ public class TPS_ModeSet {
         plan.setAttributeValue(TPS_Attribute.CURRENT_EPISODE_ACTIVITY_CODE_TAPAS,
                 currentActCode.getCode(TPS_ActivityCodeType.TAPAS));
 
-        //todo utiliy function usage
-        TPS_DiscreteDistribution<TPS_Mode> srcDis = null;//TPS_Mode.getUtilityFunction().getDistributionSet(
-//                this, plan, distanceNet,
-//                mcc);//locComingFrom, currentStayLocation, stay.getOriginalStart(), durationStay, car, fBike,stay);
+        TPS_DiscreteDistribution<TPS_Mode> srcDis = utilityFunction.getDistributionSet(
+                this, plan, distanceNet,
+                mcc);//locComingFrom, currentStayLocation, stay.getOriginalStart(), durationStay, car, fBike,stay);
         plan.removeAttribute(TPS_Attribute.CURRENT_DISTANCE_CLASS_CODE_MCT);
 
         TPS_DiscreteDistribution<TPS_Mode> dstDis = null;

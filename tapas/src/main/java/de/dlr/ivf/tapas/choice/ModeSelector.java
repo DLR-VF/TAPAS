@@ -3,9 +3,16 @@ package de.dlr.ivf.tapas.choice;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
+import de.dlr.ivf.tapas.mode.cost.MNLFullComplexContext;
+import de.dlr.ivf.tapas.mode.cost.MNLFullComplexFunction;
+import de.dlr.ivf.tapas.model.choice.DiscreteDistribution;
+import de.dlr.ivf.tapas.model.choice.DiscreteDistributionFactory;
+import de.dlr.ivf.tapas.model.choice.DiscreteProbability;
+import de.dlr.ivf.tapas.model.choice.ModeChoiceContext;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
@@ -18,17 +25,46 @@ import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class ModeSelector {
 
+    private final double minProbability = 0.0;
+
     private final TPS_ModeSet modeSet;
     private final boolean flagUseExitMaut;
 
-    public ModeSelector(TPS_ModeSet modeSet, TPS_ParameterClass parameterClass){
+    private final DiscreteDistributionFactory<TPS_Mode> modeDistributionFactory;
+
+    private final Map<TPS_Mode, MNLFullComplexFunction> mnlFunctions;
+    private final TravelTimeCalculator travelTimeCalculator;
+
+    public ModeSelector(TPS_ModeSet modeSet, TPS_ParameterClass parameterClass, DiscreteDistributionFactory<TPS_Mode> modeDistributionFactory,
+                        Map<TPS_Mode, MNLFullComplexFunction> mnlFunctions, TravelTimeCalculator travelTimeCalculator){
 
         this.modeSet = modeSet;
         this.flagUseExitMaut = parameterClass.isTrue(ParamFlag.FLAG_USE_EXIT_MAUT);
+        this.modeDistributionFactory = modeDistributionFactory;
+        this.mnlFunctions = mnlFunctions;
+        this.travelTimeCalculator = travelTimeCalculator;
+    }
+
+    public TPS_Mode selectMode(ModeChoiceContext<TPS_Mode> modeChoiceContext, MNLFullComplexContext mnlContext){
+
+        DiscreteDistribution<TPS_Mode> modeDistribution = modeDistributionFactory.emptyDistribution();
+        for(TPS_Mode mode : modeDistributionFactory.getDiscreteVariables()){
+            if(!modeChoiceContext.modeIsAvailable(mode)){
+                modeDistribution.addProbability(new DiscreteProbability<>(mode, minProbability));
+                continue;
+            }
+            //todo create a context for each mode for a travel time function visitor
+            double travelTime = travelTimeCalculator.getTravelTime(mode, modeChoiceContext.getFrom(), modeChoiceContext.getTo(),
+                    modeChoiceContext.getStartTime(), );
+            modeDistribution.addProbability(new DiscreteProbability<>(mode, mnlFunctions.get(mode).apply()));
+
+        }
+
     }
 
     /**
@@ -40,7 +76,7 @@ public class ModeSelector {
      * @param nextStay
      * @param pc
      */
-    public void selectMode(TPS_Plan plan, Supplier<TPS_Stay> prevStay, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> nextStay, TPS_PlanningContext pc) {
+    public TPS_Mode selectMode(TPS_Plan plan, Supplier<TPS_Stay> prevStay, TPS_LocatedStay locatedStay, Supplier<TPS_Stay> nextStay, TPS_PlanningContext pc, double distanceNet) {
         // log.debug("\t\t\t\t\t\t '--> In tpsSelectLocation.selectMode");
 
 
@@ -58,15 +94,10 @@ public class ModeSelector {
             TPS_Location previousStayLocation = prevStayLocated.getLocation();
             TPS_Location currentStayLocation = locatedStay.getLocation();
 
-            // The mode "walking" is used to get distances on the net.
-            //todo extract this
-            double distanceNet = 0;//Math.max(this.parameterClass.getDoubleValue(ParamValue.MIN_DIST),
-//                    TPS_Mode.get(ModeType.WALK)
-//                            .getDistance(previousStayLocation, currentStayLocation, SimulationType.SCENARIO, null) -
-//                            obscureDistanceCorrectionNumber);
             TPS_ModeChoiceContext mcc = new TPS_ModeChoiceContext();
 
 
+            TPS_Mode chosenMode;
             if (nextStayArrivalMode == null) { //does the next stay allow unrestricted mode choice
                 if (previousStayDepartureMode == null) { //does the previous stay allow unrestricted mode choice
                     mcc.fromStayLocation = previousStayLocation;
@@ -138,6 +169,7 @@ public class ModeSelector {
                 }
             }
         }
+        return locatedStay.getModeArr().primary;
     }
 
     public TPS_ExtMode selectDepartureMode(TPS_Plan plan, TPS_LocatedStay departure_stay, TPS_LocatedStay arrival_stay, TPS_PlanningContext pc) {
@@ -317,5 +349,9 @@ public class ModeSelector {
 //            secondary = mcc.combinedMode;
 //        }
         return new TPS_ExtMode(primary, secondary);
+    }
+
+    public Modes getModes(){
+        return modeSet.modes();
     }
 }

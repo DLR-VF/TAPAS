@@ -21,5 +21,6 @@ module de.dlr.ivf.tapas.model {
     exports de.dlr.ivf.tapas.model.plan;
     exports de.dlr.ivf.tapas.model.vehicle;
     exports de.dlr.ivf.tapas.model.plan.acceptance;
+    exports de.dlr.ivf.tapas.model.choice;
 
 }

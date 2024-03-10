@@ -20,7 +20,7 @@ import java.util.Collection;
  * <p>
  * Every mode is a singleton so the type and the name have to be unique. This is realized by the visibility of the
  * constructor. Only classes in this package have access.
- * <p>
+ * <p><
  * <p>
  * Furthermore there are two abstract methods to calculate the distance and the travel time between two locations.
  */
@@ -43,6 +43,8 @@ public class TPS_Mode {
     @Singular
     private final Collection<TPS_InternalConstant<TPS_ModeCodeType>> internalConstants;
     private final String name;
+
+    private final int id;
 
 
     /**

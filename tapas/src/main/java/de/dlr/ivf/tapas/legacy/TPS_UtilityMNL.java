@@ -13,7 +13,7 @@ import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
@@ -91,7 +91,7 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
         // calculate utilities
         for (int i = 0; i < utilities.length; ++i) {
             // get the parameter set
-            TPS_Mode mode = modes.getMode(TPS_Mode.MODE_TYPE_ARRAY[i]);
+            TPS_Mode mode = modes.getModeById(i);
             if (!mcc.isBikeAvailable && mode.getModeType() == ModeType.BIKE || //no bike
                     mcc.carForThisPlan == null && mode.getModeType() == ModeType.MIT || //no car
                     (mode.getModeType() == ModeType.TAXI && useTaxi) //disable TAXI
@@ -126,16 +126,16 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
             // calc probabilities
             for (int i = 0; i < utilities.length; ++i) {
                 //dist.setIndexedValue(TPS_Mode.get(TPS_Mode.MODE_TYPE_ARRAY[i]), utilities[i]/(sumOfUtilities-utilities[i]));
-                dist.setValueByKey(modes.getMode(TPS_Mode.MODE_TYPE_ARRAY[i]),
+                dist.setValueByKey(modes.getModeById(i),
                         utilities[i]); //according to http://en.wikipedia.org/wiki/Multinomial_logistic_regression this the mnl!
             }
         } else { //no possible mode!
             // clear probabilities
             //todo revise this
             for (int i = 0; i < utilities.length; ++i) {
-                dist.setValueByKey(modes.getMode(TPS_Mode.MODE_TYPE_ARRAY[i]), 0);
+                dist.setValueByKey(modes.getModeById(i), 0);
             }
-            dist.setValueByKey(modes.getMode(ModeType.MIT_PASS),
+            dist.setValueByKey(modes.getModeByName(ModeType.MIT_PASS.name()),
                     1);// if we erased all possible modes we have to prepare an exit plan!
             if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
                 TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE,
@@ -145,13 +145,12 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
 
         boolean expertCheck = TPS_ExpertKnowledgeTree.applyExpertKnowledge(modeSet, plan, distanceNet, mcc, false,
                 dist);
-        //todo revise this
-//        if (!expertCheck) {
-//            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
-//                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE, "No possible modes!");
-//                dist.setValueByKey(TPS_Mode.get(ModeType.MIT_PASS), 1); // you have to find someone taking you there!
-//            }
-//        }
+        if (!expertCheck) {
+            if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
+                TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE, "No possible modes!");
+                dist.setValueByKey(modes.getModeByName(ModeType.MIT_PASS.name()), 1); // you have to find someone taking you there!
+            }
+        }
         return dist;
     }
 
@@ -160,5 +159,9 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
     @Override
     public void setDistributionCalculator(ModeDistributionCalculator modeDistributionCalculator) {
         this.distributionCalculator = modeDistributionCalculator;
+    }
+
+    public void setParameterSet(TPS_Mode mode, double[] parameters) {
+        this.parameterMap.put(mode, parameters);
     }
 }

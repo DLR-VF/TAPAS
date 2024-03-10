@@ -13,8 +13,7 @@ import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
-import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
@@ -55,7 +54,7 @@ public class TPS_UtilityChaidMNLMixed extends TPS_UtilityMNLFullComplex {
         if (!dist.normalize()) {
             if (TPS_Logger.isLogging(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE)) {
                 TPS_Logger.log(HierarchyLogLevel.EPISODE, SeverityLogLevel.SEVERE, "No possible modes!");
-                dist.setValueByKey(modes.getMode(ModeType.MIT_PASS), 1); // you have to find someone taking you there!
+                dist.setValueByKey(modes.getModeByName(ModeType.MIT_PASS.name()), 1); // you have to find someone taking you there!
             }
         }
         //TODO: hack for reducing WALK

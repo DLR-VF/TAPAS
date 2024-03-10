@@ -8,13 +8,17 @@ import de.dlr.ivf.tapas.converters.PersonDtoToPersonConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.misc.PrimaryDriverScoreFunction;
+import de.dlr.ivf.tapas.mode.CostCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.mode.cost.MNLFullComplexFunction;
+import de.dlr.ivf.tapas.model.choice.DiscreteDistributionFactory;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.ActivityAndLocationCodeMapping;
 import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.Incomes;
 import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
+import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
@@ -126,26 +130,6 @@ public class TapasInitializer {
         DataSource locationConstantsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_LOCATION));
         Collection<Integer> locationConstants = dbIo.readLocationConstantCodes(locationConstantsDs);
 
-        //init modes and mode set
-        DataSource modeDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_MODE));
-        Modes modes = dbIo.readModes(modeDataSource);
-
-        DataSource mctDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MCT));
-        Filter modeFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_MCT));
-        TPS_ModeChoiceTree modeChoiceTree = dbIo.readModeChoiceTree(mctDataSource, modeFilter, modes.getModes());
-
-        DataSource ektDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_EKT));
-        Filter ektFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_EKT));
-        TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,ektFilter, modes.getModes());
-
-        //read utility function data
-        DataSource utilityFunctionData = new DataSource(parameters.getString(ParamString.DB_NAME_MODEL_PARAMETERS));
-        Collection<Filter> utilityFunctionFilters = List.of(new Filter("key", parameters.getString(ParamString.UTILITY_FUNCTION_KEY)),
-                new Filter("utility_function_class", parameters.getString(ParamString.UTILITY_FUNCTION_NAME)));
-
-        Collection<UtilityFunctionDto> utilityFunctionDtos = dbIo.readUtilityFunction(utilityFunctionData, utilityFunctionFilters);
-
-
         //read SchemeSet
         DataSource schemeClasses = new DataSource(parameters.getString(ParamString.DB_TABLE_SCHEME_CLASS));
         Filter schemeClassFilter = new Filter("key", parameters.getString(ParamString.DB_SCHEME_CLASS_KEY));
@@ -179,8 +163,20 @@ public class TapasInitializer {
                         parameters.getString(ParamString.LOCATION_CHOICE_SET_CLASS),
                         parameters);
 
+        //init modes and mode set
+        DataSource modeDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_MODE));
+        Modes modes = dbIo.readModes(modeDataSource);
+
+        DataSource mctDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MCT));
+        Filter modeFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_MCT));
+        TPS_ModeChoiceTree modeChoiceTree = dbIo.readModeChoiceTree(mctDataSource, modeFilter, modes.getModes());
+
+        DataSource ektDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_EKT));
+        Filter ektFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_EKT));
+        TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,ektFilter, modes.getModes());
+
         TravelDistanceCalculator travelDistanceCalculator = new TravelDistanceCalculator(parameters);
-        TravelTimeCalculator travelTimeCalculator = new TravelTimeCalculator(parameters, modes.getModeMap());
+        TravelTimeCalculator travelTimeCalculator = new TravelTimeCalculator(parameters, modes);
         TPS_UtilityFunction utilityFunction = locationChoiceSetFactory.newUtilityFunctionInstance(
                 parameters.getString(ParamString.UTILITY_FUNCTION_NAME),
                 travelDistanceCalculator,
@@ -188,8 +184,21 @@ public class TapasInitializer {
                 parameters,
                 modes
         );
+
+        //read utility function data
+        DataSource utilityFunctionData = new DataSource(parameters.getString(ParamString.DB_NAME_MODEL_PARAMETERS));
+        Collection<Filter> utilityFunctionFilters = List.of(new Filter("key", parameters.getString(ParamString.UTILITY_FUNCTION_KEY)),
+                new Filter("utility_function_class", parameters.getString(ParamString.UTILITY_FUNCTION_NAME)));
+
+        Collection<UtilityFunctionDto> utilityFunctionDtos = dbIo.readUtilityFunction(utilityFunctionData, utilityFunctionFilters);
+        Map<TPS_Mode, MNLFullComplexFunction> mnlFunctions = new HashMap<>();
+        utilityFunctionDtos
+                .forEach(dto -> mnlFunctions.put(modes.getModeByName(dto.getMode()),new MNLFullComplexFunction(dto.getParameters())));
+
         ModeDistributionCalculator modeDistributionCalculator = new ModeDistributionCalculator(modes, utilityFunction);
         utilityFunction.setDistributionCalculator(modeDistributionCalculator);
+
+        TPS_ModeSet modeSet = new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator, distanceClasses, utilityFunction);
 
         TPS_LocationSelectModel locationSelectModel = locationChoiceSetFactory.newLocationSelectionModel(
                 parameters.getString(ParamString.LOCATION_SELECT_MODEL_CLASS),
@@ -197,7 +206,7 @@ public class TapasInitializer {
                 utilityFunction,
                 travelDistanceCalculator,
                 modeDistributionCalculator,
-                new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator, distanceClasses),
+                modeSet,
                 travelTimeCalculator,
                 distanceClasses
         );
@@ -212,8 +221,10 @@ public class TapasInitializer {
         LocationSelector locationSelector = new LocationSelector(region, travelDistanceCalculator);
         FeasibilityCalculator feasibilityCalculator = new FeasibilityCalculator(parameters);
 
-        ModeSelector modeSelector = new ModeSelector(new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree,parameters,modes,modeDistributionCalculator, distanceClasses),parameters);
-        LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(parameters, locationSelector, modeSelector);
+        DiscreteDistributionFactory<TPS_Mode> modeDistributionFactory = new DiscreteDistributionFactory<>(modes.getModes());
+        ModeSelector modeSelector = new ModeSelector(modeSet,parameters, modeDistributionFactory,mnlFunctions);
+        CostCalculator costCalculator = new CostCalculator(parameters);
+        LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(parameters, locationSelector, modeSelector, travelDistanceCalculator, travelTimeCalculator, costCalculator);
         TPS_PlanEVA1Acceptance acceptance = new TPS_PlanEVA1Acceptance(parameters);
         Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> hhProcessor = HouseholdProcessor.builder()
                 .schemeSelector(schemeSelector)

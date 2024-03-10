@@ -10,9 +10,9 @@ package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
 import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
-import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleMatrixMapFunction;
+import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleTravelTimeFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
@@ -45,7 +45,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
 
     private final boolean useFixPtCost;
     private final double interchangeFactor;
-    private final SimpleMatrixMapFunction interchangeMatrixMap;
+    private final SimpleTravelTimeFunction interchangeMatrixMap;
     private final boolean useRoboTaxi;
     private final boolean useCarSharing;
     private final double carSharingAccessAddon;
@@ -69,7 +69,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
         this.chargePassWithEverything = parameterClass.isTrue(ParamFlag.FLAG_CHARGE_PASSENGERS_WITH_EVERYTHING);
         this.useFixPtCost = parameterClass.isFalse(ParamFlag.FLAG_FIX_PT_COSTS);
         this.interchangeFactor = 0.01;
-        this.interchangeMatrixMap = new SimpleMatrixMapFunction(parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.INTERCHANGES_PT, simType));
+        this.interchangeMatrixMap = new SimpleTravelTimeFunction(parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.INTERCHANGES_PT, simType));
         this.useRoboTaxi = parameterClass.isDefined(ParamFlag.FLAG_USE_ROBOTAXI) && parameterClass.isTrue(ParamFlag.FLAG_USE_ROBOTAXI);
         this.useCarSharing = parameterClass.isDefined(ParamFlag.FLAG_USE_CARSHARING) && parameterClass.isTrue(ParamFlag.FLAG_USE_CARSHARING);
         this.carSharingAccessAddon = parameterClass.getDoubleValue(ParamValue.CARSHARING_ACCESS_ADDON);
@@ -219,7 +219,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                 }
 
                 expInterChanges = TPS_FastMath.exp(
-                        interchangeMatrixMap.apply(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime)) * interchangeFactor;
+                        interchangeMatrixMap.calculateTravelTime(mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime)) * interchangeFactor;
 
                 break;
             case CAR_SHARING: //car sharing-faker

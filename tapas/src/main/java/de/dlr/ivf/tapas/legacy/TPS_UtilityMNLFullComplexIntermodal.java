@@ -10,7 +10,7 @@ package de.dlr.ivf.tapas.legacy;
 
 import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
-import de.dlr.ivf.tapas.mode.Modes;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;

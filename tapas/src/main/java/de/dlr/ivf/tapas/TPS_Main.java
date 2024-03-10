@@ -247,8 +247,8 @@ public class TPS_Main {
 
         TravelDistanceCalculator distanceCalculator = new TravelDistanceCalculator(parameterClass);
         LocationSelector locationSelector = new LocationSelector(PM.getRegion(), distanceCalculator);
-        ModeSelector modeSelector = new ModeSelector(PM.getModeSet(), this.parameterClass);
-        LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(this.parameterClass,locationSelector,modeSelector);
+//        ModeSelector modeSelector = new ModeSelector(PM.getModeSet(), this.parameterClass);
+//        LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(this.parameterClass,locationSelector,modeSelector, distanceCalculator, null, null);
 
 
 //

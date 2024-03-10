@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.MatrixMapFunction;
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.Matrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
@@ -10,7 +10,7 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.parameter.*;
 
-public class MitTravelTimeFunction implements MatrixMapFunction {
+public class MitTravelTimeFunction implements TravelTimeFunction {
 
     private final SimulationType simType;
     private final int minDist;
@@ -38,7 +38,7 @@ public class MitTravelTimeFunction implements MatrixMapFunction {
 
 
     @Override
-    public double apply(Locatable start, Locatable end, int time) {
+    public double calculateTravelTime(Locatable start, Locatable end, int time) {
 
         int idStart = start.getTAZId();
         int idDest = end.getTAZId();

@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas.mode;
 
 import de.dlr.ivf.tapas.execution.sequential.context.ModeContext;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.TPS_ExtMode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
@@ -43,18 +44,18 @@ public class TPS_ModeValidator {
 
         car_sharing_car.ifPresentOrElse(
                 car -> planning_context.setCarSharingCar(car),
-                () -> chosen_mode.primary = modes.getMode(ModeType.PT)
+                () -> chosen_mode.primary = modes.getModeByName(ModeType.PT.name())
         );
     }
 
     private void validateBikeWithChosenMode(boolean isBikeAvailable, TPS_ExtMode chosen_mode) {
         if(!isBikeAvailable)
-            chosen_mode.primary = modes.getMode(ModeType.PT);
+            chosen_mode.primary = modes.getModeByName(ModeType.PT.name());
     }
 
     private void validateHouseHoldCarWithChosenMode(TPS_Car household_car, TPS_ExtMode chosen_mode) {
 
         if(household_car == null)
-            chosen_mode.primary = modes.getMode(ModeType.PT);
+            chosen_mode.primary = modes.getModeByName(ModeType.PT.name());
     }
 }
