@@ -36,28 +36,28 @@ repositories {
     maven{
         url = uri("https://repository.jboss.org/nexus/content/repositories/thirdparty-releases")
     }
-
-    //local directory
-   // flatDir { dirs("ext") }
 }
 
 dependencies {
 
     implementation("org.postgresql:postgresql:42.5.4")
-    implementation("org.apache.commons:commons-lang3:3.12.0")
+    implementation("org.apache.commons:commons-lang3:3.14.0")
     implementation("org.apache.commons:commons-collections4:4.4")
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("net.sourceforge.javacsv:javacsv:2.0")
     implementation("com.lmax:disruptor:3.4.2")
 
     //lombok
-    implementation("org.projectlombok:lombok:1.18.30")
-    annotationProcessor ("org.projectlombok:lombok:1.18.30")
-    testCompileOnly ("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor ("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.32")
+    annotationProcessor ("org.projectlombok:lombok:1.18.32")
+    testCompileOnly ("org.projectlombok:lombok:1.18.32")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.32")
 
     //jackson
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.17.0")
+
+    //spring
+    implementation("org.springframework:spring-context:6.1.6")
 
     //local dependency
     implementation(project(":tapas-logger"))
@@ -70,6 +70,10 @@ dependencies {
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 
@@ -128,24 +132,6 @@ idea {
     }
 }
 
-
-// Task for writing the version to the buildnumber.properties file.
-// Below it is set to run during a build task.
-//task("buildnumber") {
-//    doLast {
-//        val date = Date()
-//        val version = project.version
-//        val versionString = "#TAPAS buildnumber properties\n" +
-//                "#" + date + "\n" +
-//                "version=" + version + "\n" +
-//                "builddate=" + SimpleDateFormat("yyyy/MM/dd hh:mm").format(date) + "\n" +
-//                "buildnumber=1a"
-//        File(projectDir, "src/main/resources/buildnumber.properties").writeText(versionString)
-//    }
-//}
-//set versionText to run during the build task
-//alternative: rootProject.tasks.getByName("build").dependsOn("versionText")
-//tasks.build.get().dependsOn("buildnumber")
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // If you want to add more executable tasks (like main() runs) then add

@@ -3,6 +3,8 @@ plugins {
     application
     idea
     id("org.javamodularity.moduleplugin") version "1.8.12"
+    id("org.springframework.boot") version "3.2.5"
+    id("io.spring.dependency-management") version "1.1.4"
 }
 
 group = "de.dlr.ivf"
@@ -14,6 +16,7 @@ repositories {
 
 dependencies {
 
+    //project
     implementation(project(":tapas"))
     implementation(project(":io"))
     implementation(project(":service"))
@@ -26,13 +29,18 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 
     //lombok
-    implementation("org.projectlombok:lombok:1.18.30")
-    annotationProcessor ("org.projectlombok:lombok:1.18.30")
-    testCompileOnly ("org.projectlombok:lombok:1.18.30")
-    testAnnotationProcessor ("org.projectlombok:lombok:1.18.30")
+    implementation("org.projectlombok:lombok:1.18.32")
+    annotationProcessor ("org.projectlombok:lombok:1.18.32")
+    testCompileOnly ("org.projectlombok:lombok:1.18.32")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.32")
 
-    //jackson
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    //spring boot
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+
 }
 
 application{
@@ -44,6 +52,10 @@ idea {
     module {
         inheritOutputDirs = true
     }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
 }
 
 tasks.test {
