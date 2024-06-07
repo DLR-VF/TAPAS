@@ -26,7 +26,7 @@ public class JdbcDataReader implements DataReader<ResultSet> {
                                   DataSource dataSource,
                                   Collection<Filter> filters) {
 
-        String whereClause = filters != null && filters.size() > 0 ? dataFilterAsSqlString(filters) : "";
+        String whereClause = filters != null && !filters.isEmpty() ? dataFilterAsSqlString(filters) : "";
 
         if(asLargeTable){
             try{
@@ -83,7 +83,7 @@ public class JdbcDataReader implements DataReader<ResultSet> {
 
     private String dataFilterAsSqlString(Collection<Filter> dataFilters) {
         return dataFilters.stream()
-                .map(filter -> filter.getColumn()+" = "+filterValueAsSqlString(filter.getValue()))
+                .map(filter -> filter.column()+" = "+filterValueAsSqlString(filter.value()))
                 .collect(Collectors.joining(" AND ", "WHERE ", ""));
     }
 

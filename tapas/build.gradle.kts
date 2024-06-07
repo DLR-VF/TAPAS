@@ -24,6 +24,7 @@ plugins {
 
     //`maven-publish`
     idea
+    `java-library`
 }
 
 

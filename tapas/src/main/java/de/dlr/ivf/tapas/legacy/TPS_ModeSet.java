@@ -52,12 +52,12 @@ public class TPS_ModeSet {
     private final ModeDistributionCalculator distributionCalculator;
     private final DistanceClasses distanceClasses;
     /**
-     * Mode Choice Tree for this mode set
+     * Mode Choice DecisionTree for this mode set
      */
     private TPS_ModeChoiceTree modeChoiceTree;
 
     /**
-     * Mode Choice Tree for this mode set
+     * Mode Choice DecisionTree for this mode set
      */
     private final TPS_ExpertKnowledgeTree expertKnowledgeTree;
 

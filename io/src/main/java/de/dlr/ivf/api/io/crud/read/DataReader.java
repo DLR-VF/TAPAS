@@ -3,6 +3,7 @@ package de.dlr.ivf.api.io.crud.read;
 import de.dlr.ivf.api.converter.Converter;
 import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.configuration.Filter;
+import de.dlr.ivf.api.io.configuration.FilterableDataSource;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -18,5 +19,9 @@ public interface DataReader<S> {
 
     default <T> Collection<T> read(Converter<S,T> objectFactory, DataSource dataSource){
         return read(objectFactory, dataSource, Collections.emptyList());
+    }
+
+    default <T> Collection<T> read(Converter<S,T> objectFactory, FilterableDataSource dataSource){
+        return read(objectFactory, new DataSource(dataSource.uri()), List.of(dataSource.filterBy()));
     }
 }

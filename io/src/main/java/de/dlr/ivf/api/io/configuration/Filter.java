@@ -1,14 +1,12 @@
 package de.dlr.ivf.api.io.configuration;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Getter
-@AllArgsConstructor
-public class Filter {
+public record Filter (
 
-    private String column;
-
-    private String value;
-}
+    @JsonProperty
+    String column,
+    @JsonProperty
+    String value
+){}

@@ -17,6 +17,7 @@ import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
 import de.dlr.ivf.tapas.util.ExtendedWritable;
 import de.dlr.ivf.tapas.util.NestedIterator;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
@@ -25,6 +26,7 @@ import java.util.*;
  * weighted by distributions created for different person groups.
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
+@Component
 public class TPS_SchemeSet implements Iterable<TPS_Scheme>, ExtendedWritable {
     /// Collection of scheme class distributions mapped by the person group
     private final SortedMap<TPS_PersonGroup, TPS_DiscreteDistribution<Integer>> distributionMap;
@@ -149,6 +151,13 @@ public class TPS_SchemeSet implements Iterable<TPS_Scheme>, ExtendedWritable {
      */
     public TPS_Scheme selectScheme(TPS_Person person) {
         TPS_DiscreteDistribution<Integer> scDis = this.distributionMap.get(person.getPersonGroup());
+        Integer key = scDis.drawKey();
+        TPS_SchemeClass sc = this.schemeClasses.get(key);
+        return sc.draw();
+    }
+
+    public TPS_Scheme selectScheme(TPS_PersonGroup personGroup) {
+        TPS_DiscreteDistribution<Integer> scDis = this.distributionMap.get(personGroup);
         Integer key = scDis.drawKey();
         TPS_SchemeClass sc = this.schemeClasses.get(key);
         return sc.draw();

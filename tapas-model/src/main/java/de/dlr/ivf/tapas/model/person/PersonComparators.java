@@ -15,7 +15,7 @@ public class PersonComparators {
                     .comparingDouble(TPS_Person::primaryDriver)
                     .reversed();
             case null, default -> Comparator
-                    .comparingInt(TPS_Person::getId);
+                    .comparingInt(TPS_Person::getAge);
         };
     }
 }

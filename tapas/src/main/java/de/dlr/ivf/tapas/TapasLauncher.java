@@ -2,8 +2,11 @@ package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.api.io.connection.ConnectionPool;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
+import de.dlr.ivf.tapas.configuration.json.TapasConfig;
+import de.dlr.ivf.tapas.configuration.spring.*;
+import de.dlr.ivf.tapas.simulation.SimulationRunner;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,8 +14,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import java.lang.System.Logger.Level;
 
+@ComponentScan(basePackages={"de.dlr.ivf.tapas.configuration.json"})
 public class TapasLauncher{
+    private static final System.Logger logger = System.getLogger(TapasLauncher.class.getName());
 
     public static void main(String[] args) {
 
@@ -31,21 +37,45 @@ public class TapasLauncher{
 
         try {
             //read the configuration file with Jackson
-            TapasConfig configDto = new ObjectMapper().readValue(configFile.toFile(), TapasConfig.class);
+            logger.log(Level.INFO, "Loading configuration file: " + configFile);
+            TapasConfig tapasConfig = new ObjectMapper()
+                    //.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    .readValue(configFile.toFile(), TapasConfig.class);
+            logger.log(Level.INFO, "Loaded configuration file: " + configFile);
 
-            TPS_ParameterClass parameterClass = new TPS_ParameterClass();
-            parameterClass.loadRuntimeParameters(Paths.get(configDto.getRunTimeFile()).toFile());
+            //set up the Spring application context
+            logger.log(Level.INFO, "Initializing TAPAS application context...");
+            AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
+            applicationContext.registerBean(TapasConfig.class, () -> tapasConfig);
 
-            TapasInitializer initializer = new TapasInitializer(parameterClass,
-                    new ConnectionPool(configDto.getConnectionDetails()), () -> System.out.println("TAPAS finished."));
+            applicationContext.register(
+                    TapasFactory.class,
+                    RegionFactory.class,
+                    HouseholdsFactory.class,
+                    LocationFactory.class,
+                    TrafficAnalysisZonesFactory.class,
+                    CarsFactory.class,
+                    TrafficGenerationFactory.class,
+                    LocationChoiceModelFactory.class,
+                    ModeChoiceModelFactory.class
+            );
 
-            Tapas tapas = initializer.init();
-            Thread t = new Thread(tapas);
+            applicationContext.refresh();
+            applicationContext.start();
+
+
+            //run the simulation
+            String simulationRunnerName = tapasConfig.getSimulationRunnerToUse();
+
+            SimulationRunner runner = applicationContext.getBean(simulationRunnerName, SimulationRunner.class);
+            logger.log(Level.INFO, "Launching simulation...");
+            Thread t = new Thread(runner, "SimulationThread");
             t.start();
+
         } catch (DatabindException e) {
             throw new IllegalArgumentException("The supplied file does not map to TapasConfig.", e);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new IllegalArgumentException("The supplied file is not accessible.", e);
         }
     }
 }

@@ -21,10 +21,23 @@ module de.dlr.ivf.tapas {
     requires de.dlr.ivf.api.converter;
     requires de.dlr.ivf.api.service;
     requires javacsv;
+    requires spring.context;
+    requires spring.beans;
+    requires spring.core;
 
     opens de.dlr.ivf.tapas to com.fasterxml.jackson.databind;
     opens de.dlr.ivf.tapas.dto to de.dlr.ivf.api.io;
+    opens de.dlr.ivf.tapas.configuration.spring to spring.core;
+    exports de.dlr.ivf.tapas.configuration.spring to spring.beans, spring.context;
     exports de.dlr.ivf.tapas;
     exports de.dlr.ivf.tapas.simulation;
     opens de.dlr.ivf.tapas.simulation to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json;
+    opens de.dlr.ivf.tapas.configuration.json to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.runner to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.trafficgeneration to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.locationchoice to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.modechoice to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.agent to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.region to com.fasterxml.jackson.databind;
 }

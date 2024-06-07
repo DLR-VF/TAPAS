@@ -59,12 +59,12 @@ public class ModeSelector {
                 continue;
             }
             //todo create a context for each mode for a travel time function visitor
-            double travelTime = travelTimeCalculator.getTravelTime(mode, modeChoiceContext.getFrom(), modeChoiceContext.getTo(),
-                    modeChoiceContext.getStartTime(), );
-            modeDistribution.addProbability(new DiscreteProbability<>(mode, mnlFunctions.get(mode).apply()));
+//            double travelTime = travelTimeCalculator.getTravelTime(mode, modeChoiceContext.getFrom(), modeChoiceContext.getTo(),
+//                    modeChoiceContext.getStartTime(), );
+            //modeDistribution.addProbability(new DiscreteProbability<>(mode, mnlFunctions.get(mode).apply()));
 
         }
-
+        return null;
     }
 
     /**

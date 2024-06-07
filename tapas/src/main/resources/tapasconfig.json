@@ -6,5 +6,171 @@
       "password" : "postgres"
     }
   },
-  "runTimeFile" : "D:/TAPAS_modularity/tapas/data/Simulations/testruns/run_Run_full_new.csv"
+  "regionConfiguration" : {
+    "locationConfiguration": {
+      "locations": {
+        "uri": "core.berlin_locations",
+        "filterBy": {
+          "column": "key",
+          "value": "default"
+        }
+      },
+      "useLocationsGroups": true,
+      "updateLocationWeights": true,
+      "occupancyWeight": 2.0
+    },
+    "activityToLocationsMapping": {
+      "uri": "core.berlin_act_2_loc_code"
+    },
+    "distanceClasses": {
+      "uri": "core.global_distance_codes"
+    },
+    "trafficAnalysisZonesToUse": "extended",
+    "trafficAnalysisZoneConfiguration": {
+      "trafficAnalysisZones": {
+        "uri": "core.berlin_taz"
+      },
+      "tazScores": {
+        "uri": "core.berlin_taz_scores",
+        "filterBy": {
+          "column": "score_name",
+          "value": "pt-2015-1223"
+        }
+      },
+      "intraMitInfo": {
+        "uri": "core.berlin_taz_intra_mit_infos",
+        "filterBy": {
+          "column": "info_name",
+          "value": "BERLIN_1223"
+        }
+      },
+      "intraMitInfoBase": {
+        "uri": "core.berlin_taz_intra_mit_infos",
+        "filterBy": {
+          "column": "info_name",
+          "value": "BERLIN_1223"
+        }
+      },
+      "intraPtInfo": {
+        "uri": "core.berlin_taz_intra_pt_infos",
+        "filterBy": {
+          "column": "info_name",
+          "value": "BERLIN_1223"
+        }
+      },
+      "intraPtInfoBase": {
+        "uri": "core.berlin_taz_intra_pt_infos",
+        "filterBy": {
+          "column": "info_name",
+          "value": "BERLIN_1223"
+        }
+      },
+      "feesAndTolls": {
+        "uri": "core.berlin_taz_fees_tolls",
+        "filterBy": {
+          "column": "ft_name",
+          "value": "Berlin_2010"
+        }
+      }
+    }
+  },
+  "householdConfiguration" : {
+    "households" : {
+      "uri" : "core.berlin_households",
+      "filterBy" : {
+        "column" : "hh_key",
+        "value" : "example_population"
+      }
+    },
+    "persons" : {
+      "uri" : "core.berlin_persons",
+      "filterBy" : {
+        "column" : "p_key",
+        "value" :"example_population"
+      }
+    },
+    "ageClasses" : {
+      "uri" : "core.global_age_codes"
+    },
+    "incomeClasses"  : {
+      "uri" : "core.global_income_codes"
+    },
+    "carsConfiguration" : {
+      "cars" : {
+        "uri" : "core.berlin_cars",
+        "filterBy" : {
+          "column" : "car_key",
+          "value" : "MID2008_Y2010_BERLIN"
+        }
+      },
+      "mitElectricCostPerKm" : 0.103,
+      "mitGasolineCostPerKm" : 0.114,
+      "mitDieselCostPerKm" : 0.088,
+      "mitGasCostPerKm" : 0.0545,
+      "mitPluginCostPerKm" : 0.103,
+      "mitFuelCellCostPerKm": 0.103,
+      "mitVariableCostPerKm" : 0.026,
+      "mitElectricRange" : 100000,
+      "mitPluginRange" : 200000,
+      "mitConventionalRange" : 400000
+    },
+    "personGroups": {
+      "uri": "core.global_person_codes_new",
+      "filterBy": {
+        "column": "key",
+        "value": "TAPAS"
+      }
+    },
+    "availabilityFactorBike" : 0.74,
+    "availabilityFactorCarSharing" : 0.1,
+    "useShoppingMotives" : false,
+    "useDrivingLicense" : true,
+    "rejuvenationThreshold" : 75,
+    "rejuvenateByYears" : 10,
+    "minAgeCarSharing" : 18,
+    "memberOrder" : "AGE"
+  },
+  "simulationRunnerToUse" : "tripPriorityRunner",
+  "simulationRunnerConfiguration" : {
+    "trafficGenerationConfiguration" : {
+      "schemeClasses": {
+        "uri": "core.global_scheme_classes",
+        "filterBy": {
+          "column": "key",
+          "value": "default"
+        }
+      },
+      "schemes": {
+        "uri": "core.global_schemes",
+        "filterBy": {
+          "column": "key",
+          "value": "default"
+        }
+      },
+      "episodes": {
+        "uri": "core.global_episodes",
+        "filterBy": {
+          "column": "key",
+          "value": "default"
+        }
+      },
+      "schemeClassDistributions": {
+        "uri": "core.global_scheme_class_distributions",
+        "filterBy": {
+          "column": "key",
+          "value": "default"
+        }
+      },
+      "activities": {
+        "uri": "core.global_activity_codes"
+      }
+    },
+
+    "locationChoiceConfiguration" : {
+
+    },
+    "modeChoiceConfiguration" : {
+
+    }
+  }
 }

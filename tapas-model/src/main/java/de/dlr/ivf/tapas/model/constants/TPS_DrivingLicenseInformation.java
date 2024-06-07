@@ -53,12 +53,6 @@ public enum TPS_DrivingLicenseInformation {
         return code;
     }
 
-//    /**
-//     * @param code code to set
-//     */
-//    public void setCode(int code) {
-//        this.code = code;
-//    }
 
     /**
      * @return true if there is information about the driving license, i.e. in either case of CAR or NO_DRIVING_LICENSE

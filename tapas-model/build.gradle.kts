@@ -24,6 +24,9 @@ dependencies {
     testCompileOnly ("org.projectlombok:lombok:1.18.30")
     testAnnotationProcessor ("org.projectlombok:lombok:1.18.30")
 
+    //spring
+    implementation("org.springframework:spring-context:6.1.6")
+
 
     implementation(project(":tapas-logger"))
     implementation(project(":tapas-parameter"))

@@ -8,7 +8,6 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
-import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
@@ -33,7 +32,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.sql.*;
 import java.util.*;
-import java.util.function.Supplier;
 
 /**
  * Class for IO management regarding Database IO like connection check, statement execution, temporary table creation, higher-level functions
@@ -43,9 +41,9 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
     /// The current behaviour of the simulation server.
     public static Behaviour BEHAVIOUR = Behaviour.FAT;
     /// The instance of a connector to the db, each thread may have its own connection
-    private final TPS_DB_Connector dbConnector;
+    private TPS_DB_Connector dbConnector;
     /// The instance of an Database IO module
-    private final TPS_DB_IO dbIO;
+    private TPS_DB_IO dbIO;
     private final Queue<Integer> insertedHouseHolds = new LinkedList<>();
     private final Queue<TPS_Plan> plansToStore = new LinkedList<>();
     private TPS_ModeSet modeSet;
@@ -53,17 +51,6 @@ public class TPS_DB_IOManager implements TPS_PersistenceManager {
     private TPS_Region region;
     private TPS_SchemeSet schemeSet;
 
-    /**
-     * Constructor class: creates a new db connection, file handler, statement map and the general pattern of the trip-statement
-     *
-     * @throws ClassNotFoundException
-     * @throws IOException
-     */
-    public TPS_DB_IOManager(TPS_ParameterClass parameterClass, ConnectionPool connectionSupplier) throws IOException, ClassNotFoundException {
-        this.dbConnector = new TPS_DB_Connector(parameterClass.getString(ParamString.DB_USER),
-                parameterClass.getString(ParamString.DB_PASSWORD), parameterClass);
-        this.dbIO = new TPS_DB_IO(this,connectionSupplier);
-    }
 
     /**
      * Method to build a sql-function from the given parameters

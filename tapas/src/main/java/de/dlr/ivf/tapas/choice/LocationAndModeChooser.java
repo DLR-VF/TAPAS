@@ -194,8 +194,8 @@ public class LocationAndModeChooser {
                                             pLocGoingTo.getTrafficAnalysisZone().isRestricted())) {
                                 pc.carForThisPlan = null;
                             }
-                            double distanceNet = distanceCalculator.getDistance(pLocComingFrom, pLocGoingTo, TPS_Mode.ModeType.WALK)
-                            chosenMode = this.modeSelector.selectMode(plan, prevStaySupplier, currentLocatedStay, goingToSupplier, pc);
+                            //double distanceNet = distanceCalculator.getDistance(pLocComingFrom, pLocGoingTo, TPS_Mode.ModeType.WALK)
+                           // chosenMode = this.modeSelector.selectMode(plan, prevStaySupplier, currentLocatedStay, goingToSupplier, pc);
                             pc.carForThisPlan = tmpCar;
                             //set the mode and car (if used)
                             tourpart.setUsedMode(currentLocatedStay.getModeDep(), pc.carForThisPlan);
@@ -249,7 +249,7 @@ public class LocationAndModeChooser {
                                 plan.getPerson(), tourpart.getCar());
 
                         plannedTrip.setDuration((int) tripDuration);
-                        plannedTrip.setCost(costCalculator.calculateCost(goingToTaz,comingFromTaz,tripDuration,));
+                       // plannedTrip.setCost(costCalculator.calculateCost(goingToTaz,comingFromTaz,tripDuration,));
                     }
                     //set travel time for the departure mode
                     if (!tourpart.isLast(stay)) {

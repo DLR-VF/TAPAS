@@ -2,9 +2,12 @@ package de.dlr.ivf.tapas.choice;
 
 import de.dlr.ivf.tapas.choice.distance.MatrixFunction;
 import de.dlr.ivf.tapas.choice.distance.functions.SimpleMatrixDistanceFunction;
+import de.dlr.ivf.tapas.choice.traveltime.CarTravelTimeContext;
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeCalculationContext;
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeCalculationVisitor;
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.choice.traveltime.functions.*;
+import de.dlr.ivf.tapas.choice.traveltime.records.TravelContext;
 import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
@@ -162,8 +165,18 @@ public class TravelTimeCalculator implements TravelTimeCalculationVisitor {
     }
 
 
-    @Override
+
     public double visit(Locatable startLocation, Locatable destinationLocation, int startTime) {
+        return 0;
+    }
+
+    @Override
+    public double visit(TravelContext travelContext, TravelTimeCalculationContext context) {
+        return 0;
+    }
+
+    @Override
+    public double visit(TravelContext travelContext, CarTravelTimeContext context) {
         return 0;
     }
 }

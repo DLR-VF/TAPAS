@@ -103,19 +103,6 @@ public class SQLBackupExtractor {
             this.fileName = fileName;
         }
 
-        /**
-         * Close remaining files.
-         */
-        public void finalize() {
-            if (fw != null) {
-                try {
-                    fw.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                fw = null;
-            }
-        }
 
         /**
          * Method to generate a valid fileNAme

@@ -8,8 +8,7 @@
 
 package de.dlr.ivf.tapas.persistence.db;
 
-
-import de.dlr.ivf.api.converter.Converter;
+import de.dlr.ivf.api.io.configuration.FilterableDataSource;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.io.conversion.ColumnToFieldMapping;
 import de.dlr.ivf.api.io.crud.read.DataReader;
@@ -21,46 +20,32 @@ import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.ModeParameters;
-import de.dlr.ivf.tapas.model.mode.ModeUtils;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeBuilder;
 import de.dlr.ivf.tapas.model.*;
-import de.dlr.ivf.tapas.model.DistanceClasses.DistanceClassesBuilder;
 import de.dlr.ivf.tapas.model.constants.*;
-import de.dlr.ivf.tapas.model.constants.TPS_AgeClass.TPS_AgeCodeType;
-import de.dlr.ivf.tapas.model.constants.AgeClasses.AgeClassesBuilder;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.*;
-import de.dlr.ivf.tapas.model.location.TPS_Location.TPS_LocationBuilder;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
 import de.dlr.ivf.tapas.model.mode.Modes.ModesBuilder;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager.CarFleetManagerBuilder;
-import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone.TPS_TrafficAnalysisZoneBuilder;
 
-
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.model.vehicle.*;
-import de.dlr.ivf.tapas.model.vehicle.Cars.CarsBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
-import de.dlr.ivf.tapas.model.person.TPS_Person;
-import de.dlr.ivf.tapas.model.Incomes.IncomesBuilder;
 import de.dlr.ivf.tapas.model.location.ScenarioTypeValues.ScenarioTypeValuesBuilder;
 
-import de.dlr.ivf.tapas.util.IPInfo;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
-
-import java.io.IOException;
-import java.net.InetAddress;
 import java.sql.*;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
@@ -68,94 +53,22 @@ import static java.util.stream.Collectors.*;
 public class TPS_DB_IO {
     private final Logger logger = System.getLogger(TPS_DB_IO.class.getName());
     /// The ip address of this machine
-    private InetAddress ADDRESS = null;
+
     private final ConnectionPool connectionSupplier;
-    private final TPS_ParameterClass parameters;
-    /// The reference to the persistence manager
-    private TPS_DB_IOManager PM;
+    private TPS_ParameterClass parameters;
 
-
-    /**
-     * Constructor
-     *
-     * @param pm the managing class for sql-commands
-     * @throws IOException if the machine has no IP address, an exception is thrown.
-     */
-    public TPS_DB_IO(TPS_DB_IOManager pm, ConnectionPool connectionSupplier) throws IOException {
-
-        ADDRESS = IPInfo.getEthernetInetAddress();
+    public TPS_DB_IO(ConnectionPool connectionSupplier){
 
         this.connectionSupplier = connectionSupplier;
-
-        this.PM = pm;
-        this.parameters = pm.getParameters();
     }
-    
+
     public TPS_DB_IO(ConnectionPool connectionSupplier, TPS_ParameterClass parameterClass){
         
         this.connectionSupplier = connectionSupplier;
         this.parameters = parameterClass;
     }
 
-    public Map<Integer, Collection<TPS_Person>> loadPersons(DataSource dataSource, Filter personFilter, Converter<PersonDto, TPS_Person> converter){
-
-        Connection connection = connectionSupplier.borrowObject();
-                
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcLargeTableReader(connection);
-
-        Collection<PersonDto> personDtos = reader.read(
-                new ResultSetConverter<>(new ColumnToFieldMapping<>(PersonDto.class), PersonDto::new), 
-                dataSource, personFilter);
-
-        connectionSupplier.returnObject(connection);
-
-        return converter.convertCollectionToMapWithSourceKey(personDtos, PersonDto::getHhId);
-    }
-
-    public Cars loadCars(DataSource dataSource, Filter carFilter, FuelTypes fuelTypes){
-
-        CarsBuilder cars = Cars.builder();
-
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-        Collection<CarDto> carDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(CarDto.class), CarDto::new),dataSource, carFilter);
-        connectionSupplier.returnObject(connection);
-        
-        for(CarDto carDto :carDtos){
-
-            FuelType fuelType = fuelTypes.getFuelType(FuelTypeName.getById(carDto.getEngineType()));
-            boolean isCompanyCar = carDto.isCompanyCar();
-            //build the car first
-            TPS_Car car = CarImpl.builder()
-                    .id(carDto.getId())
-                    .kbaNo(carDto.getKbaNo())
-                    .fuelType(fuelType)
-                    .emissionClass(EmissionClass.getById(carDto.getEmissionType()))
-                    .restricted(carDto.isRestriction())
-                    .fixCosts(carDto.getFixCosts())
-                    .automationLevel(carDto.getAutomationLevel())
-                    .costPerKilometer(isCompanyCar ? 0 : fuelType.getFuelCostPerKm() * carDto.getFixCosts())
-                    .variableCostPerKilometer(isCompanyCar ? 0 : fuelType.getVariableCostPerKm()  * ModeUtils.getKBAVariableCostPerKilometerFactor(carDto.getKbaNo()))
-                    .build();
-
-            cars.car(car.id(), car);
-        }
-
-        return cars.build();
-    }
-
-    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(DataSource dataSource, Filter hhFilter, Cars cars, Incomes incomes, Map<Integer, TPS_TrafficAnalysisZone> tazMap){
-
-        Connection connection = connectionSupplier.borrowObject();
-        
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-
-        Collection<HouseholdDto> householdDtos =
-                reader.read(
-                        new ResultSetConverter<>(new ColumnToFieldMapping<>(HouseholdDto.class),HouseholdDto::new),
-                        dataSource, hhFilter);
-        
-        connectionSupplier.returnObject(connection);
+    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(Collection<HouseholdDto> householdDtos, Cars cars, Incomes incomes, Map<Integer, TPS_TrafficAnalysisZone> tazMap){
 
         Map<Integer, TPS_HouseholdBuilder> householdBuilders = new HashMap<>(householdDtos.size());
 
@@ -191,212 +104,6 @@ public class TPS_DB_IO {
 
         }
         return householdBuilders;
-    }
-
-    /**
-     * Reads and assigns activities to locations and vice versa
-     * <p>
-     * Note: First the activity and locations must be read,
-     * i.e. readActivityConstantCodes and readLocationConstantCodes must be called beforehand
-     */
-    public ActivityAndLocationCodeMapping readActivity2LocationCodes(DataSource dataSource, Filter actToLocFilter, Activities activities) {
-
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-        
-        Collection<ActivityToLocationDto> activityToLocationDtos =
-                reader.read(
-                        new ResultSetConverter<>(new ColumnToFieldMapping<>(ActivityToLocationDto.class),ActivityToLocationDto::new),
-                        dataSource, actToLocFilter);
-
-        connectionSupplier.returnObject(connection);
-        
-        ActivityAndLocationCodeMapping mapping = new ActivityAndLocationCodeMapping();
-
-        for(ActivityToLocationDto activityToLocationDto : activityToLocationDtos){
-
-            TPS_ActivityConstant actCode = activities.getActivity(TPS_ActivityCodeType.ZBE, activityToLocationDto.getActCode());
-
-            mapping.addActivityToLocationMapping(actCode, activityToLocationDto.getLocCode());
-            mapping.addLocationCodeToActivityMapping(activityToLocationDto.getLocCode(), actCode);
-        }
-
-        return mapping;
-    }
-
-    /**
-     * Reads all activity constants codes from the database and stores them in to a global static map
-     * An ActivityConstant has the form (id, 3-tuples of (name, code, type), istrip, isfix, attr)
-     * Example: (5, ("school", "2", "TAPAS"), ("SCHOOL", "410", "MCT"), True, False, "SCHOOL")
-     */
-    public Collection<TPS_ActivityConstant> readActivityConstantCodes(DataSource dataSource) {
-
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-                
-        Collection<ActivityDto> activityDtos =
-                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(ActivityDto.class),ActivityDto::new), dataSource);
-
-        connectionSupplier.returnObject(connection);
-        
-        Collection<TPS_ActivityConstant> activityConstants = new ArrayList<>();
-
-        for(ActivityDto activityDto : activityDtos){
-
-            String attribute = activityDto.getAttribute();
-
-            var mctConstant = new TPS_InternalConstant<>(activityDto.getNameMct(), activityDto.getCodeMct(),
-                    TPS_ActivityCodeType.valueOf(activityDto.getTypeMct()));
-            var tapasConstant = new TPS_InternalConstant<>(activityDto.getNameTapas(), activityDto.getCodeTapas(),
-                    TPS_ActivityCodeType.valueOf(activityDto.getTypeTapas()));
-            var priorityConstant = new TPS_InternalConstant<>(activityDto.getNamePriority(), activityDto.getCodePriority(),
-                    TPS_ActivityCodeType.valueOf(activityDto.getTypePriority()));
-            var zbeConstant = new TPS_InternalConstant<>(activityDto.getNameZbe(), activityDto.getCodeZbe(),
-                    TPS_ActivityCodeType.valueOf(activityDto.getTypeZbe()));
-            var votConstant = new TPS_InternalConstant<>(activityDto.getNameVot(), activityDto.getCodeVot(),
-                    TPS_ActivityCodeType.valueOf(activityDto.getTypeVot()));
-
-            TPS_ActivityConstant act = TPS_ActivityConstant.builder()
-                    .id(activityDto.getId())
-                    .internalConstant(mctConstant)
-                    .internalAttribute(TPS_ActivityCodeType.MCT,mctConstant)
-                    .internalConstant(tapasConstant)
-                    .internalAttribute(TPS_ActivityCodeType.TAPAS,tapasConstant)
-                    .internalConstant(priorityConstant)
-                    .internalAttribute(TPS_ActivityCodeType.PRIORITY, priorityConstant)
-                    .internalConstant(zbeConstant)
-                    .internalAttribute(TPS_ActivityCodeType.ZBE, zbeConstant)
-                    .internalConstant(votConstant)
-                    .internalAttribute(TPS_ActivityCodeType.VOT, votConstant)
-                    .attribute(!(attribute == null || attribute.equals("null"))
-                            ? TPS_ActivityConstantAttribute.valueOf(activityDto.getAttribute()) : TPS_ActivityConstantAttribute.DEFAULT)
-                    .isFix(activityDto.isFix())
-                    .isTrip(activityDto.isTrip())
-                    .build();
-
-            activityConstants.add(act);
-        }
-
-        return activityConstants;
-    }
-
-
-    /**
-     * Reads all age classes codes from the database and stores them in to a global static map
-     * An AgeClass has the form (id, 3-tuples of (name, code, type), min, max)
-     * Example: (5, (under 35, 7, STBA), (under 45, 4, PersGroup), 30, 34)
-     */
-    public AgeClasses readAgeClasses(DataSource dataSource) {
-
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-
-        Collection<AgeClassDto> ageClassDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(AgeClassDto.class),AgeClassDto::new), dataSource);
-        connectionSupplier.returnObject(connection);
-        
-        AgeClassesBuilder ageClasses = AgeClasses.builder();
-
-        for(AgeClassDto ageClassDto : ageClassDtos){
-
-            TPS_InternalConstant<TPS_AgeCodeType> stbaCode = new TPS_InternalConstant<>(ageClassDto.getNameStba(),ageClassDto.getCodeStba(),
-                    TPS_AgeCodeType.valueOf(ageClassDto.getTypeStba()));
-            TPS_InternalConstant<TPS_AgeCodeType> persCode = new TPS_InternalConstant<>(ageClassDto.getNamePersgroup(), ageClassDto.getCodePersgroup(),
-                    TPS_AgeCodeType.valueOf(ageClassDto.getTypePersGroup()));
-
-            TPS_AgeClass ageClass = TPS_AgeClass.builder()
-                    .id(ageClassDto.getId())
-                    .max(ageClassDto.getMax())
-                    .min(ageClassDto.getMin())
-                    .attribute(stbaCode)
-                    .attribute(persCode)
-                    .internalAgeConstant(stbaCode.getType(),stbaCode)
-                    .internalAgeConstant(persCode.getType(), persCode)
-                    .build();
-            ageClasses.ageClass(ageClassDto.getId(), ageClass);
-        }
-
-        return ageClasses.build();
-    }
-
-
-    /**
-     * Reads all car codes from the database and stores them through enums
-     * A CarCode has the form (name_cars, code_cars)
-     * Example: (YES, 1)
-     */
-    public void readCarCodes(DataSource dataSource) {
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-        
-        Collection<CarCodeDto> carCodeDtos =
-                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(CarCodeDto.class), CarCodeDto::new), dataSource);
-        connectionSupplier.returnObject(connection);
-        
-        for(CarCodeDto carCodeDto : carCodeDtos){
-            try {
-                TPS_CarCode s = TPS_CarCode.valueOf(carCodeDto.getNameCars());
-                s.code = carCodeDto.getCodeCars();
-            } catch (IllegalArgumentException e) {
-                logger.log(Level.WARNING,
-                        "Read invalid car information from DB:" + carCodeDto.getNameCars());
-            }
-
-        }
-    }
-
-    /**
-     * Reads all distance codes from the database and stores them in to a global static map
-     * A Distance has the form (id, 3-tuples of (name, code, type), max)
-     * Example: (5, (under 5k, 1, VOT),	(under 2k, 2000, MCT), 2000)
-     */
-    public DistanceClasses readDistanceCodes(DataSource dataSource) {
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-
-        Collection<DistanceCodeDto> distanceCodeDtos =
-                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(DistanceCodeDto.class),DistanceCodeDto::new), dataSource);
-        connectionSupplier.returnObject(connection);
-
-
-        DistanceClassesBuilder distanceClassesBuilder = DistanceClasses.builder();
-
-        for(DistanceCodeDto dto : distanceCodeDtos){
-
-            distanceClassesBuilder
-                    .distanceMctMapping(dto.getMax(), new TPS_Distance(dto.getId(), dto.getMax(),dto.getCodeMct()))
-                    .distanceVotMapping(dto.getMax(), new TPS_Distance(dto.getId(), dto.getMax(), dto.getCodeVot()));
-        }
-
-        return distanceClassesBuilder.build();
-    }
-
-
-    /**
-     * Reads all driving license codes from the database and stores them through enums
-     * A DrivingLicenseCodes has the form (name_dli, code_dli)
-     * Example: (no, 2)
-     */
-    //todo check if this is still needed since it is a simple enum now
-    public void readDrivingLicenseCodes(DataSource dataSource) {
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-
-        Collection<DrivingLicenseInformationDto> drivingLicenseInformationDtos =
-                reader.read(
-                        new ResultSetConverter<>(new ColumnToFieldMapping<>(DrivingLicenseInformationDto.class),
-                        DrivingLicenseInformationDto::new), dataSource);
-        connectionSupplier.returnObject(connection);
-        
-        for(DrivingLicenseInformationDto drivingLicenseInformationDto : drivingLicenseInformationDtos) {
-
-            try {
-                TPS_DrivingLicenseInformation s = TPS_DrivingLicenseInformation.valueOf(drivingLicenseInformationDto.getName());
-                //s.setCode(drivingLicenseInformationDto.getDrivingLicenseInfoCode());
-            } catch (IllegalArgumentException e) {
-                logger.log(Level.WARNING, "Invalid driving license code: " + drivingLicenseInformationDto.getDrivingLicenseInfoName());
-            }
-
-        }
     }
 
     /**
@@ -474,37 +181,6 @@ public class TPS_DB_IO {
         TPS_ExpertKnowledgeNode root = new TPS_ExpertKnowledgeNode(0, null, c, summand, factor, null, modes);
 
         return new TPS_ExpertKnowledgeTree(root);
-    }
-
-    /**
-     * Reads all income codes from the database and stores them in to a global static map
-     * An Income has the form (id, name, code, max)
-     * Example: (5, under 2600, 4, 2600)
-     */
-    public Incomes readIncomeCodes(DataSource dataSource) {
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-        
-        Collection<IncomeDto> incomeDtos =
-                reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(IncomeDto.class),IncomeDto::new), dataSource);
-
-        connectionSupplier.returnObject(connection);
-        
-        IncomesBuilder incomeMappings = Incomes.builder();
-
-        for(IncomeDto incomeDto : incomeDtos){
-
-            TPS_Income income = TPS_Income.builder()
-                    .id(incomeDto.getId())
-                    .name(incomeDto.getNameIncome())
-                    .code(incomeDto.getCodeIncome())
-                    .max(incomeDto.getMax())
-                    .build();
-
-            incomeMappings.incomeMapping(income.getMax(), income);
-        }
-
-        return incomeMappings.build();
     }
 
     /**
@@ -1098,41 +774,6 @@ public class TPS_DB_IO {
                 .useBase(modeParameters.isUseBase());
     }
 
-    /**
-     * Reads all person group codes from the database and stores them in to a global static map
-     * A PersGroup has the form (id, 3-tuples of (name, code, type), code_ageclass, code_sex, code_cars, persType)
-     * Example: (3, (RoP65-74, 12, VISEVA_R), 6, ,1, 2, RETIREE)
-     */
-    public Collection<TPS_PersonGroup> readPersonGroupCodes(DataSource dataSource, Filter personGroupFilter) {
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-
-        Collection<PersonCodeDto> personCodeDtos = reader.read(
-                new ResultSetConverter<>(new ColumnToFieldMapping<>(PersonCodeDto.class),PersonCodeDto::new), dataSource, personGroupFilter);
-
-        connectionSupplier.returnObject(connection);
-        
-        Collection<TPS_PersonGroup> personGroups = new ArrayList<>();
-
-        for(PersonCodeDto personCodeDto : personCodeDtos) {
-            TPS_PersonGroup personGroup = TPS_PersonGroup.builder()
-                    .description(personCodeDto.getDescription())
-                    .code(personCodeDto.getCode())
-                    .personType(TPS_PersonType.valueOf(personCodeDto.getPersonType()))
-                    .carCode(TPS_CarCode.getEnum(personCodeDto.getCodeCars()))
-                    .hasChildCode(TPS_HasChildCode.valueOf(personCodeDto.getHasChild()))
-                    .minAge(personCodeDto.getMinAge())
-                    .maxAge(personCodeDto.getMaxAge())
-                    .workStatus(TPS_WorkStatus.valueOf(personCodeDto.getWorkStatus()))
-                    .sex(TPS_Sex.getEnum(personCodeDto.getCodeSex()))
-                    .build();
-
-            personGroups.add(personGroup);
-        }
-
-        return personGroups;
-    }
-
     public TPS_VariableMap readValuesOfTimes(DataSource dataSource, Filter votFilter){
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
@@ -1206,170 +847,30 @@ public class TPS_DB_IO {
 
         region.setPotential(potential);
 
-        //read taz and add to region
-        Map<Integer, TPS_TrafficAnalysisZone> trafficAnalysisZones = loadTrafficAnalysisZones(activityToLocationCodeMapping);
-        trafficAnalysisZones.values().forEach(region::addTrafficAnalysisZone);
-
-
 
         return region;
     }
 
-    private Map<Integer, TPS_TrafficAnalysisZone> loadTrafficAnalysisZones(ActivityAndLocationCodeMapping activityToLocationCodeMapping) {
+
+    public <T> Collection<T> readFromDb(FilterableDataSource dataSource, Class<T> targetClass, Supplier<T> objectFactory){
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
-        //read traffic analysis zones
-        DataSource tazDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ));
-        Collection<TrafficAnalysisZoneDto> tazDtoCollection = reader.read(
-                new ResultSetConverter<>(new ColumnToFieldMapping<>(TrafficAnalysisZoneDto.class), TrafficAnalysisZoneDto::new), tazDs);
-        Map<Integer, TrafficAnalysisZoneDto> tazDtos = collectionToMap(TrafficAnalysisZoneDto::getTazId, tazDtoCollection);
+        Collection<T> result = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(targetClass), objectFactory), dataSource);
 
-        //initialize TAZ builders with TAZ data
-        Map<Integer, TPS_TrafficAnalysisZoneBuilder> tazBuilders = new HashMap<>();
-
-        for(Map.Entry<Integer, TrafficAnalysisZoneDto> tazDtoEntry : tazDtos.entrySet()){
-
-            TrafficAnalysisZoneDto dto = tazDtoEntry.getValue();
-
-            TPS_TrafficAnalysisZoneBuilder builder = TPS_TrafficAnalysisZone.builder()
-                    .id(dto.getTazId())
-                    .bbrType(dto.getBbrType())
-                    .center(new TPS_Coordinate(dto.getX(), dto.getY()))
-                    .externalId(dto.getNumId() != 0 ? dto.getNumId() : -1);
-
-            tazBuilders.put(dto.getTazId(), builder);
-        }
-
-
-        //read taz scores and update taz builders
-        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_SCORES)){
-            DataSource tazScoresDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_SCORES));
-            Filter tazScoreFilter = new Filter("score_name", parameters.getString(ParamString.DB_NAME_TAZ_SCORES));
-            Collection<TrafficAnalysisZoneScoreDto> tazScores =
-                    reader.read(new ResultSetConverter<>(
-                            new ColumnToFieldMapping<>(TrafficAnalysisZoneScoreDto.class), TrafficAnalysisZoneScoreDto::new),
-                            tazScoresDs, tazScoreFilter);
-
-            tazScores.forEach(tazScore -> tazBuilders.get(tazScore.getTazId())
-                    .score(tazScore.getScore())
-                    .scoreCat(tazScore.getScoreCat()));
-        }
-
-        //initialize scenario type values
-        Map<Integer, ScenarioTypeValuesBuilder> stvBaseBuilders = emptyStvBuilders(tazBuilders.keySet());
-        Map<Integer, ScenarioTypeValuesBuilder> stvScenarioBuilders = emptyStvBuilders(tazBuilders.keySet());
-
-
-        //read intra-taz data and set scenario type values
-        if (this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS) &&
-                this.parameters.isDefined(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS) &&
-                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS) &&
-                this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS)) {
-            DataSource intraTazInfoMitDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_MIT_INFOS));
-            Filter intraTazMitFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS));
-            DataSource intraTazInfoPtDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_INTRA_PT_INFOS));
-            Filter intraTazPtFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS));
-
-            Collection<IntraTazInfoMit> intraMitDtos = reader.read(
-                    new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoMit.class), IntraTazInfoMit::new),
-                    intraTazInfoMitDs, intraTazMitFilter);
-            Collection<IntraTazInfoPt> intraPtDtos = reader.read(
-                    new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoPt.class), IntraTazInfoPt::new),
-                    intraTazInfoPtDs, intraTazPtFilter);
-
-
-
-            initIntraTazInformation(intraMitDtos, intraPtDtos, stvScenarioBuilders);
-
-            if( this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE) &&
-                    this.parameters.isDefined(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE) &&
-                    this.parameters.isTrue(ParamFlag.FLAG_RUN_SZENARIO)) {
-                //same procedure as above but this time for base scenario values
-                Filter intraTazMitBaseFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_MIT_INFOS_BASE));
-                Filter intraTazPtBaseFilter = new Filter("info_name", parameters.getString(ParamString.DB_NAME_TAZ_INTRA_PT_INFOS_BASE));
-                Collection<IntraTazInfoMit> intraMitBaseDtos = reader.read(
-                        new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoMit.class), IntraTazInfoMit::new),
-                        intraTazInfoMitDs, intraTazMitBaseFilter);
-                Collection<IntraTazInfoPt> intraPtBaseDtos = reader.read(
-                        new ResultSetConverter<>(new ColumnToFieldMapping<>(IntraTazInfoPt.class), IntraTazInfoPt::new),
-                        intraTazInfoPtDs, intraTazPtBaseFilter);
-
-
-                initIntraTazInformation(intraMitBaseDtos, intraPtBaseDtos, stvBaseBuilders);
-            }
-        }
-
-        //read taz fees and tolls and set scenario type values
-        DataSource tazFeesAndTollsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_TAZ_FEES_TOLLS));
-        Filter feesAndTollsFilter = new Filter("ft_name", parameters.getString(ParamString.DB_NAME_FEES_TOLLS));
-
-        Collection<TazFeesAndTollsDto> tazFeesAndTollsDtos = reader.read(
-                new ResultSetConverter<>(new ColumnToFieldMapping<>(TazFeesAndTollsDto.class), TazFeesAndTollsDto::new),
-                tazFeesAndTollsDs, feesAndTollsFilter);
-        tazFeesAndTollsDtos.forEach(
-                dto -> tazBuilders.get(dto.getTazId())
-                        .isPNR(dto.isParkAndRide())
-                        .isRestricted(dto.isRestricted())
-        );
-        initScenarioTypeValuesWithFeesAndTolls(tazFeesAndTollsDtos, stvScenarioBuilders, stvBaseBuilders);
-
-        //add scenario type values to traffic analysis zone builders
-        for(Map.Entry<Integer, TPS_TrafficAnalysisZoneBuilder> tazBuilderEntry : tazBuilders.entrySet()){
-
-            int tazId = tazBuilderEntry.getKey();
-            tazBuilderEntry.getValue()
-                    .simulationTypeValue(SimulationType.SCENARIO, stvScenarioBuilders.get(tazId).build())
-                    .simulationTypeValue(SimulationType.BASE, stvBaseBuilders.get(tazId).build());
-        }
-
-        Map<Integer, TPS_TrafficAnalysisZone> tazMap = new HashMap<>();
-
-
-        for(Map.Entry<Integer, TPS_TrafficAnalysisZoneBuilder> builderEntry : tazBuilders.entrySet()){
-            TPS_TrafficAnalysisZoneBuilder builder = builderEntry.getValue();
-            int tazId = builderEntry.getKey();
-
-            tazMap.put(tazId, builder.build());
-        }
-
-        //finally read locations
-        DataSource locationsDs = new DataSource(parameters.getString(ParamString.DB_TABLE_LOCATION));
-        Filter locationFilter = new Filter("key",parameters.getString(ParamString.DB_LOCATION_KEY));
-        Collection<LocationDto> locationDtos = reader.read(
-                new ResultSetConverter<>(new ColumnToFieldMapping<>(LocationDto.class), LocationDto::new),
-                locationsDs, locationFilter);
-
-        for(LocationDto dto : locationDtos){
-
-            TPS_LocationBuilder locationBuilder = TPS_Location.builder()
-                    .id(dto.getLocId())
-                    .groupId(parameters.isTrue(ParamFlag.FLAG_USE_LOCATION_GROUPS) ? dto.getLocGroupId() : -1)
-                    .locType(dto.getLocCode())
-                    .coordinate(new TPS_Coordinate(dto.getX(), dto.getY()))
-                    .tazId(dto.getTazId())
-                    .taz(tazMap.get(dto.getTazId()));
-
-            //init LocationData
-            LocationData locationData = LocationData.builder()
-                    .updateLocationWeights(parameters.isTrue(ParamFlag.FLAG_UPDATE_LOCATION_WEIGHTS))
-                    .weightOccupancy(parameters.getDoubleValue(ParamValue.WEIGHT_OCCUPANCY))
-                    .capacity(dto.getLocCapacity())
-                    .fixCapacity(dto.isHasFixCapacity())
-                    .occupancy(0)
-                    .build();
-
-            locationData.init();
-            locationBuilder.data(locationData);
-            TPS_Location location = locationBuilder.build();
-
-            //now add to TAZ and block
-            tazMap.get(location.getTAZId()).addLocation(location, activityToLocationCodeMapping.getActivitiesByLocationCode(location.getLocType()));
-        }
-        
         connectionSupplier.returnObject(connection);
-        
-        return tazMap;
+
+        return result;
+
+    }
+
+    public <T> Collection<T> readFromDb(DataSource dataSource, Class<T> targetClass, Supplier<T> objectFactory){
+        Connection connection = connectionSupplier.borrowObject();
+        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
+        Collection<T> result = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(targetClass), objectFactory), dataSource);
+        connectionSupplier.returnObject(connection);
+
+        return result;
     }
 
     private Map<Integer, ScenarioTypeValuesBuilder> emptyStvBuilders(Set<Integer> values) {
@@ -1504,42 +1005,6 @@ public class TPS_DB_IO {
                 .beelineFactorMIT(mitInfo.getBeelineFactorMit());
     }
 
-    public Collection<SchemeClassDto> readSchemeClasses(DataSource dataSource, Filter filter){
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
-        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeClassDto.class), SchemeClassDto::new);
-        var schemeClasses = dataReader.read(converter, dataSource, filter);
-        connectionSupplier.returnObject(connection);
-        return schemeClasses;
-    }
-
-    public Collection<SchemeDto> readSchemes(DataSource dataSource, Filter filter){
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
-        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeDto.class), SchemeDto::new);
-        var schemes =  dataReader.read(converter, dataSource, filter);
-        connectionSupplier.returnObject(connection);
-        return schemes;
-    }
-
-    public Collection<EpisodeDto> readEpisodes(DataSource dataSource, Filter filter){
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
-        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(EpisodeDto.class), EpisodeDto::new);
-        var episodes =  dataReader.read(converter, dataSource, filter);
-        connectionSupplier.returnObject(connection);
-        return episodes;
-    }
-
-    public Collection<SchemeClassDistributionDto> readSchemeClassDistributions(DataSource dataSource, Filter filter){
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> dataReader = DataReaderFactory.newJdbcReader(connection);
-        var converter = new ResultSetConverter<>(new ColumnToFieldMapping<>(SchemeClassDistributionDto.class), SchemeClassDistributionDto::new);
-        var schemeClassDistricutions = dataReader.read(converter, dataSource, filter);
-        connectionSupplier.returnObject(connection);
-        return schemeClassDistricutions;
-    }
-
     /**
      * This method reads the scheme set, scheme class distribution values and all episodes from the db.
      *
@@ -1557,6 +1022,14 @@ public class TPS_DB_IO {
         // build scheme classes (with time distributions)
         for(SchemeClassDto schemeClassDto : schemeClasses){
             TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(schemeClassDto.getId());
+
+
+
+
+
+
+
+
             double mean = schemeClassDto.getAvgTravelTime() * 60;
             schemeClass.setTimeDistribution(mean, mean * schemeClassDto.getProcStdDev());
         }
@@ -1656,30 +1129,6 @@ public class TPS_DB_IO {
         schemeSet.init();
 
         return schemeSet;
-    }
-
-    /**
-     * Reads all sex codes from the database and stores them through enums
-     * A SexCodes has the form (name_sex, code_sex)
-     * Example: (FEMALE, 2)
-     */
-    public void readSexCodes(DataSource dataSource) {
-        Connection connection = connectionSupplier.borrowObject();
-        DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
-
-        Collection<SexDto> sexDtos = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(SexDto.class), SexDto::new), dataSource);
-        connectionSupplier.returnObject(connection);
-        
-        for(SexDto sexDto : sexDtos){
-            try{
-                TPS_Sex s = TPS_Sex.valueOf(sexDto.getNameSex());
-                s.code = sexDto.getCodeSex();
-            } catch (IllegalArgumentException e) {
-                logger.log(Level.WARNING,
-                        "Read invalid sex type name from DB:" + sexDto.getNameSex());
-            }
-
-        }
     }
 
     /**

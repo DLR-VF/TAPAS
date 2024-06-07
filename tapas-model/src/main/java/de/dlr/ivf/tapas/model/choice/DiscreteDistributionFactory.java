@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+
+/**
+ * The DiscreteDistributionFactory class provides methods for creating and manipulating discrete probability distributions.
+ *
+ * @param <T> the type of the discrete variables
+ */
 public class DiscreteDistributionFactory<T> {
 
     private final List<T> discreteVariables;

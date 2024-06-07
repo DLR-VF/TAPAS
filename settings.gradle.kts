@@ -1,6 +1,7 @@
 rootProject.name = "TAPAS"
-include("tapas-daemon")
+include("tapas-server")
 include("tapas")
+include("configuration")
 include("io")
 include("service")
 include("tapas-environment")
