@@ -3,7 +3,6 @@ package de.dlr.ivf.tapas.configuration.spring;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.configuration.json.SimulationRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
-import de.dlr.ivf.tapas.configuration.json.agent.CarsConfiguration;
 import de.dlr.ivf.tapas.configuration.json.agent.HouseholdConfiguration;
 import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.ChronologicalRunnerConfiguration;
@@ -45,10 +44,9 @@ public class TapasFactory {
 
     @Lazy
     @Bean(name = "tripPriorityRunner")
-    public TripPriorityRunner tripPriorityRunner(TripPriorityRunnerConfiguration configuration,
-                                                 Collection<TPS_Household> households,
+    public TripPriorityRunner tripPriorityRunner(Collection<TPS_Household> households,
                                                  SchemeProvider schemeProvider){
-        return new TripPriorityRunner(configuration, households, schemeProvider);
+        return new TripPriorityRunner(households, schemeProvider);
     }
 
     @Lazy
@@ -58,7 +56,7 @@ public class TapasFactory {
     }
 
     @Bean(name = "trafficGenerationConfiguration")
-    protected TrafficGenerationConfiguration trafficGenerationConfiguration() {
+    public TrafficGenerationConfiguration trafficGenerationConfiguration() {
         SimulationRunnerConfiguration runnerConfiguration = tapasConfig.getSimulationRunnerConfiguration();
 
         return runnerConfiguration.getTrafficGenerationConfiguration();
@@ -100,12 +98,9 @@ public class TapasFactory {
     }
 
     @Bean
-    public CarsConfiguration carsConfiguration(){
-        return tapasConfig.getCarsConfiguration();
-    }
-
-    @Bean
     public RegionConfiguration regionConfiguration(){
         return tapasConfig.getRegionConfiguration();
     }
+
+
 }

@@ -27,7 +27,7 @@ public class TPS_SchemeClass implements Iterable<TPS_Scheme>, ExtendedWritable {
     private final int id;
 
     // Map of schemes indexed by their id
-    private final SortedMap<Integer, TPS_Scheme> schemes;
+    private SortedMap<Integer, TPS_Scheme> schemes;
 
     //probability distribution over the TPS_Scheme
     private TPS_DiscreteDistribution<TPS_Scheme> schemeDis;
@@ -56,6 +56,12 @@ public class TPS_SchemeClass implements Iterable<TPS_Scheme>, ExtendedWritable {
     public TPS_SchemeClass(int id) {
         this.id = id;
         this.schemes = new TreeMap<>();
+    }
+
+    public TPS_SchemeClass(int id, double mean, double deviation) {
+        this.id = id;
+        this.mean = mean;
+        this.deviation = deviation;
     }
 
     /**

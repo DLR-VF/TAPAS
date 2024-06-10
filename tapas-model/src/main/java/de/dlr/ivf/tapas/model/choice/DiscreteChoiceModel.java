@@ -45,10 +45,15 @@ public class DiscreteChoiceModel<T> {
     public T makeChoice(double randomNumber, DiscreteDistribution<T> distribution){
 
         double cumulativeProbability = 0.0;
+
+        if(randomNumber < 0 || randomNumber > 1){
+            throw new IllegalArgumentException("Probability must be between 0 and 1");
+        }
+
         for (DiscreteProbability<T> probability : distribution.getProbabilities()) {
-            cumulativeProbability += probability.getProbability();
+            cumulativeProbability += probability.probability();
             if (randomNumber <= cumulativeProbability) {
-                return probability.getDiscreteVariable();
+                return probability.discreteVariable();
             }
         }
         throw new IllegalArgumentException("Invalid distribution probabilities");

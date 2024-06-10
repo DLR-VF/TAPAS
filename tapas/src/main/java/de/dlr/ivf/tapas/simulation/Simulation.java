@@ -1,7 +1,14 @@
 package de.dlr.ivf.tapas.simulation;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.ComponentScan;
+
+//@ComponentScan("de.dlr.ivf.tapas.simulation")
 public class Simulation implements Stepper{
+
+
+    SimulationRunner simulationRunner;
 
     private final System.Logger logger = System.getLogger(Simulation.class.getName());
     public void step(){

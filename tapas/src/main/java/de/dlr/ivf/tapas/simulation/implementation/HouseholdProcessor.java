@@ -5,7 +5,6 @@ import java.lang.System.Logger.Level;
 
 import de.dlr.ivf.tapas.choice.FeasibilityCalculator;
 import de.dlr.ivf.tapas.choice.LocationAndModeChooser;
-import de.dlr.ivf.tapas.choice.SchemeSelector;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.constants.TPS_AgeClass;
 import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
@@ -17,6 +16,7 @@ import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
 import de.dlr.ivf.tapas.model.scheme.TPS_Scheme;
 import de.dlr.ivf.tapas.simulation.Processor;
+import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
 import lombok.Builder;
 
 import java.util.*;
@@ -25,7 +25,7 @@ import java.util.*;
 public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> {
     private final Logger logger = System.getLogger(HouseholdProcessor.class.getName());
 
-    private final SchemeSelector schemeSelector;
+    private final SchemeProvider schemeSelector;
     private final LocationAndModeChooser locationAndModeChooser;
     private final int maxTriesScheme;
     private final TPS_PlanEVA1Acceptance planEVA1Acceptance;

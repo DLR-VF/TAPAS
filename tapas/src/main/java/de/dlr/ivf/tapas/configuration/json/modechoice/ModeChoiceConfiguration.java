@@ -1,4 +1,9 @@
 package de.dlr.ivf.tapas.configuration.json.modechoice;
 
-public record ModeChoiceConfiguration() {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record ModeChoiceConfiguration(
+        @JsonProperty ModesConfiguration modesConfiguration) {
+
+
 }

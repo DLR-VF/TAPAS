@@ -1,23 +1,14 @@
 package de.dlr.ivf.tapas.model.choice;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 
 /**
  * The DiscreteDistributionFactory class provides methods for creating and manipulating discrete probability distributions.
  *
- * @param <T> the type of the discrete variables
+ * @param <T> the type of the discrete variables in the distributions
  */
 public class DiscreteDistributionFactory<T> {
-
-    private final List<T> discreteVariables;
-
-    public DiscreteDistributionFactory(Collection<T> discreteVariables){
-        this.discreteVariables = new ArrayList<>(discreteVariables);
-    }
-
 
     /**
      * Returns a new uniform normalized discrete distribution based on the current set of discrete variables.
@@ -26,7 +17,7 @@ public class DiscreteDistributionFactory<T> {
      *
      * @return the new uniform normalized discrete distribution
      */
-    public DiscreteDistribution<T> newUniformNormalizedDiscreteDistribution(){
+    public DiscreteDistribution<T> newUniformNormalizedDiscreteDistribution(Collection<T> discreteVariables){
 
         DiscreteDistribution<T> distribution = new DiscreteDistribution<>();
 
@@ -55,12 +46,12 @@ public class DiscreteDistributionFactory<T> {
         double totalProbability = 0.0;
 
         for (DiscreteProbability<T> sourceProbability : sourceProbabilities) {
-            totalProbability += sourceProbability.getProbability();
+            totalProbability += sourceProbability.probability();
         }
 
         for (DiscreteProbability<T> sourceProbability : sourceProbabilities) {
-            double normalizedProbability = sourceProbability.getProbability() / totalProbability;
-            DiscreteProbability<T> normalized = new DiscreteProbability<>(sourceProbability.getDiscreteVariable(), normalizedProbability);
+            double normalizedProbability = sourceProbability.probability() / totalProbability;
+            DiscreteProbability<T> normalized = new DiscreteProbability<>(sourceProbability.discreteVariable(), normalizedProbability);
             normalizedDistribution.addProbability(normalized);
         }
 
@@ -68,15 +59,12 @@ public class DiscreteDistributionFactory<T> {
     }
 
     /**
-     * Returns the collection of discrete variables.
+     * Returns an empty discrete distribution.
      *
-     * @return the collection of discrete variables
+     * @return the empty discrete distribution
      */
-    public Collection<T> getDiscreteVariables(){
-        return discreteVariables;
-    }
-
     public DiscreteDistribution<T> emptyDistribution(){
+
         return new DiscreteDistribution<>();
     }
 }

@@ -89,26 +89,22 @@ public class TapasInitializer {
                         parameters.getString(ParamString.LOCATION_CHOICE_SET_CLASS),
                         parameters);
 
-        //init modes and mode set
-        DataSource modeDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_CONSTANT_MODE));
-        Modes modes = dbIo.readModes(modeDataSource);
-
         DataSource mctDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_MCT));
         Filter modeFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_MCT));
-        TPS_ModeChoiceTree modeChoiceTree = dbIo.readModeChoiceTree(mctDataSource, modeFilter, modes.getModes());
+        TPS_ModeChoiceTree modeChoiceTree = dbIo.readModeChoiceTree(mctDataSource, modeFilter, null);
 
         DataSource ektDataSource = new DataSource(parameters.getString(ParamString.DB_TABLE_EKT));
         Filter ektFilter = new Filter("name", parameters.getString(ParamString.DB_NAME_EKT));
-        TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,ektFilter, modes.getModes());
+        TPS_ExpertKnowledgeTree expertKnowledgeTree = dbIo.readExpertKnowledgeTree(ektDataSource,ektFilter, null);
 
         TravelDistanceCalculator travelDistanceCalculator = new TravelDistanceCalculator(parameters);
-        TravelTimeCalculator travelTimeCalculator = new TravelTimeCalculator(parameters, modes);
+        TravelTimeCalculator travelTimeCalculator = new TravelTimeCalculator(parameters, null);
         TPS_UtilityFunction utilityFunction = locationChoiceSetFactory.newUtilityFunctionInstance(
                 parameters.getString(ParamString.UTILITY_FUNCTION_NAME),
                 travelDistanceCalculator,
                 travelTimeCalculator,
                 parameters,
-                modes
+                null
         );
 
         //read utility function data
@@ -119,13 +115,13 @@ public class TapasInitializer {
         Collection<UtilityFunctionDto> utilityFunctionDtos = dbIo.readUtilityFunction(utilityFunctionData, utilityFunctionFilters);
         Map<TPS_Mode, MNLFullComplexFunction> mnlFunctions = new HashMap<>();
         utilityFunctionDtos
-                .forEach(dto -> mnlFunctions.put(modes.getModeByName(dto.getMode()),new MNLFullComplexFunction(dto.getParameters())));
+                .forEach(dto -> mnlFunctions.put(null,new MNLFullComplexFunction(dto.getParameters())));
 
-        ModeDistributionCalculator modeDistributionCalculator = new ModeDistributionCalculator(modes, utilityFunction);
+        ModeDistributionCalculator modeDistributionCalculator = new ModeDistributionCalculator(null, utilityFunction);
         utilityFunction.setDistributionCalculator(modeDistributionCalculator);
 
         DistanceClasses distanceClasses = null;
-        TPS_ModeSet modeSet = new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, modes, modeDistributionCalculator, distanceClasses, utilityFunction);
+        TPS_ModeSet modeSet = new TPS_ModeSet(modeChoiceTree,expertKnowledgeTree, parameters, null, modeDistributionCalculator, distanceClasses, utilityFunction);
 
         TPS_LocationSelectModel locationSelectModel = locationChoiceSetFactory.newLocationSelectionModel(
                 parameters.getString(ParamString.LOCATION_SELECT_MODEL_CLASS),
@@ -149,7 +145,7 @@ public class TapasInitializer {
         LocationSelector locationSelector = new LocationSelector(region, travelDistanceCalculator);
         FeasibilityCalculator feasibilityCalculator = new FeasibilityCalculator(parameters);
 
-        DiscreteDistributionFactory<TPS_Mode> modeDistributionFactory = new DiscreteDistributionFactory<>(modes.getModes());
+        DiscreteDistributionFactory<TPS_Mode> modeDistributionFactory = new DiscreteDistributionFactory<>();
         ModeSelector modeSelector = new ModeSelector(modeSet,parameters, modeDistributionFactory,mnlFunctions,null);
         CostCalculator costCalculator = new CostCalculator(parameters,null);
         LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(parameters, locationSelector, modeSelector, travelDistanceCalculator, travelTimeCalculator, costCalculator);

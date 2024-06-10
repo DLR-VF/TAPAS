@@ -1,11 +1,23 @@
 package de.dlr.ivf.tapas.model.scheme;
 
-import lombok.AllArgsConstructor;
+import java.util.Set;
 
-import java.util.Collection;
+public class Tour{
 
-@AllArgsConstructor
-public class Tour {
+    private final int tourNumber;
+    private final Set<Trip> trips;
 
-    private final Collection<Trip> trips;
+    public Tour(int tourNumber, Set<Trip> trips){
+        this.tourNumber = tourNumber;
+        this.trips = trips;
+    }
+
+
+    public boolean addTrip(Trip trip) {
+        return trips.add(trip);
+    }
+
+    public int getTourNumber() {
+        return tourNumber;
+    }
 }
