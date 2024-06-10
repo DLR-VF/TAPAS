@@ -57,8 +57,9 @@ public class TapasLauncher{
                     CarsFactory.class,
                     TrafficGenerationFactory.class,
                     LocationChoiceModelFactory.class,
-                    ModeChoiceModelFactory.class,
-                    TripPriorityRunnerFactory.class
+                    //ModeChoiceModelFactory.class,
+                    TripPriorityRunnerFactory.class,
+                    SchemeSetFactory.class
             );
 
             applicationContext.refresh();

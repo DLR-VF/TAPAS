@@ -2,11 +2,13 @@ package de.dlr.ivf.tapas.configuration.spring;
 
 import de.dlr.ivf.tapas.configuration.json.runner.SchemeProviderConfiguration;
 import de.dlr.ivf.tapas.dto.*;
+import de.dlr.ivf.tapas.model.choice.DiscreteChoiceModel;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistribution;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistributionFactory;
 import de.dlr.ivf.tapas.model.choice.DiscreteProbability;
 import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.scheme.*;
+import de.dlr.ivf.tapas.model.vehicle.TPS_CarCode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,17 +33,6 @@ public class SchemeSetFactory {
     }
 
     @Bean
-    public TPS_SchemeSet schemeSet(Collection<SchemeDto> schemeDtos,
-                                   Collection<SchemeClassDto> schemeClassDtos,
-                                   Collection<EpisodeDto> episodeDtos,
-                                   Collection<SchemeClassDistributionDto> schemeClassDistributionDtos) {
-
-
-        var schemeSet = dbIo.readSchemeSet(schemeClassDtos,schemeDtos,episodeDtos,schemeClassDistributionDtos, activityConstants, personGroups);
-        return null;
-    }
-
-    @Bean
     public SchemeProvider schemeProvider(Collection<SchemeClassDistributionDto> schemeClassDistributionDtos,
                                   PersonGroups personGroups,
                                   Map<Integer, SchemeClass> schemeClassesByClassId){
@@ -59,36 +50,20 @@ public class SchemeSetFactory {
 
         for(TPS_PersonGroup personGroup : personGroups.getPersonGroups()){
 
-            List<DiscreteProbability<SchemeClass>> probabilities = schemeClassProbabilitiesByPersonGroup.getOrDefault(personGroup, Collections.emptyList());
+            List<DiscreteProbability<SchemeClass>> probabilities = schemeClassProbabilitiesByPersonGroup.get(personGroup.getCode());
 
+            if(probabilities == null){
+                throw new IllegalArgumentException("No scheme class probabilities for person group:" + personGroup);
+            }
 
-            DiscreteDistribution<SchemeClass> distribution = schemeClassDistributions.get(personGroup);
-            List<DiscreteProbability<SchemeClass>> probabilities = schemeClassProbabilitiesByPersonGroup.get(personGroup);
-
+            DiscreteDistribution<SchemeClass> distribution = distributionFactory.newNormalizedDiscreteDistribution(probabilities);
+            schemeClassDistributions.put(personGroup, distribution);
         }
 
+        DiscreteChoiceModel<SchemeClass> schemeClassChoiceModel = new DiscreteChoiceModel<>(configuration.seed());
+        DiscreteChoiceModel<Scheme> schemeChoiceModel = new DiscreteChoiceModel<>(configuration.seed());
 
-        for(Map.Entry<Integer, List<SchemeClassDistributionDto>> entry : schemeClassProbabilitiesByPersonGroup.entrySet()){
-
-            TPS_PersonGroup personGroup = personGroups.getPersonGroupByCode(entry.getKey());
-            List<SchemeClassDistributionDto> schemeClassProbabilities = entry.getValue();
-
-            schemeClassProbabilities.sort(Comparator.comparing(SchemeClassDistributionDto::getSchemeClassId));
-
-            DiscreteDistribution<SchemeClass> schemeClassDistribution =
-                    generateSchemeClassDistribution(schemeClassProbabilities, schemeClassesByClassId);
-
-            schemeClassDistributions.put(personGroup, distributionFactory.newNormalizedDiscreteDistribution(schemeClassDistribution));
-        }
-
-
-        return new SchemeProvider(configuration.getTimeSlotLength(), schemeSet, schemes, episodes, schemeClassDistributions, activities, personGroups);
-    }
-
-    @Bean
-    public Map<TPS_PersonGroup, DiscreteDistribution<SchemeClass>> generateSchemeClassDistribution(){
-
-
+        return new SchemeProvider(schemeClassDistributions, schemeClassChoiceModel, schemeChoiceModel);
     }
 
     /**
@@ -158,7 +133,8 @@ public class SchemeSetFactory {
         for (Map.Entry<Integer, Collection<EpisodeDto>> entry : episodesBySchemeId.entrySet()) {
 
             int schemeId = entry.getKey();
-            Collection<Tour> tours = generateToursFromEpisodes(episodeDtos, activities);
+            Collection<EpisodeDto> episodesInScheme = entry.getValue();
+            Collection<Tour> tours = generateToursFromEpisodes(episodesInScheme, activities);
 
             toursBySchemeId.put(schemeId, tours);
         }
@@ -248,6 +224,36 @@ public class SchemeSetFactory {
         return activities;
     }
 
+    /**
+     * Creates a PersonGroups object based on the provided collection of PersonCodeDto objects.
+     *
+     * @param personCodeDtos A collection of PersonCodeDto objects containing information about each person group.
+     * @return The created PersonGroups object.
+     */
+    @Bean
+    public PersonGroups personGroups(Collection<PersonCodeDto> personCodeDtos){
+
+        PersonGroups.PersonGroupsBuilder personGroupsBuilder = PersonGroups.builder();
+
+        for(PersonCodeDto personCodeDto : personCodeDtos) {
+            TPS_PersonGroup personGroup = TPS_PersonGroup.builder()
+                    .description(personCodeDto.getDescription())
+                    .code(personCodeDto.getCode())
+                    .personType(TPS_PersonType.valueOf(personCodeDto.getPersonType()))
+                    .carCode(TPS_CarCode.getEnum(personCodeDto.getCodeCars()))
+                    .hasChildCode(TPS_HasChildCode.valueOf(personCodeDto.getHasChild()))
+                    .minAge(personCodeDto.getMinAge())
+                    .maxAge(personCodeDto.getMaxAge())
+                    .workStatus(TPS_WorkStatus.valueOf(personCodeDto.getWorkStatus()))
+                    .sex(TPS_Sex.getEnum(personCodeDto.getCodeSex()))
+                    .build();
+
+            personGroupsBuilder.personGroup(personGroup.getCode(), personGroup);
+        }
+
+        return personGroupsBuilder.build();
+    }
+
     @Lazy
     @Bean
     public Collection<ActivityDto> activityDtos(){
@@ -272,5 +278,10 @@ public class SchemeSetFactory {
     @Bean
     public Collection<SchemeClassDistributionDto> schemeClassDistributionDtos(){
         return dbIo.readFromDb(configuration.schemeClassDistributions(), SchemeClassDistributionDto.class, SchemeClassDistributionDto::new);
+    }
+
+    @Bean
+    public Collection<PersonCodeDto> personCodeDtos(){
+        return dbIo.readFromDb(configuration.personGroups(), PersonCodeDto.class, PersonCodeDto::new);
     }
 }

@@ -38,6 +38,17 @@ public class HouseholdsFactory {
         this.householdConfiguration = householdConfiguration;
     }
 
+    /**
+     * Retrieves a collection of TPS_Household objects based on the given HouseholdDto collection and other parameters.
+     *
+     * @param householdDtos          The collection of HouseholdDto objects representing the households.
+     * @param personsByHouseholdId   A map where the keys are household IDs and the values are collections of TPS_Person objects.
+     * @param cars                   The Cars object representing the car information.
+     * @param incomes                The Incomes object representing the income information.
+     * @param trafficAnalysisZones   The TrafficAnalysisZones object representing the traffic analysis zone information.
+     * @param memberOrder            The Comparator object defining the order in which members of a household are sorted.
+     * @return A collection of TPS_Household objects.
+     */
     @Bean
     public Collection<TPS_Household> households(Collection<HouseholdDto> householdDtos,
                                                 Map<Integer, Collection<TPS_Person>> personsByHouseholdId,
@@ -88,12 +99,27 @@ public class HouseholdsFactory {
         return households;
     }
 
+    /**
+     * Retrieves a map of persons grouped by household ID.
+     *
+     * @param personDtos   The collection of PersonDto objects.
+     * @param converter    The converter used to convert PersonDto objects to TPS_Person objects.
+     * @return A map where the keys are household IDs and the values are collections of TPS_Person objects.
+     */
     @Bean
     public Map<Integer, Collection<TPS_Person>> personsByHouseholdId(Collection<PersonDto> personDtos, PersonDtoToPersonConverter converter){
 
         return converter.convertCollectionToMapWithSourceKey(personDtos, PersonDto::getHhId);
     }
 
+    /**
+     * Provides a {@link de.dlr.ivf.api.converter.Converter} that converts {@link PersonDto} objects to a
+     * {@link TPS_Person} objects using the provided AgeClasses and PersonGroups.
+     *
+     * @param ageClasses The AgeClasses object used for mapping age information.
+     * @param personGroups The PersonGroups object used for mapping person group information.
+     * @return the converter that converts {@link PersonDto} to {@link TPS_Person} objects.
+     */
     @Bean
     public PersonDtoToPersonConverter personDtoToPersonConverter(AgeClasses ageClasses, PersonGroups personGroups){
         return new PersonDtoToPersonConverter(
@@ -103,11 +129,24 @@ public class HouseholdsFactory {
                 householdConfiguration.minAgeCarSharing(), ageClasses, personGroups);
     }
 
+    /**
+     * Retrieves a collection of AgeClassDto objects from the database.
+     * Uses the dbIo.readFromDb method to read the data from the specified data source.
+     * The data is converted to AgeClassDto objects using the provided objectFactory.
+     *
+     * @return A collection of AgeClassDto objects.
+     */
     @Bean
     public Collection<AgeClassDto> ageClassDtos(){
         return dbIo.readFromDb(householdConfiguration.ageClasses(), AgeClassDto.class, AgeClassDto::new);
     }
 
+    /**
+     * Constructs an AgeClasses object based on the given collection of AgeClassDto objects.
+     *
+     * @param ageClassDtos The collection of AgeClassDto objects used to build the AgeClasses.
+     * @return The constructed AgeClasses object.
+     */
     @Bean
     public AgeClasses ageClasses(Collection<AgeClassDto> ageClassDtos){
         AgeClasses.AgeClassesBuilder ageClasses = AgeClasses.builder();
@@ -134,51 +173,44 @@ public class HouseholdsFactory {
         return ageClasses.build();
     }
 
-    @Bean
-    public PersonGroups personGroups(Collection<PersonCodeDto> personCodeDtos){
-
-        PersonGroups.PersonGroupsBuilder personGroupsBuilder = PersonGroups.builder();
-
-        for(PersonCodeDto personCodeDto : personCodeDtos) {
-            TPS_PersonGroup personGroup = TPS_PersonGroup.builder()
-                    .description(personCodeDto.getDescription())
-                    .code(personCodeDto.getCode())
-                    .personType(TPS_PersonType.valueOf(personCodeDto.getPersonType()))
-                    .carCode(TPS_CarCode.getEnum(personCodeDto.getCodeCars()))
-                    .hasChildCode(TPS_HasChildCode.valueOf(personCodeDto.getHasChild()))
-                    .minAge(personCodeDto.getMinAge())
-                    .maxAge(personCodeDto.getMaxAge())
-                    .workStatus(TPS_WorkStatus.valueOf(personCodeDto.getWorkStatus()))
-                    .sex(TPS_Sex.getEnum(personCodeDto.getCodeSex()))
-                    .build();
-
-            personGroupsBuilder.personGroup(personGroup.getCode(), personGroup);
-        }
-
-        return personGroupsBuilder.build();
-    }
-
-    @Bean
-    public Collection<PersonCodeDto> personCodeDtos(){
-        return dbIo.readFromDb(householdConfiguration.personGroups(), PersonCodeDto.class, PersonCodeDto::new);
-    }
-
+    /**
+     * Retrieves the configuration for cars from the household configuration.
+     *
+     * @return The {@link CarsConfiguration} object that represents the configuration for cars.
+     */
     @Bean
     public CarsConfiguration carsConfiguration(){
         return householdConfiguration.carsConfiguration();
     }
 
+    /**
+     * Returns a {@code Comparator} that defines the order in which members of a household are sorted.
+     *
+     * @return A {@code Comparator} object that defines the member order.
+     */
     @Lazy
     @Bean
     public Comparator<TPS_Person> memberOrder(){
         return PersonComparators.ofSorting(TPS_Household.Sorting.valueOf(householdConfiguration.memberOrder()));
     }
 
+    /**
+     * Retrieves a collection of IncomeDto objects from the database using the dbIo.readFromDb method.
+     * The data is read from the incomeClasses data source specified in the householdConfiguration.
+     *
+     * @return A collection of IncomeDto objects.
+     */
     @Bean
     public Collection<IncomeDto> incomeDtos(){
         return dbIo.readFromDb(householdConfiguration.incomeClasses(), IncomeDto.class, IncomeDto::new);
     }
 
+    /**
+     * Create an Incomes object based on the collection of IncomeDto objects.
+     *
+     * @param incomeDtos The collection of IncomeDto objects used to build the Incomes.
+     * @return The constructed Incomes object.
+     */
     @Lazy
     @Bean
     public Incomes incomes(Collection<IncomeDto> incomeDtos){
@@ -199,12 +231,24 @@ public class HouseholdsFactory {
         return incomeMappings.build();
     }
 
+    /**
+     * Retrieves a collection of HouseholdDto objects from the database.
+     * Uses the dbIo.readFromDb method to read the data from the specified data source.
+     *
+     * @return A collection of HouseholdDto objects.
+     */
     @Lazy
     @Bean
     public Collection<HouseholdDto> householdDtos(){
         return dbIo.readFromDb(householdConfiguration.households(), HouseholdDto.class, HouseholdDto::new);
     }
 
+    /**
+     * Retrieves a collection of PersonDto objects from the database based on the household configuration.
+     * Uses the dbIo.readFromDb method to read the data from the specified data source.
+     *
+     * @return A collection of PersonDto objects.
+     */
     @Lazy
     @Bean
     public Collection<PersonDto> personDtos(){

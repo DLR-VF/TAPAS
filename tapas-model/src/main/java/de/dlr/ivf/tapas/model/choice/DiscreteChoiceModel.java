@@ -46,7 +46,7 @@ public class DiscreteChoiceModel<T> {
 
         double cumulativeProbability = 0.0;
 
-        if(randomNumber < 0 || randomNumber > 1){
+        if(randomNumber < 0.0 || randomNumber > 1.0){
             throw new IllegalArgumentException("Probability must be between 0 and 1");
         }
 

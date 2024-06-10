@@ -51,7 +51,7 @@ public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Pers
             boolean finished = false;
             for (int schemeIt = 0; !finished && schemeIt < maxTriesScheme; ++schemeIt) {
 
-                TPS_Scheme scheme = schemeSelector.selectPlan(person);
+                TPS_Scheme scheme = null;//schemeSelector.selectPlan(person);
 
                 //todo think about using a plan processor that returns completely computed plans
                 boolean finishedPlanSearch = false;

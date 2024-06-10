@@ -17,7 +17,6 @@ public record HouseholdConfiguration(
         @JsonProperty String memberOrder,
         @JsonProperty FilterableDataSource persons,
         @JsonProperty DataSource ageClasses,
-        @JsonProperty FilterableDataSource personGroups,
         @JsonProperty DataSource incomeClasses,
         @JsonProperty double availabilityFactorBike,
         @JsonProperty double availabilityFactorCarSharing,

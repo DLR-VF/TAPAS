@@ -23,6 +23,7 @@ public record SchemeProviderConfiguration(
         @JsonProperty FilterableDataSource episodes,
         @JsonProperty FilterableDataSource schemeClassDistributions,
         @JsonProperty DataSource activities,
-        @JsonProperty FilterableDataSource personGroups
+        @JsonProperty FilterableDataSource personGroups,
+        @JsonProperty int seed
 ) {
 }

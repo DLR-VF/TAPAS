@@ -33,12 +33,6 @@ public class TrafficGenerationFactory {
         return null;
     }
 
-    @Bean(name = "schemeProvider")
-    public SchemeProvider schemeProvider(TPS_SchemeSet schemeSet) {
-        return new SchemeProvider(schemeSet);
-    }
-
-
 
     @Bean
     public SchemeProviderConfiguration schemeProviderConfiguration(){

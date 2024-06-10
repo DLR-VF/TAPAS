@@ -114,13 +114,6 @@
       "mitPluginRange" : 200000,
       "mitConventionalRange" : 400000
     },
-    "personGroups": {
-      "uri": "core.global_person_codes_new",
-      "filterBy": {
-        "column": "key",
-        "value": "TAPAS"
-      }
-    },
     "availabilityFactorBike" : 0.74,
     "availabilityFactorCarSharing" : 0.1,
     "useShoppingMotives" : false,
@@ -134,6 +127,8 @@
   "simulationRunnerConfiguration" : {
     "trafficGenerationConfiguration" : {
       "schemeProviderConfiguration" : {
+        "seed" : 1234,
+        "timeSlotLength" : 60,
         "schemeClasses": {
           "uri": "core.global_scheme_classes",
           "filterBy": {
@@ -165,7 +160,13 @@
         "activities": {
           "uri": "core.global_activity_codes"
         },
-        "timeSlotLength" : 60
+        "personGroups": {
+          "uri": "core.global_person_codes_new_new",
+          "filterBy": {
+            "column": "key",
+            "value": "TAPAS"
+          }
+        }
       }
     },
 

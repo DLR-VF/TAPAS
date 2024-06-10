@@ -7,18 +7,20 @@ import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.simulation.SimulationRunner;
 import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
 
+import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class TripPriorityRunner implements SimulationRunner {
     private final System.Logger logger = System.getLogger(TripPriorityRunner.class.getName());
 
     private final Collection<TPS_Household> households;
-    private final HouseholdProcessor householdProcessor;
+    //private final HouseholdProcessor householdProcessor;
+    private final SchemeProvider schemeProvider;
 
     @Autowired
-    public TripPriorityRunner(Collection<TPS_Household> households, HouseholdProcessor householdProcessor){
+    public TripPriorityRunner(Collection<TPS_Household> households, SchemeProvider schemeProvider){
         this.households = households;
-        this.householdProcessor = householdProcessor;
+        this.schemeProvider = schemeProvider;
     }
 
 

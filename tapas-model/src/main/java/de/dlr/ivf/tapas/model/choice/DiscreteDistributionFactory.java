@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.model.choice;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 
@@ -41,8 +42,39 @@ public class DiscreteDistributionFactory<T> {
      */
     public DiscreteDistribution<T> newNormalizedDiscreteDistribution(DiscreteDistribution<T> sourceDistribution){
 
+        return newNormalizedDiscreteDistribution(sourceDistribution.getProbabilities());
+    }
+
+    /**
+     * Returns a new normalized discrete distribution based on the given source probabilities.
+     * The normalized distribution is formed by dividing each probability in the source probabilities by the total probability,
+     * ensuring that the sum of all probabilities in the normalized distribution is equal to 1.
+     *
+     * @param sourceProbabilities the source collection of discrete probabilities
+     * @return the new normalized discrete distribution
+     */
+    public DiscreteDistribution<T> newNormalizedDiscreteDistribution(Collection<DiscreteProbability<T>> sourceProbabilities){
+
+        Collection<DiscreteProbability<T>> normalizedProbabilities = calculateNormalizedProbabilities(sourceProbabilities);
+
         DiscreteDistribution<T> normalizedDistribution = new DiscreteDistribution<>();
-        Collection<DiscreteProbability<T>> sourceProbabilities = sourceDistribution.getProbabilities();
+
+        normalizedProbabilities.forEach(normalizedDistribution::addProbability);
+
+        return normalizedDistribution;
+    }
+
+    /**
+     * Calculates the normalized probabilities of a collection of discrete probabilities.
+     *
+     * @param sourceProbabilities the source collection of discrete probabilities
+     *
+     * @return the collection of normalized discrete probabilities
+     */
+    private Collection<DiscreteProbability<T>> calculateNormalizedProbabilities(Collection<DiscreteProbability<T>> sourceProbabilities) {
+
+        Collection<DiscreteProbability<T>> normalizedProbabilities = new ArrayList<>();
+
         double totalProbability = 0.0;
 
         for (DiscreteProbability<T> sourceProbability : sourceProbabilities) {
@@ -50,12 +82,12 @@ public class DiscreteDistributionFactory<T> {
         }
 
         for (DiscreteProbability<T> sourceProbability : sourceProbabilities) {
-            double normalizedProbability = sourceProbability.probability() / totalProbability;
+            double normalizedProbability = Math.clamp(sourceProbability.probability() / totalProbability, 0.0, 1.0);
             DiscreteProbability<T> normalized = new DiscreteProbability<>(sourceProbability.discreteVariable(), normalizedProbability);
-            normalizedDistribution.addProbability(normalized);
+            normalizedProbabilities.add(normalized);
         }
 
-        return normalizedDistribution;
+        return normalizedProbabilities;
     }
 
     /**

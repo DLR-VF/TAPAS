@@ -42,6 +42,8 @@ import de.dlr.ivf.tapas.model.location.ScenarioTypeValues.ScenarioTypeValuesBuil
 
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import java.sql.*;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -706,23 +708,36 @@ public class TPS_DB_IO {
 
 
     public <T> Collection<T> readFromDb(FilterableDataSource dataSource, Class<T> targetClass, Supplier<T> objectFactory){
+
+        LocalTime startTime = LocalTime.now();
+
+        logger.log(Level.INFO,"Reading : "+dataSource.uri());
+
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
         Collection<T> result = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(targetClass), objectFactory), dataSource);
 
         connectionSupplier.returnObject(connection);
+
+        logger.log(Level.INFO, "Finished reading: "+dataSource.uri()+" with "+result.size()+" entries in "+ Duration.between(startTime, LocalTime.now()).toSeconds()+" seconds.");
 
         return result;
 
     }
 
     public <T> Collection<T> readFromDb(DataSource dataSource, Class<T> targetClass, Supplier<T> objectFactory){
+
+        LocalTime startTime = LocalTime.now();
+
+        logger.log(Level.INFO,"Reading : "+dataSource.getUri());
+
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
         Collection<T> result = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(targetClass), objectFactory), dataSource);
         connectionSupplier.returnObject(connection);
 
+        logger.log(Level.INFO, "Finished reading: "+dataSource.getUri()+" with "+result.size()+" entries in "+Duration.between(startTime, LocalTime.now()).toSeconds()+" seconds.");
         return result;
     }
 

@@ -53,17 +53,17 @@ public class ModeSelector {
     public TPS_Mode selectMode(ModeChoiceContext<TPS_Mode> modeChoiceContext, MNLFullComplexContext mnlContext){
 
         DiscreteDistribution<TPS_Mode> modeDistribution = modeDistributionFactory.emptyDistribution();
-        for(TPS_Mode mode : modeDistributionFactory.getDiscreteVariables()){
-            if(!modeChoiceContext.modeIsAvailable(mode)){
-                modeDistribution.addProbability(new DiscreteProbability<>(mode, minProbability));
-                continue;
-            }
-            //todo create a context for each mode for a travel time function visitor
-//            double travelTime = travelTimeCalculator.getTravelTime(mode, modeChoiceContext.getFrom(), modeChoiceContext.getTo(),
-//                    modeChoiceContext.getStartTime(), );
-            //modeDistribution.addProbability(new DiscreteProbability<>(mode, mnlFunctions.get(mode).apply()));
-
-        }
+//        for(TPS_Mode mode : modeDistributionFactory.getDiscreteVariables()){
+//            if(!modeChoiceContext.modeIsAvailable(mode)){
+//                modeDistribution.addProbability(new DiscreteProbability<>(mode, minProbability));
+//                continue;
+//            }
+//            //todo create a context for each mode for a travel time function visitor
+////            double travelTime = travelTimeCalculator.getTravelTime(mode, modeChoiceContext.getFrom(), modeChoiceContext.getTo(),
+////                    modeChoiceContext.getStartTime(), );
+//            //modeDistribution.addProbability(new DiscreteProbability<>(mode, mnlFunctions.get(mode).apply()));
+//
+//        }
         return null;
     }
 
