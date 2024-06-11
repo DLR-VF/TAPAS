@@ -38,5 +38,8 @@ public record RegionConfiguration(
                 @JsonSubTypes.Type(value = SimpleTrafficAnalysisZoneConfiguration.class, name = "simple"),
                 @JsonSubTypes.Type(value = ExtendedTrafficAnalysisZoneConfiguration.class, name = "extended")
         })
-        TrafficAnalysisZoneConfiguration trafficAnalysisZoneConfiguration
+        TrafficAnalysisZoneConfiguration trafficAnalysisZoneConfiguration,
+
+        @JsonProperty
+        MatrixConfiguration matrixConfiguration
 ) {}

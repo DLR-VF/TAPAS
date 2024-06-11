@@ -720,7 +720,7 @@ public class TPS_DB_IO {
 
         connectionSupplier.returnObject(connection);
 
-        logger.log(Level.INFO, "Finished reading: "+dataSource.uri()+" with "+result.size()+" entries in "+ Duration.between(startTime, LocalTime.now()).toSeconds()+" seconds.");
+        logger.log(Level.INFO, "Finished reading: "+dataSource.uri()+" with "+result.size()+" entries in "+ Duration.between(startTime, LocalTime.now()).toMillis()+" milliseconds.");
 
         return result;
 
@@ -737,7 +737,7 @@ public class TPS_DB_IO {
         Collection<T> result = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(targetClass), objectFactory), dataSource);
         connectionSupplier.returnObject(connection);
 
-        logger.log(Level.INFO, "Finished reading: "+dataSource.getUri()+" with "+result.size()+" entries in "+Duration.between(startTime, LocalTime.now()).toSeconds()+" seconds.");
+        logger.log(Level.INFO, "Finished reading: "+dataSource.getUri()+" with "+result.size()+" entries in "+Duration.between(startTime, LocalTime.now()).toMillis()+" milliseconds.");
         return result;
     }
 
@@ -871,132 +871,6 @@ public class TPS_DB_IO {
                 .intraMITTrafficAllowed(mitInfo.isHasIntraTrafficMit())
                 .averageSpeedMIT(mitInfo.getAvgSpeedMit())
                 .beelineFactorMIT(mitInfo.getBeelineFactorMit());
-    }
-
-    /**
-     * This method reads the scheme set, scheme class distribution values and all episodes from the db.
-     *
-     * @return The TPS_SchemeSet containing all episodes.
-     * @throws SQLException
-     */
-    public TPS_SchemeSet readSchemeSet(Collection<SchemeClassDto> schemeClasses, Collection<SchemeDto> schemes,
-                                       Collection<EpisodeDto> episodes, Collection<SchemeClassDistributionDto> schemeClassDistributions,
-                                       Collection<TPS_ActivityConstant> activityConstants, PersonGroups personGroups) {
-
-        int timeSlotLength = this.parameters.getIntValue(ParamValue.SEC_TIME_SLOT);
-
-        TPS_SchemeSet schemeSet = new TPS_SchemeSet();
-
-        // build scheme classes (with time distributions)
-        for(SchemeClassDto schemeClassDto : schemeClasses){
-            TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(schemeClassDto.getId());
-
-
-
-
-
-
-
-
-            double mean = schemeClassDto.getAvgTravelTime() * 60;
-            schemeClass.setTimeDistribution(mean, mean * schemeClassDto.getProcStdDev());
-        }
-
-        // build the schemes, assigning them to the right scheme classes
-        Map<Integer, TPS_Scheme> schemeMap = new HashMap<>();
-        for(SchemeDto schemeDto : schemes){
-            TPS_SchemeClass schemeClass = schemeSet.getSchemeClass(schemeDto.getSchemeClassId());
-            TPS_Scheme scheme = schemeClass.getScheme(schemeDto.getId(), this.parameters);
-            schemeMap.put(scheme.getId(), scheme);
-        }
-
-        // read the episodes the schemes are made of and add them to the respective schemes
-        // we read them into a temporary storage first
-        int counter = 1;
-        HashMap<Integer, List<TPS_Episode>> episodesMap = new HashMap<>();
-        TPS_Episode lastEpisode = null;
-        int lastScheme = -1;
-
-
-        var sortCriteria = Comparator.comparing(EpisodeDto::getSchemeId)
-                .thenComparing(EpisodeDto::getStart);
-        var sortedEpisodes = episodes.stream()
-                .sorted(sortCriteria)
-                .toList();
-
-        double scaleShift = this.parameters.getDoubleValue(ParamValue.SCALE_SHIFT);
-        double scaleStretch = this.parameters.getDoubleValue(ParamValue.SCALE_STRETCH);
-
-        for (EpisodeDto episodeDto : sortedEpisodes){
-
-            TPS_ActivityConstant actCode = activityConstants.stream()
-                    .filter(act -> act.getCode(TPS_ActivityCodeType.ZBE) == episodeDto.getActCodeZbe())
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("No activity constant for type ZBE and code: "+episodeDto.getActCodeZbe()));
-
-            int actScheme = episodeDto.getSchemeId();
-            if (lastScheme != actScheme) {
-                lastScheme = actScheme;
-                lastEpisode = null;
-                episodesMap.put(actScheme, new ArrayList<>());
-            }
-            TPS_Episode episode = null;
-            if (actCode.isTrip()) {
-                episode = new TPS_Trip(counter++, actCode, episodeDto.getStart() * timeSlotLength,
-                        episodeDto.getDuration() * timeSlotLength);
-            } else {
-                if (lastEpisode != null && lastEpisode.isStay()) {
-                    // two subsequent stays: add their duration and adjust the activity code and the priority
-                    TPS_Stay previousStay = (TPS_Stay) lastEpisode;
-                    if (previousStay.getPriority() < actCode.getCode(TPS_ActivityCodeType.PRIORITY)) {
-                        // the last stay has a different activity code and is "less important" than the current one
-                        previousStay.setActCode(actCode); // adjust the activity code!
-                    }
-                    previousStay.setOriginalDuration(
-                            previousStay.getOriginalDuration() + episodeDto.getDuration() * timeSlotLength);
-                    previousStay.setOriginalStart(
-                            Math.min(previousStay.getOriginalStart(), episodeDto.getStart() * timeSlotLength));
-                } else {
-                    episode = new TPS_Stay(counter++, actCode, episodeDto.getStart() * timeSlotLength,
-                            episodeDto.getDuration() * timeSlotLength, 0, 0, 0, 0, scaleShift,scaleStretch);
-                }
-            }
-            if (episode != null) {
-                episode.isHomePart = episodeDto.isHome();
-                episode.tourNumber = episodeDto.getTourNumber();
-                episodesMap.get(actScheme).add(episode);
-                lastEpisode = episode;
-            }
-
-        }
-        // now we store them into the schemes
-        for (Integer schemeID : episodesMap.keySet()) {
-            TPS_Scheme scheme = schemeMap.get(schemeID);
-            for (TPS_Episode e : episodesMap.get(schemeID)) {
-                scheme.addEpisode(e);
-            }
-        }
-
-
-        // read the mapping from person group to scheme classes
-        // the key of the outer map represents the person group id. The key of the inner map represents the scheme class id.
-        HashMap<Integer, HashMap<Integer, Double>> personGroupSchemeProbabilityMap = new HashMap<>();
-
-        for(SchemeClassDistributionDto dto : schemeClassDistributions){
-            int personGroupId = dto.getPersonGroup();
-            if (!personGroupSchemeProbabilityMap.containsKey(personGroupId)) {
-                personGroupSchemeProbabilityMap.put(personGroupId, new HashMap<>());
-            }
-            personGroupSchemeProbabilityMap.get(personGroupId).put(dto.getSchemeClassId(), dto.getProbability());
-        }
-
-        for (Integer key : personGroupSchemeProbabilityMap.keySet()) { //add distributions to the schemeSet
-            schemeSet.addDistribution(personGroups.getPersonGroupByCode(key),
-                    new TPS_DiscreteDistribution<>(personGroupSchemeProbabilityMap.get(key)));
-        }
-        schemeSet.init();
-
-        return schemeSet;
     }
 
     /**

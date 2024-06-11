@@ -33,16 +33,8 @@ public class SchemeSetFactory {
     }
 
     @Bean
-    public SchemeProvider schemeProvider(Collection<SchemeClassDistributionDto> schemeClassDistributionDtos,
-                                  PersonGroups personGroups,
-                                  Map<Integer, SchemeClass> schemeClassesByClassId){
-
-        Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup = schemeClassDistributionDtos
-                .stream()
-                .collect(
-                        groupingBy(SchemeClassDistributionDto::getPersonGroup,
-                        mapping(dto -> new DiscreteProbability<>(schemeClassesByClassId.get(dto.getSchemeClassId()), dto.getProbability()),
-                        toList())));
+    public SchemeProvider schemeProvider(Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup,
+                                  PersonGroups personGroups){
 
         DiscreteDistributionFactory<SchemeClass> distributionFactory = new DiscreteDistributionFactory<>();
 
@@ -60,36 +52,26 @@ public class SchemeSetFactory {
             schemeClassDistributions.put(personGroup, distribution);
         }
 
-        DiscreteChoiceModel<SchemeClass> schemeClassChoiceModel = new DiscreteChoiceModel<>(configuration.seed());
-        DiscreteChoiceModel<Scheme> schemeChoiceModel = new DiscreteChoiceModel<>(configuration.seed());
+        DiscreteChoiceModel<SchemeClass> schemeClassChoiceModel = new DiscreteChoiceModel<>(configuration.schemeClassChoiceSeed());
+        DiscreteChoiceModel<Scheme> schemeChoiceModel = new DiscreteChoiceModel<>(configuration.schemeChoiceSeed());
 
         return new SchemeProvider(schemeClassDistributions, schemeClassChoiceModel, schemeChoiceModel);
     }
 
-    /**
-     * Generates a DiscreteDistribution of SchemeClasses based on the provided SchemeClassDistributionDtos and SchemeClasses.
-     *
-     * @param schemeClassDistributionDtos A list of SchemeClassDistributionDtos containing information about the SchemeClass distributions.
-     * @param schemeClassesByClassId     A map of scheme classes with their corresponding scheme class ids.
-     * @return The generated DiscreteDistribution of SchemeClasses.
-     */
-    private DiscreteDistribution<SchemeClass> generateSchemeClassDistribution(
-            List<SchemeClassDistributionDto> schemeClassDistributionDtos,
+    @Bean
+    public Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup(
+            Collection<SchemeClassDistributionDto> schemeClassDistributionDtos,
             Map<Integer, SchemeClass> schemeClassesByClassId){
 
-        DiscreteDistribution<SchemeClass> schemeClassDistribution = new DiscreteDistribution<>();
-
-        for(SchemeClassDistributionDto schemeClassDistributionDto : schemeClassDistributionDtos){
-
-            SchemeClass schemeClass = schemeClassesByClassId.get(schemeClassDistributionDto.getSchemeClassId());
-            double probability = schemeClassDistributionDto.getProbability();
-
-            schemeClassDistribution.addProbability(new DiscreteProbability<>(schemeClass, probability));
-        }
-
-        return schemeClassDistribution;
+        return schemeClassDistributionDtos
+                .stream()
+                .collect(
+                        groupingBy(SchemeClassDistributionDto::getPersonGroup,
+                                mapping(dto -> new DiscreteProbability<>(schemeClassesByClassId.get(dto.getSchemeClassId()),
+                                                dto.getProbability()),
+                                        toList()
+                                )));
     }
-
 
     @Bean
     public Map<Integer, SchemeClass> schemeClasses(Collection<SchemeClassDto> schemeClassDtos,
@@ -98,7 +80,7 @@ public class SchemeSetFactory {
         Map<Integer, SchemeClass> schemeClasses = new HashMap<>(schemeClassDtos.size());
 
         for(SchemeClassDto schemeClassDto :schemeClassDtos){
-            double mean = schemeClassDto.getAvgTravelTime() * 60;
+            double mean = schemeClassDto.getAvgTravelTime() * configuration.timeSlotLength();
             double deviation = mean * schemeClassDto.getProcStdDev();
 
             List<Scheme> schemesInClass = schemesByClassId.get(schemeClassDto.getId());
@@ -165,7 +147,7 @@ public class SchemeSetFactory {
             int tripPriority = activities.getActivity(TPS_ActivityConstant.TPS_ActivityCodeType.ZBE, endStay.activity())
                     .getCode(TPS_ActivityConstant.TPS_ActivityCodeType.PRIORITY);
 
-            Trip trip = new Trip(startStay, endStay, tripEpisode.getStart(), tripEpisode.getDuration(), tripPriority);
+            Trip trip = new Trip(startStay, endStay, tripEpisode.getStart(), tripEpisode.getDuration() * configuration.timeSlotLength(), tripPriority);
 
             int tourNumber = tripEpisode.getTourNumber();
             toursByTourId.computeIfAbsent(tourNumber, tourId -> new Tour(tourId,new HashSet<>())).addTrip(trip);

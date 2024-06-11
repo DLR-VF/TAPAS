@@ -18,9 +18,10 @@ import de.dlr.ivf.api.io.configuration.FilterableDataSource;
  * - personGroups: The data source for person groups.
  */
 public record SchemeProviderConfiguration(
+        @JsonProperty int schemeClassChoiceSeed,
+        @JsonProperty int schemeChoiceSeed,
         @JsonProperty int timeSlotLength,
         @JsonProperty int tripActivityCode,
-        @JsonProperty int seed,
         @JsonProperty FilterableDataSource schemeClasses,
         @JsonProperty FilterableDataSource schemes,
         @JsonProperty FilterableDataSource episodes,

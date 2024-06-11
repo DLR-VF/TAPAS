@@ -5,6 +5,6 @@ public record Trip (
     Stay startStay,
     Stay endStay,
     int startTime,
-    int duration,
+    int durationSeconds,
     int priority
 ){}

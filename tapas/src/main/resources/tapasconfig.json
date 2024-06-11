@@ -72,6 +72,14 @@
           "value": "Berlin_2010"
         }
       }
+    },
+    "matrixConfiguration" :{
+      "matrices" : {
+        "uri" : "berlin_matrices"
+      },
+      "matrixMapConfiguration" : {
+
+      }
     }
   },
   "householdConfiguration" : {
@@ -127,7 +135,8 @@
   "simulationRunnerConfiguration" : {
     "trafficGenerationConfiguration" : {
       "schemeProviderConfiguration" : {
-        "seed" : 1234,
+        "schemeClassChoiceSeed" : 1234,
+        "schemeChoiceSeed" : 1234,
         "timeSlotLength" : 60,
         "tripActivityCode" : 80,
         "schemeClasses": {
@@ -154,8 +163,8 @@
         "schemeClassDistributions": {
           "uri": "core.global_scheme_class_distributions",
           "filterBy": {
-            "column": "key",
-            "value": "default"
+            "column": "name",
+            "value": "MID_2008_TBG_7_Di-Do"
           }
         },
         "activities": {
