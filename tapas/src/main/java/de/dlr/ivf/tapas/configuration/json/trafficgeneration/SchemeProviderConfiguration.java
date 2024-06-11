@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.configuration.json.runner;
+package de.dlr.ivf.tapas.configuration.json.trafficgeneration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.dlr.ivf.api.io.configuration.DataSource;
@@ -9,6 +9,7 @@ import de.dlr.ivf.api.io.configuration.FilterableDataSource;
  *
  * It contains the following properties:
  * - timeSlotLength: The length of time slot.
+ * - tripActivityCode: the code in the episodes datasource that marks trips
  * - schemeClasses: The data source for scheme classes.
  * - schemes: The data source for schemes.
  * - episodes: The data source for episodes.
@@ -18,12 +19,13 @@ import de.dlr.ivf.api.io.configuration.FilterableDataSource;
  */
 public record SchemeProviderConfiguration(
         @JsonProperty int timeSlotLength,
+        @JsonProperty int tripActivityCode,
+        @JsonProperty int seed,
         @JsonProperty FilterableDataSource schemeClasses,
         @JsonProperty FilterableDataSource schemes,
         @JsonProperty FilterableDataSource episodes,
         @JsonProperty FilterableDataSource schemeClassDistributions,
         @JsonProperty DataSource activities,
-        @JsonProperty FilterableDataSource personGroups,
-        @JsonProperty int seed
+        @JsonProperty FilterableDataSource personGroups
 ) {
 }

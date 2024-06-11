@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.configuration.spring;
 
-import de.dlr.ivf.tapas.configuration.json.runner.SchemeProviderConfiguration;
+import de.dlr.ivf.tapas.configuration.json.trafficgeneration.SchemeProviderConfiguration;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.model.choice.DiscreteChoiceModel;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistribution;
@@ -134,7 +134,7 @@ public class SchemeSetFactory {
 
             int schemeId = entry.getKey();
             Collection<EpisodeDto> episodesInScheme = entry.getValue();
-            Collection<Tour> tours = generateToursFromEpisodes(episodesInScheme, activities);
+            Collection<Tour> tours = generateToursFromEpisodes(episodesInScheme, activities, configuration.tripActivityCode());
 
             toursBySchemeId.put(schemeId, tours);
         }
@@ -142,7 +142,7 @@ public class SchemeSetFactory {
         return toursBySchemeId;
     }
 
-    private Collection<Tour> generateToursFromEpisodes(Collection<EpisodeDto> episodes, Activities activities) {
+    public Collection<Tour> generateToursFromEpisodes(Collection<EpisodeDto> episodes, Activities activities, int tripActivityCode) {
 
         List<EpisodeDto> sortedEpisodesInScheme = episodes
                 .stream()
@@ -151,11 +151,13 @@ public class SchemeSetFactory {
 
         Map<Integer, Tour> toursByTourId = new HashMap<>();
 
-        for(int i = 1; i < sortedEpisodesInScheme.size() - 1; i++){
+        for(int i = 1; i < sortedEpisodesInScheme.size() - 1; i = i+2){
 
             EpisodeDto startEpisode = sortedEpisodesInScheme.get(i-1);
             EpisodeDto tripEpisode = sortedEpisodesInScheme.get(i);
             EpisodeDto endEpisode = sortedEpisodesInScheme.get(i+1);
+
+            validateEpisodesOrThrow(startEpisode, endEpisode, tripEpisode, tripActivityCode);
 
             Stay startStay = new Stay(startEpisode.getStart(), startEpisode.getDuration(), startEpisode.getActCodeZbe());
             Stay endStay  = new Stay(endEpisode.getStart(), endEpisode.getDuration(), endEpisode.getActCodeZbe());
@@ -170,6 +172,18 @@ public class SchemeSetFactory {
         }
 
         return toursByTourId.values().stream().toList(); //remove the link to the map
+    }
+
+    private void validateEpisodesOrThrow(EpisodeDto start, EpisodeDto end, EpisodeDto trip, int tripActivityCode){
+        if(start.getActCodeZbe() == tripActivityCode){
+            throw new IllegalArgumentException("Start episode is a trip but it should be a stay.");
+        }
+        if(end.getActCodeZbe() == tripActivityCode){
+            throw new IllegalArgumentException("End episode is a trip but it should be a stay.");
+        }
+        if(trip.getActCodeZbe() != tripActivityCode){
+            throw new IllegalArgumentException("Trip episode is not of activity code " + trip.getActCodeZbe()+". Set tripActivityCode to "+trip.getActCodeZbe());
+        }
     }
 
     @Lazy

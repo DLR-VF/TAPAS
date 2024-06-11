@@ -21,7 +21,7 @@ public class SchemeProvider {
         this.schemeChoiceModel = schemeChoiceModel;
     }
 
-    public Scheme selectPlan(TPS_PersonGroup personGroup){
+    public Scheme selectScheme(TPS_PersonGroup personGroup){
 
         DiscreteDistribution<SchemeClass> schemeClassDistribution = schemeClassDistributions.get(personGroup);
 

@@ -129,6 +129,7 @@
       "schemeProviderConfiguration" : {
         "seed" : 1234,
         "timeSlotLength" : 60,
+        "tripActivityCode" : 80,
         "schemeClasses": {
           "uri": "core.global_scheme_classes",
           "filterBy": {
