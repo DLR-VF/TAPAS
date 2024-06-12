@@ -8,47 +8,47 @@
 
 package de.dlr.ivf.tapas.model.parameter;
 
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.util.Arrays;
 import java.util.EnumMap;
 
 public class ParamMatrixMapClass {
-    private final EnumMap<ParamMatrixMap, MutablePair<ParamType, MatrixMap[]>> paramMatrixMaps;
+    private final EnumMap<ParamMatrixMap, MutablePair<ParamType, MatrixMapLegacy[]>> paramMatrixMaps;
 
     ParamMatrixMapClass() {
         this.paramMatrixMaps = new EnumMap<>(ParamMatrixMap.class);
-        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_BIKE, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_WALK, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_MIT, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_BIKE, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_WALK, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.ARRIVAL_MIT, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.AVERAGE_SPEED_SCHOOLBUS,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_BIKE, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_WALK, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_MIT, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_BIKE, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_WALK, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.EGRESS_MIT, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.INTERCHANGES_PT,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.PTBIKE_ACCESS_TAZ,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.PTBIKE_EGRESS_TAZ,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.PTCAR_ACCESS_TAZ,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.PTBIKE_INTERCHANGES,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.PTCAR_INTERCHANGES,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_MIT,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
-        this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_WALK,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_BIKE,
-                new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+                new MutablePair<>(ParamType.DEFAULT, new MatrixMapLegacy[2]));
     }
 
     /**
@@ -71,7 +71,7 @@ public class ParamMatrixMapClass {
      * @return one matrix of the enum constant
      * @throws RuntimeException if the constant was not defined
      */
-    private Matrix getMatrixFromMap(ParamMatrixMap param, int time) {
+    private MatrixLegacy getMatrixFromMap(ParamMatrixMap param, int time) {
         SimulationType type = SimulationType.BASE;
         if (this.paramMatrixMaps.get(param).getRight().length > 1) {
             type = SimulationType.SCENARIO;
@@ -91,30 +91,30 @@ public class ParamMatrixMapClass {
      *                          or the constant is not simulation type
      *                          dependent
      */
-    private Matrix getMatrixFromMap(ParamMatrixMap param, SimulationType type, int time) {
+    private MatrixLegacy getMatrixFromMap(ParamMatrixMap param, SimulationType type, int time) {
         if (this.paramMatrixMaps.get(param).getRight().length < 2) {
             throw new RuntimeException("Enum-Value is not simulation " + "type" + " dependent: " + this);
         }
         int index = type.getIndex();
         if (this.paramMatrixMaps.get(param).getRight()[index] == null) throw new RuntimeException(
-                "MatrixMap for index " + index + " and param " + param + " is not defined: " + this);
+                "MatrixMapLegacy for index " + index + " and param " + param + " is not defined: " + this);
         return this.paramMatrixMaps.get(param).getRight()[index].getMatrix(time);
     }
 
     /**
-     * This method gets the whole MatrixMap for the given SimulationType
+     * This method gets the whole MatrixMapLegacy for the given SimulationType
      *
      * @param param matrix map parameter enum
      * @param type  SimulationType for this request
-     * @return the MatrixMap for the given SimulationType
+     * @return the MatrixMapLegacy for the given SimulationType
      */
-    public MatrixMap getMatrixMap(ParamMatrixMap param, SimulationType type) {
+    public MatrixMapLegacy getMatrixMap(ParamMatrixMap param, SimulationType type) {
         if (this.paramMatrixMaps.get(param).getRight().length < 2) {
-            throw new RuntimeException("MatrixMap is not simulation type " + "dependent: " + this);
+            throw new RuntimeException("MatrixMapLegacy is not simulation type " + "dependent: " + this);
         }
         int index = type.getIndex();
         if (this.paramMatrixMaps.get(param).getRight()[index] == null) throw new RuntimeException(
-                "MatrixMap for index " + index + " is not defined: " + this);
+                "MatrixMapLegacy for index " + index + " is not defined: " + this);
         return this.paramMatrixMaps.get(param).getRight()[index];
     }
 
@@ -183,14 +183,14 @@ public class ParamMatrixMapClass {
      * @throws RuntimeException if matrix map is simulation dependent and
      *                          no simulation type is set
      */
-    public void setMatrix(ParamMatrixMap param, Matrix matrix) {
+    public void setMatrix(ParamMatrixMap param, MatrixLegacy matrix) {
         if (this.paramMatrixMaps.get(param).getRight().length > 1) throw new RuntimeException(
                 "Specialise which matrix you set: " + "Choose one Simulation " + "type and call " +
-                        "setMatrixMap(Matrix " + "matrix, SimulationType " + "type)");
+                        "setMatrixMap(MatrixLegacy " + "matrix, SimulationType " + "type)");
         double[] distribution = new double[]{0};
-        Matrix[] matrices = new Matrix[distribution.length];
+        MatrixLegacy[] matrices = new MatrixLegacy[distribution.length];
         matrices[0] = matrix;
-        this.paramMatrixMaps.get(param).getRight()[0] = new MatrixMap(distribution, matrices);
+        this.paramMatrixMaps.get(param).getRight()[0] = new MatrixMapLegacy(distribution, matrices);
     }
 
     /**
@@ -204,14 +204,14 @@ public class ParamMatrixMapClass {
      * @throws RuntimeException if the parameter is independent from the
      *                          simulation type
      */
-    public void setMatrix(ParamMatrixMap param, Matrix matrix, SimulationType type) {
+    public void setMatrix(ParamMatrixMap param, MatrixLegacy matrix, SimulationType type) {
         if (this.paramMatrixMaps.get(param).getRight().length == 1) throw new RuntimeException(
-                "This parameter is independent " + "from the simulation type:" + " " + "call setMatrix(Matrix " +
+                "This parameter is independent " + "from the simulation type:" + " " + "call setMatrix(MatrixLegacy " +
                         "matrix)");
         double[] distribution = new double[]{0};
-        Matrix[] matrices = new Matrix[distribution.length];
+        MatrixLegacy[] matrices = new MatrixLegacy[distribution.length];
         matrices[0] = matrix;
-        this.paramMatrixMaps.get(param).getRight()[type.getIndex()] = new MatrixMap(distribution, matrices);
+        this.paramMatrixMaps.get(param).getRight()[type.getIndex()] = new MatrixMapLegacy(distribution, matrices);
     }
 
     /**
@@ -223,12 +223,12 @@ public class ParamMatrixMapClass {
      * @throws RuntimeException if matrix map is simulation dependent and
      *                          no simulation type is set
      */
-    public void setMatrixMap(ParamMatrixMap param, MatrixMap matrixMap) {
+    public void setMatrixMap(ParamMatrixMap param, MatrixMapLegacy matrixMap) {
         if (this.paramMatrixMaps.get(param).getRight().length > 1) throw new RuntimeException(
                 "Specialise which matrix you set: " + "Choose one Simulation " + "type and call " + "setMatrixMap" +
-                        "(MatrixMap matrixMap, " + "SimulationType type)");
+                        "(MatrixMapLegacy matrixMap, " + "SimulationType type)");
         //store local variables for debug tracing
-        MatrixMap[] map = this.paramMatrixMaps.get(param).getRight();
+        MatrixMapLegacy[] map = this.paramMatrixMaps.get(param).getRight();
         map[0] = matrixMap;
     }
 
@@ -242,12 +242,12 @@ public class ParamMatrixMapClass {
      * @throws RuntimeException if the parameter is independent from the
      *                          simulation type
      */
-    public void setMatrixMap(ParamMatrixMap param, MatrixMap matrixMap, SimulationType type) {
+    public void setMatrixMap(ParamMatrixMap param, MatrixMapLegacy matrixMap, SimulationType type) {
         if (this.paramMatrixMaps.get(param).getRight().length == 1) throw new RuntimeException(
                 "This parameter is independent " + "from the simulation type:" + " " + "call setMatrixMap" +
-                        "(MatrixMap " + "matrixMap)");
+                        "(MatrixMapLegacy " + "matrixMap)");
         //store local variables for debug tracing
-        MatrixMap[] map = this.paramMatrixMaps.get(param).getRight();
+        MatrixMapLegacy[] map = this.paramMatrixMaps.get(param).getRight();
         int index = type.getIndex();
 
         map[index] = matrixMap;
@@ -266,14 +266,14 @@ public class ParamMatrixMapClass {
      *                          or distribution and matrices length does
      *                          not match
      */
-    public void setMatrixMap(ParamMatrixMap param, double[] distribution, Matrix[] matrices) {
+    public void setMatrixMap(ParamMatrixMap param, double[] distribution, MatrixLegacy[] matrices) {
         if (this.paramMatrixMaps.get(param).getRight().length > 1) throw new RuntimeException(
                 "Specialise which matrix you set: " + "Choose one Simulation " + "type and call " +
-                        "setMatrixMap(Matrix " + "matrix, SimulationType " + "type)");
+                        "setMatrixMap(MatrixLegacy " + "matrix, SimulationType " + "type)");
         if (distribution.length != matrices.length) throw new RuntimeException(
                 "Inconsistent distribution and " + "matrices lengths! Length " + "dist: " + distribution.length + " " +
                         "length matrices: " + matrices.length);
-        this.paramMatrixMaps.get(param).getRight()[0] = new MatrixMap(distribution, matrices);
+        this.paramMatrixMaps.get(param).getRight()[0] = new MatrixMapLegacy(distribution, matrices);
     }
 
     /**
@@ -289,15 +289,15 @@ public class ParamMatrixMapClass {
      *                          or distribution and matrices length does
      *                          not match
      */
-    public void setMatrixMap(ParamMatrixMap param, double[] distribution, Matrix[] matrices, SimulationType type) {
+    public void setMatrixMap(ParamMatrixMap param, double[] distribution, MatrixLegacy[] matrices, SimulationType type) {
         if (this.paramMatrixMaps.get(param).getRight().length == 1) throw new RuntimeException(
-                "This parameter is independant " + "from the simulation type:" + " " + "call setMatrix(Matrix " +
+                "This parameter is independant " + "from the simulation type:" + " " + "call setMatrix(MatrixLegacy " +
                         "matrix)");
         if (distribution.length != matrices.length) throw new RuntimeException(
                 "Inconsistent distribution and " + "matrices lengths! Length " + "dist: " + distribution.length + " " +
                         "length matrices: " + matrices.length);
 
-        this.paramMatrixMaps.get(param).getRight()[type.getIndex()] = new MatrixMap(distribution, matrices);
+        this.paramMatrixMaps.get(param).getRight()[type.getIndex()] = new MatrixMapLegacy(distribution, matrices);
     }
 
     /**

@@ -13,7 +13,7 @@ import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -541,7 +541,7 @@ public class TPS_ParameterClass {
         return this.paramValueClass.getLongValue(param);
     }
 
-    public Matrix getMatrix(ParamMatrix param) {
+    public MatrixLegacy getMatrix(ParamMatrix param) {
         return this.paramMatrixClass.getMatrix(param);
     }
 
@@ -585,7 +585,7 @@ public class TPS_ParameterClass {
 
     /**
      * here follow helper function which are basically calls into the
-     * Param{Flag|Matrix|MatrixMap|Value|String}Class
+     * Param{Flag|MatrixLegacy|MatrixMapLegacy|Value|String}Class
      */
 
     public boolean isDefined(ParamFlag param) {
@@ -732,11 +732,11 @@ public class TPS_ParameterClass {
         this.paramFlagClass.setFlag(param, flag);
     }
 
-    public void setMatrix(ParamMatrix param, Matrix matrix) {
+    public void setMatrix(ParamMatrix param, MatrixLegacy matrix) {
         this.paramMatrixClass.setMatrix(param, matrix);
     }
 
-    public void setMatrix(ParamMatrix param, Matrix matrix, SimulationType simType) {
+    public void setMatrix(ParamMatrix param, MatrixLegacy matrix, SimulationType simType) {
         this.paramMatrixClass.setMatrix(param, matrix, simType);
     }
 

@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
@@ -15,12 +15,12 @@ public class MitTravelTimeFunction implements TravelTimeFunction {
     private final SimulationType simType;
     private final int minDist;
     private final boolean useIntraTazInfo;
-    private final MatrixMap mitTtMatrixMap;
+    private final MatrixMapLegacy mitTtMatrixMap;
     private final double walkBeelineFactor;
     private final double walkVelocity;
-    private final Matrix distanceMatrix;
-    private final MatrixMap mitAccessMatrixMap;
-    private final MatrixMap mitEgressMatrixMap;
+    private final MatrixLegacy distanceMatrix;
+    private final MatrixMapLegacy mitAccessMatrixMap;
+    private final MatrixMapLegacy mitEgressMatrixMap;
 
     public MitTravelTimeFunction(TPS_ParameterClass parameterClass, double walkVelocity){
 

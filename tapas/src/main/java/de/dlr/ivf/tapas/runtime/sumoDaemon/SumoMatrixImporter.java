@@ -15,7 +15,7 @@ import de.dlr.ivf.tapas.misc.Helpers;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class SumoMatrixImporter {
     /**
      * the matrices
      */
-    Matrix travelTime = null, distance = null;
+    MatrixLegacy travelTime = null, distance = null;
     Map<Integer, Integer> tazMap = new HashMap<>();
     /**
      * Constructor for this class.
@@ -108,8 +108,8 @@ public class SumoMatrixImporter {
 
             int numOfTAZ = id;
             //init the matrices
-            travelTime = new Matrix(numOfTAZ, numOfTAZ);
-            distance = new Matrix(numOfTAZ, numOfTAZ);
+            travelTime = new MatrixLegacy(numOfTAZ, numOfTAZ);
+            distance = new MatrixLegacy(numOfTAZ, numOfTAZ);
 
             //get the values
             int chunks = 100;
@@ -177,7 +177,7 @@ public class SumoMatrixImporter {
 
     }
 
-    public void writeMatrix(Matrix matrix, String matrixName) {
+    public void writeMatrix(MatrixLegacy matrix, String matrixName) {
 
         //load the data from the db
         String query = "SELECT * FROM " + config.getMatricesTable().getUri() + " WHERE \"matrix_name\" = '" +

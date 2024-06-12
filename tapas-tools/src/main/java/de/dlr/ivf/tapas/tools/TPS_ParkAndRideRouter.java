@@ -8,11 +8,9 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +22,7 @@ public class TPS_ParkAndRideRouter {
 
     List<IntermodalRoute> connections = new ArrayList<>();
     boolean[] TAZInfo = null;
-    Matrix miv = null, pt = null, walk = null;
+    MatrixLegacy miv = null, pt = null, walk = null;
     int[][] interchangeMatrix = null;
 
     public static void main(String[] args) {
@@ -33,20 +31,20 @@ public class TPS_ParkAndRideRouter {
                 "core.berlin_matrices");
         worker.loadTAZRestriction("Berlin_Umweltzone", "core.berlin_taz_fees_tolls");
         worker.routePnR(300);
-        Matrix pnr = worker.createPandRMatrix();
+        MatrixLegacy pnr = worker.createPandRMatrix();
         worker.storeMatrixInDB(pnr, "Berlin_PNR_TT_1193", "core.berlin_matrices");
         worker.saveInterchangeMatrixInDB("Berlin_PNR_INTERCHANGE_1193", "core.berlin_matrices");
     }
 
-    public Matrix createPandRMatrix() {
+    public MatrixLegacy createPandRMatrix() {
         if (this.TAZInfo == null || this.TAZInfo.length == 0) {
             //nothing to create
             return null;
         }
         int siz = this.TAZInfo.length, pnrRoutes = 0, classicRoutes = 0;
         Map<Integer, Integer> histogram = new HashMap<>();
-        //build Matrix
-        Matrix matrix = new Matrix(siz, siz);
+        //build MatrixLegacy
+        MatrixLegacy matrix = new MatrixLegacy(siz, siz);
         this.interchangeMatrix = new int[siz][siz];
         for (IntermodalRoute route : this.connections) {
             double val = 0;
@@ -120,15 +118,15 @@ public class TPS_ParkAndRideRouter {
      * @param matrixName
      * @param tableName
      */
-    protected Matrix readMatrix(String matrixName, String tableName) {
-        Matrix m = null;
+    protected MatrixLegacy readMatrix(String matrixName, String tableName) {
+        MatrixLegacy m = null;
         String query = "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
 //        try {
 //            ResultSet rs = this.dbCon.executeQuery(query, this);
 //            if (rs.next()) {
 //                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //                int len = (int) Math.sqrt(iArray.length);
-//                m = new Matrix(len, len);
+//                m = new MatrixLegacy(len, len);
 //                for (int index = 0; index < iArray.length; index++) {
 //                    m.setRawValue(index, iArray[index]);
 //                }
@@ -170,8 +168,8 @@ public class TPS_ParkAndRideRouter {
                     newNode.mode = ModeType.PT;
                     newRoute.legs.add(newNode);
                 } else { //source or dest restricted
-                    Matrix source = this.TAZInfo[i] ? this.pt : this.miv; //if restricted use PT
-                    Matrix dest = this.TAZInfo[j] ? this.pt : this.miv; //if restricted use PT
+                    MatrixLegacy source = this.TAZInfo[i] ? this.pt : this.miv; //if restricted use PT
+                    MatrixLegacy dest = this.TAZInfo[j] ? this.pt : this.miv; //if restricted use PT
                     ModeType sourceMode = this.TAZInfo[i] ? ModeType.PT : ModeType.MIT;
                     ModeType destMode = this.TAZInfo[j] ? ModeType.PT : ModeType.MIT;
                     /* ok folks: here we have to do something!
@@ -245,7 +243,7 @@ public class TPS_ParkAndRideRouter {
 //        this.dbCon.execute(query.toString(), this);
     }
 
-    public void storeMatrixInDB(Matrix matrix, String matrixName, String tableName) {
+    public void storeMatrixInDB(MatrixLegacy matrix, String matrixName, String tableName) {
 
         //store into DB
         //delete old entry

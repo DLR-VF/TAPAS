@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.parameter.ParamMatrixMap;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
@@ -11,8 +11,8 @@ import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
  */
 public class AvTravelTimeAdjustment {
 
-    private final MatrixMap mitAccessMatrixMap;
-    private final MatrixMap mitEgressMatrixMap;
+    private final MatrixMapLegacy mitAccessMatrixMap;
+    private final MatrixMapLegacy mitEgressMatrixMap;
     private final double automaticParkingAccess;
     private final double automaticParkingEgress;
 

@@ -15,7 +15,7 @@ import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.parameter.*;
 
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 
 import java.io.*;
 import java.sql.ResultSet;
@@ -738,7 +738,7 @@ public class TPS_VisumConverter {
 //                }
 //
 //                // init matrix map
-//                Matrix[] matrices = new Matrix[numOfMatrices];
+//                MatrixLegacy[] matrices = new MatrixLegacy[numOfMatrices];
 //
 //                // load matrix map
 //                for (int i = 0; i < numOfMatrices; ++i) {
@@ -748,7 +748,7 @@ public class TPS_VisumConverter {
 //                    if (rs.next()) {
 //                        int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //                        int len = (int) Math.sqrt(iArray.length);
-//                        matrices[i] = new Matrix(len, len, sIndex);
+//                        matrices[i] = new MatrixLegacy(len, len, sIndex);
 //                        for (int index = 0; index < iArray.length; index++) {
 //                            matrices[i].setRawValue(index, iArray[index]);
 //                        }
@@ -795,7 +795,7 @@ public class TPS_VisumConverter {
 //                    int size = (int) Math.sqrt(matrixVal.length);
 //                    if (size != this.travelTime.length) {
 //                        TPS_Logger.log(SeverityLogLevel.ERROR,
-//                                "Matrix " + matrixName + " has a different size: " + size + " Expected: " +
+//                                "MatrixLegacy " + matrixName + " has a different size: " + size + " Expected: " +
 //                                        this.travelTime.length);
 //                        return null;
 //                    }
@@ -808,7 +808,7 @@ public class TPS_VisumConverter {
 //                    }
 //                }
 //            } else {
-//                TPS_Logger.log(SeverityLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
+//                TPS_Logger.log(SeverityLogLevel.ERROR, "MatrixLegacy " + matrixName + " does not exist!");
 //            }
 //            rs.close();
 //        } catch (SQLException e) {
@@ -851,7 +851,7 @@ public class TPS_VisumConverter {
      * @param x         First coordinate
      * @param y         Second coordinate
      * @param val       The value to store
-     * @param symmetric Is the Matrix symmetric? Yes: store array[y][x], too.
+     * @param symmetric Is the MatrixLegacy symmetric? Yes: store array[y][x], too.
      */
     private void setValue(double[][] array, int x, int y, double val, boolean symmetric) {
         array[x][y] = val;
@@ -922,7 +922,7 @@ public class TPS_VisumConverter {
      */
     public void writeODMatrices(String outputPath) throws SQLException, IOException {
         this.readMatrix(ParamString.DB_NAME_MATRIX_TT_MIT, ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.SCENARIO, 0);
-        MatrixMap timeDistribution = this.parameterClass.paramMatrixMapClass.getMatrixMap(
+        MatrixMapLegacy timeDistribution = this.parameterClass.paramMatrixMapClass.getMatrixMap(
                 ParamMatrixMap.TRAVEL_TIME_MIT, SimulationType.SCENARIO);
 
         int[] slices = new int[timeDistribution.matrices.length];

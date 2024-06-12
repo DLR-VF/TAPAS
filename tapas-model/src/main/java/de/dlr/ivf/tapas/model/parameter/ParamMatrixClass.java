@@ -11,23 +11,23 @@ package de.dlr.ivf.tapas.model.parameter;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 import org.apache.commons.lang3.tuple.MutablePair;
 
 import java.util.Arrays;
 import java.util.EnumMap;
 
 public class ParamMatrixClass {
-    private final EnumMap<ParamMatrix, MutablePair<ParamType, Matrix[]>> paramMatrix;
+    private final EnumMap<ParamMatrix, MutablePair<ParamType, MatrixLegacy[]>> paramMatrix;
 
 
     ParamMatrixClass() {
         this.paramMatrix = new EnumMap<>(ParamMatrix.class);
-        this.paramMatrix.put(ParamMatrix.DISTANCES_STREET, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
-        this.paramMatrix.put(ParamMatrix.DISTANCES_WALK, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
-        this.paramMatrix.put(ParamMatrix.DISTANCES_BIKE, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
-        this.paramMatrix.put(ParamMatrix.DISTANCES_PT, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
-        this.paramMatrix.put(ParamMatrix.DISTANCES_BL, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
+        this.paramMatrix.put(ParamMatrix.DISTANCES_STREET, new MutablePair<>(ParamType.DEFAULT, new MatrixLegacy[1]));
+        this.paramMatrix.put(ParamMatrix.DISTANCES_WALK, new MutablePair<>(ParamType.DEFAULT, new MatrixLegacy[1]));
+        this.paramMatrix.put(ParamMatrix.DISTANCES_BIKE, new MutablePair<>(ParamType.DEFAULT, new MatrixLegacy[1]));
+        this.paramMatrix.put(ParamMatrix.DISTANCES_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixLegacy[1]));
+        this.paramMatrix.put(ParamMatrix.DISTANCES_BL, new MutablePair<>(ParamType.DEFAULT, new MatrixLegacy[1]));
     }
 
 
@@ -51,7 +51,7 @@ public class ParamMatrixClass {
      * @throws RuntimeException This exception is thrown if the constant
      *                          was not defined
      */
-    public Matrix getMatrix(ParamMatrix param) {
+    public MatrixLegacy getMatrix(ParamMatrix param) {
         int index = 0;
         if (this.paramMatrix.get(param).getRight().length > 1) index = SimulationType.SCENARIO.getIndex();
         if (this.paramMatrix.get(param).getRight()[index] == null) throw new RuntimeException(
@@ -70,7 +70,7 @@ public class ParamMatrixClass {
      *                          or the constant is not simulation type
      *                          dependent
      */
-    public Matrix getMatrix(ParamMatrix param, SimulationType type) {
+    public MatrixLegacy getMatrix(ParamMatrix param, SimulationType type) {
         if (this.paramMatrix.get(param).getRight().length < 2) {
             throw new RuntimeException("Enum-Value is not simulation " + "type" + " dependent: " + this);
         }
@@ -138,11 +138,11 @@ public class ParamMatrixClass {
      * @param param  matrix parameter enum
      * @param matrix new matrix to set
      */
-    public void setMatrix(ParamMatrix param, Matrix matrix) {
+    public void setMatrix(ParamMatrix param, MatrixLegacy matrix) {
         if (this.paramMatrix.get(param).getRight().length > 1) throw new RuntimeException(
                 "Specialise which matrix you set: " + "Choose one Simulation " + "type and call setMatrix" +
-                        "(Matrix " + "matrix, SimulationType " + "type)");
-        Matrix[] m = this.paramMatrix.get(param).getRight();
+                        "(MatrixLegacy " + "matrix, SimulationType " + "type)");
+        MatrixLegacy[] m = this.paramMatrix.get(param).getRight();
         if (m[0] != null) {
             TPS_Logger.log(SeverityLogLevel.DEBUG, "Overwriting existing matrix");
         }
@@ -157,11 +157,11 @@ public class ParamMatrixClass {
      * @param matrix new matrix to set
      * @param type   type of the simulation
      */
-    public void setMatrix(ParamMatrix param, Matrix matrix, SimulationType type) {
+    public void setMatrix(ParamMatrix param, MatrixLegacy matrix, SimulationType type) {
         if (this.paramMatrix.get(param).getRight().length == 1) throw new RuntimeException(
-                "This parameter is independant " + "from the simulation type:" + " " + "call setMatrix(Matrix " +
+                "This parameter is independant " + "from the simulation type:" + " " + "call setMatrix(MatrixLegacy " +
                         "matrix)");
-        Matrix[] m = this.paramMatrix.get(param).getRight();
+        MatrixLegacy[] m = this.paramMatrix.get(param).getRight();
         int index = type.getIndex();
         if (m[index] != null) {
             TPS_Logger.log(SeverityLogLevel.DEBUG, "Overwriting existing matrix");

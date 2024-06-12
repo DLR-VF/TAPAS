@@ -61,7 +61,7 @@ public class TPS_VisumOD2DB  {
 //        worker.storeInDB(args[3], worker.getMatrix(), 0);
 
 
-        System.out.println("Matrix successfully processed!");
+        System.out.println("MatrixLegacy successfully processed!");
 
     }
 

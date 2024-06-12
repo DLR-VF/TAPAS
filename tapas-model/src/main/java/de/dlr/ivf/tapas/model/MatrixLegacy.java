@@ -17,7 +17,7 @@ import java.util.Arrays;
  *
  * @author mark_ma
  */
-public class Matrix {
+public class MatrixLegacy {
 
     /**
      * The matrix is stored in this value distribution.
@@ -47,7 +47,7 @@ public class Matrix {
      *
      * @param n number of rows/columns -> n*n
      */
-    public Matrix(int n) {
+    public MatrixLegacy(int n) {
         this(n, n);
     }
 
@@ -57,7 +57,7 @@ public class Matrix {
      * @param n        number of rows/columns -> n*n
      * @param diagonal flag if you want to create a diagonal matrix
      */
-    public Matrix(int n, boolean diagonal) {
+    public MatrixLegacy(int n, boolean diagonal) {
         this(n, n, diagonal, 0);
     }
 
@@ -68,7 +68,7 @@ public class Matrix {
      * @param diagonal   flag if you want to create a diagonal matrix
      * @param startIndex start index of the first element
      */
-    public Matrix(int n, boolean diagonal, int startIndex) {
+    public MatrixLegacy(int n, boolean diagonal, int startIndex) {
         this(n, n, diagonal, startIndex);
     }
 
@@ -78,7 +78,7 @@ public class Matrix {
      * @param m number of rows
      * @param n number of columns
      */
-    public Matrix(int m, int n) {
+    public MatrixLegacy(int m, int n) {
         this(m, n, 0);
     }
 
@@ -90,7 +90,7 @@ public class Matrix {
      * @param diagonal   flag if you want to create a diagonal matrix
      * @param startIndex start index of the first element
      */
-    private Matrix(int m, int n, boolean diagonal, int startIndex) {
+    private MatrixLegacy(int m, int n, boolean diagonal, int startIndex) {
         this.m = m;
         this.n = n;
         this.sIndex = startIndex;
@@ -106,7 +106,7 @@ public class Matrix {
      * @param n          number of columns
      * @param startIndex start index of the first element
      */
-    public Matrix(int m, int n, int startIndex) {
+    public MatrixLegacy(int m, int n, int startIndex) {
         this(m, n, false, startIndex);
     }
 
@@ -116,7 +116,7 @@ public class Matrix {
      * @param args
      */
     public static void main(String[] args) {
-        Matrix matrix = new Matrix(3, true, 1);
+        MatrixLegacy matrix = new MatrixLegacy(3, true, 1);
         System.out.println(matrix.toString() + "\n");
 
         matrix.setValue(1, 1, 1.11);
@@ -136,8 +136,8 @@ public class Matrix {
     /**
      * This method generates a clone from this matrix.
      */
-    public Matrix clone() {
-        Matrix clone = new Matrix(this.m, this.n, this.sIndex);
+    public MatrixLegacy clone() {
+        MatrixLegacy clone = new MatrixLegacy(this.m, this.n, this.sIndex);
         for (int i = 0; i < this.vals.length; ++i) {
             clone.vals[i] = this.vals[i].clone();
         }
@@ -310,11 +310,11 @@ public class Matrix {
      */
     public enum MatrixPrint {
         /**
-         * Matrix is printed in one line
+         * MatrixLegacy is printed in one line
          */
         LINE,
         /**
-         * Matrix is printed in its m*n shape
+         * MatrixLegacy is printed in its m*n shape
          */
         MATRIX
     }

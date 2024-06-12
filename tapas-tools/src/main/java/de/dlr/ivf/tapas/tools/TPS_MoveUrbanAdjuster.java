@@ -1,9 +1,7 @@
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,8 +9,8 @@ import java.util.Map;
 // Matthias Heinrichs
 public class TPS_MoveUrbanAdjuster {
 
-    Matrix interchanges;
-    Matrix ttTimes;
+    MatrixLegacy interchanges;
+    MatrixLegacy ttTimes;
 
     Map<Integer, Integer> timeMod = new HashMap<>();
     Map<Integer, Integer> interchangeMod = new HashMap<>();
@@ -98,15 +96,15 @@ public class TPS_MoveUrbanAdjuster {
      * @param matrixName
      * @param tableName
      */
-    protected Matrix readMatrix(String matrixName, String tableName) {
-        Matrix m = null;
+    protected MatrixLegacy readMatrix(String matrixName, String tableName) {
+        MatrixLegacy m = null;
         String query = "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
 //        try {
 //            ResultSet rs = this.dbCon.executeQuery(query, this);
 //            if (rs.next()) {
 //                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //                int len = (int) Math.sqrt(iArray.length);
-//                m = new Matrix(len, len);
+//                m = new MatrixLegacy(len, len);
 //                for (int index = 0; index < iArray.length; index++) {
 //                    m.setRawValue(index, iArray[index]);
 //                }
@@ -120,7 +118,7 @@ public class TPS_MoveUrbanAdjuster {
         return m;
     }
 
-    public void saveMatrixInDB(String matrixName, String tableName, Matrix saveObject) {
+    public void saveMatrixInDB(String matrixName, String tableName, MatrixLegacy saveObject) {
         //store into DB
 
         //delete old entry

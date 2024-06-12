@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
@@ -13,15 +13,15 @@ import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
 public class WalkBikeTravelTimeFunction implements TravelTimeFunction {
 
-    private final MatrixMap ttMatrixMap;
-    private final MatrixMap accessMatrixMap;
-    private final MatrixMap egressMatrixMap;
+    private final MatrixMapLegacy ttMatrixMap;
+    private final MatrixMapLegacy accessMatrixMap;
+    private final MatrixMapLegacy egressMatrixMap;
     private final boolean useIntraTazInfo;
     private final TPS_Mode mode;
     private final double minDist;
-    private final Matrix beelineMatrix;
+    private final MatrixLegacy beelineMatrix;
 
-    public WalkBikeTravelTimeFunction(MatrixMap ttMatrixMap, MatrixMap accessMatrixMap, MatrixMap egressMatrixMap,
+    public WalkBikeTravelTimeFunction(MatrixMapLegacy ttMatrixMap, MatrixMapLegacy accessMatrixMap, MatrixMapLegacy egressMatrixMap,
                                       TPS_ParameterClass parameterClass, TPS_Mode mode){
         this.ttMatrixMap = ttMatrixMap;
         this.accessMatrixMap = accessMatrixMap;

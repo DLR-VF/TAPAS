@@ -8,6 +8,7 @@ import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.Collection;
 
@@ -27,11 +28,13 @@ public class CarsFactory {
         this.configuration = configuration;
     }
 
+    @Lazy
     @Bean
     public Collection<CarDto> carDtos(){
         return dbIo.readFromDb(configuration.cars(), CarDto.class, CarDto::new);
     }
 
+    @Lazy
     @Bean
     public Cars initCars(Collection<CarDto> carDtos, FuelTypes fuelTypes){
 
@@ -60,6 +63,7 @@ public class CarsFactory {
         return cars.build();
     }
 
+    @Lazy
     @Bean
     public FuelTypes fuelTypes(){
 
@@ -101,5 +105,4 @@ public class CarsFactory {
         }
         return fuelTypesBuilder.build();
     }
-
 }

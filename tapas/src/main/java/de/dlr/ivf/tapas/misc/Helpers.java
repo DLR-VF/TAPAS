@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.misc;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -13,7 +13,7 @@ public class Helpers {
      * @param decimalPlaces number of decimal places for the string
      * @return
      */
-    public static String matrixToSQLArray(Matrix array, int decimalPlaces) {
+    public static String matrixToSQLArray(MatrixLegacy array, int decimalPlaces) {
         StringBuilder buffer;
         StringBuilder totalBuffer = new StringBuilder("ARRAY[");
         int size = array.getNumberOfColums();

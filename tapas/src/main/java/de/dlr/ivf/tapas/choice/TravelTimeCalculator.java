@@ -8,8 +8,8 @@ import de.dlr.ivf.tapas.choice.traveltime.TravelTimeCalculationVisitor;
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.choice.traveltime.functions.*;
 import de.dlr.ivf.tapas.choice.traveltime.records.TravelContext;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.mode.Modes;
-import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityConstantAttribute;
 import de.dlr.ivf.tapas.model.location.Locatable;
@@ -87,17 +87,17 @@ public class TravelTimeCalculator implements TravelTimeCalculationVisitor {
         modeTravelTimeFunctions.put(modePt, ptTtFunction);
 
         //walk
-        MatrixMap walkTtMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.TRAVEL_TIME_WALK, parameterClass.getSimulationType());
-        MatrixMap walkAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_WALK, parameterClass.getSimulationType());
-        MatrixMap walkEgressMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.EGRESS_WALK, parameterClass.getSimulationType());
+        MatrixMapLegacy walkTtMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.TRAVEL_TIME_WALK, parameterClass.getSimulationType());
+        MatrixMapLegacy walkAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_WALK, parameterClass.getSimulationType());
+        MatrixMapLegacy walkEgressMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.EGRESS_WALK, parameterClass.getSimulationType());
         TravelTimeFunction walkTtFunction = new WalkBikeTravelTimeFunction(walkTtMatrixMap,walkAccessMatrixMap,walkEgressMatrixMap,parameterClass,modeWalk);
         modeTravelTimeFunctions.put(modeWalk, walkTtFunction);
 
         //bike
         TPS_Mode modeBike = modes.getModeByName(ModeType.BIKE.name());
-        MatrixMap bikeTtMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.TRAVEL_TIME_BIKE, parameterClass.getSimulationType());
-        MatrixMap bikeAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_BIKE, parameterClass.getSimulationType());
-        MatrixMap bikeEgressMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.EGRESS_BIKE, parameterClass.getSimulationType());
+        MatrixMapLegacy bikeTtMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.TRAVEL_TIME_BIKE, parameterClass.getSimulationType());
+        MatrixMapLegacy bikeAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_BIKE, parameterClass.getSimulationType());
+        MatrixMapLegacy bikeEgressMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.EGRESS_BIKE, parameterClass.getSimulationType());
         TravelTimeFunction bikeTtFunction = new WalkBikeTravelTimeFunction(bikeTtMatrixMap,bikeAccessMatrixMap,bikeEgressMatrixMap,parameterClass, modeBike);
         modeTravelTimeFunctions.put(modeBike, bikeTtFunction);
 

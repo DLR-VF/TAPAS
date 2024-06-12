@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.choice.distance.functions;
 
 import de.dlr.ivf.tapas.choice.distance.MatrixFunction;
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.parameter.SimulationType;
@@ -10,11 +10,11 @@ public class IndividualTransportDistanceFunction implements MatrixFunction {
 
     private final double minDist;
     private final boolean intraTazInfo;
-    private final Matrix streetDistances;
-    private final Matrix blDistances;
+    private final MatrixLegacy streetDistances;
+    private final MatrixLegacy blDistances;
     private final SimulationType simulationType;
 
-    public IndividualTransportDistanceFunction(double minDist, boolean intraTazInfo, Matrix streetDistances, Matrix blDistances, SimulationType simulationType){
+    public IndividualTransportDistanceFunction(double minDist, boolean intraTazInfo, MatrixLegacy streetDistances, MatrixLegacy blDistances, SimulationType simulationType){
         this.minDist = minDist;
         this.intraTazInfo = intraTazInfo;
         this.streetDistances = streetDistances;

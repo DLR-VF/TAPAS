@@ -8,10 +8,8 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Vector;
 
 
@@ -67,13 +65,13 @@ public class TPS_PTCarInterchangeMatrix  {
     }
 
     public void loadMatrices(String interchangesName, String carAccessName, String carTTName, String carEgressName, String ptAccessName, String ptTTName, String ptEgressName, String tableName) {
-        Matrix Tinterchanges = this.readMatrix(interchangesName, tableName);
-        Matrix TcarAccess = this.readMatrix(carAccessName, tableName);
-        Matrix TcarTT = this.readMatrix(carTTName, tableName);
-        Matrix TcarEgress = this.readMatrix(carEgressName, tableName);
-        Matrix TptAccess = this.readMatrix(ptAccessName, tableName);
-        Matrix TptTT = this.readMatrix(ptTTName, tableName);
-        Matrix TptEgress = this.readMatrix(ptEgressName, tableName);
+        MatrixLegacy Tinterchanges = this.readMatrix(interchangesName, tableName);
+        MatrixLegacy TcarAccess = this.readMatrix(carAccessName, tableName);
+        MatrixLegacy TcarTT = this.readMatrix(carTTName, tableName);
+        MatrixLegacy TcarEgress = this.readMatrix(carEgressName, tableName);
+        MatrixLegacy TptAccess = this.readMatrix(ptAccessName, tableName);
+        MatrixLegacy TptTT = this.readMatrix(ptTTName, tableName);
+        MatrixLegacy TptEgress = this.readMatrix(ptEgressName, tableName);
         size = TptTT.getNumberOfColums();
         interchanges = new double[size][size];
         carAccess = new double[size][size];
@@ -97,15 +95,15 @@ public class TPS_PTCarInterchangeMatrix  {
         numInterchanges = new double[size][size];
     }
 
-    private Matrix readMatrix(String matrixName, String tableName) {
-        Matrix m = null;
+    private MatrixLegacy readMatrix(String matrixName, String tableName) {
+        MatrixLegacy m = null;
         String query = "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
 //        try {
 //            ResultSet rs = this.dbCon.executeQuery(query, this);
 //            if (rs.next()) {
 //                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //                int len = (int) Math.sqrt(iArray.length);
-//                m = new Matrix(len, len);
+//                m = new MatrixLegacy(len, len);
 //                for (int index = 0; index < iArray.length; index++) {
 //                    m.setRawValue(index, iArray[index]);
 //                }

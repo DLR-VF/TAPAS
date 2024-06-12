@@ -1,7 +1,7 @@
 package de.dlr.ivf.scripts;
 
 import de.dlr.ivf.tapas.misc.Helpers;
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,16 +31,16 @@ public class InterCellTrafficImporter {
         return intraCellValues;
     }
 
-    Matrix readMatrix(String name, String table){
+    MatrixLegacy readMatrix(String name, String table){
         String query = "SELECT matrix_values FROM " + table +
                 " WHERE matrix_name='" + name + "'";
 //        ResultSet rs = dbCon.executeQuery(query,this);
-//        Matrix m =null;
+//        MatrixLegacy m =null;
 //        try{
 //            if (rs.next()) {
 //                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //                int len = (int) Math.sqrt(iArray.length);
-//                m= new Matrix(len, len, 0);
+//                m= new MatrixLegacy(len, len, 0);
 //                for (int index = 0; index < iArray.length; index++) {
 //                    m.setRawValue(index, iArray[index]);
 //                }
@@ -50,13 +50,13 @@ public class InterCellTrafficImporter {
 //            e.printStackTrace();
 //        }
 //
-//        System.out.println("Matrix "+name+" read. Size: "+m.getNumberOfColums()+" x "+ m.getNumberOfRows());
+//        System.out.println("MatrixLegacy "+name+" read. Size: "+m.getNumberOfColums()+" x "+ m.getNumberOfRows());
 //
 //        return m;
         return null;
     }
 
-    void setInterCellValues(Matrix target, Map<Integer,Double> diagonalValues, double factor){
+    void setInterCellValues(MatrixLegacy target, Map<Integer,Double> diagonalValues, double factor){
         int minTAZ = Integer.MAX_VALUE;
         //calc the TAZ-offset
         for(Integer key : diagonalValues.keySet()){
@@ -75,11 +75,11 @@ public class InterCellTrafficImporter {
 
     }
 
-    public void saveMatrix(String name, String table, Matrix m){
+    public void saveMatrix(String name, String table, MatrixLegacy m){
 
         String query = "INSERT INTO "+table+" VALUES ('" + name + "', "+ Helpers.matrixToSQLArray(m, 0) + ")";
        // dbCon.execute(query,this);
-        System.out.println("Matrix "+name+" saved.");
+        System.out.println("MatrixLegacy "+name+" saved.");
 
     }
 
@@ -89,7 +89,7 @@ public class InterCellTrafficImporter {
     public static void main(String[] args) {
         String matrixTable="core.berlin_matrices";
         String intraTable = "intra_taz.berlin_out";
-        Matrix m; //will be reused
+        MatrixLegacy m; //will be reused
         InterCellTrafficImporter worker = new InterCellTrafficImporter();
         Map<Integer,Double> intraCellValues = worker.readIntraCellValues(intraTable);
         //distances

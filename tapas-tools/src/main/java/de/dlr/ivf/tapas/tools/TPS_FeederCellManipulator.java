@@ -8,10 +8,7 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
 
 public class TPS_FeederCellManipulator {
@@ -27,15 +24,15 @@ public class TPS_FeederCellManipulator {
 		
 	
 	
-	private Matrix readMatrix( String matrixName, String tableName) {
-		Matrix m = null;
+	private MatrixLegacy readMatrix(String matrixName, String tableName) {
+		MatrixLegacy m = null;
 		String query= "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
 //		try{
 //			ResultSet rs = this.dbCon.executeQuery(query,this);
 //			if (rs.next()) {
 //				int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //				int len = (int) Math.sqrt(iArray.length);
-//				m = new Matrix(len, len);
+//				m = new MatrixLegacy(len, len);
 //				for (int index = 0; index < iArray.length; index++) {
 //					m.setRawValue(index, iArray[index]);
 //				}
@@ -52,8 +49,8 @@ public class TPS_FeederCellManipulator {
 	
 	public void loadAndInitMatrices(String busShareName, String ptTTName, String tableName){
 
-		Matrix busShareM = this.readMatrix(busShareName, tableName);
-		Matrix TptTT = this.readMatrix(ptTTName, tableName);
+		MatrixLegacy busShareM = this.readMatrix(busShareName, tableName);
+		MatrixLegacy TptTT = this.readMatrix(ptTTName, tableName);
 		busShare = new double[busShareM.getNumberOfColums()][busShareM.getNumberOfRows()];
 		ptTT = new double[busShareM.getNumberOfColums()][busShareM.getNumberOfRows()];
 		for(int i=0; i<busShareM.getNumberOfColums(); ++i) {

@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 import de.dlr.ivf.tapas.model.location.TPS_Coordinate;
 
 import java.util.HashMap;
@@ -27,8 +27,8 @@ public class TPS_MainDiagonalLengthEstimator{
 	Map<Integer, Location> tazes = new HashMap<>();
 	Map<Integer, Double> intraTazDist = new HashMap<>();
 	Map<Integer, Double> tazBeeLineFactor = new HashMap<>();
-	Matrix dist;
-	Matrix beeline;
+	MatrixLegacy dist;
+	MatrixLegacy beeline;
 	
 	public void readLocations() {
 		
@@ -80,7 +80,7 @@ public class TPS_MainDiagonalLengthEstimator{
 //
 //				int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //				int len = (int) Math.sqrt(iArray.length);
-//				this.dist = new Matrix(len, len, 0);
+//				this.dist = new MatrixLegacy(len, len, 0);
 //	            for (int index = 0; index < iArray.length; index++) {
 //	            	this.dist.setRawValue(index, iArray[index]);
 //	            }
@@ -176,7 +176,7 @@ public class TPS_MainDiagonalLengthEstimator{
 //			rs.close();
 //
 //			// now calc the beelines
-//			this.beeline= new Matrix(this.tazes.size());
+//			this.beeline= new MatrixLegacy(this.tazes.size());
 //			for(Entry<Integer, Location> e: this.tazes.entrySet()) {
 //				for(Entry<Integer, Location> f: this.tazes.entrySet()) {
 //					double value =Double.MAX_VALUE;;// very high value

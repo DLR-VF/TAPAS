@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * Class for the "edit MatrixMap"-Dialog.
+ * Class for the "edit MatrixMapLegacy"-Dialog.
  * This modal dialog is called by the MatrixMapHandler
  *
  * @author hein_mh
@@ -75,7 +75,7 @@ public class MatrixMapManipulator extends JDialog {
         instance.dbName = dbMatrixMap;
         instance.dbMatrixName = dbMatrix;
         instance.entryName = entry;
-        instance.setTitle("Edit MatrixMap " + instance.entryName);
+        instance.setTitle("Edit MatrixMapLegacy " + instance.entryName);
         instance.matrixAddButton.setEnabled(false);
         instance.loadMatrixList();
         instance.changeMatrixButton.setEnabled(false);
@@ -297,7 +297,7 @@ public class MatrixMapManipulator extends JDialog {
         }
 
         int answer = JOptionPane.showConfirmDialog(this, "Are you sure to delete the selected items?",
-                "Delete " + "matrices from MatrixMap", JOptionPane.YES_NO_OPTION);
+                "Delete " + "matrices from MatrixMapLegacy", JOptionPane.YES_NO_OPTION);
         if (JOptionPane.NO_OPTION == answer) {
             return;
         }
@@ -543,7 +543,7 @@ public class MatrixMapManipulator extends JDialog {
         this.setSize(1024, 710);
         this.setLocation(dim.width / 2 - this.getWidth() / 2, dim.height / 2 - this.getHeight() / 2);
 
-        this.setTitle("Edit MatrixMap");
+        this.setTitle("Edit MatrixMapLegacy");
         this.setContentPane(getMainPanel1());
         this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         this.addWindowListener(new java.awt.event.WindowAdapter() {

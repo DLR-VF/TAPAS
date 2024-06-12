@@ -8,10 +8,8 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.*;
 
 public class TPS_ParkingSpaceAproximator {
@@ -228,8 +226,8 @@ public class TPS_ParkingSpaceAproximator {
         //create the access/egress matrix:
         //Egress: all values TO this cell have the same egress
         //Access: all values FROM this cell have the same access
-        Matrix egressM = new Matrix(this.egress.length);
-        Matrix accessM = new Matrix(this.access.length);
+        MatrixLegacy egressM = new MatrixLegacy(this.egress.length);
+        MatrixLegacy accessM = new MatrixLegacy(this.access.length);
         for (int i = 0; i < this.egress.length; ++i) {
             for (int j = 0; j < this.egress.length; ++j) {
                 egressM.setValue(i, j, this.egress[i]); //same destination (i)

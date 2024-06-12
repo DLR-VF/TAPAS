@@ -10,9 +10,9 @@ package de.dlr.ivf.tapas.iteration;
 
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
@@ -31,9 +31,9 @@ public abstract class TPS_IterationManagement {
      */
     private final TPS_ParameterClass parameterClass;
     /**
-     * An array of MatrixMap for the new travel times
+     * An array of MatrixMapLegacy for the new travel times
      */
-    private final MatrixMap[] newTT = new MatrixMap[TPS_Mode.MODE_TYPE_ARRAY.length];
+    private final MatrixMapLegacy[] newTT = new MatrixMapLegacy[TPS_Mode.MODE_TYPE_ARRAY.length];
     /**
      * Reference to the db connector for establishing SQL connectivity.
      */
@@ -129,7 +129,7 @@ public abstract class TPS_IterationManagement {
     /**
      * @return the newTT
      */
-    public MatrixMap[] getNewTravelTimeMatrix() {
+    public MatrixMapLegacy[] getNewTravelTimeMatrix() {
         return newTT;
     }
 

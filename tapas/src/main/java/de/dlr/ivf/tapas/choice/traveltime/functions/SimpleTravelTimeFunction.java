@@ -1,13 +1,13 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.location.Locatable;
 
 public class SimpleTravelTimeFunction implements TravelTimeFunction {
-    private final MatrixMap matrixMap;
+    private final MatrixMapLegacy matrixMap;
 
-    public SimpleTravelTimeFunction(MatrixMap matrixMap) {
+    public SimpleTravelTimeFunction(MatrixMapLegacy matrixMap) {
         this.matrixMap = matrixMap;
     }
 

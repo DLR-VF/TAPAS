@@ -15,12 +15,12 @@ import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.iteration.TPS_SumoConverter;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.runtime.util.DaemonControlProperties;
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.parameter.CURRENCY;
@@ -254,9 +254,9 @@ public class SumoDaemon extends Thread {
                 .getAbsolutePath() + System.getProperty("file.separator");
     }
 
-    private MatrixMap loadSumoValues(String matrixMap, double weight) {
-        MatrixMap oldM = this.dbIo.readMatrixMap(new DataSource(matrixMap), null, 0);
-        MatrixMap newM = oldM.clone();
+    private MatrixMapLegacy loadSumoValues(String matrixMap, double weight) {
+        MatrixMapLegacy oldM = this.dbIo.readMatrixMap(new DataSource(matrixMap), null, 0);
+        MatrixMapLegacy newM = oldM.clone();
 
         Map<Integer, Integer> tazMap = new HashMap<>();
         ResultSet rs;
@@ -292,7 +292,7 @@ public class SumoDaemon extends Thread {
                 tt = rs.getDouble("tt");
                 if(tt>=0) {
                     timeslot = rs.getDouble("interval_end");
-                    Matrix tmp = newM.getMatrix((int) timeslot);
+                    MatrixLegacy tmp = newM.getMatrix((int) timeslot);
                     weightedTT = tmp.getValue(tazStart, tazEnd) * weightOld + tt * weight; //weight the new value
                     tmp.setValue(tazStart, tazEnd, weightedTT);
                 }
@@ -426,7 +426,7 @@ public class SumoDaemon extends Thread {
                     String mapName = this.parameterClass.getString(ParamString.DB_NAME_MATRIX_TT_MIT);
                     String newName = this.updateStringIter(mapName);
 
-                    MatrixMap mivTT = this.loadSumoValues(mapName, 0.75);
+                    MatrixMapLegacy mivTT = this.loadSumoValues(mapName, 0.75);
                     List<String> matrixNames = this.createNewMatrixMap(mapName, newName);
                     this.saveMatrices(mivTT, matrixNames);
                     this.manager.updateSingleParameter(this.actualKey, "DB_NAME_MATRIX_TT_MIT", newName);
@@ -446,7 +446,7 @@ public class SumoDaemon extends Thread {
         }
     }
 
-    private void saveMatrices(MatrixMap map, List<String> newNames) {
+    private void saveMatrices(MatrixMapLegacy map, List<String> newNames) {
         String table = this.parameterClass.getString(ParamString.DB_TABLE_MATRICES);
         String query;
         for (int i = 0; i < map.matrices.length; ++i) {

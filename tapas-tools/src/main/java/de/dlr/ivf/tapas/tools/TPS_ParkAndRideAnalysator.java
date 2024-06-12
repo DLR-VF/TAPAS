@@ -8,20 +8,18 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class TPS_ParkAndRideAnalysator extends TPS_ParkAndRideRouter {
 
-    Matrix interchanges;
-    Matrix originalMIVTimes = null;
-    Matrix pnrMIVTimes = null;
-    Matrix mivDist = null;
+    MatrixLegacy interchanges;
+    MatrixLegacy originalMIVTimes = null;
+    MatrixLegacy pnrMIVTimes = null;
+    MatrixLegacy mivDist = null;
     Map<Integer, Integer> interchangeCounter = new HashMap<>();
     int timeBinWitdh = 60;
     int distBinWitdh = 120;

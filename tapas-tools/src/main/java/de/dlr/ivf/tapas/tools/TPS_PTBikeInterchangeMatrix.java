@@ -8,10 +8,8 @@
 
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Vector;
 
 
@@ -60,9 +58,9 @@ public class TPS_PTBikeInterchangeMatrix {
     }
 
     public void loadAndInitMatrices(String interchangesName, String bikeTTName, String ptTTName, String tableName) {
-        Matrix Tinterchanges = this.readMatrix(interchangesName, tableName);
-        Matrix TbikeTT = this.readMatrix(bikeTTName, tableName);
-        Matrix TptTT = this.readMatrix(ptTTName, tableName);
+        MatrixLegacy Tinterchanges = this.readMatrix(interchangesName, tableName);
+        MatrixLegacy TbikeTT = this.readMatrix(bikeTTName, tableName);
+        MatrixLegacy TptTT = this.readMatrix(ptTTName, tableName);
         size = TptTT.getNumberOfColums();
         interchanges = new double[size][size];
         bikeTT = new double[size][size];
@@ -79,15 +77,15 @@ public class TPS_PTBikeInterchangeMatrix {
         numInterchanges = new double[size][size];
     }
 
-    private Matrix readMatrix(String matrixName, String tableName) {
-        Matrix m = null;
+    private MatrixLegacy readMatrix(String matrixName, String tableName) {
+        MatrixLegacy m = null;
         String query = "SELECT matrix_values FROM " + tableName + " WHERE matrix_name='" + matrixName + "'";
 //        try {
 //            ResultSet rs = this.dbCon.executeQuery(query, this);
 //            if (rs.next()) {
 //                int[] iArray = TPS_DB_IO.extractIntArray(rs, "matrix_values");
 //                int len = (int) Math.sqrt(iArray.length);
-//                m = new Matrix(len, len);
+//                m = new MatrixLegacy(len, len);
 //                for (int index = 0; index < iArray.length; index++) {
 //                    m.setRawValue(index, iArray[index]);
 //                }

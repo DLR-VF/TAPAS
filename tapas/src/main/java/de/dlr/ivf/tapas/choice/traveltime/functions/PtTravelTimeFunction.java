@@ -1,8 +1,8 @@
 package de.dlr.ivf.tapas.choice.traveltime.functions;
 
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.location.ScenarioTypeValues;
@@ -20,11 +20,11 @@ import de.dlr.ivf.tapas.model.parameter.*;
 public class PtTravelTimeFunction implements TravelTimeFunction {
 
 
-    private final MatrixMap ttMatrixMap;
-    private final Matrix blDistanceMatrix;
+    private final MatrixMapLegacy ttMatrixMap;
+    private final MatrixLegacy blDistanceMatrix;
     private final double minDist;
-    private final MatrixMap arrivalMatrixMap;
-    private final MatrixMap egressMatrixMap;
+    private final MatrixMapLegacy arrivalMatrixMap;
+    private final MatrixMapLegacy egressMatrixMap;
     private final boolean useBlockLevel;
 
     private final int defaultBlockScore;

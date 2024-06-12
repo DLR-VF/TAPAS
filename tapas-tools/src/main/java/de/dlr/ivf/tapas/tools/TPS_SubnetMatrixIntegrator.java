@@ -1,10 +1,8 @@
 package de.dlr.ivf.tapas.tools;
 
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.parameter.ParamString;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -26,8 +24,8 @@ import java.util.TreeSet;
 public class TPS_SubnetMatrixIntegrator {
 
 
-    Matrix subnet;
-    Matrix outernet;
+    MatrixLegacy subnet;
+    MatrixLegacy outernet;
 
     int subOffset =Integer.MAX_VALUE;
     int outerOffset =Integer.MAX_VALUE;
@@ -117,8 +115,8 @@ public class TPS_SubnetMatrixIntegrator {
         }
     }
 
-    public Matrix updateValues(){
-        Matrix result = this.outernet.clone();
+    public MatrixLegacy updateValues(){
+        MatrixLegacy result = this.outernet.clone();
 
         /*
          * Define cordon points:
@@ -164,18 +162,18 @@ public class TPS_SubnetMatrixIntegrator {
         return result;
     }
 
-    public void saveMatrix(String name, Matrix m){
+    public void saveMatrix(String name, MatrixLegacy m){
 
 //        String query = "INSERT INTO "+parameterClass.getString(
 //                ParamString.DB_TABLE_MATRICES)+" VALUES ('" + name + "', "+ TPS_DB_IO.matrixToSQLArray(m, 0) + ")";
 //        dbCon.execute(query,this);
-        System.out.println("Matrix "+name+" saved.");
+        System.out.println("MatrixLegacy "+name+" saved.");
 
     }
 
     /**
      * Method to extract a submatrix from the "outernet" for a given list if tazes.
-     * @param submatrixName the name to store the Matrix in the db
+     * @param submatrixName the name to store the MatrixLegacy in the db
      */
 
     public boolean extractSubmatrix(String submatrixName){
@@ -184,7 +182,7 @@ public class TPS_SubnetMatrixIntegrator {
             return false;
         int a,b;
         a = this.mappingSubnet.size();
-        Matrix result = new Matrix(a,a, this.subOffset);
+        MatrixLegacy result = new MatrixLegacy(a,a, this.subOffset);
         for( Map.Entry<Integer,Integer> inner : this.mappingIndices.entrySet()) {
             a = inner.getValue();
             for (Map.Entry<Integer, Integer> innerB : this.mappingIndices.entrySet()) {
@@ -211,7 +209,7 @@ public class TPS_SubnetMatrixIntegrator {
         String subNetTAZ= "core.berlin_move_urban_taz_1223", subNetName = null;
         subNetName="move_urban_bike_tt_hd";
         worker.loadMatricesAndMappings(subNetName, "BIKE_TT_HD", subNetTAZ);
-        Matrix Result = worker.updateValues();
+        MatrixLegacy Result = worker.updateValues();
         worker.saveMatrix("BIKE_TT_HD_MOVE_URBAN",Result);
 
 

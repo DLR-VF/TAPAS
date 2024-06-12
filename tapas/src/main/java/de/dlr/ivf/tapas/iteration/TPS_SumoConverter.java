@@ -15,9 +15,9 @@ import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.misc.Helpers;
+import de.dlr.ivf.tapas.model.MatrixLegacy;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_Connector;
-import de.dlr.ivf.tapas.model.Matrix;
-import de.dlr.ivf.tapas.model.MatrixMap;
+import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.parameter.CURRENCY;
 import de.dlr.ivf.tapas.model.parameter.ParamString;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
@@ -70,7 +70,7 @@ public class TPS_SumoConverter {
     /**
      * matrix array for the travel times
      */
-    private Matrix[] matrixArray = null;
+    private MatrixLegacy[] matrixArray = null;
     /**
      * matrix array for the counters
      */
@@ -271,14 +271,14 @@ public class TPS_SumoConverter {
     /**
      * @return the matrixArray
      */
-    public Matrix[] getMatrixArray() {
+    public MatrixLegacy[] getMatrixArray() {
         return matrixArray;
     }
 
     /**
      * @param matrixArray the matrixArray to set
      */
-    public void setMatrixArray(Matrix[] matrixArray) {
+    public void setMatrixArray(MatrixLegacy[] matrixArray) {
         this.matrixArray = matrixArray;
     }
 
@@ -316,7 +316,7 @@ public class TPS_SumoConverter {
      * @param oldVals matrix containing the old values
      * @param index   index of the internal matrix containing the new values and return object
      */
-    public void mergeMatrixPair(Matrix oldVals, int index) {
+    public void mergeMatrixPair(MatrixLegacy oldVals, int index) {
         int i, j;
         double oldVal, newVal;
         double error, maxError = 0, minError = 1e100, avgError = 0;
@@ -547,7 +547,7 @@ public class TPS_SumoConverter {
                     int size = (int) Math.sqrt(matrixVal.length);
                     if (size != this.distance.length) {
                         TPS_Logger.log(SeverityLogLevel.ERROR,
-                                "Matrix " + matrixName + " has a different size: " + size + " Expected: " +
+                                "MatrixLegacy " + matrixName + " has a different size: " + size + " Expected: " +
                                         this.distance.length);
                         return null;
                     }
@@ -560,7 +560,7 @@ public class TPS_SumoConverter {
                     }
                 }
             } else {
-                TPS_Logger.log(SeverityLogLevel.ERROR, "Matrix " + matrixName + " does not exist!");
+                TPS_Logger.log(SeverityLogLevel.ERROR, "MatrixLegacy " + matrixName + " does not exist!");
             }
             rs.close();
         } catch (SQLException e) {
@@ -569,7 +569,7 @@ public class TPS_SumoConverter {
         return returnVal;
     }
 
-    public MatrixMap readMatrixMap(ParamString matrixName, List<String> matrixNames) {
+    public MatrixMapLegacy readMatrixMap(ParamString matrixName, List<String> matrixNames) {
         String query = "";
         ResultSet rs = null;
         try {
@@ -596,7 +596,7 @@ public class TPS_SumoConverter {
                 }
 
                 // init matrix map
-                Matrix[] matrices = new Matrix[numOfMatrices];
+                MatrixLegacy[] matrices = new MatrixLegacy[numOfMatrices];
 
                 // load matrix map
                 for (int i = 0; i < numOfMatrices; ++i) {
@@ -607,7 +607,7 @@ public class TPS_SumoConverter {
                     if (rs.next()) {
                         int[] iArray = SqlArrayUtils.extractIntArray(rs, "matrix_values");
                         int len = (int) Math.sqrt(iArray.length);
-                        matrices[i] = new Matrix(len, len);
+                        matrices[i] = new MatrixLegacy(len, len);
                         for (int index = 0; index < iArray.length; index++) {
                             matrices[i].setRawValue(index, iArray[index]);
                         }
@@ -620,7 +620,7 @@ public class TPS_SumoConverter {
                         return null;
                     }
                 }
-                return new MatrixMap(thisDistribution, matrices);
+                return new MatrixMapLegacy(thisDistribution, matrices);
             }
         } catch (SQLException e) {
             TPS_Logger.log(SeverityLogLevel.FATAL,
@@ -653,10 +653,10 @@ public class TPS_SumoConverter {
      * This method stores the given matrix with the given key in the db
      *
      * @param matrixName    the key for this matrix
-     * @param mat           the Matrix to store
+     * @param mat           the MatrixLegacy to store
      * @param decimalPlaces the number of decimal placed, curently only 0 is supported!
      */
-    public void storeInDB(String matrixName, Matrix mat, int decimalPlaces) {
+    public void storeInDB(String matrixName, MatrixLegacy mat, int decimalPlaces) {
         if (decimalPlaces != 0) {
             if (TPS_Logger.isLogging(SeverityLogLevel.WARN)) {
                 TPS_Logger.log(SeverityLogLevel.WARN,

@@ -37,7 +37,7 @@ public class TPS_VisumToDB {
          */
 
         if (worker.checkMatrixName(matrixName)) {
-            System.out.print("Matrix " + matrixName + " already exists. Overwrite? (y/n) ");
+            System.out.print("MatrixLegacy " + matrixName + " already exists. Overwrite? (y/n) ");
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             String answer = "";
             try {
