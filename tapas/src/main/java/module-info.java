@@ -40,4 +40,5 @@ module de.dlr.ivf.tapas {
     exports de.dlr.ivf.tapas.configuration.json.modechoice to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.agent to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.region to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.region.matrix to com.fasterxml.jackson.databind;
 }

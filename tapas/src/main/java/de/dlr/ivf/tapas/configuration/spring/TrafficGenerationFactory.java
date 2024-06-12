@@ -14,17 +14,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class TrafficGenerationFactory {
 
-    private final TrafficGenerationConfiguration configuration;
-
     private final TPS_DB_IO dbIo;
 
     @Autowired
-    public TrafficGenerationFactory(TPS_DB_IO dbIo, TrafficGenerationConfiguration configuration) {
-        this.configuration = configuration;
+    public TrafficGenerationFactory(TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
     }
-
-
 
     @Bean(name = "personGroupTrafficGeneration")
     public PersonGroupTrafficGeneration createTrafficGeneration() {
@@ -33,7 +28,7 @@ public class TrafficGenerationFactory {
 
 
     @Bean
-    public SchemeProviderConfiguration schemeProviderConfiguration(){
+    public SchemeProviderConfiguration schemeProviderConfiguration(TrafficGenerationConfiguration configuration){
         return configuration.schemeProviderConfiguration();
     }
 }

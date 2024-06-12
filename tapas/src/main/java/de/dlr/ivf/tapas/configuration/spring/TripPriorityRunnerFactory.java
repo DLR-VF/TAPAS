@@ -12,25 +12,17 @@ import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.Map;
 
 @Configuration
 public class TripPriorityRunnerFactory {
 
-    //private final TrafficGeneration<?> trafficGeneration;
-    private final TripPriorityRunnerConfiguration configuration;
-
-    @Autowired
-    public TripPriorityRunnerFactory(TripPriorityRunnerConfiguration configuration){
-        //this.trafficGeneration = trafficGeneration;
-        this.configuration = configuration;
+    @Bean
+    public ModeChoiceConfiguration modeChoiceConfiguration(TripPriorityRunnerConfiguration configuration){
+        return configuration.modeChoiceConfiguration();
     }
-
-//    @Bean
-//    public ModeChoiceConfiguration modeChoiceConfiguration(){
-//        return configuration.modeChoiceConfiguration();
-//    }
 
 //    @Bean
 //    public HouseholdProcessor householdProcessor(){

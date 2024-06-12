@@ -18,23 +18,16 @@ import de.dlr.ivf.api.io.configuration.Filter;
 import de.dlr.ivf.api.io.conversion.ResultSetConverter;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.legacy.*;
-import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeBuilder;
 import de.dlr.ivf.tapas.model.*;
-import de.dlr.ivf.tapas.model.constants.*;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.*;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.TPS_ModeCodeType;
-import de.dlr.ivf.tapas.model.mode.Modes.ModesBuilder;
 import de.dlr.ivf.tapas.model.vehicle.CarFleetManager.CarFleetManagerBuilder;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.model.vehicle.*;
 import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
@@ -250,7 +243,7 @@ public class TPS_DB_IO {
 
         //beeline dist
         logger.log(Level.INFO, "Calculate beeline distances distances.");
-        Matrix bl = new Matrix(trafficAnalysisZones.size(), trafficAnalysisZones.size(),
+        MatrixLegacy bl = new MatrixLegacy(trafficAnalysisZones.size(), trafficAnalysisZones.size(),
                 sIndex);
         Collection<TPS_TrafficAnalysisZone> sortedTaz = trafficAnalysisZones.stream().sorted(Comparator.comparing(TPS_TrafficAnalysisZone::getTAZId)).toList();
         for (TPS_TrafficAnalysisZone tazfrom : sortedTaz) {
@@ -458,7 +451,7 @@ public class TPS_DB_IO {
     private void readMatrix(DataSource matrixDs, Filter filter, ParamMatrix matrix, SimulationType simType, int sIndex){
 
         logger.log(Level.INFO, "Loading " + matrix);
-        Matrix m = readMatrix(matrixDs, filter, sIndex);
+        MatrixLegacy m = readMatrix(matrixDs, filter, sIndex);
 
         if (simType != null)
             this.parameters.setMatrix(matrix, m, simType);
@@ -474,7 +467,7 @@ public class TPS_DB_IO {
 
     public void readMatrixMap(DataSource matrixMapDs, Filter filter, ParamMatrixMap matrixMap, SimulationType simType, int sIndex){
 
-        MatrixMap m = readMatrixMap(matrixMapDs, filter, sIndex);
+        MatrixMapLegacy m = readMatrixMap(matrixMapDs, filter, sIndex);
 
         if (simType != null) parameters.paramMatrixMapClass.setMatrixMap(matrixMap, m, simType);
         else parameters.paramMatrixMapClass.setMatrixMap(matrixMap, m);
@@ -486,9 +479,9 @@ public class TPS_DB_IO {
      *
      * @param matrixMapDs the name in the db
      * @param sIndex     the matrixmap  to store in
-     * @return the loaded MatrixMap
+     * @return the loaded MatrixMapLegacy
      */
-    public MatrixMap readMatrixMap(DataSource matrixMapDs, Filter filter, int sIndex) {
+    public MatrixMapLegacy readMatrixMap(DataSource matrixMapDs, Filter filter, int sIndex) {
 
         //read the matrix map from db
         Connection connection = connectionSupplier.borrowObject();
@@ -520,7 +513,7 @@ public class TPS_DB_IO {
         }
 
         //init matrix map
-        Matrix[] matrices = new Matrix[numOfMatrices];
+        MatrixLegacy[] matrices = new MatrixLegacy[numOfMatrices];
         //load matrix map
         for (int i = 0; i < numOfMatrices; ++i) {
 
@@ -542,7 +535,7 @@ public class TPS_DB_IO {
                                 ": No such matrix.");
             }
         }
-        return new MatrixMap(matrixDistributions, matrices);
+        return new MatrixMapLegacy(matrixDistributions, matrices);
     }
 
     /**
@@ -550,7 +543,7 @@ public class TPS_DB_IO {
      * @param sIndex the indexoffset of the matrix
      * @return the matrix or null, if nothing is found in the DB
      */
-    public Matrix readMatrix(DataSource matrixDs, Filter filter,  int sIndex) {
+    public MatrixLegacy readMatrix(DataSource matrixDs, Filter filter, int sIndex) {
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
 
@@ -573,13 +566,24 @@ public class TPS_DB_IO {
         int[] matrixValues = matrix.getMatrix();
         int len = (int) Math.sqrt(matrixValues.length);
 
-        Matrix returnVal = new Matrix(len, len, sIndex);
+        MatrixLegacy returnVal = new MatrixLegacy(len, len, sIndex);
 
         for (int index = 0; index < matrixValues.length; index++) {
             returnVal.setRawValue(index, matrixValues[index]);
         }
 
         return  returnVal;
+    }
+
+
+    public <T> T validateSingleResultAndGetOrThrow(Collection<T> items){
+
+        if(items.size() > 1)
+            throw new IllegalArgumentException("The provided Collection contains more than one item.");
+
+        return items.stream()
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("The provided Collection is empty."));
     }
     /**
      * This method reads the mode choice tree used for the pivot-point model.
@@ -710,8 +714,9 @@ public class TPS_DB_IO {
     public <T> Collection<T> readFromDb(FilterableDataSource dataSource, Class<T> targetClass, Supplier<T> objectFactory){
 
         LocalTime startTime = LocalTime.now();
+        Filter filter = dataSource.filterBy();
 
-        logger.log(Level.INFO,"Reading : "+dataSource.uri());
+        logger.log(Level.INFO,"Reading: {0} = {1} from {2}", filter.column(), filter.value(), dataSource.uri());
 
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
@@ -720,7 +725,9 @@ public class TPS_DB_IO {
 
         connectionSupplier.returnObject(connection);
 
-        logger.log(Level.INFO, "Finished reading: "+dataSource.uri()+" with "+result.size()+" entries in "+ Duration.between(startTime, LocalTime.now()).toMillis()+" milliseconds.");
+
+        logger.log(Level.INFO, "Finished reading: {0} with {1} entries in {2} milliseconds.",
+                dataSource.uri(), result.size(), Duration.between(startTime, LocalTime.now()).toMillis());
 
         return result;
 
@@ -730,14 +737,15 @@ public class TPS_DB_IO {
 
         LocalTime startTime = LocalTime.now();
 
-        logger.log(Level.INFO,"Reading : "+dataSource.getUri());
+        logger.log(Level.INFO,"Reading: "+dataSource.getUri());
 
         Connection connection = connectionSupplier.borrowObject();
         DataReader<ResultSet> reader = DataReaderFactory.newJdbcReader(connection);
         Collection<T> result = reader.read(new ResultSetConverter<>(new ColumnToFieldMapping<>(targetClass), objectFactory), dataSource);
         connectionSupplier.returnObject(connection);
 
-        logger.log(Level.INFO, "Finished reading: "+dataSource.getUri()+" with "+result.size()+" entries in "+Duration.between(startTime, LocalTime.now()).toMillis()+" milliseconds.");
+        logger.log(Level.INFO, "Finished reading: {0} with {1} entries in {2} milliseconds.",
+                dataSource.getUri(), result.size(), Duration.between(startTime, LocalTime.now()).toMillis());
         return result;
     }
 

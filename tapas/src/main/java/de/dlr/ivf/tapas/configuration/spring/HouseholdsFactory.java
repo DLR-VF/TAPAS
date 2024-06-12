@@ -49,6 +49,7 @@ public class HouseholdsFactory {
      * @param memberOrder            The Comparator object defining the order in which members of a household are sorted.
      * @return A collection of TPS_Household objects.
      */
+    @Lazy
     @Bean
     public Collection<TPS_Household> households(Collection<HouseholdDto> householdDtos,
                                                 Map<Integer, Collection<TPS_Person>> personsByHouseholdId,
@@ -106,6 +107,7 @@ public class HouseholdsFactory {
      * @param converter    The converter used to convert PersonDto objects to TPS_Person objects.
      * @return A map where the keys are household IDs and the values are collections of TPS_Person objects.
      */
+    @Lazy
     @Bean
     public Map<Integer, Collection<TPS_Person>> personsByHouseholdId(Collection<PersonDto> personDtos, PersonDtoToPersonConverter converter){
 
@@ -120,6 +122,7 @@ public class HouseholdsFactory {
      * @param personGroups The PersonGroups object used for mapping person group information.
      * @return the converter that converts {@link PersonDto} to {@link TPS_Person} objects.
      */
+    @Lazy
     @Bean
     public PersonDtoToPersonConverter personDtoToPersonConverter(AgeClasses ageClasses, PersonGroups personGroups){
         return new PersonDtoToPersonConverter(
@@ -136,6 +139,7 @@ public class HouseholdsFactory {
      *
      * @return A collection of AgeClassDto objects.
      */
+    @Lazy
     @Bean
     public Collection<AgeClassDto> ageClassDtos(){
         return dbIo.readFromDb(householdConfiguration.ageClasses(), AgeClassDto.class, AgeClassDto::new);
@@ -147,6 +151,7 @@ public class HouseholdsFactory {
      * @param ageClassDtos The collection of AgeClassDto objects used to build the AgeClasses.
      * @return The constructed AgeClasses object.
      */
+    @Lazy
     @Bean
     public AgeClasses ageClasses(Collection<AgeClassDto> ageClassDtos){
         AgeClasses.AgeClassesBuilder ageClasses = AgeClasses.builder();
@@ -178,6 +183,7 @@ public class HouseholdsFactory {
      *
      * @return The {@link CarsConfiguration} object that represents the configuration for cars.
      */
+    @Lazy
     @Bean
     public CarsConfiguration carsConfiguration(){
         return householdConfiguration.carsConfiguration();
@@ -200,6 +206,7 @@ public class HouseholdsFactory {
      *
      * @return A collection of IncomeDto objects.
      */
+    @Lazy
     @Bean
     public Collection<IncomeDto> incomeDtos(){
         return dbIo.readFromDb(householdConfiguration.incomeClasses(), IncomeDto.class, IncomeDto::new);

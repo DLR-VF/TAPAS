@@ -1,8 +1,6 @@
 package de.dlr.ivf.tapas.configuration.spring;
 
 import de.dlr.ivf.tapas.configuration.json.region.ExtendedTrafficAnalysisZoneConfiguration;
-import de.dlr.ivf.tapas.configuration.json.region.SimpleTrafficAnalysisZoneConfiguration;
-import de.dlr.ivf.tapas.configuration.json.region.TrafficAnalysisZoneConfiguration;
 import de.dlr.ivf.tapas.dto.*;
 import de.dlr.ivf.tapas.model.ActivityAndLocationCodeMapping;
 import de.dlr.ivf.tapas.model.location.TPS_Coordinate;
@@ -30,32 +28,10 @@ import static java.util.stream.Collectors.*;
 public class TrafficAnalysisZonesFactory {
 
     private final TPS_DB_IO dbIo;
-    private final TrafficAnalysisZoneConfiguration configuration;
 
     @Autowired
-    public TrafficAnalysisZonesFactory(TPS_DB_IO dbIo, @Qualifier("trafficAnalysisZoneConfiguration") TrafficAnalysisZoneConfiguration configuration) {
+    public TrafficAnalysisZonesFactory(TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
-        this.configuration = configuration;
-    }
-
-    @Lazy
-    @Bean(name = "simpleTrafficAnalysisZoneConfiguration")
-    public SimpleTrafficAnalysisZoneConfiguration simpleTrafficAnalysisZoneConfiguration(){
-        if(configuration instanceof SimpleTrafficAnalysisZoneConfiguration tazConfig){
-            return tazConfig;
-        }
-
-        throw new IllegalArgumentException("TrafficAnalysisConfiguration is not a SimpleTrafficAnalysisZoneConfiguration");
-    }
-
-    @Lazy
-    @Bean(name = "extendedTrafficAnalysisZoneConfiguration")
-    public ExtendedTrafficAnalysisZoneConfiguration extendedTrafficAnalysisZoneConfiguration(){
-        if(configuration instanceof ExtendedTrafficAnalysisZoneConfiguration tazConfig){
-            return tazConfig;
-        }
-
-        throw new IllegalArgumentException("TrafficAnalysisConfiguration is not a ExtendedTrafficAnalysisZoneConfiguration");
     }
 
     @Lazy
@@ -136,5 +112,4 @@ public class TrafficAnalysisZonesFactory {
     public Collection<TazFeesAndTollsDto> tazFeesAndTollsDtos(@Qualifier("extendedTrafficAnalysisZoneConfiguration") ExtendedTrafficAnalysisZoneConfiguration config){
         return dbIo.readFromDb(config.feesAndTolls(), TazFeesAndTollsDto.class, TazFeesAndTollsDto::new);
     }
-
 }

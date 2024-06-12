@@ -74,12 +74,136 @@
       }
     },
     "matrixConfiguration" :{
-      "matrices" : {
-        "uri" : "berlin_matrices"
+      "matricesSource" : {
+        "uri" : "core.berlin_matrices"
       },
-      "matrixMapConfiguration" : {
-
-      }
+      "matrixMaps" : [
+        {
+          "name" : "CAR_TRAVEL_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CAR_TT"
+            }
+          ]
+        },
+        {
+          "name" : "CAR_ACCESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CONST_2MIN"
+            }
+          ]
+        },
+        {
+          "name" : "CAR_EGRESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CONST_2MIN"
+            },
+            {
+              "fromTime" : 420,
+              "matrixName" : "CONST_5MIN"
+            },
+            {
+              "fromTime" : 1020,
+              "matrixName" : "CONST_2MIN"
+            }
+          ]
+        },
+        {
+          "name" : "BIKE_TRAVEL_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "BIKE_TT"
+            }
+          ]
+        },
+        {
+          "name" : "BIKE_ACCESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CONST_2MIN"
+            }
+          ]
+        },
+        {
+          "name" : "BIKE_EGRESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CONST_2MIN"
+            }
+          ]
+        },
+        {
+          "name" : "PT_TRAVEL_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "PT_TT"
+            }
+          ]
+        },
+        {
+          "name" : "PT_ACCESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "PT_ACCESS"
+            }
+          ]
+        },
+        {
+          "name" : "PT_EGRESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "PT_EGRESS"
+            }
+          ]
+        },
+        {
+          "name" : "PT_TRANSFER_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "PT_TRANSFERS"
+            }
+          ]
+        },
+        {
+          "name" : "WALK_TRAVEL_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "WALK_TT"
+            }
+          ]
+        },
+        {
+          "name" : "WALK_ACCESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CONST_0MIN"
+            }
+          ]
+        },
+        {
+          "name" : "WALK_EGRESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CONST_0MIN"
+            }
+          ]
+        }
+      ]
     }
   },
   "householdConfiguration" : {

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.dlr.ivf.api.io.configuration.DataSource;
 import de.dlr.ivf.api.io.configuration.FilterableDataSource;
+import de.dlr.ivf.tapas.configuration.json.region.matrix.MatrixConfiguration;
 
 /**
  * The RegionConfiguration class represents the configuration settings for a region.

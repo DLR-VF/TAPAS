@@ -59,7 +59,8 @@ public class TapasLauncher{
                     LocationChoiceModelFactory.class,
                     //ModeChoiceModelFactory.class,
                     TripPriorityRunnerFactory.class,
-                    SchemeSetFactory.class
+                    SchemeSetFactory.class,
+                    MatrixFactory.class
             );
 
             applicationContext.refresh();
@@ -70,6 +71,8 @@ public class TapasLauncher{
             String simulationRunnerName = tapasConfig.getSimulationRunnerToUse();
 
             SimulationRunner runner = applicationContext.getBean(simulationRunnerName, SimulationRunner.class);
+            //SchemeProvider schemeProvider = applicationContext.getBean("schemeProvider", SchemeProvider.class);
+            //Map<String, MatrixMap> matrixMaps  = applicationContext.getBean("matrixMaps", Map.class);
             logger.log(Level.INFO, "Launching simulation...");
             Thread t = new Thread(runner, "SimulationThread");
             t.start();

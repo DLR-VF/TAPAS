@@ -1,8 +1,7 @@
 package de.dlr.ivf.tapas.configuration.spring;
 
-import de.dlr.ivf.tapas.configuration.json.region.LocationConfiguration;
-import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
-import de.dlr.ivf.tapas.configuration.json.region.TrafficAnalysisZoneConfiguration;
+import de.dlr.ivf.tapas.configuration.json.region.*;
+import de.dlr.ivf.tapas.configuration.json.region.matrix.MatrixConfiguration;
 import de.dlr.ivf.tapas.dto.ActivityToLocationDto;
 import de.dlr.ivf.tapas.dto.DistanceCodeDto;
 import de.dlr.ivf.tapas.model.ActivityAndLocationCodeMapping;
@@ -23,24 +22,42 @@ import java.util.Collection;
 public class RegionFactory {
 
     private final TPS_DB_IO dbIo;
-    private final RegionConfiguration configuration;
 
 
     @Autowired
-    public RegionFactory(TPS_DB_IO dbIo, RegionConfiguration configuration) {
+    public RegionFactory(TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
-        this.configuration = configuration;
     }
 
     @Lazy
     @Bean(name = "trafficAnalysisZoneConfiguration")
-    public TrafficAnalysisZoneConfiguration getTrafficAnalysisZoneConfiguration() {
+    public TrafficAnalysisZoneConfiguration getTrafficAnalysisZoneConfiguration(RegionConfiguration configuration) {
         return configuration.trafficAnalysisZoneConfiguration();
     }
 
     @Lazy
+    @Bean(name = "simpleTrafficAnalysisZoneConfiguration")
+    public SimpleTrafficAnalysisZoneConfiguration simpleTrafficAnalysisZoneConfiguration(RegionConfiguration configuration){
+        if(configuration.trafficAnalysisZoneConfiguration() instanceof SimpleTrafficAnalysisZoneConfiguration tazConfig){
+            return tazConfig;
+        }
+
+        throw new IllegalArgumentException("TrafficAnalysisConfiguration is not a SimpleTrafficAnalysisZoneConfiguration");
+    }
+
+    @Lazy
+    @Bean(name = "extendedTrafficAnalysisZoneConfiguration")
+    public ExtendedTrafficAnalysisZoneConfiguration extendedTrafficAnalysisZoneConfiguration(RegionConfiguration configuration){
+        if(configuration.trafficAnalysisZoneConfiguration() instanceof ExtendedTrafficAnalysisZoneConfiguration tazConfig){
+            return tazConfig;
+        }
+
+        throw new IllegalArgumentException("TrafficAnalysisConfiguration is not a ExtendedTrafficAnalysisZoneConfiguration");
+    }
+
+    @Lazy
     @Bean
-    public LocationConfiguration locationConfiguration(){
+    public LocationConfiguration locationConfiguration(RegionConfiguration configuration){
         return configuration.locationConfiguration();
     }
 
@@ -62,6 +79,12 @@ public class RegionFactory {
 
     @Lazy
     @Bean
+    public MatrixConfiguration matrixConfiguration(RegionConfiguration configuration){
+        return configuration.matrixConfiguration();
+    }
+
+    @Lazy
+    @Bean
     public DistanceClasses distanceClasses(Collection<DistanceCodeDto> distanceCodeDtos){
         DistanceClasses.DistanceClassesBuilder distanceClassesBuilder = DistanceClasses.builder();
 
@@ -77,13 +100,13 @@ public class RegionFactory {
 
     @Lazy
     @Bean
-    public Collection<ActivityToLocationDto> activityToLocationDtos(){
+    public Collection<ActivityToLocationDto> activityToLocationDtos(RegionConfiguration configuration){
         return dbIo.readFromDb(configuration.activityToLocationsMapping(), ActivityToLocationDto.class, ActivityToLocationDto::new);
     }
 
     @Lazy
     @Bean
-    public Collection<DistanceCodeDto> distanceCodeDtos(){
+    public Collection<DistanceCodeDto> distanceCodeDtos(RegionConfiguration configuration){
         return dbIo.readFromDb(configuration.distanceClasses(), DistanceCodeDto.class, DistanceCodeDto::new);
     }
 

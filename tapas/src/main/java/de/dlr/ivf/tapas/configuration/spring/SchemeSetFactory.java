@@ -24,17 +24,17 @@ import static java.util.stream.Collectors.*;
 public class SchemeSetFactory {
 
     private final TPS_DB_IO dbIo;
-    private final SchemeProviderConfiguration configuration;
 
     @Autowired
-    public SchemeSetFactory(TPS_DB_IO dbIo, SchemeProviderConfiguration configuration){
+    public SchemeSetFactory(TPS_DB_IO dbIo){
         this.dbIo = dbIo;
-        this.configuration = configuration;
     }
 
+    @Lazy
     @Bean
-    public SchemeProvider schemeProvider(Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup,
-                                  PersonGroups personGroups){
+    public SchemeProvider schemeProvider(SchemeProviderConfiguration configuration,
+                                         Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup,
+                                         PersonGroups personGroups){
 
         DiscreteDistributionFactory<SchemeClass> distributionFactory = new DiscreteDistributionFactory<>();
 
@@ -58,6 +58,7 @@ public class SchemeSetFactory {
         return new SchemeProvider(schemeClassDistributions, schemeClassChoiceModel, schemeChoiceModel);
     }
 
+    @Lazy
     @Bean
     public Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup(
             Collection<SchemeClassDistributionDto> schemeClassDistributionDtos,
@@ -73,9 +74,11 @@ public class SchemeSetFactory {
                                 )));
     }
 
+    @Lazy
     @Bean
-    public Map<Integer, SchemeClass> schemeClasses(Collection<SchemeClassDto> schemeClassDtos,
-                                                 Map<Integer, List<Scheme>> schemesByClassId) {
+    public Map<Integer, SchemeClass> schemeClasses(SchemeProviderConfiguration configuration,
+                                                   Collection<SchemeClassDto> schemeClassDtos,
+                                                   Map<Integer, List<Scheme>> schemesByClassId) {
 
         Map<Integer, SchemeClass> schemeClasses = new HashMap<>(schemeClassDtos.size());
 
@@ -94,6 +97,7 @@ public class SchemeSetFactory {
         return schemeClasses;
     }
 
+    @Lazy
     @Bean
     public Map<Integer, List<Scheme>> schemesByClassID(Collection<SchemeDto> schemeDtos,
                                                              Map<Integer, Collection<Tour>> toursBySchemeId){
@@ -103,8 +107,11 @@ public class SchemeSetFactory {
                 .collect(groupingBy(Scheme::schemeClassId, toList()));
     }
 
+    @Lazy
     @Bean
-    public Map<Integer, Collection<Tour>> toursBySchemeId(Collection<EpisodeDto> episodeDtos, Activities activities){
+    public Map<Integer, Collection<Tour>> toursBySchemeId(SchemeProviderConfiguration configuration,
+                                                          Collection<EpisodeDto> episodeDtos,
+                                                          Activities activities){
 
         Map<Integer, Collection<EpisodeDto>> episodesBySchemeId = episodeDtos
                 .stream()
@@ -116,7 +123,8 @@ public class SchemeSetFactory {
 
             int schemeId = entry.getKey();
             Collection<EpisodeDto> episodesInScheme = entry.getValue();
-            Collection<Tour> tours = generateToursFromEpisodes(episodesInScheme, activities, configuration.tripActivityCode());
+            Collection<Tour> tours = generateToursFromEpisodes(configuration.timeSlotLength(), episodesInScheme,
+                    activities, configuration.tripActivityCode());
 
             toursBySchemeId.put(schemeId, tours);
         }
@@ -124,7 +132,9 @@ public class SchemeSetFactory {
         return toursBySchemeId;
     }
 
-    public Collection<Tour> generateToursFromEpisodes(Collection<EpisodeDto> episodes, Activities activities, int tripActivityCode) {
+    public Collection<Tour> generateToursFromEpisodes(int timeSlotLength,
+                                                      Collection<EpisodeDto> episodes,
+                                                      Activities activities, int tripActivityCode) {
 
         List<EpisodeDto> sortedEpisodesInScheme = episodes
                 .stream()
@@ -147,7 +157,7 @@ public class SchemeSetFactory {
             int tripPriority = activities.getActivity(TPS_ActivityConstant.TPS_ActivityCodeType.ZBE, endStay.activity())
                     .getCode(TPS_ActivityConstant.TPS_ActivityCodeType.PRIORITY);
 
-            Trip trip = new Trip(startStay, endStay, tripEpisode.getStart(), tripEpisode.getDuration() * configuration.timeSlotLength(), tripPriority);
+            Trip trip = new Trip(startStay, endStay, tripEpisode.getStart(), tripEpisode.getDuration() * timeSlotLength, tripPriority);
 
             int tourNumber = tripEpisode.getTourNumber();
             toursByTourId.computeIfAbsent(tourNumber, tourId -> new Tour(tourId,new HashSet<>())).addTrip(trip);
@@ -226,6 +236,7 @@ public class SchemeSetFactory {
      * @param personCodeDtos A collection of PersonCodeDto objects containing information about each person group.
      * @return The created PersonGroups object.
      */
+    @Lazy
     @Bean
     public PersonGroups personGroups(Collection<PersonCodeDto> personCodeDtos){
 
@@ -252,32 +263,37 @@ public class SchemeSetFactory {
 
     @Lazy
     @Bean
-    public Collection<ActivityDto> activityDtos(){
+    public Collection<ActivityDto> activityDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.activities(), ActivityDto.class, ActivityDto::new);
     }
 
+    @Lazy
     @Bean
-    public Collection<SchemeDto> schemeDtos(){
+    public Collection<SchemeDto> schemeDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.schemes(), SchemeDto.class, SchemeDto::new);
     }
 
+    @Lazy
     @Bean
-    public Collection<SchemeClassDto> schemeClassDtos(){
+    public Collection<SchemeClassDto> schemeClassDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.schemeClasses(), SchemeClassDto.class, SchemeClassDto::new);
     }
 
+    @Lazy
     @Bean
-    public Collection<EpisodeDto> episodeDtos(){
+    public Collection<EpisodeDto> episodeDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.episodes(), EpisodeDto.class, EpisodeDto::new);
     }
 
+    @Lazy
     @Bean
-    public Collection<SchemeClassDistributionDto> schemeClassDistributionDtos(){
+    public Collection<SchemeClassDistributionDto> schemeClassDistributionDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.schemeClassDistributions(), SchemeClassDistributionDto.class, SchemeClassDistributionDto::new);
     }
 
+    @Lazy
     @Bean
-    public Collection<PersonCodeDto> personCodeDtos(){
+    public Collection<PersonCodeDto> personCodeDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.personGroups(), PersonCodeDto.class, PersonCodeDto::new);
     }
 }

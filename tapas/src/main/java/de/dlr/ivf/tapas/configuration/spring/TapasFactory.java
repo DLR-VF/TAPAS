@@ -55,6 +55,7 @@ public class TapasFactory {
         return new ChronologicalRunner();
     }
 
+    @Lazy
     @Bean(name = "trafficGenerationConfiguration")
     public TrafficGenerationConfiguration trafficGenerationConfiguration() {
         SimulationRunnerConfiguration runnerConfiguration = tapasConfig.getSimulationRunnerConfiguration();
@@ -92,15 +93,15 @@ public class TapasFactory {
         }
     }
 
+    @Lazy
     @Bean
     public HouseholdConfiguration householdConfiguration(){
         return tapasConfig.getHouseholdConfiguration();
     }
 
+    @Lazy
     @Bean
     public RegionConfiguration regionConfiguration(){
         return tapasConfig.getRegionConfiguration();
     }
-
-
 }
