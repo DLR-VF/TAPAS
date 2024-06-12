@@ -77,6 +77,29 @@
       "matricesSource" : {
         "uri" : "core.berlin_matrices"
       },
+      "modeMatrixMapMappings" : {
+        "PT" : {
+          "ACCESS" : "PT_ACCESS_TIME",
+          "EGRESS" : "PT_EGRESS_TIME",
+          "TT" : "PT_TT",
+          "TRANSFER_TIME" : "PT_TRANSFER_TIME"
+        },
+        "WALK" : {
+          "ACCESS" : "WALK_ACCESS_TIME",
+          "EGRESS" : "WALK_EGRESS_TIME",
+          "TT" : "WALK_TRAVEL_TIME"
+        },
+        "BIKE" : {
+          "ACCESS" : "BIKE_ACCESS_TIME",
+          "EGRESS" : "BIKE_EGRESS_TIME",
+          "TT" : "BIKE_TRAVEL_TIME"
+        },
+        "MIT" : {
+          "ACCESS" : "CAR_ACCESS_TIME",
+          "EGRESS" : "CAR_EGRESS_TIME",
+          "TT" : "CAR_TRAVEL_TIME"
+        }
+      },
       "matrixMaps" : [
         {
           "name" : "CAR_TRAVEL_TIME",
