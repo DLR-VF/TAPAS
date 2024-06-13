@@ -15,20 +15,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * The LocationFactory class is responsible for creating and configuring TPS_Location objects.
+ * The LocationBeanFactory class is responsible for creating and configuring TPS_Location objects.
  * It uses a TPS_DB_IO instance for reading location data from a database and a LocationConfiguration
  * instance for providing configuration settings.
  *
  * This class is a Spring configuration class.
  */
 @Configuration
-public class LocationFactory {
+public class LocationBeanFactory {
 
     private final TPS_DB_IO dbIo;
     private final LocationConfiguration configuration;
 
     @Autowired
-    public LocationFactory(TPS_DB_IO dbIo, LocationConfiguration configuration) {
+    public LocationBeanFactory(TPS_DB_IO dbIo, LocationConfiguration configuration) {
         this.dbIo = dbIo;
         this.configuration = configuration;
     }

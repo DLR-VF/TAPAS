@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 @Configuration
-public class MatrixFactory {
+public class MatrixBeanFactory {
 
     @Lazy
     @Bean(name = "matrixMaps")
@@ -42,6 +42,7 @@ public class MatrixFactory {
     }
 
     public MatrixMap buildMatrixMap(MatrixMapConfiguration mapConfiguration, String matrixUri, TPS_DB_IO dbIo) {
+
         Collection<MatrixMapEntry> mapMatrices = mapConfiguration.matrices();
 
         MatrixMap matrixMap = new MatrixMap(mapConfiguration.name(), 1440, TreeMap::new);
@@ -75,5 +76,11 @@ public class MatrixFactory {
             matrix.put(i / matrixLength, i % matrixLength, inputMatrix[i]);
         }
         return matrix;
+    }
+
+    @Lazy
+    @Bean(name = "modeMatrixMapMappings")
+    public Map<String, Map<String,String>> modeToMatrixMapMappings(MatrixConfiguration matrixConfiguration) {
+        return matrixConfiguration.modeMatrixMapMappings();
     }
 }

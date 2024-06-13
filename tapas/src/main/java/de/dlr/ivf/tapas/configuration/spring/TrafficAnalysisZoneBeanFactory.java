@@ -21,16 +21,16 @@ import java.util.Map;
 import static java.util.stream.Collectors.*;
 
 /**
- * The TrafficAnalysisZonesFactory class is responsible for creating and configuring TrafficAnalysisZones object.
+ * The TrafficAnalysisZoneBeanFactory class is responsible for creating and configuring TrafficAnalysisZones object.
  * It uses the TPS_DB_IO class to read data from the database and the TrafficAnalysisZoneConfiguration to get the necessary configuration.
  */
 @Configuration
-public class TrafficAnalysisZonesFactory {
+public class TrafficAnalysisZoneBeanFactory {
 
     private final TPS_DB_IO dbIo;
 
     @Autowired
-    public TrafficAnalysisZonesFactory(TPS_DB_IO dbIo) {
+    public TrafficAnalysisZoneBeanFactory(TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
     }
 

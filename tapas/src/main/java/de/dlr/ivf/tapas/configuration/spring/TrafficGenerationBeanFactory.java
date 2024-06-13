@@ -9,15 +9,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * TrafficGenerationFactory is responsible for creating various beans related to traffic generation.
+ * TrafficGenerationBeanFactory is responsible for creating various beans related to traffic generation.
  */
 @Configuration
-public class TrafficGenerationFactory {
+public class TrafficGenerationBeanFactory {
 
     private final TPS_DB_IO dbIo;
 
     @Autowired
-    public TrafficGenerationFactory(TPS_DB_IO dbIo) {
+    public TrafficGenerationBeanFactory(TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
     }
 

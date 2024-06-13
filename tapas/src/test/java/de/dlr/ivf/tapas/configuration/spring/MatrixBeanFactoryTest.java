@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MatrixFactoryTest {
+class MatrixBeanFactoryTest {
 
     @Test
     @DisplayName("Should return a squared matrix")
@@ -15,7 +15,7 @@ class MatrixFactoryTest {
 
         int[][] expectedMatrix = new int[][]{{1,2,},{3,4}};
 
-        MatrixFactory mf = new MatrixFactory();
+        MatrixBeanFactory mf = new MatrixBeanFactory();
 
         assertArrayEquals(expectedMatrix, mf.buildSquareMatrix(inputMatrix).getMatrix());
     }

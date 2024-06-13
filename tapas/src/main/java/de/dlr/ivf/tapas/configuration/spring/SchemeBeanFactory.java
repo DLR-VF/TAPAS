@@ -21,12 +21,12 @@ import java.util.*;
 import static java.util.stream.Collectors.*;
 
 @Configuration
-public class SchemeSetFactory {
+public class SchemeBeanFactory {
 
     private final TPS_DB_IO dbIo;
 
     @Autowired
-    public SchemeSetFactory(TPS_DB_IO dbIo){
+    public SchemeBeanFactory(TPS_DB_IO dbIo){
         this.dbIo = dbIo;
     }
 

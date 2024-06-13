@@ -10,13 +10,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 @Configuration
-public class ModeChoiceModelFactory {
+public class ModeChoiceModelBeanFactory {
 
 
     private final TPS_DB_IO dbIo;
 
     @Autowired
-    public ModeChoiceModelFactory(TPS_DB_IO dbIo){
+    public ModeChoiceModelBeanFactory(TPS_DB_IO dbIo){
         this.dbIo = dbIo;
     }
 

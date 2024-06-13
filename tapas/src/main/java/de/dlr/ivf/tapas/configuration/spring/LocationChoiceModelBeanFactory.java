@@ -1,4 +1,4 @@
 package de.dlr.ivf.tapas.configuration.spring;
 
-public class LocationChoiceModelFactory {
+public class LocationChoiceModelBeanFactory {
 }

@@ -23,17 +23,17 @@ import org.springframework.context.annotation.Lazy;
 import java.util.*;
 
 /**
- * The HouseholdsFactory class is responsible for creating TPS_Household objects based on the provided configuration and data sources.
+ * The HouseholdBeanFactory class is responsible for creating TPS_Household objects based on the provided configuration and data sources.
  * It uses various beans and dependencies to create the households.
  */
 @Configuration
-public class HouseholdsFactory {
+public class HouseholdBeanFactory {
 
     HouseholdConfiguration householdConfiguration;
     TPS_DB_IO dbIo;
 
     @Autowired
-    public HouseholdsFactory(HouseholdConfiguration householdConfiguration, TPS_DB_IO dbIo) {
+    public HouseholdBeanFactory(HouseholdConfiguration householdConfiguration, TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
         this.householdConfiguration = householdConfiguration;
     }

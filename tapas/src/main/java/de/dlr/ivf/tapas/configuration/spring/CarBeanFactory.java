@@ -13,17 +13,17 @@ import org.springframework.context.annotation.Lazy;
 import java.util.Collection;
 
 /**
- * CarsFactory is a configuration class that creates beans for Cars and FuelTypes.
+ * CarBeanFactory is a configuration class that creates beans for Cars and FuelTypes.
  * It is responsible for reading car data from a database and initializing Cars.
  */
 @Configuration
-public class CarsFactory {
+public class CarBeanFactory {
 
     private final TPS_DB_IO dbIo;
     private final CarsConfiguration configuration;
 
     @Autowired
-    public CarsFactory(TPS_DB_IO dbIo, CarsConfiguration configuration) {
+    public CarBeanFactory(TPS_DB_IO dbIo, CarsConfiguration configuration) {
         this.dbIo = dbIo;
         this.configuration = configuration;
     }

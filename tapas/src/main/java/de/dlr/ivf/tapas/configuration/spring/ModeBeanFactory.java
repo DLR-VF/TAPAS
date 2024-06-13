@@ -16,12 +16,12 @@ import java.util.Collection;
 import java.util.EnumMap;
 
 @Configuration
-public class ModesFactory {
+public class ModeBeanFactory {
 
     private final TPS_DB_IO dbIo;
 
     @Autowired
-    public ModesFactory(TPS_DB_IO dbIo) {
+    public ModeBeanFactory(TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
     }
 

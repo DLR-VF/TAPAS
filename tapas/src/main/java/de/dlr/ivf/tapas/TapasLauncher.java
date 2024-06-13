@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
 import de.dlr.ivf.tapas.configuration.spring.*;
+import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.simulation.SimulationRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.lang.System.Logger.Level;
 
@@ -50,17 +52,17 @@ public class TapasLauncher{
 
             applicationContext.register(
                     TapasFactory.class,
-                    RegionFactory.class,
-                    HouseholdsFactory.class,
-                    LocationFactory.class,
-                    TrafficAnalysisZonesFactory.class,
-                    CarsFactory.class,
-                    TrafficGenerationFactory.class,
-                    LocationChoiceModelFactory.class,
-                    //ModeChoiceModelFactory.class,
-                    TripPriorityRunnerFactory.class,
-                    SchemeSetFactory.class,
-                    MatrixFactory.class
+                    RegionBeanFactory.class,
+                    HouseholdBeanFactory.class,
+                    LocationBeanFactory.class,
+                    TrafficAnalysisZoneBeanFactory.class,
+                    CarBeanFactory.class,
+                    TrafficGenerationBeanFactory.class,
+                    LocationChoiceModelBeanFactory.class,
+                    //ModeChoiceModelBeanFactory.class,
+                    TripPriorityRunnerBeanFactory.class,
+                    SchemeBeanFactory.class,
+                    MatrixBeanFactory.class
             );
 
             applicationContext.refresh();
@@ -72,7 +74,7 @@ public class TapasLauncher{
 
             SimulationRunner runner = applicationContext.getBean(simulationRunnerName, SimulationRunner.class);
             //SchemeProvider schemeProvider = applicationContext.getBean("schemeProvider", SchemeProvider.class);
-            //Map<String, MatrixMap> matrixMaps  = applicationContext.getBean("matrixMaps", Map.class);
+            Map<String, MatrixMap> matrixMaps  = applicationContext.getBean("matrixMaps", Map.class);
             logger.log(Level.INFO, "Launching simulation...");
             Thread t = new Thread(runner, "SimulationThread");
             t.start();

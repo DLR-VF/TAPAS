@@ -19,13 +19,13 @@ import java.util.Collection;
  * This class is responsible for creating different beans related to regions.
  */
 @Configuration
-public class RegionFactory {
+public class RegionBeanFactory {
 
     private final TPS_DB_IO dbIo;
 
 
     @Autowired
-    public RegionFactory(TPS_DB_IO dbIo) {
+    public RegionBeanFactory(TPS_DB_IO dbIo) {
         this.dbIo = dbIo;
     }
 

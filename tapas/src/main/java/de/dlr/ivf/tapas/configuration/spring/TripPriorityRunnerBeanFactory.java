@@ -2,22 +2,11 @@ package de.dlr.ivf.tapas.configuration.spring;
 
 import de.dlr.ivf.tapas.configuration.json.modechoice.ModeChoiceConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
-import de.dlr.ivf.tapas.model.person.TPS_Household;
-import de.dlr.ivf.tapas.model.person.TPS_Person;
-import de.dlr.ivf.tapas.model.plan.TPS_PlanEnvironment;
-import de.dlr.ivf.tapas.simulation.Processor;
-import de.dlr.ivf.tapas.simulation.TrafficGeneration;
-import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-
-import java.util.Map;
 
 @Configuration
-public class TripPriorityRunnerFactory {
+public class TripPriorityRunnerBeanFactory {
 
     @Bean
     public ModeChoiceConfiguration modeChoiceConfiguration(TripPriorityRunnerConfiguration configuration){
