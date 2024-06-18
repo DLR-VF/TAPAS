@@ -2,29 +2,24 @@ package de.dlr.ivf.tapas.configuration.spring;
 
 import de.dlr.ivf.tapas.configuration.json.modechoice.ModeChoiceConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
+import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
+import java.util.Map;
+
+@Lazy
 @Configuration
 public class TripPriorityRunnerBeanFactory {
 
     @Bean
-    public ModeChoiceConfiguration modeChoiceConfiguration(TripPriorityRunnerConfiguration configuration){
+    public ModeChoiceConfiguration modeChoiceConfiguration(TripPriorityRunnerConfiguration configuration,
+                                                           SchemeProvider schemeProvider){
         return configuration.modeChoiceConfiguration();
     }
 
-//    @Bean
-//    public HouseholdProcessor householdProcessor(){
-//        Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> hhProcessor = HouseholdProcessor.builder()
-//                //.schemeSelector(schemeSelector)
-//                .locationAndModeChooser(locationAndModeChooser)
-//                .maxTriesScheme(parameters.getIntValue(ParamValue.MAX_TRIES_SCHEME))
-//                .planEVA1Acceptance(acceptance)
-//                .feasibilityCalculator(feasibilityCalculator)
-//                .build();
-//
-//        return hhProcessor;
-//    }
+
 
 
 }

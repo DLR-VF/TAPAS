@@ -22,6 +22,7 @@ public record SchemeProviderConfiguration(
         @JsonProperty int schemeChoiceSeed,
         @JsonProperty int timeSlotLength,
         @JsonProperty int tripActivityCode,
+        @JsonProperty int homeActivityCode,
         @JsonProperty FilterableDataSource schemeClasses,
         @JsonProperty FilterableDataSource schemes,
         @JsonProperty FilterableDataSource episodes,

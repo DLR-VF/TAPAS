@@ -286,6 +286,7 @@
         "schemeChoiceSeed" : 1234,
         "timeSlotLength" : 60,
         "tripActivityCode" : 80,
+        "homeActivityCode" : 10,
         "schemeClasses": {
           "uri": "core.global_scheme_classes",
           "filterBy": {
@@ -326,7 +327,7 @@
         }
       }
     },
-
+    "maxTriesSchemeSelection" : 3,
     "locationChoiceConfiguration" : {
 
     },

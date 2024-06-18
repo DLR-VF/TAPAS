@@ -141,7 +141,8 @@ public class SchemeBeanFactory {
                 .sorted(Comparator.comparingInt(EpisodeDto::getStart))
                 .toList();
 
-        Map<Integer, Tour> toursByTourId = new HashMap<>();
+        Map<Integer, NavigableSet<Trip>> tripsByTourId = new HashMap<>();
+        Map<Integer, NavigableSet<Stay>> staysByTourId = new HashMap<>();
 
         for(int i = 1; i < sortedEpisodesInScheme.size() - 1; i = i+2){
 
@@ -160,10 +161,17 @@ public class SchemeBeanFactory {
             Trip trip = new Trip(startStay, endStay, tripEpisode.getStart(), tripEpisode.getDuration() * timeSlotLength, tripPriority);
 
             int tourNumber = tripEpisode.getTourNumber();
-            toursByTourId.computeIfAbsent(tourNumber, tourId -> new Tour(tourId,new HashSet<>())).addTrip(trip);
+
+            tripsByTourId.computeIfAbsent(tourNumber, tourId -> new TreeSet<>(Comparator.comparingInt(Trip::startTime))).add(trip);
+            staysByTourId.computeIfAbsent(tourNumber, (Integer tourId) -> new TreeSet<>(Comparator.comparingInt(Stay::startTime))).add(startStay);
+            staysByTourId.computeIfAbsent(tourNumber, (Integer tourId) -> new TreeSet<>(Comparator.comparingInt(Stay::startTime))).add(endStay);
         }
 
-        return toursByTourId.values().stream().toList(); //remove the link to the map
+        return tripsByTourId
+                .keySet()
+                .stream()
+                .map(tourId -> new Tour(tourId, tripsByTourId.get(tourId), staysByTourId.get(tourId)))
+                .toList();
     }
 
     private void validateEpisodesOrThrow(EpisodeDto start, EpisodeDto end, EpisodeDto trip, int tripActivityCode){

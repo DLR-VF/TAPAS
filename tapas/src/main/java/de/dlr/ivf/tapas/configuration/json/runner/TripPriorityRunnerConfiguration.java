@@ -9,7 +9,8 @@ import de.dlr.ivf.tapas.configuration.json.trafficgeneration.TrafficGenerationCo
 public record TripPriorityRunnerConfiguration(
         @JsonProperty TrafficGenerationConfiguration trafficGenerationConfiguration,
         @JsonProperty LocationChoiceConfiguration locationChoiceConfiguration,
-        @JsonProperty ModeChoiceConfiguration modeChoiceConfiguration
+        @JsonProperty ModeChoiceConfiguration modeChoiceConfiguration,
+        @JsonProperty int maxTriesSchemeSelection
 
         ) implements SimulationRunnerConfiguration {
         @Override

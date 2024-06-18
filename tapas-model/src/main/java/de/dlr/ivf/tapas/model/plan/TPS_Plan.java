@@ -91,7 +91,6 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
                 this.plannedTrips.put(trip, new TPS_PlannedTrip(this, trip));
             }
         }
-
     }
 
     /**
@@ -223,6 +222,7 @@ public class TPS_Plan implements Comparable<TPS_Plan> {
      *
      * @param key key for the episode to look for
      * @return null if key is not in the planed trips or located stays
+     *
      */
     public TPS_AdaptedEpisode getAdaptedEpisode(TPS_Episode key) {
         if (key.isStay()) {
