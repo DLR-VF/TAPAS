@@ -200,7 +200,20 @@ In the Gradle menu in IntelliJ (either on the right side or press double shift -
 
 #### Import Project via Eclipse
 
-TODO
+Recent Eclipse releases have the Buildship extension for Gradle included by default. To verify it is available, choose Help -> About Eclipse IDE and look for 
+the Buildship logo (a gray elephant). Be sure to use a Java JDK version which is compatible with the Gradle wrapper shipped with TAPAS. You can find the used 
+Gradle version in the file `gradle/wrapper/gradle-wrapper.properties`.
+
+File -> Import -> Gradle -> Existing Gradle Project -> select the build.gradle.kts file to import the project.
+
+You find the important tasks in a view called "Gradle Tasks". If it is not visible, open it by Window -> Show View -> Other... -> Gradle -> Gradle Tasks.
+The most important tasks are the following. Either do double left click or choose `Run Gradle Tasks` from the right click context menu:
+- Build project: `TAPAS -> build -> build` (the `TAPAS-<version>-all.jar` jar is located in `build/libs/`)
+- Clean project: `TAPAS -> build -> clean`
+- Run Installer script : `TAPAS -> runnables -> Installer` (uncomment and set arguments in build.gradle.kts in the Installer section) 
+- Run SimulationControl: `TAPAS -> runnables -> SimulationControl` 
+- Run SimulationDaemon: `TAPAS -> runnables -> SimulationDaemon` (expects the simulation directory to be in
+ `data/Simulations`)
 
 ## License
 
