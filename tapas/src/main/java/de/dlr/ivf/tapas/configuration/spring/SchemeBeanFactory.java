@@ -66,12 +66,8 @@ public class SchemeBeanFactory {
 
         return schemeClassDistributionDtos
                 .stream()
-                .collect(
-                        groupingBy(SchemeClassDistributionDto::getPersonGroup,
-                                mapping(dto -> new DiscreteProbability<>(schemeClassesByClassId.get(dto.getSchemeClassId()),
-                                                dto.getProbability()),
-                                        toList()
-                                )));
+                .collect(groupingBy(SchemeClassDistributionDto::getPersonGroup,
+                                mapping(dto -> new DiscreteProbability<>(schemeClassesByClassId.get(dto.getSchemeClassId()), dto.getProbability()), toList())));
     }
 
     @Lazy

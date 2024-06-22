@@ -23,21 +23,6 @@ import java.util.*;
  *
  */ public class TPS_RegionResultSet {
 
-    public static Map<ParamValue, Integer> VELOCITY_2_INDEX_MAP;
-
-    static {
-        VELOCITY_2_INDEX_MAP = new HashMap<>();
-        int counter = 0;
-        for (ParamValue pv : ParamValue.values()) {
-            if (pv.name().startsWith("VELOCITY_")) {
-                VELOCITY_2_INDEX_MAP.put(pv, 0);
-            }
-        }
-        for (ParamValue pv : VELOCITY_2_INDEX_MAP.keySet()) {
-            VELOCITY_2_INDEX_MAP.put(pv, counter++);
-        }
-    }
-
     private final List<TPS_Location> locList;
     private final List<Double> sumWeightList;
     private final List<TPS_TrafficAnalysisZone> tazList;

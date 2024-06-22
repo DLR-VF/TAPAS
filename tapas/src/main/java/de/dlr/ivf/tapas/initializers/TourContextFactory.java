@@ -4,7 +4,9 @@ import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.plan.TourContext;
 import de.dlr.ivf.tapas.model.scheme.Stay;
 import de.dlr.ivf.tapas.model.scheme.Tour;
+import de.dlr.ivf.tapas.model.scheme.Trip;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,11 +23,17 @@ public class TourContextFactory {
      */
     public TourContext newTourContext(Tour tour, Map<Integer, TPS_Location> activityToLocationMappings){
 
-        TourContext tourContext = new TourContext(tour);
+        Map<Stay, Integer> cumulativeTravelDurations = new HashMap<>();
+        int totalTravelDuration = 0;
 
+        for(Trip trip : tour.trips()){
+            totalTravelDuration +=  trip.durationSeconds();
+            cumulativeTravelDurations.put(trip.endStay(), totalTravelDuration);
+        }
+
+        TourContext tourContext = new TourContext(tour, cumulativeTravelDurations, totalTravelDuration);
 
         for (Stay stay : tour.stays()) {
-
             TPS_Location potentialFixLocation = activityToLocationMappings.get(stay.activity());
             if(potentialFixLocation != null){
                 tourContext.addLocation(stay, potentialFixLocation);
