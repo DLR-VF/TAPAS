@@ -11,7 +11,6 @@ import de.dlr.ivf.tapas.mode.CostCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.mode.cost.MNLFullComplexFunction;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistributionFactory;
-import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.Incomes;
 import de.dlr.ivf.tapas.model.constants.*;
@@ -30,7 +29,6 @@ import de.dlr.ivf.tapas.model.vehicle.FuelTypeName;
 import de.dlr.ivf.tapas.model.vehicle.FuelTypes;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.simulation.Processor;
-import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
 import de.dlr.ivf.tapas.simulation.implementation.SimulationWorker;
 
 import java.util.*;
@@ -143,20 +141,14 @@ public class TapasInitializer {
         //SchemeSelector schemeSelector = new SchemeSelector(schemeSet);
         TPS_Region region = null;
         LocationSelector locationSelector = new LocationSelector(region, travelDistanceCalculator);
-        FeasibilityCalculator feasibilityCalculator = new FeasibilityCalculator(parameters);
+        FeasibilityCalculator feasibilityCalculator = new FeasibilityCalculator();
 
         DiscreteDistributionFactory<TPS_Mode> modeDistributionFactory = new DiscreteDistributionFactory<>();
         ModeSelector modeSelector = new ModeSelector(modeSet,parameters, modeDistributionFactory,mnlFunctions,null);
         CostCalculator costCalculator = new CostCalculator(parameters,null);
         LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(parameters, locationSelector, modeSelector, travelDistanceCalculator, travelTimeCalculator, costCalculator);
         TPS_PlanEVA1Acceptance acceptance = new TPS_PlanEVA1Acceptance(parameters);
-        Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> hhProcessor = HouseholdProcessor.builder()
-                //.schemeSelector(schemeSelector)
-                .locationAndModeChooser(locationAndModeChooser)
-                .maxTriesScheme(parameters.getIntValue(ParamValue.MAX_TRIES_SCHEME))
-                .planEVA1Acceptance(acceptance)
-                .feasibilityCalculator(feasibilityCalculator)
-                .build();
+        Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> hhProcessor = null;
 
         List<TPS_Household> households = null;
         Queue<TPS_Household> householdsToProcess = new ConcurrentLinkedDeque<>(List.of(households.getFirst()));

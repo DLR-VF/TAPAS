@@ -7,10 +7,12 @@ import de.dlr.ivf.tapas.simulation.trafficgeneration.PersonGroupTrafficGeneratio
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * TrafficGenerationBeanFactory is responsible for creating various beans related to traffic generation.
  */
+@Lazy
 @Configuration
 public class TrafficGenerationBeanFactory {
 

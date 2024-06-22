@@ -21,11 +21,9 @@ public class FeasibilityCalculator {
     private final int timeSecSlot;
     private final boolean hhSortingCostOptimum;
 
-    public FeasibilityCalculator(TPS_ParameterClass parameterClass){
-        this.timeSecSlot = parameterClass.getIntValue(ParamValue.SEC_TIME_SLOT);
-        this.hhSortingCostOptimum = parameterClass.isDefined(ParamString.HOUSEHOLD_MEMBERSORTING) &&
-                parameterClass.getString(ParamString.HOUSEHOLD_MEMBERSORTING).equalsIgnoreCase(
-                        TPS_Household.Sorting.COST_OPTIMUM.name());
+    public FeasibilityCalculator(){
+        this.timeSecSlot = 60;
+        this.hhSortingCostOptimum = false;
 
     }
 

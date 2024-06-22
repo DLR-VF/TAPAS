@@ -4,34 +4,46 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 
 import de.dlr.ivf.tapas.choice.FeasibilityCalculator;
-import de.dlr.ivf.tapas.choice.LocationAndModeChooser;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
 import de.dlr.ivf.tapas.model.constants.TPS_AgeClass;
 import de.dlr.ivf.tapas.model.constants.TPS_DrivingLicenseInformation;
 import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.person.TPS_Person;
-import de.dlr.ivf.tapas.model.plan.TPS_Plan;
-import de.dlr.ivf.tapas.model.plan.TPS_PlanEnvironment;
-import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
+import de.dlr.ivf.tapas.model.plan.*;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
-import de.dlr.ivf.tapas.model.scheme.TPS_Scheme;
+import de.dlr.ivf.tapas.model.scheme.Scheme;
 import de.dlr.ivf.tapas.simulation.Processor;
 import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
-import lombok.Builder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@Builder
+
+@Lazy
+@Component
 public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> {
     private final Logger logger = System.getLogger(HouseholdProcessor.class.getName());
 
-    private final SchemeProvider schemeSelector;
-    private final LocationAndModeChooser locationAndModeChooser;
-    private final int maxTriesScheme;
+    private final SchemeProvider schemeProvider;
+    private final int maxTriesSchemeSelection;
     private final TPS_PlanEVA1Acceptance planEVA1Acceptance;
     private final FeasibilityCalculator feasibilityCalculator;
+    private final PersonProcessor personProcessor;
 
+    @Autowired
+    public HouseholdProcessor(SchemeProvider schemeProvider, @Qualifier("maxTriesSchemeSelection") int maxTriesSchemeSelection,
+                              TPS_PlanEVA1Acceptance planEVA1Acceptance, FeasibilityCalculator feasibilityCalculator,
+                              PersonProcessor personProcessor){
 
+        this.schemeProvider = schemeProvider;
+        this.maxTriesSchemeSelection = maxTriesSchemeSelection;
+        this.planEVA1Acceptance = planEVA1Acceptance;
+        this.feasibilityCalculator = feasibilityCalculator;
+        this.personProcessor = personProcessor;
+    }
 
     @Override
     public Map<TPS_Person, TPS_PlanEnvironment> process(TPS_Household hh) {
@@ -49,29 +61,31 @@ public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Pers
             TPS_PlanEnvironment pe = new TPS_PlanEnvironment(person, planEVA1Acceptance);
 
             boolean finished = false;
-            for (int schemeIt = 0; !finished && schemeIt < maxTriesScheme; ++schemeIt) {
+            for (int schemeIt = 0; !finished && schemeIt < maxTriesSchemeSelection; ++schemeIt) {
 
-                TPS_Scheme scheme = null;//schemeSelector.selectPlan(person);
+                Scheme scheme = schemeProvider.selectScheme(person.getPersonGroup());
 
-                //todo think about using a plan processor that returns completely computed plans
+                PlanningContext planningContext = new PlanningContext(person, hh.getLocation(), scheme.tours());
+                Plan plan = personProcessor.process(planningContext);
+
+
                 boolean finishedPlanSearch = false;
-                while(!finishedPlanSearch) {
-                    TPS_Plan plan = new TPS_Plan(hh.getLocation(), pe, scheme, planAttributes);
-                    TPS_PlanningContext pc = new TPS_PlanningContext(pe, hh.getLeastRestrictedCar(), person.hasBike(), person,hh);
-                    locationAndModeChooser.selectLocationsAndModesAndTravelTimes(pc, scheme, plan);
-
-                    plan.setTravelTimes();
-                    plan.balanceStarts();
-                    pe.addPlan(plan);
-
-                    if (feasibilityCalculator.isPlanFeasible(plan) && planEVA1Acceptance.isPlanAccepted(plan)) {
-                        finished = true;
-                    }
-
-                    if (!pc.needsOtherModeAlternatives(plan)) {
-                        finishedPlanSearch = true;
-                    }
-                }
+//                while(!finishedPlanSearch) {
+//                    TPS_PlanningContext pc = new TPS_PlanningContext(pe, hh.getLeastRestrictedCar(), person.hasBike(), person,hh);
+//                    locationAndModeChooser.selectLocationsAndModesAndTravelTimes(pc, scheme, plan);
+//
+//                    plan.setTravelTimes();
+//                    plan.balanceStarts();
+//                    pe.addPlan(plan);
+//
+//                    if (feasibilityCalculator.isPlanFeasible(plan) && planEVA1Acceptance.isPlanAccepted(plan)) {
+//                        finished = true;
+//                    }
+//
+//                    if (!pc.needsOtherModeAlternatives(plan)) {
+//                        finishedPlanSearch = true;
+//                    }
+//                }
 
                 if(!finished){
                     pe.dismissScheme();

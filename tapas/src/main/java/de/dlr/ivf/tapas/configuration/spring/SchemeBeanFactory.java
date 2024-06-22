@@ -20,6 +20,7 @@ import java.util.*;
 
 import static java.util.stream.Collectors.*;
 
+@Lazy
 @Configuration
 public class SchemeBeanFactory {
 
@@ -30,7 +31,6 @@ public class SchemeBeanFactory {
         this.dbIo = dbIo;
     }
 
-    @Lazy
     @Bean
     public SchemeProvider schemeProvider(SchemeProviderConfiguration configuration,
                                          Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup,
@@ -58,7 +58,6 @@ public class SchemeBeanFactory {
         return new SchemeProvider(schemeClassDistributions, schemeClassChoiceModel, schemeChoiceModel);
     }
 
-    @Lazy
     @Bean
     public Map<Integer, List<DiscreteProbability<SchemeClass>>> schemeClassProbabilitiesByPersonGroup(
             Collection<SchemeClassDistributionDto> schemeClassDistributionDtos,
@@ -70,7 +69,6 @@ public class SchemeBeanFactory {
                                 mapping(dto -> new DiscreteProbability<>(schemeClassesByClassId.get(dto.getSchemeClassId()), dto.getProbability()), toList())));
     }
 
-    @Lazy
     @Bean
     public Map<Integer, SchemeClass> schemeClasses(SchemeProviderConfiguration configuration,
                                                    Collection<SchemeClassDto> schemeClassDtos,
@@ -86,26 +84,25 @@ public class SchemeBeanFactory {
             DiscreteDistributionFactory<Scheme> distributionFactory = new DiscreteDistributionFactory<>();
             DiscreteDistribution<Scheme> schemeDistribution = distributionFactory.newUniformNormalizedDiscreteDistribution(schemesInClass);
 
-            SchemeClass schemeClass = new SchemeClass(schemeClassDto.getId(), mean, deviation,schemeDistribution);
-            schemeClasses.put(schemeClass.id(), schemeClass);
+            int schemeClassId = schemeClassDto.getId();
+            SchemeClass schemeClass = new SchemeClass(schemeClassId, mean, deviation, schemeDistribution);
+            schemeClasses.put(schemeClassId, schemeClass);
         }
 
         return schemeClasses;
     }
 
-    @Lazy
     @Bean
     public Map<Integer, List<Scheme>> schemesByClassID(Collection<SchemeDto> schemeDtos,
-                                                             Map<Integer, Collection<Tour>> toursBySchemeId){
+                                                       Map<Integer, Set<Tour>> toursBySchemeId){
 
         return schemeDtos.stream()
                 .map(dto -> new Scheme(dto.getId(), dto.getSchemeClassId(), toursBySchemeId.get(dto.getId())))
                 .collect(groupingBy(Scheme::schemeClassId, toList()));
     }
 
-    @Lazy
     @Bean
-    public Map<Integer, Collection<Tour>> toursBySchemeId(SchemeProviderConfiguration configuration,
+    public Map<Integer, Set<Tour>> toursBySchemeId(SchemeProviderConfiguration configuration,
                                                           Collection<EpisodeDto> episodeDtos,
                                                           Activities activities){
 
@@ -113,13 +110,13 @@ public class SchemeBeanFactory {
                 .stream()
                 .collect(groupingBy(EpisodeDto::getSchemeId, toCollection(ArrayList::new)));
 
-        Map<Integer, Collection<Tour>> toursBySchemeId = new HashMap<>();
+        Map<Integer, Set<Tour>> toursBySchemeId = new HashMap<>();
 
         for (Map.Entry<Integer, Collection<EpisodeDto>> entry : episodesBySchemeId.entrySet()) {
 
             int schemeId = entry.getKey();
             Collection<EpisodeDto> episodesInScheme = entry.getValue();
-            Collection<Tour> tours = generateToursFromEpisodes(configuration.timeSlotLength(), episodesInScheme,
+            Set<Tour> tours = generateToursFromEpisodes(configuration.timeSlotLength(), episodesInScheme,
                     activities, configuration.tripActivityCode());
 
             toursBySchemeId.put(schemeId, tours);
@@ -128,7 +125,7 @@ public class SchemeBeanFactory {
         return toursBySchemeId;
     }
 
-    public Collection<Tour> generateToursFromEpisodes(int timeSlotLength,
+    public Set<Tour> generateToursFromEpisodes(int timeSlotLength,
                                                       Collection<EpisodeDto> episodes,
                                                       Activities activities, int tripActivityCode) {
 
@@ -167,7 +164,7 @@ public class SchemeBeanFactory {
                 .keySet()
                 .stream()
                 .map(tourId -> new Tour(tourId, tripsByTourId.get(tourId), staysByTourId.get(tourId)))
-                .toList();
+                .collect(toUnmodifiableSet());
     }
 
     private void validateEpisodesOrThrow(EpisodeDto start, EpisodeDto end, EpisodeDto trip, int tripActivityCode){
@@ -182,14 +179,12 @@ public class SchemeBeanFactory {
         }
     }
 
-    @Lazy
     @Bean
     public Activities activities(Collection<TPS_ActivityConstant> activities) {
 
         return new Activities(activities);
     }
 
-    @Lazy
     @Bean
     public Collection<TPS_ActivityConstant> activityConstants(Collection<ActivityDto> activityDtos){
 
@@ -223,7 +218,8 @@ public class SchemeBeanFactory {
                     .internalConstant(votConstant)
                     .internalAttribute(TPS_ActivityConstant.TPS_ActivityCodeType.VOT, votConstant)
                     .attribute(!(attribute == null || attribute.equals("null"))
-                            ? TPS_ActivityConstant.TPS_ActivityConstantAttribute.valueOf(activityDto.getAttribute()) : TPS_ActivityConstant.TPS_ActivityConstantAttribute.DEFAULT)
+                            ? TPS_ActivityConstant.TPS_ActivityConstantAttribute.valueOf(activityDto.getAttribute())
+                            : TPS_ActivityConstant.TPS_ActivityConstantAttribute.DEFAULT)
                     .isFix(activityDto.isFix())
                     .isTrip(activityDto.isTrip())
                     .build();
@@ -240,7 +236,6 @@ public class SchemeBeanFactory {
      * @param personCodeDtos A collection of PersonCodeDto objects containing information about each person group.
      * @return The created PersonGroups object.
      */
-    @Lazy
     @Bean
     public PersonGroups personGroups(Collection<PersonCodeDto> personCodeDtos){
 
@@ -265,39 +260,38 @@ public class SchemeBeanFactory {
         return personGroupsBuilder.build();
     }
 
-    @Lazy
     @Bean
     public Collection<ActivityDto> activityDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.activities(), ActivityDto.class, ActivityDto::new);
     }
 
-    @Lazy
     @Bean
     public Collection<SchemeDto> schemeDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.schemes(), SchemeDto.class, SchemeDto::new);
     }
 
-    @Lazy
     @Bean
     public Collection<SchemeClassDto> schemeClassDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.schemeClasses(), SchemeClassDto.class, SchemeClassDto::new);
     }
 
-    @Lazy
     @Bean
     public Collection<EpisodeDto> episodeDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.episodes(), EpisodeDto.class, EpisodeDto::new);
     }
 
-    @Lazy
     @Bean
     public Collection<SchemeClassDistributionDto> schemeClassDistributionDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.schemeClassDistributions(), SchemeClassDistributionDto.class, SchemeClassDistributionDto::new);
     }
 
-    @Lazy
     @Bean
     public Collection<PersonCodeDto> personCodeDtos(SchemeProviderConfiguration configuration){
         return dbIo.readFromDb(configuration.personGroups(), PersonCodeDto.class, PersonCodeDto::new);
+    }
+
+    @Bean(name = "homeActivityId")
+    public int homeActivityId(SchemeProviderConfiguration configuration){
+        return configuration.homeActivityCode();
     }
 }

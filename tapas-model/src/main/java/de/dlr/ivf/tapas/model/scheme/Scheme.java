@@ -1,10 +1,10 @@
 package de.dlr.ivf.tapas.model.scheme;
 
-import java.util.Collection;
+import java.util.Set;
 
 public record Scheme(
         int id,
         int schemeClassId,
-        Collection<Tour> tours
+        Set<Tour> tours
 ) {
 }

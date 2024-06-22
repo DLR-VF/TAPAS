@@ -23,6 +23,7 @@ import de.dlr.ivf.tapas.util.TPS_FastMath;
 import de.dlr.ivf.tapas.model.person.TPS_PreferenceParameters.*;
 import de.dlr.ivf.tapas.model.person.TPS_Preference.PreferenceSet;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Map;
