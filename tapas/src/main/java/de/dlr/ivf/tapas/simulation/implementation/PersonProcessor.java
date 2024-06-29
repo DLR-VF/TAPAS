@@ -1,5 +1,5 @@
 package de.dlr.ivf.tapas.simulation.implementation;
-
+import java.lang.System.Logger;
 import de.dlr.ivf.tapas.initializers.TourContextFactory;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.plan.Plan;
@@ -21,6 +21,7 @@ import java.util.*;
 @Lazy
 @Component
 public class PersonProcessor implements Processor<PlanningContext, Plan> {
+    private final Logger logger = System.getLogger(PersonProcessor.class.getName());
 
     private final TourContextFactory tourContextFactory;
     private final HierarchicalTourProcessor tourProcessor;
@@ -42,6 +43,8 @@ public class PersonProcessor implements Processor<PlanningContext, Plan> {
      */
     @Override
     public Plan process(PlanningContext planningContext) {
+
+        logger.log(System.Logger.Level.DEBUG, "Processing Person {0}: ", planningContext.person().getId());
 
         Map<Integer, TPS_Location> preKnownLocations = Map.of(homeActivityId, planningContext.homeLocation());
 

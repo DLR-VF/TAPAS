@@ -8,24 +8,12 @@
 
 package de.dlr.ivf.tapas.model.plan.acceptance;
 
-
-import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
-import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
-import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.util.Randomizer;
 import de.dlr.ivf.tapas.util.TPS_GX;
-import de.dlr.ivf.tapas.model.parameter.ParamFlag;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
 
-/**
- * This class is an implementation of the {@link TPS_PlanAcceptance} interface and uses the EVA(1) function of Lohse
- *
- * @author mark_ma
- */
-@LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
 public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
 
     private final double eBottomFinance;
@@ -40,27 +28,29 @@ public class TPS_PlanEVA1Acceptance implements TPS_PlanAcceptance {
     private final double fTopOverallTime;
     private final double turningPointMaxTime;
 
-    public TPS_PlanEVA1Acceptance(TPS_ParameterClass parameterClass){
+    public TPS_PlanEVA1Acceptance(double eBottomFinance, double fTopFinance, double turningPointFinance,
+                                  double eBottomTime, double fTopTime, double turningPointMaxTime,
+                                  double eBottomOverallTime, double fTopOverallTime, boolean checkBudgetConstraints){
 
         // Anschmiegeparameter der EVA1-Funktion
-        this.eBottomFinance = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_E);
+        this.eBottomFinance = eBottomFinance;
 
         // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
-        this.fTopFinance = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_F);
+        this.fTopFinance = fTopFinance;
 
         // Wendepunkt der Funktion; ein Wendepunkt von 0.5 besagt, dass es bei einer Überschreitung der Budget-
         // vorgaben um 50 % zu einem starken Abfall der Akzeptanz des Plans kommt
-        this.turningPointFinance = parameterClass.getDoubleValue(ParamValue.FINANCE_BUDGET_WP);
+        this.turningPointFinance = turningPointFinance;
 
-        this.eBottomTime = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_E);
-        this.fTopTime = parameterClass.getDoubleValue(ParamValue.TIME_BUDGET_F);
+        this.eBottomTime = eBottomTime;
+        this.fTopTime = fTopTime;
 
-        this.eBottomOverallTime = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_E);
+        this.eBottomOverallTime = eBottomOverallTime;
         // EVA1-Parameter, der das Absinken der Akzeptanz bei geringer Überschreitung beeinflußt
-        this.fTopOverallTime = parameterClass.getDoubleValue(ParamValue.OVERALL_TIME_F);
-        this.turningPointMaxTime = parameterClass.getDoubleValue(ParamValue.MAX_TIME_DIFFERENCE);
+        this.fTopOverallTime = fTopOverallTime;
+        this.turningPointMaxTime = turningPointMaxTime;
 
-        this.checkBudgetConstraints = parameterClass.isTrue(ParamFlag.FLAG_CHECK_BUDGET_CONSTRAINTS);
+        this.checkBudgetConstraints = checkBudgetConstraints;
     }
 
     /**

@@ -147,7 +147,7 @@ public class TapasInitializer {
         ModeSelector modeSelector = new ModeSelector(modeSet,parameters, modeDistributionFactory,mnlFunctions,null);
         CostCalculator costCalculator = new CostCalculator(parameters,null);
         LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(parameters, locationSelector, modeSelector, travelDistanceCalculator, travelTimeCalculator, costCalculator);
-        TPS_PlanEVA1Acceptance acceptance = new TPS_PlanEVA1Acceptance(parameters);
+
         Processor<TPS_Household, Map<TPS_Person, TPS_PlanEnvironment>> hhProcessor = null;
 
         List<TPS_Household> households = null;

@@ -29,6 +29,8 @@ module de.dlr.ivf.tapas {
     opens de.dlr.ivf.tapas.dto to de.dlr.ivf.api.io;
     opens de.dlr.ivf.tapas.configuration.spring to spring.core;
     exports de.dlr.ivf.tapas.configuration.spring to spring.beans, spring.context;
+    exports de.dlr.ivf.tapas.simulation.implementation to spring.beans;
+    exports de.dlr.ivf.tapas.simulation.runner to spring.beans;
     exports de.dlr.ivf.tapas;
     exports de.dlr.ivf.tapas.simulation;
     opens de.dlr.ivf.tapas.simulation to com.fasterxml.jackson.databind;
@@ -41,4 +43,5 @@ module de.dlr.ivf.tapas {
     exports de.dlr.ivf.tapas.configuration.json.agent to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.region to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.region.matrix to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.acceptance to com.fasterxml.jackson.databind;
 }

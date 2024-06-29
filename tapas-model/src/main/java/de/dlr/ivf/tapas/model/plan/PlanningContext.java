@@ -10,6 +10,5 @@ public record PlanningContext(
         TPS_Person person,
         TPS_Location homeLocation,
         Set<Tour> tours
-
 ) {
 }

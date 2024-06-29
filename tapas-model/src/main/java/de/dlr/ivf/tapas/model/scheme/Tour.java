@@ -8,6 +8,7 @@ import java.util.NavigableSet;
  * previous and succeeding trips/stays as direct delegates to {@link NavigableSet#lower(Object)} and {@link NavigableSet#higher(Object)}
  */
 public record Tour(
+        int id,
         int tourNumber,
         NavigableSet<Trip> trips,
         NavigableSet<Stay> stays

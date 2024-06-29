@@ -6,6 +6,9 @@ import de.dlr.ivf.tapas.configuration.json.TapasConfig;
 import de.dlr.ivf.tapas.configuration.spring.*;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.simulation.SimulationRunner;
+import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
+import de.dlr.ivf.tapas.simulation.implementation.PersonProcessor;
+import de.dlr.ivf.tapas.simulation.runner.TripPriorityRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 
@@ -62,7 +65,11 @@ public class TapasLauncher{
                     //ModeChoiceModelBeanFactory.class,
                     TripPriorityRunnerBeanFactory.class,
                     SchemeBeanFactory.class,
-                    MatrixBeanFactory.class
+                    MatrixBeanFactory.class,
+                    TripPriorityRunner.class,
+                    HouseholdProcessor.class,
+                    ProcessorBeanFactory.class,
+                    PersonProcessor.class
             );
 
             applicationContext.refresh();

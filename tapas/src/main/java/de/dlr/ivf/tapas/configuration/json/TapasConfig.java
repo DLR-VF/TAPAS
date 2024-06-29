@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.dlr.ivf.api.io.configuration.ConnectionDetails;
+import de.dlr.ivf.tapas.configuration.json.acceptance.PlanEVA1AcceptanceConfig;
 import de.dlr.ivf.tapas.configuration.json.agent.HouseholdConfiguration;
 import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.ChronologicalRunnerConfiguration;
@@ -64,4 +65,7 @@ public class TapasConfig {
 
     @JsonProperty
     private RegionConfiguration regionConfiguration;
+
+    @JsonProperty
+    private PlanEVA1AcceptanceConfig planAcceptance;
 }

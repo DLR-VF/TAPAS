@@ -3,16 +3,15 @@ package de.dlr.ivf.tapas.configuration.spring;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.tapas.configuration.json.SimulationRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
+import de.dlr.ivf.tapas.configuration.json.acceptance.PlanEVA1AcceptanceConfig;
 import de.dlr.ivf.tapas.configuration.json.agent.HouseholdConfiguration;
 import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.ChronologicalRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.trafficgeneration.TrafficGenerationConfiguration;
-import de.dlr.ivf.tapas.model.person.TPS_Household;
+import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.simulation.runner.ChronologicalRunner;
-import de.dlr.ivf.tapas.simulation.runner.TripPriorityRunner;
-import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -43,12 +42,11 @@ public class TapasFactory {
     }
 
     @Lazy
-    @Bean(name = "tripPriorityRunner")
-    public TripPriorityRunner tripPriorityRunner(Collection<TPS_Household> households,
-                                                 SchemeProvider schemeProvider){
-        return new TripPriorityRunner(households, schemeProvider);
-    }
+    @Bean("workerCount")
+    public int workerCount(TripPriorityRunnerConfiguration configuration){
+        return configuration.workerCount();
 
+    }
     @Lazy
     @Bean(name = "chronologicalRunner")
     public ChronologicalRunner chronologicalRunner(ChronologicalRunnerConfiguration configuration){
@@ -95,6 +93,14 @@ public class TapasFactory {
 
     @Lazy
     @Bean
+    public TPS_PlanEVA1Acceptance acceptance(PlanEVA1AcceptanceConfig config){
+        return new TPS_PlanEVA1Acceptance(config.eBottomFinance(),config.fTopFinance(),config.turningPointFinance(),
+                config.eBottomTime(), config.fTopTime(), config.turningPointMaxTime(), config.eBottomOverallTime(),
+                config.fTopOverallTime(), config.checkBudgetConstraints());
+    }
+
+    @Lazy
+    @Bean
     public HouseholdConfiguration householdConfiguration(){
         return tapasConfig.getHouseholdConfiguration();
     }
@@ -103,5 +109,11 @@ public class TapasFactory {
     @Bean
     public RegionConfiguration regionConfiguration(){
         return tapasConfig.getRegionConfiguration();
+    }
+
+    @Lazy
+    @Bean
+    public PlanEVA1AcceptanceConfig acceptanceConfig(){
+        return tapasConfig.getPlanAcceptance();
     }
 }

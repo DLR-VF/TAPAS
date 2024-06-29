@@ -10,7 +10,8 @@ public record TripPriorityRunnerConfiguration(
         @JsonProperty TrafficGenerationConfiguration trafficGenerationConfiguration,
         @JsonProperty LocationChoiceConfiguration locationChoiceConfiguration,
         @JsonProperty ModeChoiceConfiguration modeChoiceConfiguration,
-        @JsonProperty int maxTriesSchemeSelection
+        @JsonProperty int maxTriesSchemeSelection,
+        @JsonProperty int workerCount
 
         ) implements SimulationRunnerConfiguration {
         @Override

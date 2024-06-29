@@ -7,16 +7,20 @@ import de.dlr.ivf.tapas.model.choice.DiscreteDistribution;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistributionFactory;
 import de.dlr.ivf.tapas.model.choice.DiscreteProbability;
 import de.dlr.ivf.tapas.model.constants.*;
+import de.dlr.ivf.tapas.model.plan.StayHierarchies;
+import de.dlr.ivf.tapas.model.plan.StayHierarchy;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.model.vehicle.TPS_CarCode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.stream.Collectors.*;
 
@@ -93,6 +97,64 @@ public class SchemeBeanFactory {
     }
 
     @Bean
+    public StayHierarchies stayHierarchies(Map<Integer, Set<Tour>> toursBySchemeId,
+                                           @Qualifier("stayPriorityDurationStartTimeComparator") Comparator<Stay> stayComparator){
+
+        StayHierarchies stayHierarchies = new StayHierarchies();
+
+        toursBySchemeId.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .forEach(tour -> stayHierarchies.addStayHierarchy(tour.id(), newStayHierarchy(tour.stays(), stayComparator)));
+
+        return stayHierarchies;
+    }
+
+    @Bean("stayPriorityDurationStartTimeComparator")
+    public Comparator<Stay> stayPriorityDurationStartTimeComparator(){
+        return Comparator.comparing(Stay::priority).thenComparing(Stay::duration).reversed().thenComparing(Stay::startTime);
+    }
+
+    public StayHierarchy newStayHierarchy(Set<Stay> stays, Comparator<Stay> stayComparator){
+
+        List<Stay> sortedStaysByStartTime = stays.stream().sorted(Comparator.comparingInt(Stay::startTime)).toList();
+        Stay beginningStay = sortedStaysByStartTime.getFirst();
+        Stay endingStay = sortedStaysByStartTime.getLast();
+
+        SortedSet<Stay> processedStays = new TreeSet<>(stayComparator);
+        List<Stay> sortedStaysByComparator = stays.stream().sorted(stayComparator).toList();
+
+        StayHierarchy stayHierarchy = new StayHierarchy();
+
+        for (Stay stay : sortedStaysByComparator) { // first entry-> highest Prio
+            Stay prevStayInHierarchy = beginningStay;
+            Stay nextStayInHierarchy = endingStay;
+
+            for (Stay processedStay : processedStays) {
+
+                //higher Prio, older than prev and younger than stay?
+                if (processedStay.startTime() >= prevStayInHierarchy.startTime() &&
+                        processedStay.startTime() < stay.startTime() && processedStay != nextStayInHierarchy) {
+                    prevStayInHierarchy = processedStay;
+                }
+
+                //higher Prio, younger than next and older than stay?
+                if (processedStay.startTime() <= nextStayInHierarchy.startTime() &&
+                        processedStay.startTime() > stay.startTime() && processedStay != prevStayInHierarchy) {
+                    nextStayInHierarchy = processedStay;
+                }
+
+            }
+
+            stayHierarchy.addPrecedingStay(stay, prevStayInHierarchy);
+            stayHierarchy.addSucceedingStay(stay, nextStayInHierarchy);
+            processedStays.add(stay);
+        }
+
+        return stayHierarchy;
+    }
+
+    @Bean
     public Map<Integer, List<Scheme>> schemesByClassID(Collection<SchemeDto> schemeDtos,
                                                        Map<Integer, Set<Tour>> toursBySchemeId){
 
@@ -103,8 +165,8 @@ public class SchemeBeanFactory {
 
     @Bean
     public Map<Integer, Set<Tour>> toursBySchemeId(SchemeProviderConfiguration configuration,
-                                                          Collection<EpisodeDto> episodeDtos,
-                                                          Activities activities){
+                                                   Collection<EpisodeDto> episodeDtos,
+                                                   Activities activities){
 
         Map<Integer, Collection<EpisodeDto>> episodesBySchemeId = episodeDtos
                 .stream()
@@ -112,12 +174,14 @@ public class SchemeBeanFactory {
 
         Map<Integer, Set<Tour>> toursBySchemeId = new HashMap<>();
 
+        AtomicInteger tourIdProvider = new AtomicInteger(0);
+
         for (Map.Entry<Integer, Collection<EpisodeDto>> entry : episodesBySchemeId.entrySet()) {
 
             int schemeId = entry.getKey();
             Collection<EpisodeDto> episodesInScheme = entry.getValue();
             Set<Tour> tours = generateToursFromEpisodes(configuration.timeSlotLength(), episodesInScheme,
-                    activities, configuration.tripActivityCode());
+                    activities, configuration.tripActivityCode(), tourIdProvider);
 
             toursBySchemeId.put(schemeId, tours);
         }
@@ -126,16 +190,18 @@ public class SchemeBeanFactory {
     }
 
     public Set<Tour> generateToursFromEpisodes(int timeSlotLength,
-                                                      Collection<EpisodeDto> episodes,
-                                                      Activities activities, int tripActivityCode) {
+                                               Collection<EpisodeDto> episodes,
+                                               Activities activities,
+                                               int tripActivityCode,
+                                               AtomicInteger tourIdProvider) {
 
         List<EpisodeDto> sortedEpisodesInScheme = episodes
                 .stream()
                 .sorted(Comparator.comparingInt(EpisodeDto::getStart))
                 .toList();
 
-        Map<Integer, NavigableSet<Trip>> tripsByTourId = new HashMap<>();
-        Map<Integer, NavigableSet<Stay>> staysByTourId = new HashMap<>();
+        Map<Integer, NavigableSet<Trip>> tripsByTourNumber = new HashMap<>();
+        Map<Integer, NavigableSet<Stay>> staysByTourNumber = new HashMap<>();
 
         for(int i = 1; i < sortedEpisodesInScheme.size() - 1; i = i+2){
 
@@ -145,8 +211,11 @@ public class SchemeBeanFactory {
 
             validateEpisodesOrThrow(startEpisode, endEpisode, tripEpisode, tripActivityCode);
 
-            Stay startStay = new Stay(startEpisode.getStart(), startEpisode.getDuration(), startEpisode.getActCodeZbe());
-            Stay endStay  = new Stay(endEpisode.getStart(), endEpisode.getDuration(), endEpisode.getActCodeZbe());
+            Activity startActivity = activities.getActivityByZbeCode(startEpisode.getActCodeZbe());
+            Activity endActivity = activities.getActivityByZbeCode(endEpisode.getActCodeZbe());
+
+            Stay startStay = new Stay(startEpisode.getStart(), startEpisode.getDuration(), startEpisode.getActCodeZbe(),startActivity.priority());
+            Stay endStay  = new Stay(endEpisode.getStart(), endEpisode.getDuration(), endEpisode.getActCodeZbe(), endActivity.priority());
 
             int tripPriority = activities.getActivity(TPS_ActivityConstant.TPS_ActivityCodeType.ZBE, endStay.activity())
                     .getCode(TPS_ActivityConstant.TPS_ActivityCodeType.PRIORITY);
@@ -155,15 +224,15 @@ public class SchemeBeanFactory {
 
             int tourNumber = tripEpisode.getTourNumber();
 
-            tripsByTourId.computeIfAbsent(tourNumber, tourId -> new TreeSet<>(Comparator.comparingInt(Trip::startTime))).add(trip);
-            staysByTourId.computeIfAbsent(tourNumber, (Integer tourId) -> new TreeSet<>(Comparator.comparingInt(Stay::startTime))).add(startStay);
-            staysByTourId.computeIfAbsent(tourNumber, (Integer tourId) -> new TreeSet<>(Comparator.comparingInt(Stay::startTime))).add(endStay);
+            tripsByTourNumber.computeIfAbsent(tourNumber, tourNum -> new TreeSet<>(Comparator.comparingInt(Trip::startTime))).add(trip);
+            staysByTourNumber.computeIfAbsent(tourNumber, tourNum -> new TreeSet<>(Comparator.comparingInt(Stay::startTime))).add(startStay);
+            staysByTourNumber.computeIfAbsent(tourNumber, tourNum -> new TreeSet<>(Comparator.comparingInt(Stay::startTime))).add(endStay);
         }
 
-        return tripsByTourId
+        return tripsByTourNumber
                 .keySet()
                 .stream()
-                .map(tourId -> new Tour(tourId, tripsByTourId.get(tourId), staysByTourId.get(tourId)))
+                .map(tourId -> new Tour(tourIdProvider.incrementAndGet(), tourId, tripsByTourNumber.get(tourId), staysByTourNumber.get(tourId)))
                 .collect(toUnmodifiableSet());
     }
 
@@ -180,9 +249,9 @@ public class SchemeBeanFactory {
     }
 
     @Bean
-    public Activities activities(Collection<TPS_ActivityConstant> activities) {
+    public Activities activities(Collection<TPS_ActivityConstant> activityConstants, Collection<Activity> activities) {
 
-        return new Activities(activities);
+        return new Activities(activityConstants, activities);
     }
 
     @Bean
@@ -228,6 +297,13 @@ public class SchemeBeanFactory {
         }
 
         return activities;
+    }
+
+    @Bean
+    public Collection<Activity> activitiesCollection(Collection<ActivityDto> activityDtos) {
+        return activityDtos.stream()
+                .map(dto -> new Activity(dto.getCodeZbe(), dto.getCodeTapas(), dto.getCodeVot(), dto.getCodeMct(), dto.getCodePriority()))
+                .toList();
     }
 
     /**

@@ -11,6 +11,7 @@ module de.dlr.ivf.tapas.model {
     requires javacsv;
     requires java.sql;
     requires spring.context;
+    requires spring.beans;
     exports de.dlr.ivf.tapas.model;
     exports de.dlr.ivf.tapas.model.person;
     exports de.dlr.ivf.tapas.model.constants;

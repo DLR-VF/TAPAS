@@ -2,13 +2,16 @@ package de.dlr.ivf.tapas.simulation.implementation;
 
 import de.dlr.ivf.tapas.simulation.Processor;
 import lombok.Builder;
+import lombok.Getter;
 
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 
 @Builder
+@Getter
 public class SimulationWorker<S> implements Runnable{
 
+    private final String name;
     private final Queue<S> householdsToProcess;
     private boolean keepRunning = true;
     private final Processor<S,?> processor;
@@ -22,15 +25,10 @@ public class SimulationWorker<S> implements Runnable{
                 keepRunning = false;
             } else {
                 var result = processor.process(hh);
-                System.out.println("tschaka");
             }
 
         }
-//        try {
-//            Thread.sleep(10000);
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
+
         countDownLatch.countDown();
     }
 }

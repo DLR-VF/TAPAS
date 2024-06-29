@@ -280,6 +280,7 @@
   },
   "simulationRunnerToUse" : "tripPriorityRunner",
   "simulationRunnerConfiguration" : {
+    "workerCount" : 8,
     "trafficGenerationConfiguration" : {
       "schemeProviderConfiguration" : {
         "schemeClassChoiceSeed" : 1234,
@@ -412,5 +413,16 @@
         "carSharingAccessAddon" : 180
       }
     }
+  },
+  "planAcceptance" : {
+    "eBottomFinance" : 7.0,
+    "fTopFinance" : 5.0,
+    "turningPointFinance" : 0.5,
+    "eBottomTime" : 7.0,
+    "fTopTime" : 5.0,
+    "checkBudgetConstraints" : true,
+    "eBottomOverallTime" : 7.0,
+    "fTopOverallTime" : 10.0,
+    "turningPointMaxTime" : 0.5
   }
 }

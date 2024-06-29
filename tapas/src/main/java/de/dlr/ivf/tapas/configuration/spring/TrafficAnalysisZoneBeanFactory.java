@@ -24,6 +24,7 @@ import static java.util.stream.Collectors.*;
  * The TrafficAnalysisZoneBeanFactory class is responsible for creating and configuring TrafficAnalysisZones object.
  * It uses the TPS_DB_IO class to read data from the database and the TrafficAnalysisZoneConfiguration to get the necessary configuration.
  */
+@Lazy
 @Configuration
 public class TrafficAnalysisZoneBeanFactory {
 
@@ -34,7 +35,6 @@ public class TrafficAnalysisZoneBeanFactory {
         this.dbIo = dbIo;
     }
 
-    @Lazy
     @Bean
     public TrafficAnalysisZones trafficAnalysisZones(Collection<TrafficAnalysisZoneScoreDto> tazScores,
                                                      Collection<TrafficAnalysisZoneDto> tazDtos,
@@ -61,8 +61,15 @@ public class TrafficAnalysisZoneBeanFactory {
 
             double tazScore = scoresByTazId.get(tazDto.getTazId()).getScore();
             double tazScoreCat = scoresByTazId.get(tazDto.getTazId()).getScoreCat();
-            boolean isPNR = feesAndTollsByTazId.get(tazDto.getTazId()).isParkAndRide();
-            boolean isRestricted = feesAndTollsByTazId.get(tazDto.getTazId()).isRestricted();
+
+            boolean isPNR = false;
+            boolean isRestricted = false;
+            TazFeesAndTollsDto feesAndTollsDto = feesAndTollsByTazId.get(tazDto.getTazId());
+
+            if(feesAndTollsDto != null) {
+                isPNR = feesAndTollsByTazId.get(tazDto.getTazId()).isParkAndRide();
+                isRestricted = feesAndTollsByTazId.get(tazDto.getTazId()).isRestricted();
+            }
 
             TPS_TrafficAnalysisZone trafficAnalysisZone = TPS_TrafficAnalysisZone.builder()
                     .id(tazDto.getTazId())
@@ -77,10 +84,12 @@ public class TrafficAnalysisZoneBeanFactory {
 
             Collection<TPS_Location> tazLocations = locationsByTazId.get(tazDto.getTazId());
 
-            tazLocations.forEach(location -> trafficAnalysisZone.addLocation(
-                    location,
-                    activityAndLocationCodeMapping.getActivitiesByLocationCode(location.getLocType()))
-            );
+            if(tazLocations != null) {
+                tazLocations.forEach(location -> trafficAnalysisZone.addLocation(
+                        location,
+                        activityAndLocationCodeMapping.getActivitiesByLocationCode(location.getLocType()))
+                );
+            }
 
             trafficAnalysisZones.addTrafficAnalysisZone(trafficAnalysisZone.getTAZId(), trafficAnalysisZone);
 
@@ -89,27 +98,28 @@ public class TrafficAnalysisZoneBeanFactory {
         return trafficAnalysisZones;
     }
 
-    @Lazy
     @Bean
     public Collection<TrafficAnalysisZoneScoreDto> trafficAnalysisZoneScoreDtos(@Qualifier("extendedTrafficAnalysisZoneConfiguration") ExtendedTrafficAnalysisZoneConfiguration config){
         return dbIo.readFromDb(config.tazScores(), TrafficAnalysisZoneScoreDto.class, TrafficAnalysisZoneScoreDto::new);
     }
 
-    @Lazy
     @Bean
     public Collection<IntraTazInfoMit> intraTazInfoMit(@Qualifier("extendedTrafficAnalysisZoneConfiguration") ExtendedTrafficAnalysisZoneConfiguration config){
         return dbIo.readFromDb(config.intraMitInfo(), IntraTazInfoMit.class, IntraTazInfoMit::new);
     }
 
-    @Lazy
     @Bean
     public Collection<IntraTazInfoPt> intraTazInfoPt(@Qualifier("extendedTrafficAnalysisZoneConfiguration") ExtendedTrafficAnalysisZoneConfiguration config){
         return dbIo.readFromDb(config.intraPtInfo(), IntraTazInfoPt.class, IntraTazInfoPt::new);
     }
 
-    @Lazy
     @Bean
     public Collection<TazFeesAndTollsDto> tazFeesAndTollsDtos(@Qualifier("extendedTrafficAnalysisZoneConfiguration") ExtendedTrafficAnalysisZoneConfiguration config){
         return dbIo.readFromDb(config.feesAndTolls(), TazFeesAndTollsDto.class, TazFeesAndTollsDto::new);
+    }
+
+    @Bean
+    public Collection<TrafficAnalysisZoneDto> trafficAnalysisZoneDtos(@Qualifier("extendedTrafficAnalysisZoneConfiguration") ExtendedTrafficAnalysisZoneConfiguration config){
+        return dbIo.readFromDb(config.trafficAnalysisZones(), TrafficAnalysisZoneDto.class, TrafficAnalysisZoneDto::new);
     }
 }

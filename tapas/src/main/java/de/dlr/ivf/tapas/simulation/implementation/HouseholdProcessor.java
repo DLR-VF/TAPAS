@@ -51,6 +51,7 @@ public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Pers
         Map<TPS_Person, TPS_PlanEnvironment> result = new HashMap<>();
         //todo car fleet manager should be set up here
 
+        logger.log(Level.DEBUG,"Processing Household: "+hh.getId());
         for (TPS_Person person : hh.getMembers(TPS_Household.Sorting.AGE)) {
 
             if (person.isChild()) {
@@ -128,8 +129,7 @@ public class HouseholdProcessor implements Processor<TPS_Household, Map<TPS_Pers
                 household.getLocation().getTrafficAnalysisZone().getBbrType());
         myAttributes.put(TPS_Attribute.PERSON_AGE_CLASS_CODE_STBA, person.getAgeClass().getCode(TPS_AgeClass.TPS_AgeCodeType.STBA));
         myAttributes.put(TPS_Attribute.PERSON_HAS_BIKE, person.hasBike() ? 1 : 0);
-        myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, person.getHousehold()
-                .getNumberOfCars()); // TODO: note that this is set once again in selectLocationsAndModesAndTravelTimes
+        myAttributes.put(TPS_Attribute.HOUSEHOLD_CARS, household.getNumberOfCars()); // TODO: note that this is set once again in selectLocationsAndModesAndTravelTimes
         myAttributes.put(TPS_Attribute.PERSON_SEX_CLASS_CODE, person.getSex().getCode());
 
         return myAttributes;

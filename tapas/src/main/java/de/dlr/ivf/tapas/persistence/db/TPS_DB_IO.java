@@ -22,15 +22,11 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.*;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.*;
-import de.dlr.ivf.tapas.model.vehicle.CarFleetManager.CarFleetManagerBuilder;
 
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import de.dlr.ivf.tapas.model.parameter.*;
-import de.dlr.ivf.tapas.model.vehicle.*;
-import de.dlr.ivf.tapas.model.person.TPS_Household.TPS_HouseholdBuilder;
-import de.dlr.ivf.tapas.model.person.TPS_Household;
 import de.dlr.ivf.tapas.model.location.ScenarioTypeValues.ScenarioTypeValuesBuilder;
 
 import de.dlr.ivf.tapas.model.TPS_AttributeReader.TPS_Attribute;
@@ -60,44 +56,6 @@ public class TPS_DB_IO {
         
         this.connectionSupplier = connectionSupplier;
         this.parameters = parameterClass;
-    }
-
-    public Map<Integer, TPS_HouseholdBuilder> readHouseholds(Collection<HouseholdDto> householdDtos, Cars cars, Incomes incomes, Map<Integer, TPS_TrafficAnalysisZone> tazMap){
-
-        Map<Integer, TPS_HouseholdBuilder> householdBuilders = new HashMap<>(householdDtos.size());
-
-        for(HouseholdDto householdDto : householdDtos) {
-            TPS_Location homeLocation = TPS_Location.builder()
-                    .id(-1 * householdDto.getHhId())
-                    .groupId(-1)
-                    .locType(-1)
-                    .coordinate(new TPS_Coordinate(householdDto.getXCoordinate(), householdDto.getYCoordinate()))
-                    .block(null)
-                    .tazId(householdDto.getTazId())
-                    .taz(tazMap.get(householdDto.getTazId()))
-                    .build();
-
-            TPS_HouseholdBuilder householdBuilder = TPS_Household.builder()
-                    .id(householdDto.getHhId())
-                    .type(householdDto.getHhType())
-                    .realIncome(householdDto.getHhIncome())
-                    .location(homeLocation)
-                    .income(incomes.getIncomeClass((int)householdDto.getHhIncome()));
-
-            //init the fleet manager
-            CarFleetManagerBuilder fleetManager = CarFleetManager.builder();
-            if(householdDto.getCarIds() != null) {
-                Arrays.stream(householdDto.getCarIds())
-                        .boxed()
-                        .map(cars::getCar)
-                        .map(CarController::new)
-                        .forEach(fleetManager::addCarController);
-            }
-            householdBuilder.carFleetManager(fleetManager.build());
-            householdBuilders.put(householdDto.getHhId(), householdBuilder);
-
-        }
-        return householdBuilders;
     }
 
     /**
