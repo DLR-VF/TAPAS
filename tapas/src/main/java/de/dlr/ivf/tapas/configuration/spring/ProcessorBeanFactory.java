@@ -5,7 +5,7 @@ import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguratio
 import de.dlr.ivf.tapas.initializers.TourContextFactory;
 import de.dlr.ivf.tapas.model.plan.StayHierarchies;
 import de.dlr.ivf.tapas.model.scheme.Trip;
-import de.dlr.ivf.tapas.simulation.implementation.HierarchicalTourProcessor;
+import de.dlr.ivf.tapas.simulation.implementation.StayHierarchyTourProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -22,7 +22,7 @@ public class ProcessorBeanFactory {
      * @return A comparator that compares trips based on their priority in descending order.
      */
     @Bean
-    public Comparator<Trip> trpPriorityComparator(){
+    public Comparator<Trip> tripPriorityComparator(){
         return Comparator.comparingInt(Trip::priority).reversed().thenComparing(Trip::startTime);
     }
 
@@ -42,7 +42,7 @@ public class ProcessorBeanFactory {
     }
 
     @Bean
-    public HierarchicalTourProcessor hierarchicalTourProcessor(StayHierarchies stayHierarchies){
-        return new HierarchicalTourProcessor(Comparator.comparingInt(Trip::priority).reversed(), stayHierarchies);
+    public StayHierarchyTourProcessor hierarchicalTourProcessor(StayHierarchies stayHierarchies){
+        return new StayHierarchyTourProcessor(Comparator.comparingInt(Trip::priority).reversed(), stayHierarchies);
     }
 }

@@ -124,7 +124,7 @@ public class SchemeBeanFactory {
         SortedSet<Stay> processedStays = new TreeSet<>(stayComparator);
         List<Stay> sortedStaysByComparator = stays.stream().sorted(stayComparator).toList();
 
-        StayHierarchy stayHierarchy = new StayHierarchy();
+        StayHierarchy stayHierarchy = new StayHierarchy(sortedStaysByComparator);
 
         for (Stay stay : sortedStaysByComparator) { // first entry-> highest Prio
             Stay prevStayInHierarchy = beginningStay;

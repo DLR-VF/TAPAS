@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The StayHierarchies class represents a collection of stay hierarchies mapped to a scheme tour.
+ * The StayHierarchies class represents a collection of stay hierarchies mapped to an id.
  */
 public class StayHierarchies {
 

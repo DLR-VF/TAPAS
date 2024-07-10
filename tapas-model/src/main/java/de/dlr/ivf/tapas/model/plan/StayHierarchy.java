@@ -2,15 +2,15 @@ package de.dlr.ivf.tapas.model.plan;
 
 import de.dlr.ivf.tapas.model.scheme.Stay;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class StayHierarchy {
-
+    private final Collection<Stay> prioritizedStays;
     private final Map<Stay, Stay> precedingStays;
     private final Map<Stay, Stay> succeedingStays;
 
-    public StayHierarchy() {
+    public StayHierarchy(Collection<Stay> prioritizedStays) {
+        this.prioritizedStays = prioritizedStays;
         this.precedingStays = new HashMap<>();
         this.succeedingStays = new HashMap<>();
     }

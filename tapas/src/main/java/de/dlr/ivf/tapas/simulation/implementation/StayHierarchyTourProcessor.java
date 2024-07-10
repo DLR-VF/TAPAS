@@ -16,13 +16,13 @@ import java.util.List;
 
 @Lazy
 @Component
-public class HierarchicalTourProcessor implements Processor<TourContext, PlannedTour> {
+public class StayHierarchyTourProcessor implements Processor<TourContext, PlannedTour> {
 
     private final Comparator<Trip> tripPriorityComparator;
     private final StayHierarchies stayHierarchies;
 
     @Autowired
-    public HierarchicalTourProcessor(Comparator<Trip> tripPriorityComparator, StayHierarchies stayHierarchies) {
+    public StayHierarchyTourProcessor(Comparator<Trip> tripPriorityComparator, StayHierarchies stayHierarchies) {
         this.tripPriorityComparator = tripPriorityComparator;
         this.stayHierarchies = stayHierarchies;
     }

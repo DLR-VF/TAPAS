@@ -24,11 +24,11 @@ public class PersonProcessor implements Processor<PlanningContext, Plan> {
     private final Logger logger = System.getLogger(PersonProcessor.class.getName());
 
     private final TourContextFactory tourContextFactory;
-    private final HierarchicalTourProcessor tourProcessor;
+    private final StayHierarchyTourProcessor tourProcessor;
     private final int homeActivityId;
 
     @Autowired
-    public PersonProcessor(TourContextFactory tourContextFactory, HierarchicalTourProcessor tourProcessor,
+    public PersonProcessor(TourContextFactory tourContextFactory, StayHierarchyTourProcessor tourProcessor,
                            @Qualifier("homeActivityId") int homeActivityId) {
         this.tourContextFactory = tourContextFactory;
         this.tourProcessor = tourProcessor;
