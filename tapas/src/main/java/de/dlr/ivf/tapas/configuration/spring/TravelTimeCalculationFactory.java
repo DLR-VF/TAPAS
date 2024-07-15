@@ -26,14 +26,14 @@ public class TravelTimeCalculationFactory {
      * @param modeMatrixMaps        The matrix maps for each mode of transportation.
      * @param modes                 The available modes of transportation.
      * @param configuration         The travel time configuration.
-     * @param blMatrix              The beeline distance matrix.
+     * @param modeBlDistanceMatrices The beeline distance matrix.
      * @return A map of travel time functions for each mode of transportation.
      * @throws IllegalArgumentException if there are no matrix maps for a mode.
      */
     @Bean("interTazTravelTimeFunctions")
     public Map<TPS_Mode, TravelTimeFunction> interTazTravelTimeFunctions(Map<TPS_Mode, Map<String, MatrixMap>> modeMatrixMaps,
                                                                          Modes modes, TravelTimeConfiguration configuration,
-                                                                         @Qualifier("beelineDistanceMatrix") IntMatrix blMatrix){
+                                                                         Map<TPS_Mode, IntMatrix> modeBlDistanceMatrices){
 
         double minDist = configuration.minDist();
 
@@ -42,9 +42,13 @@ public class TravelTimeCalculationFactory {
         for(TPS_Mode mode: modes.getModes()){
 
             Map<String, MatrixMap> matrixMaps = modeMatrixMaps.get(mode);
-
             if(matrixMaps == null){
                 throw new IllegalArgumentException("No MatrixMaps for mode " + mode.getName());
+            }
+
+            IntMatrix blMatrix = modeBlDistanceMatrices.get(mode);
+            if(blMatrix == null){
+                throw new IllegalArgumentException("No beeline distance matrix for mode " + mode.getName());
             }
 
             TravelTimeFunction travelTimeFunction = new SimpleMatrixMapTravelTimeFunction(minDist, blMatrix, matrixMaps, mode);

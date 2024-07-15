@@ -94,7 +94,15 @@
       "matricesSource" : {
         "uri" : "core.berlin_matrices"
       },
-      "beelineDistanceMatrixName" : "WALK_DIST",
+      "beelineDistanceMatrices" : {
+        "PT" : "WALK_DIST",
+        "WALK" : "WALK_DIST",
+        "BIKE" : "WALK_DIST",
+        "MIT" : "WALK_DIST",
+        "MIT_PASS" : "WALK_DIST",
+        "TAXI" : "WALK_DIST",
+        "CAR_SHARING" : "WALK_DIST"
+      },
       "modeMatrixMapMappings" : {
         "PT" : {
           "ACCESS" : "PT_ACCESS_TIME",
