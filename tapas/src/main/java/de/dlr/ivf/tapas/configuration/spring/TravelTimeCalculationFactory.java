@@ -19,6 +19,17 @@ import java.util.Map;
 @Configuration
 public class TravelTimeCalculationFactory {
 
+    /**
+     * Initializes the TravelTimeFunctions for each mode that will be used when calculating the travel times between two
+     * distinct locations.
+     *
+     * @param modeMatrixMaps        The matrix maps for each mode of transportation.
+     * @param modes                 The available modes of transportation.
+     * @param configuration         The travel time configuration.
+     * @param blMatrix              The beeline distance matrix.
+     * @return A map of travel time functions for each mode of transportation.
+     * @throws IllegalArgumentException if there are no matrix maps for a mode.
+     */
     @Bean("interTazTravelTimeFunctions")
     public Map<TPS_Mode, TravelTimeFunction> interTazTravelTimeFunctions(Map<TPS_Mode, Map<String, MatrixMap>> modeMatrixMaps,
                                                                          Modes modes, TravelTimeConfiguration configuration,
@@ -43,6 +54,15 @@ public class TravelTimeCalculationFactory {
         return modeTravelTimeFunctions;
     }
 
+    /**
+     * Initializes the TravelTimeFunctions for each mode that will be used when calculating the travel times between two
+     * locations that are the same.
+     *
+     * @param configuration           The travel time configuration.
+     * @param interTravelTimeFunctions The map of travel time functions for inter-taz trips.
+     * @return The map of travel time functions for intra-taz trips.
+     * @throws IllegalArgumentException if the configuration does not use matrix values for intra-taz trips.
+     */
     @Bean("intraTazTravelTimeFunctions")
     public Map<TPS_Mode, TravelTimeFunction> intraTazTravelTimeFunctions(TravelTimeConfiguration configuration,
             @Qualifier("interTazTravelTimeFunctions") Map<TPS_Mode, TravelTimeFunction> interTravelTimeFunctions){

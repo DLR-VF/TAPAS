@@ -14,7 +14,6 @@ import de.dlr.ivf.tapas.simulation.SimulationRunner;
 import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
 
 import de.dlr.ivf.tapas.simulation.implementation.SimulationWorker;
-import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -27,17 +26,16 @@ public class TripPriorityRunner implements SimulationRunner {
 
     private final Queue<TPS_Household> householdsToProcess;
     private final HouseholdProcessor householdProcessor;
-    private final SchemeProvider schemeProvider;
     private final int workerCount;
 
     @Autowired
-    public TripPriorityRunner(Collection<TPS_Household> householdsToProcess, SchemeProvider schemeProvider,
-                              @Qualifier("workerCount") int workerCount, HouseholdProcessor householdProcessor){
+    public TripPriorityRunner(Collection<TPS_Household> householdsToProcess,
+                              @Qualifier("workerCount") int workerCount,
+                              HouseholdProcessor householdProcessor){
+
         this.householdsToProcess = new ConcurrentLinkedDeque<>(householdsToProcess);
-        this.schemeProvider = schemeProvider;
         this.workerCount = workerCount;
         this.householdProcessor = householdProcessor;
-
     }
 
 

@@ -9,6 +9,10 @@ import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 
 import java.util.Map;
 
+/**
+ * Represents a simple implementation of the TravelTimeFunction interface that calculates travel time
+ * based on matrix maps and beeline distances.
+ */
 public class SimpleMatrixMapTravelTimeFunction implements TravelTimeFunction {
 
     private final MatrixMap ttMatrixMap;
@@ -18,6 +22,17 @@ public class SimpleMatrixMapTravelTimeFunction implements TravelTimeFunction {
     private final MatrixMap egressMatrixMap;
     private final TPS_Mode travelMode;
 
+    /**
+     * Creates a SimpleMatrixMapTravelTimeFunction object with the given parameters.
+     *
+     * @param minDist                  The minimum distance for calculating travel time.
+     * @param beelineDistanceMatrix    The matrix containing beeline distances between locations.
+     * @param matrixMaps               The map containing matrix maps by their stage names "TT", "ACCESS", "EGRESS".
+     * @param travelMode               The travel mode for which the travel time is calculated.
+     * @throws IllegalArgumentException If no travel time matrix map is found for the given travel mode,
+     *                                   or if no access matrix map is found for the given travel mode,
+     *                                   or if no egress matrix map is found for the given travel mode.
+     */
     public SimpleMatrixMapTravelTimeFunction(double minDist,
                                              IntMatrix beelineDistanceMatrix,
                                              Map<String,MatrixMap> matrixMaps,
@@ -44,6 +59,14 @@ public class SimpleMatrixMapTravelTimeFunction implements TravelTimeFunction {
     }
 
 
+    /**
+     * Calculates the travel time between two locations at a given time.
+     *
+     * @param start The starting location.
+     * @param end The ending location.
+     * @param time The time at which the travel time is calculated.
+     * @return The travel time between the start and end locations at the given time.
+     */
     @Override
     public double calculateTravelTime(Locatable start, Locatable end, int time) {
         double tt = -1.0; // this is the indicator, of an invalid tt -time
