@@ -3,6 +3,7 @@ package de.dlr.ivf.tapas.configuration.spring;
 import de.dlr.ivf.tapas.choice.FeasibilityCalculator;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
 import de.dlr.ivf.tapas.initializers.TourContextFactory;
+import de.dlr.ivf.tapas.model.constants.Activities;
 import de.dlr.ivf.tapas.model.plan.StayHierarchies;
 import de.dlr.ivf.tapas.model.scheme.Trip;
 import de.dlr.ivf.tapas.simulation.implementation.StayHierarchyTourProcessor;
@@ -42,7 +43,7 @@ public class ProcessorBeanFactory {
     }
 
     @Bean
-    public StayHierarchyTourProcessor hierarchicalTourProcessor(StayHierarchies stayHierarchies){
-        return new StayHierarchyTourProcessor(Comparator.comparingInt(Trip::priority).reversed(), stayHierarchies);
+    public StayHierarchyTourProcessor hierarchicalTourProcessor(StayHierarchies stayHierarchies, Activities activities){
+        return new StayHierarchyTourProcessor(Comparator.comparingInt(Trip::priority).reversed(), stayHierarchies, activities);
     }
 }

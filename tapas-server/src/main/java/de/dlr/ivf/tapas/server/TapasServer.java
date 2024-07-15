@@ -6,7 +6,6 @@ import java.lang.System.Logger.Level;
 import de.dlr.ivf.api.io.connection.ConnectionPool;
 import de.dlr.ivf.api.service.Service;
 import de.dlr.ivf.tapas.Tapas;
-import de.dlr.ivf.tapas.TapasInitializer;
 import de.dlr.ivf.tapas.server.services.StateRequestFactory;
 import de.dlr.ivf.tapas.server.services.implementation.SimulationRequestService;
 import de.dlr.ivf.tapas.server.services.implementation.SimulationStateRequest;
@@ -198,14 +197,11 @@ public class TapasServer implements Service, Runnable {
         return simulationStateMonitor;
     }
 
+    //todo rewrite the tapas start procedure
     private Tapas startTapas(Runnable runWhenDone, Simulation simulation){
-        TapasInitializer tapasInitializer = new TapasInitializer(simulation.getParameters(), connectionPool, runWhenDone);
 
-        Tapas tapas = tapasInitializer.init();
 
-        Thread t = new Thread(tapas);
 
-        t.start();
-        return tapas;
+        return null;
     }
 }

@@ -2,6 +2,7 @@ package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
 import de.dlr.ivf.tapas.configuration.spring.*;
 import de.dlr.ivf.tapas.model.MatrixMap;
@@ -62,14 +63,17 @@ public class TapasLauncher{
                     CarBeanFactory.class,
                     TrafficGenerationBeanFactory.class,
                     LocationChoiceModelBeanFactory.class,
-                    //ModeChoiceModelBeanFactory.class,
+                    ModeChoiceModelBeanFactory.class,
                     TripPriorityRunnerBeanFactory.class,
                     SchemeBeanFactory.class,
                     MatrixBeanFactory.class,
                     TripPriorityRunner.class,
                     HouseholdProcessor.class,
                     ProcessorBeanFactory.class,
-                    PersonProcessor.class
+                    PersonProcessor.class,
+                    TravelTimeCalculationFactory.class,
+                    TravelTimeCalculator.class,
+                    ModeBeanFactory.class
             );
 
             applicationContext.refresh();
@@ -81,6 +85,9 @@ public class TapasLauncher{
 
             SimulationRunner runner = applicationContext.getBean(simulationRunnerName, SimulationRunner.class);
             //SchemeProvider schemeProvider = applicationContext.getBean("schemeProvider", SchemeProvider.class);
+            TravelTimeCalculator travelTimeCalculator = applicationContext.getBean(TravelTimeCalculator.class);
+
+
             Map<String, MatrixMap> matrixMaps  = applicationContext.getBean("matrixMaps", Map.class);
             logger.log(Level.INFO, "Launching simulation...");
             Thread t = new Thread(runner, "SimulationThread");

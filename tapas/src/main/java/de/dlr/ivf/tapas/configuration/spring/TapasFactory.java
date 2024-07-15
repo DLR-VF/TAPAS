@@ -9,6 +9,7 @@ import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.ChronologicalRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.trafficgeneration.TrafficGenerationConfiguration;
+import de.dlr.ivf.tapas.configuration.json.util.TravelTimeConfiguration;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
 import de.dlr.ivf.tapas.simulation.runner.ChronologicalRunner;
@@ -19,12 +20,11 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 
-import java.util.Collection;
-
 /**
  * The `TapasFactory` class is responsible for creating and configuring various beans used in the TAPAS application.
  * It is a Spring configuration class that defines the bean creation methods and their dependencies.
  */
+@Lazy
 @Configuration
 @ComponentScan("de.dlr.ivf.tapas.configuration.json")
 public class TapasFactory {
@@ -41,19 +41,21 @@ public class TapasFactory {
         return new TPS_DB_IO(new ConnectionPool(tapasConfig.getConnectionDetails()), null);
     }
 
-    @Lazy
     @Bean("workerCount")
     public int workerCount(TripPriorityRunnerConfiguration configuration){
         return configuration.workerCount();
-
     }
-    @Lazy
+
+    @Bean("maxSystemSpeed")
+    public int maxSystemSpeed(){
+        return tapasConfig.getMaxSystemSpeed();
+    }
+
     @Bean(name = "chronologicalRunner")
     public ChronologicalRunner chronologicalRunner(ChronologicalRunnerConfiguration configuration){
         return new ChronologicalRunner();
     }
 
-    @Lazy
     @Bean(name = "trafficGenerationConfiguration")
     public TrafficGenerationConfiguration trafficGenerationConfiguration() {
         SimulationRunnerConfiguration runnerConfiguration = tapasConfig.getSimulationRunnerConfiguration();
@@ -61,13 +63,11 @@ public class TapasFactory {
         return runnerConfiguration.getTrafficGenerationConfiguration();
     }
 
-    @Lazy
     @Bean(name = "abstractSimulationRunner")
     public SimulationRunnerConfiguration abstractSimulationRunnerConfiguration() {
         return tapasConfig.getSimulationRunnerConfiguration();
     }
 
-    @Lazy
     @Bean(name = "tripPriorityRunnerConfiguration")
     public TripPriorityRunnerConfiguration tripPriorityRunnerConfiguration(
             @Qualifier("abstractSimulationRunner") SimulationRunnerConfiguration configuration) {
@@ -79,7 +79,6 @@ public class TapasFactory {
         }
     }
 
-    @Lazy
     @Bean(name = "chronologicalRunnerConfiguration")
     public ChronologicalRunnerConfiguration chronologicalRunnerConfiguration(
             @Qualifier("abstractSimulationRunner") SimulationRunnerConfiguration configuration){
@@ -91,7 +90,11 @@ public class TapasFactory {
         }
     }
 
-    @Lazy
+    @Bean
+    public TravelTimeConfiguration travelTimeConfiguration(){
+        return tapasConfig.getTravelTimeCalculator();
+    }
+
     @Bean
     public TPS_PlanEVA1Acceptance acceptance(PlanEVA1AcceptanceConfig config){
         return new TPS_PlanEVA1Acceptance(config.eBottomFinance(),config.fTopFinance(),config.turningPointFinance(),
@@ -99,19 +102,16 @@ public class TapasFactory {
                 config.fTopOverallTime(), config.checkBudgetConstraints());
     }
 
-    @Lazy
     @Bean
     public HouseholdConfiguration householdConfiguration(){
         return tapasConfig.getHouseholdConfiguration();
     }
 
-    @Lazy
     @Bean
     public RegionConfiguration regionConfiguration(){
         return tapasConfig.getRegionConfiguration();
     }
 
-    @Lazy
     @Bean
     public PlanEVA1AcceptanceConfig acceptanceConfig(){
         return tapasConfig.getPlanAcceptance();

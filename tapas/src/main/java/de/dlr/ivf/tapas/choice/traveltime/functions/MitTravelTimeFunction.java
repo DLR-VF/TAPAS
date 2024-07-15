@@ -28,7 +28,7 @@ public class MitTravelTimeFunction implements TravelTimeFunction {
         this.minDist = parameterClass.getIntValue(ParamValue.MIN_DIST);
         this.useIntraTazInfo = parameterClass.isTrue(ParamFlag.FLAG_INTRA_INFOS_MATRIX);
         this.mitTtMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.TRAVEL_TIME_MIT, simType);
-        this.walkBeelineFactor = parameterClass.getDoubleValue(ModeType.WALK.getBeelineFactor());
+        this.walkBeelineFactor = 1.4;
         this.walkVelocity = walkVelocity;
         this.distanceMatrix = parameterClass.getMatrix(ParamMatrix.DISTANCES_BL);
         this.mitAccessMatrixMap = parameterClass.paramMatrixMapClass.getMatrixMap(ParamMatrixMap.ARRIVAL_MIT,simType);

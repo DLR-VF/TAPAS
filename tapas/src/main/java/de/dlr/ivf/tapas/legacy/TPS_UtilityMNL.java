@@ -52,13 +52,11 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
 
     public double calculateDelta(TPS_Mode mode, TPS_Plan plan, double distanceNet, TPS_ModeChoiceContext mcc) {
         double tt1 = 0;
-        tt1 = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                 TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
+        tt1 = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime);
         double tt2 = 0;
 
         if (mode.isUseBase()) { //differences in times
-            tt2 = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                    TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
+            tt2 = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime);
         } else {
             tt2 = tt1;
         }
@@ -99,8 +97,7 @@ public abstract class TPS_UtilityMNL implements TPS_UtilityFunction {
                 utilities[i] = minModeProbability;
             } else {
                 //travel time
-                double travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                        TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
+                double travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime);
                 if (TPS_Mode.noConnection(travelTime)) { //no connection
                     utilities[i] = minModeProbability;
                 } else {

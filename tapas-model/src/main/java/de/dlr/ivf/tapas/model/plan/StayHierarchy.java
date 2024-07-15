@@ -30,4 +30,8 @@ public class StayHierarchy {
     public Stay getSucceedingStay(Stay stay) {
         return succeedingStays.get(stay);
     }
+
+    public Collection<Stay> getPrioritizedStays() {
+        return prioritizedStays;
+    }
 }

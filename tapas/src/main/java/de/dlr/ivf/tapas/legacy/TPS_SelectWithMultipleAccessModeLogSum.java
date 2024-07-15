@@ -160,8 +160,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
                 continue;
             }
             //travel time
-            double travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime,
-                    TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY, plan.getPerson(), mcc.carForThisPlan);
+            double travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation, mcc.startTime);
             if (TPS_Mode.noConnection(travelTime)) { //no connection
                 utilities[i] = TPS_UtilityFunction.minModeProbability;
                 continue;

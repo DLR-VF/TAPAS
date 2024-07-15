@@ -9,7 +9,6 @@
 package de.dlr.ivf.tapas.model.mode;
 
 import de.dlr.ivf.tapas.model.constants.TPS_InternalConstant;
-import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -204,22 +203,7 @@ public class TPS_Mode {
      * This enum represents all known mode types of TAPAS
      */
     public enum ModeType {
-        //FIXME order is critical and must match the order in the modechoice parameter and expert knowledge arrays!
-        WALK(ParamValue.BEELINE_FACTOR_FOOT), BIKE(ParamValue.BEELINE_FACTOR_BIKE), MIT(
-                ParamValue.BEELINE_FACTOR_MIT), MIT_PASS(ParamValue.BEELINE_FACTOR_MIT), TAXI(
-                ParamValue.BEELINE_FACTOR_MIT), PT(ParamValue.BEELINE_FACTOR_PT), CAR_SHARING(ParamValue.BEELINE_FACTOR_MIT);
-
-        private final ParamValue beelineFactor;
-
-        ModeType(ParamValue beelineFactor) {
-            this.beelineFactor = beelineFactor;
-        }
-
-        public ParamValue getBeelineFactor() {
-            return beelineFactor;
-        }
-
-
+        WALK, BIKE, MIT, MIT_PASS, TAXI, PT, CAR_SHARING
     }
 
 

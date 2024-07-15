@@ -1,6 +1,5 @@
 package de.dlr.ivf.tapas.model.location;
 
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.util.Randomizer;
 
 import java.util.ArrayList;
@@ -20,9 +19,6 @@ public class TypedWeightedLocationDistribution {
      * Constructor
      */
     public TypedWeightedLocationDistribution() {
-    }
-
-    public TypedWeightedLocationDistribution(TPS_ActivityConstant tpsActivityConstant) {
     }
 
     /**
@@ -68,7 +64,7 @@ public class TypedWeightedLocationDistribution {
          *  weight is interpreted as zero by itself! -> Crash!
          */
 
-        if (weightSum < 1e-15 && from.size() > 0) return from.get(0);
+        if (weightSum < 1e-15 && !from.isEmpty()) return from.getFirst();
 
         double rPos = Randomizer.random() * (double) (int) weightSum;
         // use binary search? -> no!
@@ -87,10 +83,11 @@ public class TypedWeightedLocationDistribution {
             }
         }
         //last resort
-        if (from.size() > 0) return from.get(0);
+        if (!from.isEmpty()) return from.getFirst();
         else return null;
         //throw new RuntimeException("Ran over available weights; Input was: weightSum=" + weightSum);
     }
+
 
     /**
      * Chooses the given number of locations randomly, taking their weights into account

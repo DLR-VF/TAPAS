@@ -6,7 +6,6 @@ import de.dlr.ivf.api.io.configuration.FilterableDataSource;
 
 /**
  * ExtendedTrafficAnalysisZoneConfiguration is a class that represents the extended configuration for traffic analysis zones.
- * It implements the TrafficAnalysisZoneConfiguration interface.
  */
 public record ExtendedTrafficAnalysisZoneConfiguration(
         @JsonProperty DataSource trafficAnalysisZones,

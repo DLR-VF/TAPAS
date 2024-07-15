@@ -244,9 +244,7 @@ public class LocationAndModeChooser {
 
                         TPS_Mode mode = plannedTrip.getMode().primary;
                         double tripDuration = travelTimeCalculator.getTravelTime(
-                                mode, pLocComingFrom, pLocGoingTo, plannedTrip.getStart(),
-                                pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(),
-                                plan.getPerson(), tourpart.getCar());
+                                mode, pLocComingFrom, pLocGoingTo, plannedTrip.getStart());
 
                         plannedTrip.setDuration((int) tripDuration);
                        // plannedTrip.setCost(costCalculator.calculateCost(goingToTaz,comingFromTaz,tripDuration,));
@@ -265,9 +263,7 @@ public class LocationAndModeChooser {
 
                         TPS_Mode mode = plannedTrip.getMode().primary;
                         plannedTrip.setDuration((int) travelTimeCalculator
-                                .getTravelTime(mode, pLocComingFrom, pLocGoingTo, plannedTrip.getStart(),
-                                        pComingFrom.getStay().getActCode(), pGoingTo.getStay().getActCode(),
-                                        plan.getPerson(), tourpart.getCar()));
+                                .getTravelTime(mode, pLocComingFrom, pLocGoingTo, plannedTrip.getStart()));
                     }
 
                     //update the travel durations for this plan

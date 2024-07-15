@@ -70,17 +70,13 @@ public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBa
         } else if (currentAccessibilityPreference.equals(ShoppingPreferenceAccessibility.Erreichbarkeit)) {
 
             double ttCarFrom = travelTimeCalculator.getTravelTime(modeSet.getMode(ModeType.MIT),prevMCC.fromStayLocation,
-                    prevMCC.toStayLocation, prevMCC.fromStay.getOriginalEnd(),
-                    prevMCC.fromStay.getActCode(), prevMCC.toStay.getActCode(), plan.getPerson(), null);
+                    prevMCC.toStayLocation, prevMCC.fromStay.getOriginalEnd());
             double ttCarTo = travelTimeCalculator.getTravelTime(modeSet.getMode(ModeType.MIT), nextMCC.fromStayLocation, nextMCC.toStayLocation,
-                    nextMCC.fromStay.getOriginalEnd(), nextMCC.fromStay.getActCode(),
-                    nextMCC.toStay.getActCode(), plan.getPerson(), null);
+                    nextMCC.fromStay.getOriginalEnd());
             double ttPTFrom = travelTimeCalculator.getTravelTime(modeSet.getMode(ModeType.PT), prevMCC.fromStayLocation, prevMCC.toStayLocation,
-                    prevMCC.fromStay.getOriginalEnd(), prevMCC.fromStay.getActCode(),
-                    prevMCC.toStay.getActCode(), plan.getPerson(), null);
+                    prevMCC.fromStay.getOriginalEnd());
             double ttPTTo = travelTimeCalculator.getTravelTime(modeSet.getMode(ModeType.PT), nextMCC.fromStayLocation, nextMCC.toStayLocation,
-                    nextMCC.fromStay.getOriginalEnd(), nextMCC.fromStay.getActCode(),
-                    nextMCC.toStay.getActCode(), plan.getPerson(), null);
+                    nextMCC.fromStay.getOriginalEnd());
             boolean carConnectionAvailable = ttCarFrom >= 0 && ttCarTo >= 0;
             boolean ptConnectionAvailable = ttPTFrom >= 0 && ttPTTo >= 0;
 
@@ -150,12 +146,10 @@ public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBa
                 plan.setAttributeValue(TPS_Attribute.CURRENT_MODE_CODE_VOT, mode.getCodeVot());
 
                 ttC0 = travelTimeCalculator.getTravelTime(mode, prevMCC.fromStayLocation, prevMCC.toStayLocation,
-                        (int) prevMCC.fromStay.getOriginalEnd(), prevMCC.fromStay.getActCode(),
-                        prevMCC.toStay.getActCode(), plan.getPerson(), null);
+                        (int) prevMCC.fromStay.getOriginalEnd());
                 //prevMCC.carForThisPlan);
                 ttC1 = travelTimeCalculator.getTravelTime(mode, nextMCC.fromStayLocation, nextMCC.toStayLocation,
-                        (int) nextMCC.fromStay.getOriginalEnd(), nextMCC.fromStay.getActCode(),
-                        nextMCC.toStay.getActCode(), plan.getPerson(), null);
+                        (int) nextMCC.fromStay.getOriginalEnd());
                 //nextMCC.carForThisPlan);
 
                 if (TPS_Mode.hasConnection(ttC0) && TPS_Mode.hasConnection(ttC1)) { // only valid travel times

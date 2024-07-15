@@ -26,7 +26,7 @@ import de.dlr.ivf.tapas.model.parameter.ParamFlag;
 import de.dlr.ivf.tapas.model.parameter.ParamValue;
 import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -49,7 +49,7 @@ public class TPS_MultipleTAZRepresentant extends TPS_LocationChoiceSet {
             return taz.selectActivityLocations(actCode, numOfTazRepresentants);
         }
         // empty list if the activity is not supported in the TAZ
-        return new ArrayList<>();
+        return Collections.emptyList();
     }
 
     /**

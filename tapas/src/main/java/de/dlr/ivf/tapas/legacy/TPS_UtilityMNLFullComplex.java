@@ -234,8 +234,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
                     }
                     // time equals MIT + 3 min more access
                     travelTime = travelTimeCalculator.getTravelTime(mode, mcc.fromStayLocation, mcc.toStayLocation,
-                            mcc.startTime, TPS_ActivityConstant.DUMMY, TPS_ActivityConstant.DUMMY,
-                            plan.getPerson(), mcc.carForThisPlan);
+                            mcc.startTime);
                     travelTime += carSharingAccessAddon; //Longer Access for Carsharing
                     cost = mode.getCostPerKm() * distanceNet * 0.001;
                 } else {

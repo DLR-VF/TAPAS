@@ -6,6 +6,23 @@
       "password" : "postgres"
     }
   },
+  "maxSystemSpeed" : 90,
+  "travelTimeCalculator": {
+    "minDist" : 50.0,
+    "useTazIntraInfoMatrix" : true,
+    "ptTravelTimeFactor" : 0.02,
+    "ptAccessFactor" : 0.01,
+    "ptEgressFactor" : 0.01,
+    "defaultBlockScore" : 3.0,
+    "averageDistancePtStop" : 500,
+    "beelineFactorPt"  : 1.4,
+    "beelineFactorBike" : 1.4,
+    "beelineFactorFoot" : 1.4,
+    "beelineFactorMit" : 1.4
+
+
+
+  },
   "regionConfiguration" : {
     "locationConfiguration": {
       "locations": {
@@ -77,11 +94,12 @@
       "matricesSource" : {
         "uri" : "core.berlin_matrices"
       },
+      "beelineDistanceMatrixName" : "WALK_DIST",
       "modeMatrixMapMappings" : {
         "PT" : {
           "ACCESS" : "PT_ACCESS_TIME",
           "EGRESS" : "PT_EGRESS_TIME",
-          "TT" : "PT_TT",
+          "TT" : "PT_TRAVEL_TIME",
           "TRANSFER_TIME" : "PT_TRANSFER_TIME"
         },
         "WALK" : {
@@ -96,6 +114,21 @@
         },
         "MIT" : {
           "ACCESS" : "CAR_ACCESS_TIME",
+          "EGRESS" : "CAR_EGRESS_TIME",
+          "TT" : "CAR_TRAVEL_TIME"
+        },
+        "MIT_PASS" : {
+          "ACCESS" : "CAR_ACCESS_TIME",
+          "EGRESS" : "CAR_EGRESS_TIME",
+          "TT" : "CAR_TRAVEL_TIME"
+        },
+        "TAXI" : {
+          "ACCESS" : "TAXI_ACCESS_TIME",
+          "EGRESS" : "CAR_EGRESS_TIME",
+          "TT" : "CAR_TRAVEL_TIME"
+        },
+        "CAR_SHARING" : {
+          "ACCESS" : "TAXI_ACCESS_TIME",
           "EGRESS" : "CAR_EGRESS_TIME",
           "TT" : "CAR_TRAVEL_TIME"
         }
@@ -223,6 +256,15 @@
             {
               "fromTime" : 0,
               "matrixName" : "CONST_0MIN"
+            }
+          ]
+        },
+        {
+          "name" : "TAXI_ACCESS_TIME",
+          "matrices" : [
+            {
+              "fromTime" : 0,
+              "matrixName" : "CONST_5MIN"
             }
           ]
         }
@@ -359,7 +401,7 @@
             "variableCostPerKmBase": 0
           },
           {
-            "name": "FOOT",
+            "name": "WALK",
             "beelineFactor": 1.4,
             "costPerKm": 0,
             "costPerKmBase": 0,

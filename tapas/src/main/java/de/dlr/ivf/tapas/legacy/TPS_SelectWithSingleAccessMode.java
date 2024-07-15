@@ -89,12 +89,10 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBase
             // get the traveltime
             plan.setAttributeValue(TPS_Attribute.CURRENT_MODE_CODE_VOT, mode.getCodeVot());
             ttC0 = travelTimeCalculator.getTravelTime(mode,prevMCC.fromStayLocation, prevMCC.toStayLocation,
-                    (int) prevMCC.fromStay.getOriginalEnd(), prevMCC.fromStay.getActCode(),
-                    prevMCC.toStay.getActCode(), plan.getPerson(), null);
+                    (int) prevMCC.fromStay.getOriginalEnd());
             //prevMCC.carForThisPlan);
             ttC1 = travelTimeCalculator.getTravelTime(mode, nextMCC.fromStayLocation, nextMCC.toStayLocation,
-                    (int) nextMCC.fromStay.getOriginalEnd(), nextMCC.fromStay.getActCode(),
-                    nextMCC.toStay.getActCode(), plan.getPerson(), null);
+                    (int) nextMCC.fromStay.getOriginalEnd());
             //nextMCC.carForThisPlan);
             // modify travel time for specuial cases
             if (TPS_Mode.hasConnection(ttC0) && TPS_Mode.hasConnection(ttC1)) { // only valid travel times

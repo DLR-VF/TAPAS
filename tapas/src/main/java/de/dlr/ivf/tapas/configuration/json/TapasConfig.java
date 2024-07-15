@@ -11,6 +11,7 @@ import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.ChronologicalRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
 
+import de.dlr.ivf.tapas.configuration.json.util.TravelTimeConfiguration;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -61,6 +62,9 @@ public class TapasConfig {
     private String simulationRunnerToUse;
 
     @JsonProperty
+    private int maxSystemSpeed;
+
+    @JsonProperty
     private HouseholdConfiguration householdConfiguration;
 
     @JsonProperty
@@ -68,4 +72,7 @@ public class TapasConfig {
 
     @JsonProperty
     private PlanEVA1AcceptanceConfig planAcceptance;
+
+    @JsonProperty
+    private TravelTimeConfiguration travelTimeCalculator;
 }

@@ -44,4 +44,8 @@ module de.dlr.ivf.tapas {
     exports de.dlr.ivf.tapas.configuration.json.region to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.region.matrix to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.acceptance to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.configuration.json.util to com.fasterxml.jackson.databind;
+    exports de.dlr.ivf.tapas.simulation.choice.location to spring.beans, spring.context;
+    exports de.dlr.ivf.tapas.choice to spring.beans, spring.context;
+    opens de.dlr.ivf.tapas.simulation.choice.location to spring.core;
 }

@@ -12,6 +12,10 @@ public class IntMatrix {
         matrix[row][col] = value;
     }
 
+    public int get(int row, int col) {
+        return matrix[row][col];
+    }
+
     public int[][] getMatrix(){
         return matrix;
     }
