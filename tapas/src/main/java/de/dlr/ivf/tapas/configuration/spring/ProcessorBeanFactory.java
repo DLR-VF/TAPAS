@@ -41,9 +41,4 @@ public class ProcessorBeanFactory {
     public TourContextFactory tourContextFactory() {
         return new TourContextFactory();
     }
-
-    @Bean
-    public StayHierarchyTourProcessor hierarchicalTourProcessor(StayHierarchies stayHierarchies, Activities activities){
-        return new StayHierarchyTourProcessor(Comparator.comparingInt(Trip::priority).reversed(), stayHierarchies, activities);
-    }
 }

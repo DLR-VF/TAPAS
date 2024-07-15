@@ -51,28 +51,7 @@ public class TapasLauncher{
             AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
             applicationContext.registerBean(TapasConfig.class, () -> tapasConfig);
 
-            applicationContext.register(
-                    TapasFactory.class,
-                    RegionBeanFactory.class,
-                    HouseholdBeanFactory.class,
-                    LocationBeanFactory.class,
-                    TrafficAnalysisZoneBeanFactory.class,
-                    CarBeanFactory.class,
-                    TrafficGenerationBeanFactory.class,
-                    LocationChoiceModelBeanFactory.class,
-                    LocationChoiceSetBuilder.class,
-                    ModeChoiceModelBeanFactory.class,
-                    TripPriorityRunnerBeanFactory.class,
-                    SchemeBeanFactory.class,
-                    MatrixBeanFactory.class,
-                    TripPriorityRunner.class,
-                    HouseholdProcessor.class,
-                    ProcessorBeanFactory.class,
-                    PersonProcessor.class,
-                    TravelTimeCalculationFactory.class,
-                    TravelTimeCalculator.class,
-                    ModeBeanFactory.class
-            );
+            applicationContext.register(TapasFactory.class);
 
             applicationContext.refresh();
             applicationContext.start();
