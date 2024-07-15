@@ -27,8 +27,11 @@ public class LocationChoiceSetBuilder {
     private final int maxSystemSpeed;
 
     @Autowired
-    public LocationChoiceSetBuilder(TravelTimeCalculator travelTimeCalculator, TrafficAnalysisZones trafficAnalysisZones,
-                                    Activities activities, Modes modes, @Qualifier("maxSystemSpeed") int maxSystemSpeed) {
+    public LocationChoiceSetBuilder(@Qualifier("tazTravelTimeCalculator") TravelTimeCalculator travelTimeCalculator,
+                                    TrafficAnalysisZones trafficAnalysisZones,
+                                    Activities activities,
+                                    Modes modes,
+                                    @Qualifier("maxSystemSpeed") int maxSystemSpeed) {
         this.travelTimeCalculator = travelTimeCalculator;
         this.trafficAnalysisZones = trafficAnalysisZones;
         this.activities = activities;

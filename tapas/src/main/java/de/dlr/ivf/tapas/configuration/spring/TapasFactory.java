@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Lazy;
  */
 @Lazy
 @Configuration
-@ComponentScan("de.dlr.ivf.tapas.configuration.json")
+@ComponentScan("de.dlr.ivf.tapas")
 public class TapasFactory {
 
     private final TapasConfig tapasConfig;

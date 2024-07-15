@@ -5,24 +5,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
 import de.dlr.ivf.tapas.configuration.spring.*;
-import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.simulation.SimulationRunner;
+import de.dlr.ivf.tapas.simulation.choice.location.LocationChoiceSetBuilder;
 import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
 import de.dlr.ivf.tapas.simulation.implementation.PersonProcessor;
 import de.dlr.ivf.tapas.simulation.runner.TripPriorityRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.ComponentScan;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.lang.System.Logger.Level;
 
-@ComponentScan(basePackages={"de.dlr.ivf.tapas.configuration.json"})
 public class TapasLauncher{
     private static final System.Logger logger = System.getLogger(TapasLauncher.class.getName());
 
@@ -63,6 +60,7 @@ public class TapasLauncher{
                     CarBeanFactory.class,
                     TrafficGenerationBeanFactory.class,
                     LocationChoiceModelBeanFactory.class,
+                    LocationChoiceSetBuilder.class,
                     ModeChoiceModelBeanFactory.class,
                     TripPriorityRunnerBeanFactory.class,
                     SchemeBeanFactory.class,
@@ -85,10 +83,11 @@ public class TapasLauncher{
 
             SimulationRunner runner = applicationContext.getBean(simulationRunnerName, SimulationRunner.class);
             //SchemeProvider schemeProvider = applicationContext.getBean("schemeProvider", SchemeProvider.class);
-            TravelTimeCalculator travelTimeCalculator = applicationContext.getBean(TravelTimeCalculator.class);
+            //TravelTimeCalculator travelTimeCalculator = applicationContext.getBean(TravelTimeCalculator.class);
+            LocationChoiceSetBuilder locationChoiceSetBuilder = applicationContext.getBean(LocationChoiceSetBuilder.class);
 
 
-            Map<String, MatrixMap> matrixMaps  = applicationContext.getBean("matrixMaps", Map.class);
+            //Map<String, MatrixMap> matrixMaps  = applicationContext.getBean("matrixMaps", Map.class);
             logger.log(Level.INFO, "Launching simulation...");
             Thread t = new Thread(runner, "SimulationThread");
             t.start();

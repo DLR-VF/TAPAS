@@ -11,12 +11,10 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * temporary class during refactoring replacing getTravelTime function in TPS_Mode and its implementations.
- *
- * @author Alain Schengen
+ * The TravelTimeCalculator class is responsible for calculating travel times between locations.
  */
 @Lazy
-@Component
+@Component("tazTravelTimeCalculator")
 public class TravelTimeCalculator {
 
     private final Map<TPS_Mode, TravelTimeFunction> interTravelTimeFunctions;
@@ -30,6 +28,16 @@ public class TravelTimeCalculator {
         this.intraTazTravelTimeFunctions = intraTazTravelTimeFunctions;
     }
 
+    /**
+     * Calculates the travel time between two locations based on the given mode, start location, end location, and time.
+     *
+     *
+     * @param mode the mode of transportation
+     * @param start the start location
+     * @param end the end location
+     * @param time the time of travel
+     * @return the travel time between the start and end locations
+     */
     public double getTravelTime(TPS_Mode mode, Locatable start, Locatable end, int time){
 
         return start.getTAZId() == end.getTAZId()
