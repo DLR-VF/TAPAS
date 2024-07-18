@@ -832,7 +832,13 @@ public enum ParamValue {
     /**
      * The time that a car sharing car has to be checked before it can be requested again in seconds
      */
-    CAR_SHARING_CHECKOUT_PENALTY;
+    CAR_SHARING_CHECKOUT_PENALTY,
+
+    /**
+     * Number of threads the daemon uses for the simulation
+     *
+     */
+    THREADS_COUNT;
 
 }
 

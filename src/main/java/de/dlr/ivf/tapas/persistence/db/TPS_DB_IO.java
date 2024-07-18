@@ -82,9 +82,19 @@ public class TPS_DB_IO {
         this.PM = pm;
         // TODO: use the defined number of threads
         if (this.PM.getParameters().isTrue(ParamFlag.FLAG_PREFETCH_ALL_HOUSEHOLDS)) {
-            numberToFetch = fetchSizePerProcessorPrefetchHouseholds * Runtime.getRuntime().availableProcessors();
+            if (this.PM.getParameters().isDefined(ParamValue.THREADS_COUNT)) {
+                numberToFetch = fetchSizePerProcessorPrefetchHouseholds * this.PM.getParameters().getIntValue(ParamValue.THREADS_COUNT);
+            }
+            else {
+                numberToFetch = fetchSizePerProcessorPrefetchHouseholds * Runtime.getRuntime().availableProcessors();
+            }
         } else {
-            numberToFetch = fetchSizePerProcessor * Runtime.getRuntime().availableProcessors();
+            if (this.PM.getParameters().isDefined(ParamValue.THREADS_COUNT)) {
+                numberToFetch = fetchSizePerProcessor * this.PM.getParameters().getIntValue(ParamValue.THREADS_COUNT);
+            }
+            else {
+                numberToFetch = fetchSizePerProcessor * Runtime.getRuntime().availableProcessors();
+            }
         }
         numberOfFetchedHouseholds = -1;
     }

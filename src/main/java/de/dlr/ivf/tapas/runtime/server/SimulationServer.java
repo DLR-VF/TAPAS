@@ -20,6 +20,7 @@ import de.dlr.ivf.tapas.util.TPS_Argument;
 import de.dlr.ivf.tapas.util.TPS_Argument.TPS_ArgumentType;
 import de.dlr.ivf.tapas.util.parameters.ParamFlag;
 import de.dlr.ivf.tapas.util.parameters.ParamString;
+import de.dlr.ivf.tapas.util.parameters.ParamValue;
 import de.dlr.ivf.tapas.util.parameters.TPS_ParameterClass;
 import org.apache.commons.lang3.SystemUtils;
 
@@ -284,8 +285,13 @@ public class SimulationServer extends Thread {
 
                     //starting a simulation blocks this thread
                     //it appears that on windows server this returns the physical core count
-                    int threads = Runtime.getRuntime().availableProcessors();
-
+                    int threads=1;
+                    if (this.getParameters().paramValueClass.isDefined(ParamValue.THREADS_COUNT)){
+                        threads = this.getParameters().paramValueClass.getIntValue(ParamValue.THREADS_COUNT);
+                    }
+                    else {
+                        threads = Runtime.getRuntime().availableProcessors();
+                    }
                     this.current_simulation_run.run(threads);
                 } else {
 
@@ -501,12 +507,9 @@ public class SimulationServer extends Thread {
                 parameterClass.setString(ParamString.RUN_IDENTIFIER, sim_key);
                 dbConnector.readRuntimeParametersFromDB(sim_key);
 
-                if (parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) &&
-                        parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)) { //insert the server that has dedicated itself
 
-                    String update_host_query = "UPDATE " + simulations_table_name + " SET simulation_server = '" + hostname + "' WHERE sim_key = '" + sim_key + "'";
-                    connection.createStatement().execute(update_host_query);
-                }
+                String update_host_query = "UPDATE " + simulations_table_name + " SET simulation_server = '" + hostname + "' WHERE sim_key = '" + sim_key + "'";
+                connection.createStatement().execute(update_host_query);
 
                 simulation = new TPS_Simulation(sim_key, dbConnector);
             }

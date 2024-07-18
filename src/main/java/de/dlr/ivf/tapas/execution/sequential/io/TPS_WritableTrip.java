@@ -19,6 +19,8 @@ import de.dlr.ivf.tapas.scheme.TPS_Stay;
 import de.dlr.ivf.tapas.scheme.TPS_Trip;
 import de.dlr.ivf.tapas.util.FuncUtils;
 
+import java.util.Arrays;
+
 /**
  * This class is a data structure wrapper for all trips to be written to any output writer.
  */
@@ -203,7 +205,8 @@ public class TPS_WritableTrip {
     }
 
     public int getCarIndex(){
-        return used_car != null ? used_car.getId() : 99999;
+//        return used_car != null ? used_car.getId() : 99999;
+        return used_car != null ? Arrays.asList(plan.getPerson().getHousehold().getAllCars()).indexOf(used_car) : 99999;
     }
 
     public boolean getIsRestrictedCar(){
