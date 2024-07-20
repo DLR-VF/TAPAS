@@ -1,7 +1,7 @@
-package de.dlr.ivf.tapas.simulation.choice.location;
+package de.dlr.ivf.tapas.choice.location;
 
-import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
-import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
+import de.dlr.ivf.tapas.util.distance.providers.ModeMatrixDistanceProvider;
+import de.dlr.ivf.tapas.util.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.model.constants.Activities;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.location.TPS_Location;

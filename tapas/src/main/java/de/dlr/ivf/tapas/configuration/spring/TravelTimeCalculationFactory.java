@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.configuration.spring;
 
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
-import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleMatrixMapTravelTimeFunction;
+import de.dlr.ivf.tapas.util.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.util.traveltime.functions.SimpleMatrixMapTravelTimeFunction;
 import de.dlr.ivf.tapas.configuration.json.util.TravelTimeConfiguration;
 import de.dlr.ivf.tapas.model.IntMatrix;
 import de.dlr.ivf.tapas.model.MatrixMap;

@@ -12,7 +12,7 @@ import de.dlr.ivf.tapas.model.plan.StayHierarchy;
 import de.dlr.ivf.tapas.model.scheme.*;
 import de.dlr.ivf.tapas.model.vehicle.TPS_CarCode;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
-import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
+import de.dlr.ivf.tapas.choice.trafficgeneration.SchemeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.configuration.spring;
 
-import de.dlr.ivf.tapas.choice.distance.DistanceFunction;
-import de.dlr.ivf.tapas.choice.distance.functions.MatrixDistanceFunction;
+import de.dlr.ivf.tapas.util.distance.DistanceFunction;
+import de.dlr.ivf.tapas.util.distance.functions.MatrixDistanceFunction;
 import de.dlr.ivf.tapas.model.IntMatrix;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -2,11 +2,11 @@ package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
+import de.dlr.ivf.tapas.util.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
 import de.dlr.ivf.tapas.configuration.spring.*;
 import de.dlr.ivf.tapas.simulation.SimulationRunner;
-import de.dlr.ivf.tapas.simulation.choice.location.LocationChoiceSetBuilder;
+import de.dlr.ivf.tapas.choice.location.LocationChoiceSetBuilder;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;

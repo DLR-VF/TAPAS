@@ -9,8 +9,8 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-    import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
-    import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
+    import de.dlr.ivf.tapas.util.distance.providers.ModeMatrixDistanceProvider;
+    import de.dlr.ivf.tapas.util.traveltime.providers.TravelTimeCalculator;
     import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
     import de.dlr.ivf.tapas.model.TPS_RegionResultSet.Result;
     import de.dlr.ivf.tapas.model.parameter.TPS_ParameterClass;

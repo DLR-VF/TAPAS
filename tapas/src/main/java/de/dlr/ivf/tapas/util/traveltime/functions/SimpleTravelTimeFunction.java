@@ -1,6 +1,6 @@
-package de.dlr.ivf.tapas.choice.traveltime.functions;
+package de.dlr.ivf.tapas.util.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.util.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.location.Locatable;
 

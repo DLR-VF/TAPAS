@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.simulation.choice.location;
+package de.dlr.ivf.tapas.choice.location;
 
 import de.dlr.ivf.tapas.model.scheme.Stay;
 

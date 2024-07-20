@@ -13,7 +13,7 @@ import de.dlr.ivf.tapas.model.plan.*;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
 import de.dlr.ivf.tapas.model.scheme.Scheme;
 import de.dlr.ivf.tapas.simulation.Processor;
-import de.dlr.ivf.tapas.simulation.trafficgeneration.SchemeProvider;
+import de.dlr.ivf.tapas.choice.trafficgeneration.SchemeProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;

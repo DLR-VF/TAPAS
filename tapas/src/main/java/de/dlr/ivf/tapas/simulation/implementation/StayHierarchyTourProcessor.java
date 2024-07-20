@@ -1,7 +1,6 @@
 package de.dlr.ivf.tapas.simulation.implementation;
 
 import de.dlr.ivf.tapas.model.constants.Activities;
-import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.plan.StayHierarchies;
 import de.dlr.ivf.tapas.model.plan.StayHierarchy;
 import de.dlr.ivf.tapas.model.plan.TourContext;
@@ -9,8 +8,6 @@ import de.dlr.ivf.tapas.model.scheme.PlannedTour;
 import de.dlr.ivf.tapas.model.scheme.Stay;
 import de.dlr.ivf.tapas.model.scheme.Trip;
 import de.dlr.ivf.tapas.simulation.Processor;
-import de.dlr.ivf.tapas.simulation.choice.location.LocationChoiceContext;
-import de.dlr.ivf.tapas.simulation.choice.location.LocationChoiceModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
+import de.dlr.ivf.tapas.util.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader;

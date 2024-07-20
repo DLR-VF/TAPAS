@@ -1,7 +1,7 @@
-package de.dlr.ivf.tapas.choice.distance.providers;
+package de.dlr.ivf.tapas.util.distance.providers;
 
-import de.dlr.ivf.tapas.choice.distance.DistanceFunction;
-import de.dlr.ivf.tapas.choice.distance.DistanceProvider;
+import de.dlr.ivf.tapas.util.distance.DistanceFunction;
+import de.dlr.ivf.tapas.util.distance.DistanceProvider;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import org.springframework.context.annotation.Lazy;

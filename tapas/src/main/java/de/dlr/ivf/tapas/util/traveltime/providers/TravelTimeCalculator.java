@@ -1,7 +1,7 @@
-package de.dlr.ivf.tapas.choice.traveltime.providers;
+package de.dlr.ivf.tapas.util.traveltime.providers;
 
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeProvider;
+import de.dlr.ivf.tapas.util.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.util.traveltime.TravelTimeProvider;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import org.springframework.beans.factory.annotation.Autowired;

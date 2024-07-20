@@ -34,8 +34,8 @@ module de.dlr.ivf.tapas {
     exports de.dlr.ivf.tapas;
     exports de.dlr.ivf.tapas.simulation;
     exports de.dlr.ivf.tapas.dto;
-    exports de.dlr.ivf.tapas.choice.traveltime;
-    exports de.dlr.ivf.tapas.choice.distance;
+    exports de.dlr.ivf.tapas.util.traveltime;
+    exports de.dlr.ivf.tapas.util.distance;
     exports de.dlr.ivf.tapas.persistence.db;
     opens de.dlr.ivf.tapas.simulation to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json;
@@ -49,9 +49,9 @@ module de.dlr.ivf.tapas {
     exports de.dlr.ivf.tapas.configuration.json.region.matrix to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.acceptance to com.fasterxml.jackson.databind;
     exports de.dlr.ivf.tapas.configuration.json.util to com.fasterxml.jackson.databind;
-    exports de.dlr.ivf.tapas.simulation.choice.location to spring.beans, spring.context;
+    exports de.dlr.ivf.tapas.choice.location to spring.beans, spring.context;
     exports de.dlr.ivf.tapas.choice to spring.beans, spring.context;
-    opens de.dlr.ivf.tapas.simulation.choice.location to spring.core;
-    exports de.dlr.ivf.tapas.choice.traveltime.providers to spring.beans, spring.context;
-    exports de.dlr.ivf.tapas.choice.distance.providers to spring.beans, spring.context;
+    opens de.dlr.ivf.tapas.choice.location to spring.core;
+    exports de.dlr.ivf.tapas.util.traveltime.providers to spring.beans, spring.context;
+    exports de.dlr.ivf.tapas.util.distance.providers to spring.beans, spring.context;
 }

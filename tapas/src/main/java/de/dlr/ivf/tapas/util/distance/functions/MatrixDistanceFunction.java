@@ -1,6 +1,6 @@
-package de.dlr.ivf.tapas.choice.distance.functions;
+package de.dlr.ivf.tapas.util.distance.functions;
 
-import de.dlr.ivf.tapas.choice.distance.DistanceFunction;
+import de.dlr.ivf.tapas.util.distance.DistanceFunction;
 import de.dlr.ivf.tapas.model.IntMatrix;
 import de.dlr.ivf.tapas.model.location.Locatable;
 

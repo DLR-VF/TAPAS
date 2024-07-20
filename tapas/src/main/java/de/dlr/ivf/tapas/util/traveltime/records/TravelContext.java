@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.choice.traveltime.records;
+package de.dlr.ivf.tapas.util.traveltime.records;
 
 import de.dlr.ivf.tapas.model.location.Locatable;
 

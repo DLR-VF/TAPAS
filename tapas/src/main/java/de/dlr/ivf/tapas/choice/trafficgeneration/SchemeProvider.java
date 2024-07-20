@@ -1,4 +1,4 @@
-package de.dlr.ivf.tapas.simulation.trafficgeneration;
+package de.dlr.ivf.tapas.choice.trafficgeneration;
 
 import de.dlr.ivf.tapas.model.choice.DiscreteChoiceModel;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistribution;

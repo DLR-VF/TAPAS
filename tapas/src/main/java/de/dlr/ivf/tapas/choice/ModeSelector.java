@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
+import de.dlr.ivf.tapas.util.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;

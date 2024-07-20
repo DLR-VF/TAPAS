@@ -1,6 +1,6 @@
-package de.dlr.ivf.tapas.choice.traveltime.functions;
+package de.dlr.ivf.tapas.util.traveltime.functions;
 
-import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.util.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.IntMatrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
 import de.dlr.ivf.tapas.model.TPS_Geometrics;
