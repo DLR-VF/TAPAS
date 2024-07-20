@@ -1,12 +1,11 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.legacy.TPS_Region;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.plan.TPS_LocatedStay;
 import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
@@ -25,9 +24,9 @@ public class LocationSelector {
 
     private final TPS_Region region;
     @Getter
-    private final TravelDistanceCalculator distanceCalculator;
+    private final ModeMatrixDistanceProvider distanceCalculator;
 
-    public LocationSelector(TPS_Region region, TravelDistanceCalculator distanceCalculator){
+    public LocationSelector(TPS_Region region, ModeMatrixDistanceProvider distanceCalculator){
         this.region = region;
         this.distanceCalculator = distanceCalculator;
     }

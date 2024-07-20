@@ -3,12 +3,12 @@ package de.dlr.ivf.tapas.choice.distance;
 import de.dlr.ivf.tapas.model.location.Locatable;
 
 /**
- * The TravelDistanceProvider interface provides a method to calculate the travel distance between two locatable objects.
+ * The DistanceProvider interface provides a method to calculate the travel distance between two locatable objects.
  * Implementing classes should define how the distance is calculated based on the specific context and the start and end locations.
  *
  * @param <T> the type of context to consider when calculating the distance
  */
-public interface TravelDistanceProvider<T> {
+public interface DistanceProvider<T> {
 
     /**
      * Calculates the travel distance between two locatable objects based on the provided context.

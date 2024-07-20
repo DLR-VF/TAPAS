@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.DistanceClasses;
@@ -61,7 +61,7 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
     private final DistanceClasses distanceClasses;
 
     public TPS_SelectWithMultipleAccessModeLogSum(TPS_ParameterClass parameterClass, TPS_UtilityFunction utilityFunction,
-                                                  TravelDistanceCalculator distanceCalculator,
+                                                  ModeMatrixDistanceProvider distanceCalculator,
                                                   ModeDistributionCalculator distributionCalculator,
                                                   TPS_ModeSet modeSet,
                                                   TravelTimeCalculator travelTimeCalculator,

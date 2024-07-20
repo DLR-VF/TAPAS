@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityChaidMNLMixed;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityChaidMNLMixedBS;
@@ -21,7 +21,7 @@ public class UtilityFunctionFactory {
         };
     }
 
-    public TPS_UtilityFunction getInstance(String utilityFunctionName, TravelDistanceCalculator travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
+    public TPS_UtilityFunction getInstance(String utilityFunctionName, ModeMatrixDistanceProvider travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
 
         return switch(utilityFunctionName){
             case "TPS_UtilityChaidMNLMixed" -> new TPS_UtilityChaidMNLMixed(travelDistanceCalculator, travelTimeCalculator, parameterClass, modes);

@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
@@ -28,7 +28,7 @@ import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 public class TPS_UtilityChaidMNLMixedBS extends TPS_UtilityMNLFullComplex {
 
 
-    public TPS_UtilityChaidMNLMixedBS(TravelDistanceCalculator travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes) {
+    public TPS_UtilityChaidMNLMixedBS(ModeMatrixDistanceProvider travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes) {
         super(travelDistanceCalculator, travelTimeCalculator, parameterClass, modes);
     }
 

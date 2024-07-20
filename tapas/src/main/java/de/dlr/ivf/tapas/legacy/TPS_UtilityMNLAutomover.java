@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.mode.Modes;
@@ -22,7 +22,7 @@ import de.dlr.ivf.tapas.model.parameter.SimulationType;
 
 public class TPS_UtilityMNLAutomover extends TPS_UtilityMNLFullComplex {
 
-    public TPS_UtilityMNLAutomover(TravelDistanceCalculator travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes) {
+    public TPS_UtilityMNLAutomover(ModeMatrixDistanceProvider travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, ModeDistributionCalculator distributionCalculator, TPS_ParameterClass parameterClass, Modes modes) {
         super(travelDistanceCalculator, travelTimeCalculator, parameterClass, modes);
     }
 

@@ -1,7 +1,7 @@
-package de.dlr.ivf.tapas.choice.distance.functions;
+package de.dlr.ivf.tapas.choice.distance.providers;
 
 import de.dlr.ivf.tapas.choice.distance.DistanceFunction;
-import de.dlr.ivf.tapas.choice.distance.TravelDistanceProvider;
+import de.dlr.ivf.tapas.choice.distance.DistanceProvider;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import org.springframework.context.annotation.Lazy;
@@ -10,16 +10,16 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * The MatrixTravelDistanceProvider class is responsible for calculating travel distances using a matrix-based approach.
- * It implements the TravelDistanceProvider interface for the TPS_Mode type.
+ * The ModeMatrixDistanceProvider class is responsible for calculating travel distances using a matrix-based approach.
+ * It implements the DistanceProvider interface for the TPS_Mode type.
  */
 @Lazy
 @Component
-public class MatrixTravelDistanceProvider implements TravelDistanceProvider<TPS_Mode> {
+public class ModeMatrixDistanceProvider implements DistanceProvider<TPS_Mode> {
 
     private final Map<TPS_Mode, DistanceFunction> travelDistanceFunctions;
 
-    public MatrixTravelDistanceProvider(Map<TPS_Mode, DistanceFunction> travelDistanceFunctions){
+    public ModeMatrixDistanceProvider(Map<TPS_Mode, DistanceFunction> travelDistanceFunctions){
 
         this.travelDistanceFunctions = travelDistanceFunctions;
     }

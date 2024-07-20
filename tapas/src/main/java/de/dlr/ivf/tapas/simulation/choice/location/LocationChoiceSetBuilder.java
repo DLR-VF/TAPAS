@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.simulation.choice.location;
 
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.model.constants.Activities;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
@@ -28,6 +29,7 @@ public class LocationChoiceSetBuilder {
 
     @Autowired
     public LocationChoiceSetBuilder(@Qualifier("tazTravelTimeCalculator") TravelTimeCalculator travelTimeCalculator,
+                                    ModeMatrixDistanceProvider distanceCalculator,
                                     TrafficAnalysisZones trafficAnalysisZones,
                                     Activities activities,
                                     Modes modes,

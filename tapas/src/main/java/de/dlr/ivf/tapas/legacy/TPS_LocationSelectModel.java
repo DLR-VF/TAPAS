@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
@@ -25,14 +25,14 @@ import java.util.function.Supplier;
 public abstract class TPS_LocationSelectModel {
 
     protected TravelTimeCalculator travelTimeCalculator;
-    protected TravelDistanceCalculator distanceCalculator;
+    protected ModeMatrixDistanceProvider distanceCalculator;
     protected TPS_ModeSet modeSet;
 
     protected ModeDistributionCalculator distributionCalculator;
     TPS_Region region = null;
     protected final TPS_ParameterClass parameterClass;
 
-    public TPS_LocationSelectModel(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator,
+    public TPS_LocationSelectModel(TPS_ParameterClass parameterClass, ModeMatrixDistanceProvider distanceCalculator,
                                    ModeDistributionCalculator distributionCalculator,
                                    TPS_ModeSet modeSet,
                                    TravelTimeCalculator travelTimeCalculator) {

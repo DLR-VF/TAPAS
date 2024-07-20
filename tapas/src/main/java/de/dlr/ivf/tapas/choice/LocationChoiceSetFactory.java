@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.legacy.*;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
@@ -20,7 +20,7 @@ public class LocationChoiceSetFactory {
         };
     }
 
-    public TPS_UtilityFunction newUtilityFunctionInstance(String utilityFunctionName, TravelDistanceCalculator travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
+    public TPS_UtilityFunction newUtilityFunctionInstance(String utilityFunctionName, ModeMatrixDistanceProvider travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
 
         return switch(utilityFunctionName){
             case "TPS_UtilityChaidMNLMixed" -> new TPS_UtilityChaidMNLMixed(travelDistanceCalculator, travelTimeCalculator, parameterClass, modes);
@@ -33,7 +33,7 @@ public class LocationChoiceSetFactory {
     public TPS_LocationSelectModel newLocationSelectionModel(String locationSelectionModelName,
                                                              TPS_ParameterClass parameters,
                                                              TPS_UtilityFunction utilityFunction,
-                                                             TravelDistanceCalculator distanceCalculator,
+                                                             ModeMatrixDistanceProvider distanceCalculator,
                                                              ModeDistributionCalculator distributionCalculator,
                                                              TPS_ModeSet modeSet,
                                                              TravelTimeCalculator travelTimeCalculator,

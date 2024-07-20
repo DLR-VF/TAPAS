@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
@@ -44,14 +44,14 @@ public class LocationAndModeChooser {
     private final ModeSelector modeSelector;
     private final int automaticVehicleMinDriverAge;
     private final int automaticVehicleLevel;
-    private final TravelDistanceCalculator distanceCalculator;
+    private final ModeMatrixDistanceProvider distanceCalculator;
 
     private final TravelTimeCalculator travelTimeCalculator;
 
     private final CostCalculator costCalculator;
 
     public LocationAndModeChooser(TPS_ParameterClass parameterClass, LocationSelector locationSelector, ModeSelector modeSelector,
-                                  TravelDistanceCalculator distanceCalculator, TravelTimeCalculator travelTimeCalculator,
+                                  ModeMatrixDistanceProvider distanceCalculator, TravelTimeCalculator travelTimeCalculator,
                                   CostCalculator costCalculator) {
         this.parameterClass = parameterClass;
         this.useShoppingMotives = parameterClass.isTrue(ParamFlag.FLAG_USE_SHOPPING_MOTIVES);

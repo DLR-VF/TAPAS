@@ -8,14 +8,13 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleTravelTimeFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.mode.Modes;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
-import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
 import de.dlr.ivf.tapas.model.mode.TPS_ModeChoiceContext;
 import de.dlr.ivf.tapas.model.parameter.*;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
@@ -39,7 +38,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
     private final double pnrCostPerTrip;
     private final double pnrCostPerHour;
     private final boolean useExitMaut;
-    private final TravelDistanceCalculator distanceCalculator;
+    private final ModeMatrixDistanceProvider distanceCalculator;
     private final boolean chargePassWithEverything;
 
     private final boolean useFixPtCost;
@@ -50,7 +49,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
     private final double carSharingAccessAddon;
     private final int avMinDriverAge;
 
-    public TPS_UtilityMNLFullComplex(TravelDistanceCalculator travelDistanceCalculator,TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
+    public TPS_UtilityMNLFullComplex(ModeMatrixDistanceProvider travelDistanceCalculator, TravelTimeCalculator travelTimeCalculator, TPS_ParameterClass parameterClass, Modes modes){
         super(travelTimeCalculator,parameterClass, modes);
         this.automaticVehicleLevel = parameterClass.getIntValue(ParamValue.AUTOMATIC_VEHICLE_LEVEL);
         this.simType = parameterClass.getSimulationType();

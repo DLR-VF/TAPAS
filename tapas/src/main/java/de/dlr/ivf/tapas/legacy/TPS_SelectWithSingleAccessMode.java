@@ -8,7 +8,7 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.ModeMatrixDistanceProvider;
 import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
@@ -27,7 +27,7 @@ public class TPS_SelectWithSingleAccessMode extends TPS_SelectLocationWeightBase
 
     private final int maxWalkDistance;
 
-    public TPS_SelectWithSingleAccessMode(TPS_ParameterClass parameterClass, TravelDistanceCalculator distanceCalculator,
+    public TPS_SelectWithSingleAccessMode(TPS_ParameterClass parameterClass, ModeMatrixDistanceProvider distanceCalculator,
                                           ModeDistributionCalculator distributionCalculator,TPS_ModeSet modeSet,
                                           TravelTimeCalculator travelTimeCalculator) {
         super(parameterClass, distanceCalculator, distributionCalculator, modeSet, travelTimeCalculator);
