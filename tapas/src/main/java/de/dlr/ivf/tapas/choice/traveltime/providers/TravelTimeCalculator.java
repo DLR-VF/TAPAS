@@ -1,6 +1,7 @@
-package de.dlr.ivf.tapas.choice;
+package de.dlr.ivf.tapas.choice.traveltime.providers;
 
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
+import de.dlr.ivf.tapas.choice.traveltime.TravelTimeProvider;
 import de.dlr.ivf.tapas.model.location.Locatable;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,12 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * The TravelTimeCalculator class is responsible for calculating travel times between locations.
+ * The TravelTimeCalculator class is responsible for calculating travel times between locations taking into account a
+ * mode of transportation.
  */
 @Lazy
 @Component("tazTravelTimeCalculator")
-public class TravelTimeCalculator {
+public class TravelTimeCalculator implements TravelTimeProvider<TPS_Mode> {
 
     private final Map<TPS_Mode, TravelTimeFunction> interTravelTimeFunctions;
     private final Map<TPS_Mode, TravelTimeFunction> intraTazTravelTimeFunctions;

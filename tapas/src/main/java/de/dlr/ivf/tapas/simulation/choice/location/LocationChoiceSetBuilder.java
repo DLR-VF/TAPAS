@@ -1,6 +1,6 @@
 package de.dlr.ivf.tapas.simulation.choice.location;
 
-import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.model.constants.Activities;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
@@ -56,7 +56,8 @@ public class LocationChoiceSetBuilder {
                 // do not process "zero weight"-locations
                 continue;
             }
-            double arrivalTravelDuration = tourContext.getCumulativeTravelDurationToStay(stay);
+            double totalTravelDurationToStay = tourContext.getCumulativeTravelDurationToStay(stay);
+            double remainingTravelDurationFromStay = tourContext.getRemainingTravelDurationAfterStay(stay);
             double activityDistance = 0;
 
             double arrivalDistance = travelTimeCalculator.getTravelTime(modes.getModeByName("WALK"), fromTaz, taz, stay.startTime());

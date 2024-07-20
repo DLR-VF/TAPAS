@@ -4,6 +4,8 @@ import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
 import de.dlr.ivf.tapas.model.MatrixMapLegacy;
 import de.dlr.ivf.tapas.model.location.Locatable;
 
+
+//todo fliegt raus
 public class SimpleTravelTimeFunction implements TravelTimeFunction {
     private final MatrixMapLegacy matrixMap;
 

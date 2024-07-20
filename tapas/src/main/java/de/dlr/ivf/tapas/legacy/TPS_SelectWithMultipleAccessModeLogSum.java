@@ -8,15 +8,13 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
-import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.DistanceClasses;
 import de.dlr.ivf.tapas.model.TPS_RegionResultSet;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant.TPS_ActivityCodeType;
-import de.dlr.ivf.tapas.model.constants.TPS_Distance;
-import de.dlr.ivf.tapas.model.constants.TPS_Distance.TPS_DistanceCodeType;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
@@ -111,8 +109,8 @@ public class TPS_SelectWithMultipleAccessModeLogSum extends TPS_SelectWithMultip
 
 
         // The WALK-mode is used to get distances on the net.
-        double distanceNetTo = Math.max(this.minDist, distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
-        double distanceNetFrom = Math.max(this.minDist, distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK));
+        double distanceNetTo = minDist; //Math.max(this.minDist, distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
+        double distanceNetFrom = minDist; //Math.max(this.minDist, distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK));
 
         arrModeLogSum = this.getModeLogSum(plan, pc, taz, distanceNetFrom, distanceNetFrom + distanceNetTo, prevMCC,
                 parameterClass, mu);

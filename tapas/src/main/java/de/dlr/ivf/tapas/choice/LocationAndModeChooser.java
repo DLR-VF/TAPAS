@@ -1,5 +1,7 @@
 package de.dlr.ivf.tapas.choice;
 
+import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
@@ -238,7 +240,7 @@ public class LocationAndModeChooser {
                         comingFromTaz = pLocComingFrom.getTrafficAnalysisZone();
                         goingToTaz = pLocGoingTo.getTrafficAnalysisZone();
 
-                        plannedTrip.setDistanceEmptyNet(distanceCalculator.getDistance(pLocComingFrom, pLocGoingTo, TPS_Mode.ModeType.WALK));
+                        //plannedTrip.setDistanceEmptyNet(distanceCalculator.getDistance(pLocComingFrom, pLocGoingTo, TPS_Mode.ModeType.WALK));
                         plannedTrip.setDistanceBeeline(TPS_Geometrics.getDistance(pLocComingFrom, pLocGoingTo, parameterClass.getDoubleValue(ParamValue.MIN_DIST)));
                         plannedTrip.setTravelTime(pComingFrom,pGoingTo);
 
@@ -257,7 +259,7 @@ public class LocationAndModeChooser {
                         pLocGoingTo = pGoingTo.getLocation();
                         plannedTrip = plan.getPlannedTrip(tourpart.getNextTrip(stay));
 
-                        plannedTrip.setDistanceEmptyNet(distanceCalculator.getDistance(pLocComingFrom, pLocGoingTo, TPS_Mode.ModeType.WALK));
+                       // plannedTrip.setDistanceEmptyNet(distanceCalculator.getDistance(pLocComingFrom, pLocGoingTo, TPS_Mode.ModeType.WALK));
                         plannedTrip.setDistanceBeeline(TPS_Geometrics.getDistance(pLocComingFrom, pLocGoingTo, parameterClass.getDoubleValue(ParamValue.MIN_DIST)));
                         plannedTrip.setTravelTime(pComingFrom,pGoingTo);
 

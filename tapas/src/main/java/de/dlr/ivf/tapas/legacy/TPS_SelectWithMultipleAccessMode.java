@@ -8,8 +8,8 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
-import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
@@ -62,10 +62,7 @@ public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBa
         ShoppingPreferenceAccessibility currentAccessibilityPreference = pc.pe
                 .getPerson().currentAccessibilityPreference;
         if (currentAccessibilityPreference.equals(ShoppingPreferenceAccessibility.Naehe)) {
-            weightedTT = Math.max(this.minDist, distanceCalculator.getDistance(pc.pe.getPerson().getHousehold()
-                                                                                                .getLocation(),
-                                                                                                taz,
-                                                                                                ModeType.WALK));
+            weightedTT = minDist; // Math.max(this.minDist, distanceCalculator.getDistance(pc.pe.getPerson().getHousehold().getLocation(),taz, ModeType.WALK));
             connectionFound = true;
         } else if (currentAccessibilityPreference.equals(ShoppingPreferenceAccessibility.Erreichbarkeit)) {
 
@@ -85,8 +82,8 @@ public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBa
             }
 
             // The WALK-mode is used to get distances on the net.
-            double distanceNetTo = Math.max(this.minDist, distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
-            double distanceNetFrom = Math.max(this.minDist, distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation,ModeType.WALK));
+            double distanceNetTo = minDist; //Math.max(this.minDist, distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
+            double distanceNetFrom = minDist; //Math.max(this.minDist, distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation,ModeType.WALK));
 
 
             TPS_DiscreteDistribution<TPS_Mode> arrDis = modeSet.getModeDistribution(plan, distanceNetFrom,
@@ -115,8 +112,8 @@ public class TPS_SelectWithMultipleAccessMode extends TPS_SelectLocationWeightBa
         } else { //default weight
 
             // The WALK-mode is used to get distances on the net.
-            double distanceNetTo = Math.max(minDist, distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
-            double distanceNetFrom = Math.max(minDist, distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK));
+            double distanceNetTo = minDist; //Math.max(minDist, distanceCalculator.getDistance(prevMCC.fromStayLocation, prevMCC.toStayLocation, ModeType.WALK));
+            double distanceNetFrom = minDist; //Math.max(minDist, distanceCalculator.getDistance(nextMCC.fromStayLocation, nextMCC.toStayLocation, ModeType.WALK));
 
             TPS_DiscreteDistribution<TPS_Mode> arrDis = modeSet.getModeDistribution(plan, distanceNetFrom,
                     prevMCC);

@@ -9,10 +9,6 @@
 package de.dlr.ivf.tapas;
 
 
-import de.dlr.ivf.tapas.choice.LocationAndModeChooser;
-import de.dlr.ivf.tapas.choice.LocationSelector;
-import de.dlr.ivf.tapas.choice.ModeSelector;
-import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
 import de.dlr.ivf.tapas.logger.legacy.LogHierarchy;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
@@ -241,27 +237,7 @@ public class TPS_Main {
      * @param threads amount of parallel threads.
      */
     public void run(int threads) {
-        //if (DEBUG) {
-        //    threads = 1;
-        //}
 
-        TravelDistanceCalculator distanceCalculator = new TravelDistanceCalculator(parameterClass);
-        LocationSelector locationSelector = new LocationSelector(PM.getRegion(), distanceCalculator);
-//        ModeSelector modeSelector = new ModeSelector(PM.getModeSet(), this.parameterClass);
-//        LocationAndModeChooser locationAndModeChooser = new LocationAndModeChooser(this.parameterClass,locationSelector,modeSelector, distanceCalculator, null, null);
-
-
-//
-//        if(this.parameterClass.isDefined(ParamFlag.FLAG_SEQUENTIAL_EXECUTION) && this.parameterClass.isTrue(ParamFlag.FLAG_SEQUENTIAL_EXECUTION)){
-//            this.processor = new SequentialSimulator(this.PM, this.dbConnector);
-//        }else{
-//            this.processor = new HouseholdProcessor(this.PM,locationAndModeChooser);
-//        }
-
-        this.simulator.run(threads); //this will block
-
-        if(!external_shutdown_received)
-            finish();
     }
 
     public boolean isRunningSimulation(){

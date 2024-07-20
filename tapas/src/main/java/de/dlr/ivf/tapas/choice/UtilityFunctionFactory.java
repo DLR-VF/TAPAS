@@ -1,5 +1,7 @@
 package de.dlr.ivf.tapas.choice;
 
+import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityChaidMNLMixed;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityChaidMNLMixedBS;
 import de.dlr.ivf.tapas.legacy.TPS_UtilityFunction;

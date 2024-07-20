@@ -1,7 +1,7 @@
 package de.dlr.ivf.tapas.configuration.spring;
 
 import de.dlr.ivf.tapas.choice.traveltime.TravelTimeFunction;
-import de.dlr.ivf.tapas.choice.traveltime.functions.*;
+import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleMatrixMapTravelTimeFunction;
 import de.dlr.ivf.tapas.configuration.json.util.TravelTimeConfiguration;
 import de.dlr.ivf.tapas.model.IntMatrix;
 import de.dlr.ivf.tapas.model.MatrixMap;
@@ -33,7 +33,7 @@ public class TravelTimeCalculationFactory {
     @Bean("interTazTravelTimeFunctions")
     public Map<TPS_Mode, TravelTimeFunction> interTazTravelTimeFunctions(Map<TPS_Mode, Map<String, MatrixMap>> modeMatrixMaps,
                                                                          Modes modes, TravelTimeConfiguration configuration,
-                                                                         Map<TPS_Mode, IntMatrix> modeBlDistanceMatrices){
+                                                                         @Qualifier("modeBeelineDistanceMatrices") Map<TPS_Mode, IntMatrix> modeBlDistanceMatrices){
 
         double minDist = configuration.minDist();
 

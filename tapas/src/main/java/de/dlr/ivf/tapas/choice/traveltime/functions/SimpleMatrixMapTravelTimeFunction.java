@@ -69,7 +69,6 @@ public class SimpleMatrixMapTravelTimeFunction implements TravelTimeFunction {
      */
     @Override
     public double calculateTravelTime(Locatable start, Locatable end, int time) {
-        double tt = -1.0; // this is the indicator, of an invalid tt -time
 
         double beelineDistanceLoc = TPS_Geometrics.getDistance(start, end, this.minDist);
 
@@ -97,9 +96,9 @@ public class SimpleMatrixMapTravelTimeFunction implements TravelTimeFunction {
             return TPS_Mode.NO_CONNECTION;
         }
 
-        tt = beelineFactor * matrixTravelTime;
-        tt += matrixAccessTime + matrixEgressTime;
+        double totalTravelTime = beelineFactor * matrixTravelTime;
+        totalTravelTime += matrixAccessTime + matrixEgressTime;
 
-        return tt;
+        return totalTravelTime;
     }
 }

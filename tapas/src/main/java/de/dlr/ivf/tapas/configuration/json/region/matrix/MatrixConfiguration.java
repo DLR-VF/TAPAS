@@ -10,5 +10,6 @@ public record MatrixConfiguration(
         @JsonProperty DataSource matricesSource,
         @JsonProperty Map<String, Map<String, String>> modeMatrixMapMappings,
         @JsonProperty Collection<MatrixMapConfiguration> matrixMaps,
-        @JsonProperty Map<String, String> beelineDistanceMatrices
+        @JsonProperty Map<String, String> beelineModeDistanceMatrices,
+        @JsonProperty Map<String, String> modeDistanceMatrices
 ) {}

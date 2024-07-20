@@ -70,7 +70,9 @@ public class MatrixBeanFactory {
 
         DataSource matricesDataSource = configuration.matricesSource();
 
-        Stream<String> distanceMatrixNames = configuration.beelineDistanceMatrices().values().stream();
+        Stream<String> beelineDistanceMatrixNames = configuration.beelineModeDistanceMatrices().values().stream();
+
+        Stream<String> netDistanceMatrixNames = configuration.modeDistanceMatrices().values().stream();
 
         Stream<String> travelTimeMatrixNames = configuration.matrixMaps()
                 .stream()
@@ -79,7 +81,8 @@ public class MatrixBeanFactory {
                 .map(MatrixMapEntry::matrixName);
 
 
-        Set<String> matrixNames = Stream.concat(distanceMatrixNames, travelTimeMatrixNames)
+        Set<String> matrixNames = Stream.of(beelineDistanceMatrixNames, netDistanceMatrixNames, travelTimeMatrixNames)
+                .flatMap(matrixName -> matrixName)
                 .collect(Collectors.toSet());
 
         for (String matrixName : matrixNames) {
@@ -127,12 +130,33 @@ public class MatrixBeanFactory {
      *                                  with the specified name has been configured for a specific mode.
      */
     @Bean("modeBeelineDistanceMatrices")
-    public Map<TPS_Mode, IntMatrix> beelineDistanceMatrices(Modes modes, Map<String, IntMatrix> matrices,
-                                                            @Qualifier("modeBeelineDistanceMatrixMappings") Map<String, String> blMatrixMappings) {
+    public Map<TPS_Mode, IntMatrix> beelineDistanceMatrices(Modes modes,
+                                                            Map<String, IntMatrix> matrices,
+                                                            @Qualifier("beelineModeDistanceMatrixMappings") Map<String, String> blMatrixMappings) {
 
-        Map<TPS_Mode,  IntMatrix> beelineDistanceMatrices = new HashMap<>();
+        Map<TPS_Mode,  IntMatrix> beelineDistanceMatrices = buildModeMatrices(modes, matrices, blMatrixMappings);
+        validateAllModesConfiguredOrThrow(modes, beelineDistanceMatrices.keySet());
 
-        for(Map.Entry<String,String> blMatrixMapping : blMatrixMappings.entrySet()){
+        return beelineDistanceMatrices;
+    }
+
+    @Bean("modeDistanceMatrices")
+    public Map<TPS_Mode, IntMatrix> modeDistanceMatrices(Modes modes,
+                                                         Map<String, IntMatrix> matrices,
+                                                         @Qualifier("modeDistanceMatrixMappings") Map<String, String> distanceMatrixMappings){
+
+        Map<TPS_Mode, IntMatrix> modeDistanceMatrices = buildModeMatrices(modes, matrices, distanceMatrixMappings);
+        validateAllModesConfiguredOrThrow(modes, modeDistanceMatrices.keySet());
+
+        return modeDistanceMatrices;
+    }
+
+    public Map<TPS_Mode, IntMatrix> buildModeMatrices(Modes modes, Map<String, IntMatrix> matrices,
+                                                      Map<String, String> modeNameToMatrixNameMapping) {
+
+        Map<TPS_Mode, IntMatrix> modeMatrices = new HashMap<>();
+
+        for(Map.Entry<String,String> blMatrixMapping : modeNameToMatrixNameMapping.entrySet()){
             String modeName = blMatrixMapping.getKey();
             String matrixName = blMatrixMapping.getValue();
 
@@ -145,12 +169,10 @@ public class MatrixBeanFactory {
             if (matrix == null) {
                 throw new IllegalArgumentException("No matrix with name " + matrixName + " has been configured for mode: " + modeName + ".");
             }
-            beelineDistanceMatrices.put(mode, matrix);
+            modeMatrices.put(mode, matrix);
         }
 
-        validateAllModesConfiguredOrThrow(modes, beelineDistanceMatrices.keySet());
-
-        return beelineDistanceMatrices;
+        return modeMatrices;
     }
 
     /**
@@ -171,9 +193,20 @@ public class MatrixBeanFactory {
      * @param matrixConfiguration The MatrixConfiguration object that contains the matrices source and matrix map configurations.
      * @return A map of mode names to beeline distance matrix names.
      */
-    @Bean("modeBeelineDistanceMatrixMappings")
+    @Bean("beelineModeDistanceMatrixMappings")
     public Map<String, String> modeBeelineDistanceMatrixMappings(MatrixConfiguration matrixConfiguration){
-        return matrixConfiguration.beelineDistanceMatrices();
+        return matrixConfiguration.beelineModeDistanceMatrices();
+    }
+
+    /**
+     * Retrieves the mode distance matrix mappings based on the provided MatrixConfiguration.
+     *
+     * @param matrixConfiguration The MatrixConfiguration object that contains the mode distance matrix configurations.
+     * @return A map of mode names to their corresponding distance matrix names.
+     */
+    @Bean("modeDistanceMatrixMappings")
+    public Map<String, String> modeDistanceMatrixMappings(MatrixConfiguration matrixConfiguration){
+        return matrixConfiguration.modeDistanceMatrices();
     }
 
     /**

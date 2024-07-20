@@ -2,14 +2,11 @@ package de.dlr.ivf.tapas;
 
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
 import de.dlr.ivf.tapas.configuration.spring.*;
 import de.dlr.ivf.tapas.simulation.SimulationRunner;
 import de.dlr.ivf.tapas.simulation.choice.location.LocationChoiceSetBuilder;
-import de.dlr.ivf.tapas.simulation.implementation.HouseholdProcessor;
-import de.dlr.ivf.tapas.simulation.implementation.PersonProcessor;
-import de.dlr.ivf.tapas.simulation.runner.TripPriorityRunner;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import java.io.IOException;
@@ -62,7 +59,7 @@ public class TapasLauncher{
 
             SimulationRunner runner = applicationContext.getBean(simulationRunnerName, SimulationRunner.class);
             //SchemeProvider schemeProvider = applicationContext.getBean("schemeProvider", SchemeProvider.class);
-            //TravelTimeCalculator travelTimeCalculator = applicationContext.getBean(TravelTimeCalculator.class);
+            TravelTimeCalculator travelTimeCalculator = applicationContext.getBean(TravelTimeCalculator.class);
             LocationChoiceSetBuilder locationChoiceSetBuilder = applicationContext.getBean(LocationChoiceSetBuilder.class);
 
 

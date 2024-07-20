@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
+import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
 import de.dlr.ivf.tapas.model.TPS_AttributeReader;
@@ -98,7 +99,7 @@ public class LocationSelector {
         }
 
         // Get distance from home The MIV-mode is used to get distances on the net.
-        locatedStay.setDistance(distanceCalculator.getDistance(plan.getLocatedStay(comingFrom).getLocation(), locatedStay.getLocation(), ModeType.MIT));
+        //locatedStay.setDistance(distanceCalculator.getDistance(plan.getLocatedStay(comingFrom).getLocation(), locatedStay.getLocation(), ModeType.MIT));
 
         return locatedStay;
     }

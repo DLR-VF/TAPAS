@@ -8,12 +8,11 @@
 
 package de.dlr.ivf.tapas.legacy;
 
-import de.dlr.ivf.tapas.choice.TravelDistanceCalculator;
-import de.dlr.ivf.tapas.choice.TravelTimeCalculator;
+import de.dlr.ivf.tapas.choice.distance.providers.TravelDistanceCalculator;
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.choice.traveltime.functions.SimpleTravelTimeFunction;
 import de.dlr.ivf.tapas.mode.ModeDistributionCalculator;
 import de.dlr.ivf.tapas.model.mode.Modes;
-import de.dlr.ivf.tapas.model.constants.TPS_ActivityConstant;
 import de.dlr.ivf.tapas.model.location.TPS_TrafficAnalysisZone;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode;
 import de.dlr.ivf.tapas.model.mode.TPS_Mode.ModeType;
@@ -169,7 +168,7 @@ public class TPS_UtilityMNLFullComplex extends TPS_UtilityMNL {
         double[] parameters = this.parameterMap.get(mode);
 
         double expInterChanges = 0;
-        double distanceNet = distanceCalculator.getDistance(mcc.fromStayLocation, mcc.toStayLocation, ModeType.MIT); //correct the distance to the actual value!
+        double distanceNet = distanceCalculator.getDistance(mode, mcc.fromStayLocation, mcc.toStayLocation); //correct the distance to the actual value!
 
         switch (mode.getModeType()) {
             case WALK:

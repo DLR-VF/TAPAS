@@ -1,5 +1,6 @@
 package de.dlr.ivf.tapas.choice;
 
+import de.dlr.ivf.tapas.choice.traveltime.providers.TravelTimeCalculator;
 import de.dlr.ivf.tapas.logger.legacy.HierarchyLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.SeverityLogLevel;
 import de.dlr.ivf.tapas.logger.legacy.TPS_Logger;
@@ -7,7 +8,6 @@ import de.dlr.ivf.tapas.mode.cost.MNLFullComplexContext;
 import de.dlr.ivf.tapas.mode.cost.MNLFullComplexFunction;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistribution;
 import de.dlr.ivf.tapas.model.choice.DiscreteDistributionFactory;
-import de.dlr.ivf.tapas.model.choice.DiscreteProbability;
 import de.dlr.ivf.tapas.model.choice.ModeChoiceContext;
 import de.dlr.ivf.tapas.model.distribution.TPS_DiscreteDistribution;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
