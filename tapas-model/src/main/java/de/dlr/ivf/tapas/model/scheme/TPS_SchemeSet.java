@@ -26,7 +26,6 @@ import java.util.*;
  * weighted by distributions created for different person groups.
  */
 @LogHierarchy(hierarchyLogLevel = HierarchyLogLevel.PLAN)
-@Component
 public class TPS_SchemeSet implements Iterable<TPS_Scheme>, ExtendedWritable {
     /// Collection of scheme class distributions mapped by the person group
     private final SortedMap<TPS_PersonGroup, TPS_DiscreteDistribution<Integer>> distributionMap;

@@ -35,6 +35,12 @@ public class CarBeanFactory {
     }
 
     @Lazy
+    @Bean("noVehicle")
+    public Vehicle noVehicle(){
+        return new NoVehicle();
+    }
+
+    @Lazy
     @Bean
     public Cars initCars(Collection<CarDto> carDtos, FuelTypes fuelTypes){
 

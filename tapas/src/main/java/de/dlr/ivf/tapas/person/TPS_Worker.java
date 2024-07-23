@@ -24,7 +24,6 @@ import de.dlr.ivf.tapas.model.plan.TPS_Plan;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanEnvironment;
 import de.dlr.ivf.tapas.model.plan.TPS_PlanningContext;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.persistence.TPS_PersistenceManager;
 import de.dlr.ivf.tapas.model.scheme.TPS_Scheme;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;

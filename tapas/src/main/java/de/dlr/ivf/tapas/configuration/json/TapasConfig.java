@@ -7,10 +7,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import de.dlr.ivf.api.io.configuration.ConnectionDetails;
 import de.dlr.ivf.tapas.configuration.json.acceptance.PlanEVA1AcceptanceConfig;
 import de.dlr.ivf.tapas.configuration.json.agent.HouseholdConfiguration;
+import de.dlr.ivf.tapas.configuration.json.locationchoice.LocationChoiceConfiguration;
+import de.dlr.ivf.tapas.configuration.json.modechoice.ModeChoiceConfiguration;
 import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.ChronologicalRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
 
+import de.dlr.ivf.tapas.configuration.json.trafficgeneration.SchemeProviderConfiguration;
 import de.dlr.ivf.tapas.configuration.json.util.TravelTimeConfiguration;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
@@ -75,4 +78,13 @@ public class TapasConfig {
 
     @JsonProperty
     private TravelTimeConfiguration travelTimeCalculator;
+
+    @JsonProperty
+    private SchemeProviderConfiguration schemeProviderConfiguration;
+
+    @JsonProperty
+    private LocationChoiceConfiguration locationChoiceConfiguration;
+
+    @JsonProperty
+    private ModeChoiceConfiguration modeChoiceConfiguration;
 }

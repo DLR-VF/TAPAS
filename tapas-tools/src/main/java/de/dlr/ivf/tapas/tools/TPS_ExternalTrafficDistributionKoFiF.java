@@ -1202,7 +1202,7 @@ public class TPS_ExternalTrafficDistributionKoFiF{
 //                double time = TPS_Geometrics.getDistance(lonStart, latStart,
 //                        lonEnd, latEnd);
 //                time *= 1.2 / 7.7777; //1.2 ist der umwegefaktor, 28kmh= 7.7777m/s;
-//                Vehicle tmp;
+
 //                double vID, sum;
 //                int v;
 //                for (int i = 0; i < p.volume; ++i) {

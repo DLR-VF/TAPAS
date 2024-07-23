@@ -8,7 +8,6 @@ import de.dlr.ivf.tapas.model.plan.TPS_PlanEnvironment;
 import de.dlr.ivf.tapas.model.scheme.TPS_SchemePart;
 import de.dlr.ivf.tapas.model.scheme.TPS_TourPart;
 import de.dlr.ivf.tapas.model.vehicle.TPS_Car;
-import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import de.dlr.ivf.tapas.simulation.Processor;
 
 import java.util.*;

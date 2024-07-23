@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Builder
-public class CarImpl implements TPS_Car{
+public class CarImpl implements TPS_Car, Vehicle{
 
     /**N
      * this fuel type
@@ -130,9 +130,7 @@ public class CarImpl implements TPS_Car{
         return this.fuelType;
     }
 
-    /**
-     * @return the restricted
-     */
+    @Override
     public boolean isRestricted() {
         return restricted;
     }

@@ -1022,7 +1022,7 @@ public class TPS_ExternalTrafficDistribution {
 //                double time = TPS_Geometrics.getDistance(d.coordDestination.getValue(0), d.coordDestination.getValue(1),
 //                        o.coordSource.getValue(0), o.coordSource.getValue(1));
 //                time *= 1.4 / 7.7777; //1.4 ist der umwegefaktor, 28kmh= 7.7777m/s;
-//                Vehicle tmp;
+
 //                double vID, sum;
 //                int v;
 //                for (int i = 0; i < p.volume; ++i) {

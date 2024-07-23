@@ -5,10 +5,12 @@ import de.dlr.ivf.tapas.configuration.json.SimulationRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.TapasConfig;
 import de.dlr.ivf.tapas.configuration.json.acceptance.PlanEVA1AcceptanceConfig;
 import de.dlr.ivf.tapas.configuration.json.agent.HouseholdConfiguration;
+import de.dlr.ivf.tapas.configuration.json.locationchoice.LocationChoiceConfiguration;
+import de.dlr.ivf.tapas.configuration.json.modechoice.ModeChoiceConfiguration;
 import de.dlr.ivf.tapas.configuration.json.region.RegionConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.ChronologicalRunnerConfiguration;
 import de.dlr.ivf.tapas.configuration.json.runner.TripPriorityRunnerConfiguration;
-import de.dlr.ivf.tapas.configuration.json.trafficgeneration.TrafficGenerationConfiguration;
+import de.dlr.ivf.tapas.configuration.json.trafficgeneration.SchemeProviderConfiguration;
 import de.dlr.ivf.tapas.configuration.json.util.TravelTimeConfiguration;
 import de.dlr.ivf.tapas.model.plan.acceptance.TPS_PlanEVA1Acceptance;
 import de.dlr.ivf.tapas.persistence.db.TPS_DB_IO;
@@ -52,15 +54,24 @@ public class TapasFactory {
     }
 
     @Bean(name = "chronologicalRunner")
-    public ChronologicalRunner chronologicalRunner(ChronologicalRunnerConfiguration configuration){
+    public ChronologicalRunner chronologicalRunner(){
         return new ChronologicalRunner();
     }
 
-    @Bean(name = "trafficGenerationConfiguration")
-    public TrafficGenerationConfiguration trafficGenerationConfiguration() {
-        SimulationRunnerConfiguration runnerConfiguration = tapasConfig.getSimulationRunnerConfiguration();
+    @Bean(name = "schemeProviderConfiguration")
+    public SchemeProviderConfiguration schemeProviderConfiguration() {
 
-        return runnerConfiguration.getTrafficGenerationConfiguration();
+        return tapasConfig.getSchemeProviderConfiguration();
+    }
+
+    @Bean
+    public ModeChoiceConfiguration modeChoiceConfiguration(){
+        return tapasConfig.getModeChoiceConfiguration();
+    }
+
+    @Bean
+    public LocationChoiceConfiguration locationChoiceConfiguration(){
+        return tapasConfig.getLocationChoiceConfiguration();
     }
 
     @Bean(name = "abstractSimulationRunner")

@@ -1,20 +1,7 @@
 package de.dlr.ivf.tapas.model.vehicle;
 
-import de.dlr.ivf.tapas.model.parameter.SimulationType;
-
+//todo temporary and should be extended for multiple entities like Bike / E-Bike / Car / E-Car...
 public interface Vehicle {
 
-    double costPerKilometer();
-
-    double variableCostPerKilometer();
-
-    int id();
-
-    FuelType fuelType();
-
     boolean isRestricted();
-
-    int getAutomationLevel();
-
-    double getRangeLeft();
 }

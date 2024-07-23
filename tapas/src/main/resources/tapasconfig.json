@@ -340,138 +340,7 @@
   "simulationRunnerToUse" : "tripPriorityRunner",
   "simulationRunnerConfiguration" : {
     "workerCount" : 8,
-    "trafficGenerationConfiguration" : {
-      "schemeProviderConfiguration" : {
-        "schemeClassChoiceSeed" : 1234,
-        "schemeChoiceSeed" : 1234,
-        "timeSlotLength" : 60,
-        "tripActivityCode" : 80,
-        "homeActivityCode" : 10,
-        "schemeClasses": {
-          "uri": "core.global_scheme_classes",
-          "filterBy": {
-            "column": "key",
-            "value": "default"
-          }
-        },
-        "schemes": {
-          "uri": "core.global_schemes",
-          "filterBy": {
-            "column": "key",
-            "value": "default"
-          }
-        },
-        "episodes": {
-          "uri": "core.global_episodes",
-          "filterBy": {
-            "column": "key",
-            "value": "default"
-          }
-        },
-        "schemeClassDistributions": {
-          "uri": "core.global_scheme_class_distributions",
-          "filterBy": {
-            "column": "name",
-            "value": "MID_2008_TBG_7_Di-Do"
-          }
-        },
-        "activities": {
-          "uri": "core.global_activity_codes"
-        },
-        "personGroups": {
-          "uri": "core.global_person_codes_new_new",
-          "filterBy": {
-            "column": "key",
-            "value": "TAPAS"
-          }
-        }
-      }
-    },
-    "maxTriesSchemeSelection" : 3,
-    "locationChoiceConfiguration" : {
-
-    },
-    "modeChoiceConfiguration": {
-      "modesConfiguration": {
-        "modes": {
-          "uri": "core.global_mode_codes"
-        },
-        "modeParameters": [
-          {
-            "name": "MIT",
-            "beelineFactor": 1.4,
-            "costPerKm": 0.116,
-            "costPerKmBase": 0,
-            "velocity": 8,
-            "useBase": false,
-            "variableCostPerKm": 0,
-            "variableCostPerKmBase": 0
-          },
-          {
-            "name": "MIT_PASS",
-            "beelineFactor": 1.4,
-            "costPerKm": 0,
-            "costPerKmBase": 0,
-            "velocity": 8,
-            "useBase": false,
-            "variableCostPerKm": 0,
-            "variableCostPerKmBase": 0
-          },
-          {
-            "name": "WALK",
-            "beelineFactor": 1.4,
-            "costPerKm": 0,
-            "costPerKmBase": 0,
-            "velocity": 1.3,
-            "useBase": false,
-            "variableCostPerKm": 0,
-            "variableCostPerKmBase": 0
-          },
-          {
-            "name": "BIKE",
-            "beelineFactor": 1.4,
-            "costPerKm": 0,
-            "costPerKmBase": 0,
-            "velocity": 5,
-            "useBase": false,
-            "variableCostPerKm": 0,
-            "variableCostPerKmBase": 0
-          },
-          {
-            "name": "PT",
-            "beelineFactor": 1.4,
-            "costPerKm": 2.1,
-            "costPerKmBase": 2.1,
-            "velocity": 8,
-            "useBase": false,
-            "variableCostPerKm": 0,
-            "variableCostPerKmBase": 0
-          },
-          {
-            "name": "CAR_SHARING",
-            "beelineFactor": 1.4,
-            "costPerKm": 2.1,
-            "costPerKmBase": 2.1,
-            "velocity": 8,
-            "useBase": false,
-            "variableCostPerKm": 0,
-            "variableCostPerKmBase": 0
-          },
-          {
-            "name": "TAXI",
-            "beelineFactor": 1.4,
-            "costPerKm": 2.4,
-            "costPerKmBase": 2.4,
-            "velocity": 8,
-            "useBase": false,
-            "variableCostPerKm": 0,
-            "variableCostPerKmBase": 0
-          }
-        ],
-        "carSharingCheckOutPenalty" : 300,
-        "carSharingAccessAddon" : 180
-      }
-    }
+    "maxTriesSchemeSelection" : 3
   },
   "planAcceptance" : {
     "eBottomFinance" : 7.0,
@@ -483,5 +352,136 @@
     "eBottomOverallTime" : 7.0,
     "fTopOverallTime" : 10.0,
     "turningPointMaxTime" : 0.5
+  },
+  "schemeProviderConfiguration" : {
+    "schemeClassChoiceSeed" : 1234,
+    "schemeChoiceSeed" : 1234,
+    "timeSlotLength" : 60,
+    "tripActivityCode" : 80,
+    "homeActivityCode" : 10,
+    "schemeClasses": {
+      "uri": "core.global_scheme_classes",
+      "filterBy": {
+        "column": "key",
+        "value": "default"
+      }
+    },
+    "schemes": {
+      "uri": "core.global_schemes",
+      "filterBy": {
+        "column": "key",
+        "value": "default"
+      }
+    },
+    "episodes": {
+      "uri": "core.global_episodes",
+      "filterBy": {
+        "column": "key",
+        "value": "default"
+      }
+    },
+    "schemeClassDistributions": {
+      "uri": "core.global_scheme_class_distributions",
+      "filterBy": {
+        "column": "name",
+        "value": "MID_2008_TBG_7_Di-Do"
+      }
+    },
+    "activities": {
+      "uri": "core.global_activity_codes"
+    },
+    "personGroups": {
+      "uri": "core.global_person_codes_new_new",
+      "filterBy": {
+        "column": "key",
+        "value": "TAPAS"
+      }
+    }
+  },
+  "locationChoiceConfiguration" : {
+    "numTazRepresentatives" : 4,
+    "modeForDistance" : "WALK",
+    "maxTriesLocationSelection" : 3
+  },
+  "modeChoiceConfiguration": {
+    "modesConfiguration": {
+      "modes": {
+        "uri": "core.global_mode_codes"
+      },
+      "modeParameters": [
+        {
+          "name": "MIT",
+          "beelineFactor": 1.4,
+          "costPerKm": 0.116,
+          "costPerKmBase": 0,
+          "velocity": 8,
+          "useBase": false,
+          "variableCostPerKm": 0,
+          "variableCostPerKmBase": 0
+        },
+        {
+          "name": "MIT_PASS",
+          "beelineFactor": 1.4,
+          "costPerKm": 0,
+          "costPerKmBase": 0,
+          "velocity": 8,
+          "useBase": false,
+          "variableCostPerKm": 0,
+          "variableCostPerKmBase": 0
+        },
+        {
+          "name": "WALK",
+          "beelineFactor": 1.4,
+          "costPerKm": 0,
+          "costPerKmBase": 0,
+          "velocity": 1.3,
+          "useBase": false,
+          "variableCostPerKm": 0,
+          "variableCostPerKmBase": 0
+        },
+        {
+          "name": "BIKE",
+          "beelineFactor": 1.4,
+          "costPerKm": 0,
+          "costPerKmBase": 0,
+          "velocity": 5,
+          "useBase": false,
+          "variableCostPerKm": 0,
+          "variableCostPerKmBase": 0
+        },
+        {
+          "name": "PT",
+          "beelineFactor": 1.4,
+          "costPerKm": 2.1,
+          "costPerKmBase": 2.1,
+          "velocity": 8,
+          "useBase": false,
+          "variableCostPerKm": 0,
+          "variableCostPerKmBase": 0
+        },
+        {
+          "name": "CAR_SHARING",
+          "beelineFactor": 1.4,
+          "costPerKm": 2.1,
+          "costPerKmBase": 2.1,
+          "velocity": 8,
+          "useBase": false,
+          "variableCostPerKm": 0,
+          "variableCostPerKmBase": 0
+        },
+        {
+          "name": "TAXI",
+          "beelineFactor": 1.4,
+          "costPerKm": 2.4,
+          "costPerKmBase": 2.4,
+          "velocity": 8,
+          "useBase": false,
+          "variableCostPerKm": 0,
+          "variableCostPerKmBase": 0
+        }
+      ],
+      "carSharingCheckOutPenalty" : 300,
+      "carSharingAccessAddon" : 180
+    }
   }
 }

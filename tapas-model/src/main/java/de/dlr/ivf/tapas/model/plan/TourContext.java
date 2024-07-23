@@ -3,10 +3,11 @@ package de.dlr.ivf.tapas.model.plan;
 import de.dlr.ivf.tapas.model.location.TPS_Location;
 import de.dlr.ivf.tapas.model.scheme.Stay;
 import de.dlr.ivf.tapas.model.scheme.Tour;
+import de.dlr.ivf.tapas.model.vehicle.ModeVehicleContext;
+import de.dlr.ivf.tapas.model.vehicle.Vehicle;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The TourContext class represents the context of a tour, which includes information such as the tour itself,
@@ -19,6 +20,9 @@ public class TourContext {
     private final Map<Stay, TPS_Location> stayToLocationMap;
     private final Map<Stay, Integer> cumulativeTravelDurations;
     private final int totalTravelDuration;
+    private final List<ModeVehicleContext> fixModeAndVehicle;
+    private final Map<Stay, ModeVehicleContext> stayToModeMap;
+    private final Vehicle defaultVehicle;
 
     @Getter
     private final Tour tour;
@@ -30,12 +34,15 @@ public class TourContext {
      * @param cumulativeTravelDurations A mapping of cumulative travel times to each stay
      * @param totalTravelDuration The total travel time of the tour
      */
-    public TourContext(Tour tour, Map<Stay, Integer> cumulativeTravelDurations, int totalTravelDuration){
+    public TourContext(Tour tour, Map<Stay, Integer> cumulativeTravelDurations, int totalTravelDuration, Vehicle defaultVehicle){
 
         stayToLocationMap = new HashMap<>();
         this.tour = tour;
         this.cumulativeTravelDurations = cumulativeTravelDurations;
         this.totalTravelDuration = totalTravelDuration;
+        this.fixModeAndVehicle = new ArrayList<>(1);
+        this.stayToModeMap = new HashMap<>();
+        this.defaultVehicle = defaultVehicle;
     }
 
     /**
@@ -57,6 +64,29 @@ public class TourContext {
      */
     public TPS_Location getLocationForStay(Stay stay){
         return stayToLocationMap.get(stay);
+    }
+
+    /**
+     * Adds a mode vehicle context for a given stay.
+     *
+     * @param stay The stay for which to add the mode vehicle context
+     * @param modeVehicleContext The mode vehicle context to add
+     */
+    public void addModeForStay(Stay stay, ModeVehicleContext modeVehicleContext){
+        if(modeVehicleContext.usesBoundMode() && fixModeAndVehicle.isEmpty()){
+            fixModeAndVehicle.add(modeVehicleContext);
+        }
+        stayToModeMap.put(stay, modeVehicleContext);
+    }
+
+    /**
+     * Retrieves the vehicle that is bound to this tour or null if no bound vehicle has been used.
+     *
+     * @return The vehicle that is bound to this tour or null if not present.
+     */
+    public Vehicle getBoundVehicle(){
+
+        return fixModeAndVehicle.isEmpty() ? defaultVehicle : fixModeAndVehicle.getFirst().vehicle();
     }
 
 
