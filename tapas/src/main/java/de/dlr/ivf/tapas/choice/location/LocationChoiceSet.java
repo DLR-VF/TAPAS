@@ -1,21 +1,21 @@
 package de.dlr.ivf.tapas.choice.location;
 
-import de.dlr.ivf.tapas.model.location.TPS_Location;
+import de.dlr.ivf.tapas.model.location.WeightedLocation;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class LocationChoiceSet {
 
-    private final Collection<TPS_Location> locationSet;
+    private final Collection<WeightedLocation> locationSet;
 
     public LocationChoiceSet(int maxLocationChoiceSetSize) {
 
         this.locationSet = new ArrayList<>(maxLocationChoiceSetSize);
     }
 
-    public void addLocation(TPS_Location location){
-        this.locationSet.add(location);
+    public void addWeightedLocation(WeightedLocation weightedLocation){
+        this.locationSet.add(weightedLocation);
     }
 
     public int size(){

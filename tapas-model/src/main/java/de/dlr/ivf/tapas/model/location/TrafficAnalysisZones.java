@@ -17,6 +17,7 @@ public class TrafficAnalysisZones {
 
     public void addTrafficAnalysisZone(int tazId, TPS_TrafficAnalysisZone trafficAnalysisZone){
         tazMap.put(tazId, trafficAnalysisZone);
+        trafficAnalysisZones.add(trafficAnalysisZone);
     }
 
     public TPS_TrafficAnalysisZone getTrafficAnalysisZoneById(int tazId){
