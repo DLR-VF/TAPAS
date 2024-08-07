@@ -263,6 +263,15 @@ public enum ParamString {
     DB_NAME_MATRIX_TT_PT_BASE,
 
     /**
+     * Name of the travel time Demand Responsive Transport table
+     */
+    DB_NAME_MATRIX_TT_DRT,
+
+    /**
+     * Name of the travel time Demand Responsive Transport table for base scenario
+     */
+    DB_NAME_MATRIX_TT_DRT_BASE,
+    /**
      * Name of the mode choice tree to use from the mode choice tree table
      */
     DB_NAME_MCT,

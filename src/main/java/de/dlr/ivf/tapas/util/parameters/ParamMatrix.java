@@ -40,6 +40,11 @@ public enum ParamMatrix {
      */
     DISTANCES_PT,
     /**
+     * matrix containing the distances on the train net for each pair of
+     * tvz
+     */
+    DISTANCES_DRT,
+    /**
      * matrix containing the distances of the beelines
      * tvz
      */

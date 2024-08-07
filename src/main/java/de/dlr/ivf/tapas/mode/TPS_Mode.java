@@ -241,7 +241,7 @@ public abstract class TPS_Mode {
                 this.velocity = ParamValue.VELOCITY_CAR;
                 this.cost_per_km = this.parameterClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM);
                 this.cost_per_km_base = this.parameterClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM_BASE);
-                this.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
+                this.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_DRT_BASE);
                 break;
             case PT:
                 this.velocity = ParamValue.VELOCITY_TRAIN;

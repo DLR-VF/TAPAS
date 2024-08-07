@@ -69,6 +69,8 @@ public class ParamStringClass {
         this.paramStrings.put(ParamString.DB_NAME_MATRIX_TT_MIT_BASE, new MutablePair<>(ParamType.DB, null));
         this.paramStrings.put(ParamString.DB_NAME_MATRIX_TT_PT, new MutablePair<>(ParamType.DB, null));
         this.paramStrings.put(ParamString.DB_NAME_MATRIX_TT_PT_BASE, new MutablePair<>(ParamType.DB, null));
+        this.paramStrings.put(ParamString.DB_NAME_MATRIX_TT_DRT, new MutablePair<>(ParamType.DB, null));
+        this.paramStrings.put(ParamString.DB_NAME_MATRIX_TT_DRT_BASE, new MutablePair<>(ParamType.DB, null));
         this.paramStrings.put(ParamString.DB_NAME_MCT, new MutablePair<>(ParamType.DB, null));
         this.paramStrings.put(ParamString.DB_NAME_SCHEME_CLASS_DISTRIBUTION, new MutablePair<>(ParamType.DB, null));
         this.paramStrings.put(ParamString.DB_NAME_TAZ_SCORES, new MutablePair<>(ParamType.DB, null));

@@ -591,7 +591,7 @@ public class TPS_Main  implements Callable<Integer> {
         mode.velocity = ParamValue.VELOCITY_CAR;
         mode.cost_per_km = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM);
         mode.cost_per_km_base = this.parameterClass.paramValueClass.getDoubleValue(ParamValue.TAXI_COST_PER_KM_BASE);
-        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_MIT_BASE);
+        mode.useBase = this.parameterClass.isDefined(ParamString.DB_NAME_MATRIX_TT_DRT_BASE);
 
         mode = TPS_Mode.get(ModeType.PT);
         mode.velocity = ParamValue.VELOCITY_TRAIN;

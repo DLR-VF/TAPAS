@@ -118,6 +118,12 @@ public enum ParamMatrixMap {
 
     /**
      * matrixMap containing the travel times for each pair of tvz in the
+     * base/scenario Mode: DRT
+     */
+    TRAVEL_TIME_DRT,
+
+    /**
+     * matrixMap containing the travel times for each pair of tvz in the
      * base/scenario Mode: Walk
      */
     TRAVEL_TIME_WALK,

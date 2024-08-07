@@ -47,6 +47,7 @@ public class ParamMatrixMapClass {
         this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_MIT,
                 new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_PT, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
+        this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_DRT, new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_WALK,
                 new MutablePair<>(ParamType.DEFAULT, new MatrixMap[2]));
         this.paramMatrixMaps.put(ParamMatrixMap.TRAVEL_TIME_BIKE,

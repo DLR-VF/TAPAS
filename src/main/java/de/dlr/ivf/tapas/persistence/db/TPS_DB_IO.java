@@ -1234,6 +1234,13 @@ public class TPS_DB_IO {
                         SimulationType.SCENARIO, sIndex);
             }
         }
+        //drt
+        //TODO: add access time and egress time for the drt mode and a rejectionrate
+        if (this.PM.getParameters().isDefined(ParamString.DB_NAME_MATRIX_TT_DRT)) {
+            this.readMatrix(ParamString.DB_NAME_MATRIX_TT_DRT, ParamMatrixMap.TRAVEL_TIME_DRT, SimulationType.SCENARIO,
+                    sIndex);
+        }
+
         if (this.PM.getParameters().isDefined(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ)) {
             this.readMatrix(ParamString.DB_NAME_PTBIKE_ACCESS_TAZ, ParamMatrixMap.PTBIKE_ACCESS_TAZ,
                     SimulationType.SCENARIO, sIndex);

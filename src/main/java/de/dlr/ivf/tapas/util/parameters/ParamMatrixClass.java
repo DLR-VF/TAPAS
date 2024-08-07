@@ -26,6 +26,7 @@ public class ParamMatrixClass {
         this.paramMatrix.put(ParamMatrix.DISTANCES_WALK, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
         this.paramMatrix.put(ParamMatrix.DISTANCES_BIKE, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
         this.paramMatrix.put(ParamMatrix.DISTANCES_PT, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
+        this.paramMatrix.put(ParamMatrix.DISTANCES_DRT, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
         this.paramMatrix.put(ParamMatrix.DISTANCES_BL, new MutablePair<>(ParamType.DEFAULT, new Matrix[1]));
     }
 

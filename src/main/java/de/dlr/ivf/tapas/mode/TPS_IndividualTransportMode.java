@@ -111,8 +111,15 @@ public class TPS_IndividualTransportMode extends TPS_Mode {
             if (this.getParameters().isTrue(ParamFlag.FLAG_INTRA_INFOS_MATRIX)) {
                 // If there exists travel times inside a traffic analysis zone
                 // this value is used.
-                tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_MIT, idStart, idDest,
-                        simType, time);
+                if (this.getName().equals("TAXI")) {
+                    tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_DRT, idStart, idDest,
+                            simType, time);
+                }else{
+                    tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_MIT, idStart, idDest,
+                            simType, time);
+
+                }
+
                 if (tt < 0) { // no connection via MIT!
                     tt = beelineDistanceLoc * this.getParameters().getDoubleValue(ModeType.WALK.getBeelineFactor()) /
                             this.getParameters().getDoubleValue(get(ModeType.WALK).getVelocity());
@@ -139,13 +146,20 @@ public class TPS_IndividualTransportMode extends TPS_Mode {
             // The travel time is calculated by the travel
             // time from a table and a factor retrieved by the beeline and the
             // real distance.
-            tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_MIT, idStart, idDest,
-                    simType, time);
-            // if TAZes are different use beeline factor
-            if (idStart != idDest) {
+
+            if (this.getName().equals("TAXI")){
+                tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_DRT, idStart, idDest,
+                        simType, time);
+            }else{
+                tt = this.getParameters().paramMatrixMapClass.getValue(ParamMatrixMap.TRAVEL_TIME_MIT, idStart, idDest,
+                        simType, time);
+
+            }
+
+
                 tt *= beelineDistanceLoc / this.getParameters().paramMatrixClass.getValue(ParamMatrix.DISTANCES_BL,
                         idStart, idDest);
-            }
+
         }
 
         if (car != null && car.getAutomationLevel() >= this.getParameters().getIntValue(
